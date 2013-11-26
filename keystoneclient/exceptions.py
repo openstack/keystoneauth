@@ -20,3 +20,12 @@ Exception definitions.
 
 #flake8: noqa
 from keystoneclient.apiclient.exceptions import *
+
+
+class CertificateConfigError(Exception):
+    """Error reading the certificate"""
+    def __init__(self, output):
+        self.output = output
+        msg = ("Unable to load certificate. "
+               "Ensure your system is configured properly.")
+        super(CertificateConfigError, self).__init__(msg)
