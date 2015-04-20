@@ -13,7 +13,7 @@
 """The passive components to version discovery.
 
 The Discover object in discover.py contains functions that can create objects
-on your behalf. These functions are not usable from within the keystoneclient
+on your behalf. These functions are not usable from within the keystoneauth
 library because you will get dependency resolution issues.
 
 The Discover object in this file provides the querying components of Discovery.
@@ -24,9 +24,9 @@ raw data specified in version discovery responses.
 import logging
 import re
 
-from keystoneclient import exceptions
-from keystoneclient.i18n import _, _LI, _LW
-from keystoneclient import utils
+from keystoneauth import exceptions
+from keystoneauth.i18n import _, _LI, _LW
+from keystoneauth import utils
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -316,7 +316,7 @@ _VERSION_HACKS.add_discover_hack('identity', re.compile('/v2.0/?$'), '/')
 def get_catalog_discover_hack(service_type, url):
     """Apply the catalog hacks and figure out an unversioned endpoint.
 
-    This function is internal to keystoneclient.
+    This function is internal to keystoneauth.
 
     :param str service_type: the service_type to look up.
     :param str url: The original url that came from a service_catalog.
