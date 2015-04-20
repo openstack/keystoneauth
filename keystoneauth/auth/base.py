@@ -23,7 +23,7 @@ from keystoneauth import exceptions
 # 'interface' it should return the initial URL that was passed to the plugin.
 AUTH_INTERFACE = object()
 
-PLUGIN_NAMESPACE = 'keystonauth.auth.plugin'
+PLUGIN_NAMESPACE = 'keystoneauth.auth.plugin'
 IDENTITY_AUTH_HEADER_NAME = 'X-Auth-Token'
 
 

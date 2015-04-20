@@ -17,7 +17,7 @@ import pep8
 import testtools
 
 from keystoneauth.hacking import checks
-from keystoneauth.tests.unit import client_fixtures
+from keystoneauth.tests.unit import keystoneauth_fixtures
 
 
 class TestCheckOsloNamespaceImports(testtools.TestCase):
@@ -41,7 +41,7 @@ class TestCheckOsloNamespaceImports(testtools.TestCase):
         self.assertEqual(expected_errors or [], actual_errors)
 
     def test(self):
-        code_ex = self.useFixture(client_fixtures.HackingCode())
+        code_ex = self.useFixture(keystoneauth_fixtures.HackingCode())
         code = code_ex.oslo_namespace_imports['code']
         errors = code_ex.oslo_namespace_imports['expected_errors']
         self.assert_has_errors(code, expected_errors=errors)
