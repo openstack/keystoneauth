@@ -1,7 +1,7 @@
 [run]
 branch = True
-source = keystoneclient
-omit = keystoneclient/tests/*,keystoneclient/openstack/*
+source = keystoneauth
+omit = keystoneauth/tests/*,keystoneauth/openstack/*
 
 [report]
 ignore-errors = True
