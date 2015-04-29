@@ -30,10 +30,10 @@ class ServiceCatalog(object):
     """Helper methods for dealing with a Keystone Service Catalog."""
 
     @classmethod
-    def factory(cls, resource_dict, token=None):
+    def factory(cls, resource_dict):
         """Create ServiceCatalog object given an auth token."""
         if ServiceCatalogV3.is_valid(resource_dict):
-            return ServiceCatalogV3(token, resource_dict)
+            return ServiceCatalogV3(resource_dict)
         elif ServiceCatalogV2.is_valid(resource_dict):
             return ServiceCatalogV2(resource_dict)
         else:
@@ -41,21 +41,6 @@ class ServiceCatalog(object):
 
     def _get_endpoint_region(self, endpoint):
         return endpoint.get('region_id') or endpoint.get('region')
-
-    @abc.abstractmethod
-    def get_token(self):
-        """Fetch token details from service catalog.
-
-        Returns a dictionary containing the following::
-
-        - `id`: Token's ID
-        - `expires`: Token's expiration
-        - `user_id`: Authenticated user's ID
-        - `tenant_id`: Authorized project's ID
-        - `domain_id`: Authorized domain's ID
-
-        """
-        raise NotImplementedError()
 
     @abc.abstractmethod
     def _is_endpoint_type_match(self, endpoint, endpoint_type):
@@ -282,17 +267,6 @@ class ServiceCatalogV2(ServiceCatalog):
     def get_data(self):
         return self.catalog.get('serviceCatalog')
 
-    def get_token(self):
-        token = {'id': self.catalog['token']['id'],
-                 'expires': self.catalog['token']['expires']}
-        try:
-            token['user_id'] = self.catalog['user']['id']
-            token['tenant_id'] = self.catalog['token']['tenant']['id']
-        except Exception:
-            # just leave the tenant and user out if it doesn't exist
-            pass
-        return token
-
     @utils.positional(enforcement=utils.positional.WARN)
     def get_urls(self, attr=None, filter_value=None,
                  service_type='identity', endpoint_type='publicURL',
@@ -316,9 +290,8 @@ class ServiceCatalogV3(ServiceCatalog):
     from Keystone.
     """
 
-    def __init__(self, token, resource_dict):
+    def __init__(self, resource_dict):
         super(ServiceCatalogV3, self).__init__()
-        self._auth_token = token
         self.catalog = resource_dict
 
     @classmethod
@@ -342,22 +315,6 @@ class ServiceCatalogV3(ServiceCatalog):
 
     def get_data(self):
         return self.catalog.get('catalog')
-
-    def get_token(self):
-        token = {'id': self._auth_token,
-                 'expires': self.catalog['expires_at']}
-        try:
-            token['user_id'] = self.catalog['user']['id']
-            domain = self.catalog.get('domain')
-            if domain:
-                token['domain_id'] = domain['id']
-            project = self.catalog.get('project')
-            if project:
-                token['tenant_id'] = project['id']
-        except Exception:
-            # just leave the domain, project and user out if it doesn't exist
-            pass
-        return token
 
     @utils.positional(enforcement=utils.positional.WARN)
     def get_urls(self, attr=None, filter_value=None,
