@@ -356,19 +356,6 @@ class AccessInfo(dict):
         raise NotImplementedError()
 
     @property
-    def management_url(self):
-        """Returns the first adminURL for 'identity' from the service catalog
-        associated with the authorization request, or None if the
-        authentication request wasn't scoped to a tenant (project).
-
-        DEPRECATED: this doesn't correctly handle region name. You should fetch
-        it from the service catalog yourself.
-
-        :returns: tuple of urls
-        """
-        raise NotImplementedError()
-
-    @property
     def version(self):
         """Returns the version of the auth token from identity service.
 
@@ -599,17 +586,6 @@ class AccessInfoV2(AccessInfo):
             return None
 
     @property
-    def management_url(self):
-        # FIXME(jamielennox): this is deprecated in favour of retrieving it
-        # from the service catalog. Provide a warning.
-        if self.service_catalog:
-            return self.service_catalog.get_urls(service_type='identity',
-                                                 endpoint_type='adminURL',
-                                                 region_name=self._region_name)
-        else:
-            return None
-
-    @property
     def oauth_access_token_id(self):
         return None
 
@@ -781,18 +757,6 @@ class AccessInfoV3(AccessInfo):
             return self.service_catalog.get_urls(service_type='identity',
                                                  endpoint_type='public',
                                                  region_name=self._region_name)
-        else:
-            return None
-
-    @property
-    def management_url(self):
-        # FIXME(jamielennox): this is deprecated in favour of retrieving it
-        # from the service catalog. Provide a warning.
-        if self.service_catalog:
-            return self.service_catalog.get_urls(service_type='identity',
-                                                 endpoint_type='admin',
-                                                 region_name=self._region_name)
-
         else:
             return None
 
