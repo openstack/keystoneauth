@@ -21,10 +21,27 @@ from oslo_utils import timeutils
 
 from keystoneauth.i18n import _
 from keystoneauth import service_catalog
+from keystoneauth import utils
 
 
 # gap, in seconds, to determine whether the given token is about to expire
 STALE_TOKEN_DURATION = 30
+
+
+@utils.positional()
+def create(resp=None, body=None, auth_token=None):
+    if resp and not body:
+        body = resp.json()
+
+    if 'token' in body:
+        if resp and not auth_token:
+            auth_token = resp.headers.get('X-Subject-Token')
+
+        return AccessInfoV3(auth_token, **body['token'])
+    elif 'access' in body:
+        return AccessInfoV2(**body['access'])
+
+    raise NotImplementedError(_('Unrecognized auth response'))
 
 
 class AccessInfo(dict):
@@ -33,39 +50,6 @@ class AccessInfo(dict):
     Provides helper methods for extracting useful values from that token.
 
     """
-
-    @classmethod
-    def factory(cls, resp=None, body=None, auth_token=None,
-                **kwargs):
-        """Create AccessInfo object given a successful auth response & body
-           or a user-provided dict.
-        """
-        auth_ref = None
-
-        if body is not None or len(kwargs):
-            if AccessInfoV3.is_valid(body, **kwargs):
-                if resp and not auth_token:
-                    auth_token = resp.headers['X-Subject-Token']
-                # NOTE(jamielennox): these return AccessInfo because they
-                # already have auth_token installed on them.
-                if body:
-                    return AccessInfoV3(auth_token, **body['token'])
-                else:
-                    return AccessInfoV3(auth_token, **kwargs)
-            elif AccessInfoV2.is_valid(body, **kwargs):
-                if body:
-                    auth_ref = AccessInfoV2(**body['access'])
-                else:
-                    auth_ref = AccessInfoV2(**kwargs)
-            else:
-                raise NotImplementedError(_('Unrecognized auth response'))
-        else:
-            auth_ref = AccessInfoV2(**kwargs)
-
-        if auth_token:
-            auth_ref.auth_token = auth_token
-
-        return auth_ref
 
     def __init__(self, *args, **kwargs):
         super(AccessInfo, self).__init__(*args, **kwargs)
@@ -87,16 +71,6 @@ class AccessInfo(dict):
         soon = (timeutils.utcnow() + datetime.timedelta(
                 seconds=stale_duration))
         return norm_expires < soon
-
-    @classmethod
-    def is_valid(cls, body, **kwargs):
-        """Determines if processing v2 or v3 token given a successful
-        auth body or a user-provided dict.
-
-        :returns: true if auth body matches implementing class
-        :rtype: boolean
-        """
-        raise NotImplementedError()
 
     def has_service_catalog(self):
         """Returns true if the authorization token has a service catalog.
@@ -405,15 +379,6 @@ class AccessInfoV2(AccessInfo):
             resource_dict=self,
             token=self['token']['id'])
 
-    @classmethod
-    def is_valid(cls, body, **kwargs):
-        if body:
-            return 'access' in body
-        elif kwargs:
-            return kwargs.get('version') == 'v2.0'
-        else:
-            return False
-
     def has_service_catalog(self):
         return 'serviceCatalog' in self
 
@@ -589,15 +554,6 @@ class AccessInfoV3(AccessInfo):
             token=token)
         if token:
             self.auth_token = token
-
-    @classmethod
-    def is_valid(cls, body, **kwargs):
-        if body:
-            return 'token' in body
-        elif kwargs:
-            return kwargs.get('version') == 'v3'
-        else:
-            return False
 
     def has_service_catalog(self):
         return 'catalog' in self

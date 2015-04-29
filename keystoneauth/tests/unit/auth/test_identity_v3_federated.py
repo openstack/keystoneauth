@@ -25,7 +25,7 @@ class TesterFederationPlugin(v3.FederatedBaseAuth):
     def get_unscoped_auth_ref(self, sess, **kwargs):
         # This would go and talk to an idp or something
         resp = sess.post(self.federated_token_url, authenticated=False)
-        return access.AccessInfo.factory(resp=resp, body=resp.json())
+        return access.create(resp=resp)
 
 
 class V3FederatedPlugin(utils.TestCase):
