@@ -342,20 +342,6 @@ class AccessInfo(dict):
         raise NotImplementedError()
 
     @property
-    def auth_url(self):
-        """Returns a tuple of URLs from publicURL and adminURL for the service
-        'identity' from the service catalog associated with the authorization
-        request. If the authentication request wasn't scoped to a tenant
-        (project), this property will return None.
-
-        DEPRECATED: this doesn't correctly handle region name. You should fetch
-        it from the service catalog yourself.
-
-        :returns: tuple of urls
-        """
-        raise NotImplementedError()
-
-    @property
     def version(self):
         """Returns the version of the auth token from identity service.
 
@@ -575,17 +561,6 @@ class AccessInfoV2(AccessInfo):
             return 'Default'
 
     @property
-    def auth_url(self):
-        # FIXME(jamielennox): this is deprecated in favour of retrieving it
-        # from the service catalog. Provide a warning.
-        if self.service_catalog:
-            return self.service_catalog.get_urls(service_type='identity',
-                                                 endpoint_type='publicURL',
-                                                 region_name=self._region_name)
-        else:
-            return None
-
-    @property
     def oauth_access_token_id(self):
         return None
 
@@ -748,17 +723,6 @@ class AccessInfoV3(AccessInfo):
     @property
     def trustor_user_id(self):
         return self.get('OS-TRUST:trust', {}).get('trustor_user', {}).get('id')
-
-    @property
-    def auth_url(self):
-        # FIXME(jamielennox): this is deprecated in favour of retrieving it
-        # from the service catalog. Provide a warning.
-        if self.service_catalog:
-            return self.service_catalog.get_urls(service_type='identity',
-                                                 endpoint_type='public',
-                                                 region_name=self._region_name)
-        else:
-            return None
 
     @property
     def oauth_access_token_id(self):
