@@ -35,13 +35,11 @@ class AccessInfo(dict):
     """
 
     @classmethod
-    def factory(cls, resp=None, body=None, region_name=None, auth_token=None,
+    def factory(cls, resp=None, body=None, auth_token=None,
                 **kwargs):
         """Create AccessInfo object given a successful auth response & body
            or a user-provided dict.
         """
-        # FIXME(jamielennox): Passing region_name is deprecated. Provide an
-        # appropriate warning.
         auth_ref = None
 
         if body is not None or len(kwargs):
@@ -51,15 +49,11 @@ class AccessInfo(dict):
                 # NOTE(jamielennox): these return AccessInfo because they
                 # already have auth_token installed on them.
                 if body:
-                    if region_name:
-                        body['token']['region_name'] = region_name
                     return AccessInfoV3(auth_token, **body['token'])
                 else:
                     return AccessInfoV3(auth_token, **kwargs)
             elif AccessInfoV2.is_valid(body, **kwargs):
                 if body:
-                    if region_name:
-                        body['access']['region_name'] = region_name
                     auth_ref = AccessInfoV2(**body['access'])
                 else:
                     auth_ref = AccessInfoV2(**kwargs)
@@ -76,11 +70,7 @@ class AccessInfo(dict):
     def __init__(self, *args, **kwargs):
         super(AccessInfo, self).__init__(*args, **kwargs)
         self.service_catalog = service_catalog.ServiceCatalog.factory(
-            resource_dict=self, region_name=self._region_name)
-
-    @property
-    def _region_name(self):
-        return self.get('region_name')
+            resource_dict=self)
 
     def will_expire_soon(self, stale_duration=None):
         """Determines if expiration is about to occur.
@@ -413,8 +403,7 @@ class AccessInfoV2(AccessInfo):
         self.update(version='v2.0')
         self.service_catalog = service_catalog.ServiceCatalog.factory(
             resource_dict=self,
-            token=self['token']['id'],
-            region_name=self._region_name)
+            token=self['token']['id'])
 
     @classmethod
     def is_valid(cls, body, **kwargs):
@@ -597,8 +586,7 @@ class AccessInfoV3(AccessInfo):
         self.update(version='v3')
         self.service_catalog = service_catalog.ServiceCatalog.factory(
             resource_dict=self,
-            token=token,
-            region_name=self._region_name)
+            token=token)
         if token:
             self.auth_token = token
 
