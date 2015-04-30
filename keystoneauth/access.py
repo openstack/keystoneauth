@@ -306,14 +306,6 @@ class AccessInfo(dict):
         raise NotImplementedError()
 
     @property
-    def version(self):
-        """Returns the version of the auth token from identity service.
-
-        :returns: str
-        """
-        return self.get('version')
-
-    @property
     def oauth_access_token_id(self):
         """Return the access token ID if OAuth authentication used.
 
@@ -372,9 +364,10 @@ class AccessInfoV2(AccessInfo):
        service.
     """
 
+    version = 'v2.0'
+
     def __init__(self, *args, **kwargs):
         super(AccessInfo, self).__init__(*args, **kwargs)
-        self.update(version='v2.0')
         self.service_catalog = service_catalog.ServiceCatalog.factory(
             resource_dict=self)
 
@@ -545,9 +538,10 @@ class AccessInfoV3(AccessInfo):
        service.
     """
 
+    version = 'v3'
+
     def __init__(self, token, *args, **kwargs):
         super(AccessInfo, self).__init__(*args, **kwargs)
-        self.update(version='v3')
         self.service_catalog = service_catalog.ServiceCatalog.factory(
             resource_dict=self)
         if token:
