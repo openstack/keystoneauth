@@ -29,16 +29,6 @@ from keystoneauth import utils
 class ServiceCatalog(object):
     """Helper methods for dealing with a Keystone Service Catalog."""
 
-    @classmethod
-    def factory(cls, resource_dict):
-        """Create ServiceCatalog object given an auth token."""
-        if ServiceCatalogV3.is_valid(resource_dict):
-            return ServiceCatalogV3(resource_dict)
-        elif ServiceCatalogV2.is_valid(resource_dict):
-            return ServiceCatalogV2(resource_dict)
-        else:
-            raise NotImplementedError(_('Unrecognized auth response'))
-
     def _get_endpoint_region(self, endpoint):
         return endpoint.get('region_id') or endpoint.get('region')
 
@@ -248,13 +238,6 @@ class ServiceCatalogV2(ServiceCatalog):
         self.catalog = resource_dict
         super(ServiceCatalogV2, self).__init__()
 
-    @classmethod
-    def is_valid(cls, resource_dict):
-        # This class is also used for reading token info of an unscoped token.
-        # Unscoped token does not have 'serviceCatalog' in V2, checking this
-        # will not work. Use 'token' attribute instead.
-        return 'token' in resource_dict
-
     def _normalize_endpoint_type(self, endpoint_type):
         if endpoint_type and 'URL' not in endpoint_type:
             endpoint_type = endpoint_type + 'URL'
@@ -293,13 +276,6 @@ class ServiceCatalogV3(ServiceCatalog):
     def __init__(self, resource_dict):
         super(ServiceCatalogV3, self).__init__()
         self.catalog = resource_dict
-
-    @classmethod
-    def is_valid(cls, resource_dict):
-        # This class is also used for reading token info of an unscoped token.
-        # Unscoped token does not have 'catalog', checking this
-        # will not work. Use 'methods' attribute instead.
-        return 'methods' in resource_dict
 
     def _normalize_endpoint_type(self, endpoint_type):
         if endpoint_type:

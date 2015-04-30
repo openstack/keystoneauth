@@ -51,11 +51,6 @@ class AccessInfo(dict):
 
     """
 
-    def __init__(self, *args, **kwargs):
-        super(AccessInfo, self).__init__(*args, **kwargs)
-        self.service_catalog = service_catalog.ServiceCatalog.factory(
-            resource_dict=self)
-
     def will_expire_soon(self, stale_duration=None):
         """Determines if expiration is about to occur.
 
@@ -368,8 +363,7 @@ class AccessInfoV2(AccessInfo):
 
     def __init__(self, *args, **kwargs):
         super(AccessInfo, self).__init__(*args, **kwargs)
-        self.service_catalog = service_catalog.ServiceCatalog.factory(
-            resource_dict=self)
+        self.service_catalog = service_catalog.ServiceCatalogV2(self)
 
     def has_service_catalog(self):
         return 'serviceCatalog' in self
@@ -542,8 +536,7 @@ class AccessInfoV3(AccessInfo):
 
     def __init__(self, token, *args, **kwargs):
         super(AccessInfo, self).__init__(*args, **kwargs)
-        self.service_catalog = service_catalog.ServiceCatalog.factory(
-            resource_dict=self)
+        self.service_catalog = service_catalog.ServiceCatalogV3(self)
         if token:
             self.auth_token = token
 
