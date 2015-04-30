@@ -16,8 +16,8 @@ import logging
 from oslo_config import cfg
 import six
 
-from keystoneauth import _discover
 from keystoneauth.auth import base
+from keystoneauth import discover
 from keystoneauth import exceptions
 from keystoneauth.i18n import _LW
 from keystoneauth import utils
@@ -230,7 +230,7 @@ class BaseIdentityPlugin(base.BaseAuthPlugin):
         # other endpoint versions. So we support a list of client defined
         # situations where we can strip the version component from a URL before
         # doing discovery.
-        hacked_url = _discover.get_catalog_discover_hack(service_type, url)
+        hacked_url = discover.get_catalog_discover_hack(service_type, url)
 
         try:
             disc = self.get_discovery(session, hacked_url, authenticated=False)
@@ -296,8 +296,8 @@ class BaseIdentityPlugin(base.BaseAuthPlugin):
             if disc:
                 break
         else:
-            disc = _discover.Discover(session, url,
-                                      authenticated=authenticated)
+            disc = discover.Discover(session, url,
+                                     authenticated=authenticated)
             self._endpoint_cache[url] = disc
             session_endpoint_cache[url] = disc
 

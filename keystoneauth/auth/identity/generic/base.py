@@ -17,8 +17,8 @@ from oslo_config import cfg
 import six
 import six.moves.urllib.parse as urlparse
 
-from keystoneauth import _discover
 from keystoneauth.auth.identity import base
+from keystoneauth import discover
 from keystoneauth import exceptions
 from keystoneauth.i18n import _, _LW
 
@@ -148,7 +148,7 @@ class BaseGenericPlugin(base.BaseIdentityPlugin):
             for data in disc_data:
                 version = data['version']
 
-                if (_discover.version_match((2,), version) and
+                if (discover.version_match((2,), version) and
                         self._has_domain_scope):
                     # NOTE(jamielennox): if there are domain parameters there
                     # is no point even trying against v2 APIs.

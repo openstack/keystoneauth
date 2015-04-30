@@ -15,7 +15,7 @@ import re
 from oslo_serialization import jsonutils
 import six
 
-from keystoneauth import _discover
+from keystoneauth import discover
 from keystoneauth import fixture
 from keystoneauth.tests.unit import utils
 
@@ -236,7 +236,7 @@ class CatalogHackTests(utils.TestCase):
 
     def setUp(self):
         super(CatalogHackTests, self).setUp()
-        self.hacks = _discover._VersionHacks()
+        self.hacks = discover._VersionHacks()
         self.hacks.add_discover_hack(self.IDENTITY,
                                      re.compile('/v2.0/?$'),
                                      '/')
@@ -263,11 +263,11 @@ class DiscoverUtils(utils.TestCase):
 
     def test_version_number(self):
         def assertVersion(inp, out):
-            self.assertEqual(out, _discover.normalize_version_number(inp))
+            self.assertEqual(out, discover.normalize_version_number(inp))
 
         def versionRaises(inp):
             self.assertRaises(TypeError,
-                              _discover.normalize_version_number,
+                              discover.normalize_version_number,
                               inp)
 
         assertVersion('v1.2', (1, 2))
