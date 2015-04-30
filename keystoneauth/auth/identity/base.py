@@ -235,7 +235,7 @@ class BaseIdentityPlugin(base.BaseAuthPlugin):
         try:
             disc = self.get_discovery(session, hacked_url, authenticated=False)
         except (exceptions.DiscoveryFailure,
-                exceptions.HTTPError,
+                exceptions.HttpError,
                 exceptions.ConnectionError):
             # NOTE(jamielennox): Again if we can't contact the server we fall
             # back to just returning the URL from the catalog. This may not be

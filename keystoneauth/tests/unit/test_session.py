@@ -185,17 +185,13 @@ class SessionTests(utils.TestCase):
         self.assertIn(path_to_certs, self.logger.output)
 
     def test_connect_retries(self):
-
-        def _timeout_error(request, context):
-            raise requests.exceptions.Timeout()
-
-        self.stub_url('GET', text=_timeout_error)
+        self.stub_url('GET', exc=requests.exceptions.Timeout())
 
         session = client_session.Session()
         retries = 3
 
         with mock.patch('time.sleep') as m:
-            self.assertRaises(exceptions.RequestTimeout,
+            self.assertRaises(exceptions.ConnectTimeout,
                               session.get,
                               self.TEST_URL, connect_retries=retries)
 
@@ -223,10 +219,7 @@ class SessionTests(utils.TestCase):
     def test_ssl_error_message(self):
         error = uuid.uuid4().hex
 
-        def _ssl_error(request, context):
-            raise requests.exceptions.SSLError(error)
-
-        self.stub_url('GET', text=_ssl_error)
+        self.stub_url('GET', exc=requests.exceptions.SSLError(error))
         session = client_session.Session()
 
         # The exception should contain the URL and details about the SSL error
@@ -796,13 +789,10 @@ class AdapterTest(utils.TestCase):
         sess = client_session.Session()
         adpt = adapter.Adapter(sess, connect_retries=retries)
 
-        def _refused_error(request, context):
-            raise requests.exceptions.ConnectionError()
-
-        self.stub_url('GET', text=_refused_error)
+        self.stub_url('GET', exc=requests.exceptions.ConnectionError())
 
         with mock.patch('time.sleep') as m:
-            self.assertRaises(exceptions.ConnectionRefused,
+            self.assertRaises(exceptions.ConnectionError,
                               adpt.get, self.TEST_URL)
             self.assertEqual(retries, m.call_count)
 
