@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# python-keystoneclient documentation build configuration file, created by
+# keystoneauth documentation build configuration file, created by
 # sphinx-quickstart on Sun Dec  6 14:19:25 2009.
 #
 # This file is execfile()d with the current directory set to its containing
@@ -65,13 +65,13 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'python-keystoneclient'
+project = 'keystoneauth'
 copyright = 'OpenStack Contributors'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
-version_info = pbr.version.VersionInfo('python-keystoneclient')
+version_info = pbr.version.VersionInfo('keystoneauth')
 # The short X.Y version.
 version = version_info.version_string()
 # The full version, including alpha/beta/rc tags.
@@ -196,7 +196,7 @@ html_last_updated_fmt = os.popen(git_cmd).read()
 #html_file_suffix = ''
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'python-keystoneclientdoc'
+htmlhelp_basename = 'keystoneauthdoc'
 
 
 # -- Options for LaTeX output -------------------------------------------------
@@ -211,8 +211,8 @@ htmlhelp_basename = 'python-keystoneclientdoc'
 # (source start file, target name, title, author, documentclass [howto/manual])
 # .
 latex_documents = [
-    ('index', 'python-keystoneclient.tex',
-     'python-keystoneclient Documentation',
+    ('index', 'keystoneauth.tex',
+     'keystoneauth Documentation',
      'Nebula Inc, based on work by Rackspace and Jacob Kaplan-Moss',
      'manual'),
 ]

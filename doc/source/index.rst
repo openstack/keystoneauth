@@ -3,7 +3,7 @@ Python bindings to the OpenStack Identity API (Keystone)
 
 This is a client for OpenStack Identity API. There's a Python API for
 :doc:`Identity API v3 <using-api-v3>` and :doc:`v2 <using-api-v2>` (the
-:mod:`keystoneclient` modules), and a command-line script (installed as
+:mod:`keystoneauth` modules), and a command-line script (installed as
 :doc:`keystone <man/keystone>`).
 
 Contents:
@@ -31,11 +31,11 @@ Contributing
 ============
 
 Code is hosted `on GitHub`_. Submit bugs to the Keystone project on
-`Launchpad`_. Submit code to the ``openstack/python-keystoneclient`` project
+`Launchpad`_. Submit code to the ``openstack/keystoneauth`` project
 using `Gerrit`_.
 
-.. _on GitHub: https://github.com/openstack/python-keystoneclient
-.. _Launchpad: https://launchpad.net/python-keystoneclient
+.. _on GitHub: https://github.com/openstack/keystoneauth
+.. _Launchpad: https://launchpad.net/keystoneauth
 .. _Gerrit: http://docs.openstack.org/infra/manual/developers.html#development-workflow
 
 Run tests with ``python setup.py test``.

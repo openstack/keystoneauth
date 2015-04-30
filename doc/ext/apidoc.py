@@ -35,10 +35,10 @@ def run_apidoc(app):
     run_already = True
 
     package_dir = path.abspath(path.join(app.srcdir, '..', '..',
-                                         'keystoneclient'))
+                                         'keystoneauth'))
     source_dir = path.join(app.srcdir, 'api')
     apidoc.main(['apidoc', package_dir, '-f',
-                 '-H', 'keystoneclient Modules',
+                 '-H', 'keystoneauth Modules',
                  '-o', source_dir])
 
 
