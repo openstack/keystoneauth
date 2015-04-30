@@ -29,6 +29,9 @@ from keystoneauth import utils
 class ServiceCatalog(object):
     """Helper methods for dealing with a Keystone Service Catalog."""
 
+    def __init__(self, catalog):
+        self._catalog = catalog
+
     def _get_endpoint_region(self, endpoint):
         return endpoint.get('region_id') or endpoint.get('region')
 
@@ -67,7 +70,7 @@ class ServiceCatalog(object):
 
         sc = {}
 
-        for service in (self.get_data() or []):
+        for service in (self._catalog or []):
             try:
                 st = service['type']
             except KeyError:
@@ -176,7 +179,7 @@ class ServiceCatalog(object):
         :param string service_name: The assigned name of the service.
 
         """
-        if not self.get_data():
+        if not self._catalog:
             raise exceptions.EmptyCatalog(_('The service catalog is empty.'))
 
         urls = self.get_urls(attr=attr,
@@ -217,26 +220,18 @@ class ServiceCatalog(object):
 
         raise exceptions.EndpointNotFound(msg)
 
-    @abc.abstractmethod
-    def get_data(self):
-        """Get the raw catalog structure.
-
-        Get the version dependent catalog structure as it is presented within
-        the resource.
-
-        :returns: list containing raw catalog data entries or None
-        """
-        raise NotImplementedError()
-
 
 class ServiceCatalogV2(ServiceCatalog):
     """An object for encapsulating the service catalog using raw v2 auth token
     from Keystone.
     """
 
-    def __init__(self, resource_dict):
-        self.catalog = resource_dict
-        super(ServiceCatalogV2, self).__init__()
+    @classmethod
+    def from_token(cls, token):
+        if 'access' not in token:
+            raise ValueError(_('Invalid token format for fetching catalog'))
+
+        return cls(token['access'].get('serviceCatalog', {}))
 
     def _normalize_endpoint_type(self, endpoint_type):
         if endpoint_type and 'URL' not in endpoint_type:
@@ -246,9 +241,6 @@ class ServiceCatalogV2(ServiceCatalog):
 
     def _is_endpoint_type_match(self, endpoint, endpoint_type):
         return endpoint_type in endpoint
-
-    def get_data(self):
-        return self.catalog.get('serviceCatalog')
 
     @utils.positional(enforcement=utils.positional.WARN)
     def get_urls(self, attr=None, filter_value=None,
@@ -273,9 +265,12 @@ class ServiceCatalogV3(ServiceCatalog):
     from Keystone.
     """
 
-    def __init__(self, resource_dict):
-        super(ServiceCatalogV3, self).__init__()
-        self.catalog = resource_dict
+    @classmethod
+    def from_token(cls, token):
+        if 'token' not in token:
+            raise ValueError(_('Invalid token format for fetching catalog'))
+
+        return cls(token['token'].get('catalog', {}))
 
     def _normalize_endpoint_type(self, endpoint_type):
         if endpoint_type:
@@ -288,9 +283,6 @@ class ServiceCatalogV3(ServiceCatalog):
             return endpoint_type == endpoint['interface']
         except KeyError:
             return False
-
-    def get_data(self):
-        return self.catalog.get('catalog')
 
     @utils.positional(enforcement=utils.positional.WARN)
     def get_urls(self, attr=None, filter_value=None,
