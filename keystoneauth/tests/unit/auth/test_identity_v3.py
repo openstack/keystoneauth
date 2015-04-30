@@ -266,7 +266,7 @@ class V3IdentityPlugin(utils.TestCase):
         self.assertEqual({'X-Auth-Token': self.TEST_TOKEN},
                          s.get_auth_headers())
 
-        self.assertEqual(a.auth_ref['expires_at'],
+        self.assertEqual(a.auth_ref._data['token']['expires_at'],
                          self.TEST_RESPONSE_DICT['token']['expires_at'])
 
     def test_with_domain_and_project_scoping(self):

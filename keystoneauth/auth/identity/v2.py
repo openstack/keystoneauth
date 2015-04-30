@@ -78,11 +78,14 @@ class Auth(base.BaseIdentityPlugin):
                             authenticated=False, log=False)
 
         try:
-            resp_data = resp.json()['access']
-        except (KeyError, ValueError):
+            resp_data = resp.json()
+        except ValueError:
             raise exceptions.InvalidResponse(response=resp)
 
-        return access.AccessInfoV2(**resp_data)
+        if 'access' not in resp_data:
+            raise exceptions.InvalidResponse(response=resp)
+
+        return access.AccessInfoV2(resp_data)
 
     @abc.abstractmethod
     def get_auth_data(self, headers=None):
