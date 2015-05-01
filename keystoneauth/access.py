@@ -150,9 +150,6 @@ class AccessInfo(object):
         """Returns the domain id of the user associated with the authentication
         request.
 
-        For v2, it always returns 'default' which may be different from the
-        Keystone configuration.
-
         :returns: str
         """
         raise NotImplementedError()
@@ -161,9 +158,6 @@ class AccessInfo(object):
     def user_domain_name(self):
         """Returns the domain name of the user associated with the
         authentication request.
-
-        For v2, it always returns 'Default' which may be different from the
-        Keystone configuration.
 
         :returns: str
         """
@@ -297,9 +291,6 @@ class AccessInfo(object):
         """Returns the domain id of the project associated with the
         authentication request.
 
-        For v2, it returns 'default' if a project is scoped or None which may
-        be different from the keystone configuration.
-
         :returns: str
         """
         raise NotImplementedError()
@@ -308,9 +299,6 @@ class AccessInfo(object):
     def project_domain_name(self):
         """Returns the domain name of the project associated with the
         authentication request.
-
-        For v2, it returns 'Default' if a project is scoped or None  which may
-        be different from the keystone configuration.
 
         :returns: str
         """
@@ -412,11 +400,11 @@ class AccessInfoV2(AccessInfo):
 
     @property
     def user_domain_id(self):
-        return 'default'
+        return None
 
     @property
     def user_domain_name(self):
-        return 'Default'
+        return None
 
     @missingproperty
     def role_ids(self):
@@ -507,13 +495,11 @@ class AccessInfoV2(AccessInfo):
 
     @property
     def project_domain_id(self):
-        if self.project_id:
-            return 'default'
+        return None
 
     @property
     def project_domain_name(self):
-        if self.project_id:
-            return 'Default'
+        return None
 
     @property
     def oauth_access_token_id(self):
