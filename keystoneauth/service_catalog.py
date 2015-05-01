@@ -30,24 +30,14 @@ class ServiceCatalog(object):
     """Helper methods for dealing with a Keystone Service Catalog."""
 
     @classmethod
-    def factory(cls, resource_dict, token=None, region_name=None):
+    def factory(cls, resource_dict, token=None):
         """Create ServiceCatalog object given an auth token."""
         if ServiceCatalogV3.is_valid(resource_dict):
-            return ServiceCatalogV3(token, resource_dict, region_name)
+            return ServiceCatalogV3(token, resource_dict)
         elif ServiceCatalogV2.is_valid(resource_dict):
-            return ServiceCatalogV2(resource_dict, region_name)
+            return ServiceCatalogV2(resource_dict)
         else:
             raise NotImplementedError(_('Unrecognized auth response'))
-
-    def __init__(self, region_name=None):
-        self._region_name = region_name
-
-    @property
-    def region_name(self):
-        # FIXME(jamielennox): Having region_name set on the service catalog
-        # directly is deprecated. It should instead be provided as a parameter
-        # to calls made to the service_catalog. Provide appropriate warning.
-        return self._region_name
 
     def _get_endpoint_region(self, endpoint):
         return endpoint.get('region_id') or endpoint.get('region')
@@ -99,7 +89,6 @@ class ServiceCatalog(object):
         before the name was available in the catalog.
         """
         endpoint_type = self._normalize_endpoint_type(endpoint_type)
-        region_name = region_name or self._region_name
 
         sc = {}
 
@@ -270,9 +259,9 @@ class ServiceCatalogV2(ServiceCatalog):
     from Keystone.
     """
 
-    def __init__(self, resource_dict, region_name=None):
+    def __init__(self, resource_dict):
         self.catalog = resource_dict
-        super(ServiceCatalogV2, self).__init__(region_name=region_name)
+        super(ServiceCatalogV2, self).__init__()
 
     @classmethod
     def is_valid(cls, resource_dict):
@@ -327,8 +316,8 @@ class ServiceCatalogV3(ServiceCatalog):
     from Keystone.
     """
 
-    def __init__(self, token, resource_dict, region_name=None):
-        super(ServiceCatalogV3, self).__init__(region_name=region_name)
+    def __init__(self, token, resource_dict):
+        super(ServiceCatalogV3, self).__init__()
         self._auth_token = token
         self.catalog = resource_dict
 
