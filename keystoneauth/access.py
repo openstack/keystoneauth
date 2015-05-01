@@ -376,8 +376,7 @@ class AccessInfoV2(AccessInfo):
         super(AccessInfo, self).__init__(*args, **kwargs)
         self.update(version='v2.0')
         self.service_catalog = service_catalog.ServiceCatalog.factory(
-            resource_dict=self,
-            token=self['token']['id'])
+            resource_dict=self)
 
     def has_service_catalog(self):
         return 'serviceCatalog' in self
@@ -550,8 +549,7 @@ class AccessInfoV3(AccessInfo):
         super(AccessInfo, self).__init__(*args, **kwargs)
         self.update(version='v3')
         self.service_catalog = service_catalog.ServiceCatalog.factory(
-            resource_dict=self,
-            token=token)
+            resource_dict=self)
         if token:
             self.auth_token = token
 
