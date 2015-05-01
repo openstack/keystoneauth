@@ -1,10 +1,10 @@
-Python bindings to the OpenStack Identity API (Keystone)
-========================================================
+Common Authentication Library for OpenStack Clients
+===================================================
 
-This is a client for OpenStack Identity API. There's a Python API for
-:doc:`Identity API v3 <using-api-v3>` and :doc:`v2 <using-api-v2>` (the
-:mod:`keystoneauth` modules), and a command-line script (installed as
-:doc:`keystone <man/keystone>`).
+Keystoneauth provides a standard way to do authentication and service requests
+within the OpenStack ecosystem. It is designed for use in conjunction with the
+existing OpenStack clients and for simplifying the process of writing new
+clients.
 
 Contents:
 
@@ -12,20 +12,9 @@ Contents:
    :maxdepth: 1
 
    man/keystone
-   using-api-v3
    using-sessions
    authentication-plugins
-   using-api-v2
    api/modules
-
-Related Identity Projects
-=========================
-
-In addition to creating the Python client library, the Keystone team also
-provides `Identity Service`_, as well as `WSGI Middleware`_.
-
-.. _`Identity Service`: http://docs.openstack.org/developer/keystone/
-.. _`WSGI Middleware`: http://docs.openstack.org/developer/keystonemiddleware/
 
 Contributing
 ============
