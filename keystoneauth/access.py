@@ -363,7 +363,8 @@ class AccessInfoV2(AccessInfo):
 
     def __init__(self, *args, **kwargs):
         super(AccessInfo, self).__init__(*args, **kwargs)
-        self.service_catalog = service_catalog.ServiceCatalogV2(self)
+        self.service_catalog = (
+            service_catalog.ServiceCatalogV2.from_token({'access': kwargs}))
 
     def has_service_catalog(self):
         return 'serviceCatalog' in self
@@ -536,7 +537,8 @@ class AccessInfoV3(AccessInfo):
 
     def __init__(self, token, *args, **kwargs):
         super(AccessInfo, self).__init__(*args, **kwargs)
-        self.service_catalog = service_catalog.ServiceCatalogV3(self)
+        self.service_catalog = (
+            service_catalog.ServiceCatalogV3.from_token({'token': kwargs}))
         if token:
             self.auth_token = token
 
