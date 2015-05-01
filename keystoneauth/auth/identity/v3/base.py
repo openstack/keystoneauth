@@ -180,12 +180,15 @@ class Auth(BaseAuth):
                             authenticated=False, log=False, **rkwargs)
 
         try:
-            resp_data = resp.json()['token']
-        except (KeyError, ValueError):
+            resp_data = resp.json()
+        except ValueError:
             raise exceptions.InvalidResponse(response=resp)
 
-        return access.AccessInfoV3(resp.headers['X-Subject-Token'],
-                                   **resp_data)
+        if 'token' not in resp_data:
+            raise exceptions.InvalidResponse(response=resp)
+
+        return access.AccessInfoV3(auth_token=resp.headers['X-Subject-Token'],
+                                   body=resp_data)
 
 
 @six.add_metaclass(abc.ABCMeta)

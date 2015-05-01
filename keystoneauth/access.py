@@ -14,8 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 import datetime
+import functools
 
 from oslo_utils import timeutils
 
@@ -37,19 +37,46 @@ def create(resp=None, body=None, auth_token=None):
         if resp and not auth_token:
             auth_token = resp.headers.get('X-Subject-Token')
 
-        return AccessInfoV3(auth_token, **body['token'])
+        return AccessInfoV3(body, auth_token)
     elif 'access' in body:
-        return AccessInfoV2(**body['access'])
+        return AccessInfoV2(body, auth_token)
 
-    raise NotImplementedError(_('Unrecognized auth response'))
+    raise ValueError(_('Unrecognized auth response'))
 
 
-class AccessInfo(dict):
+def missingproperty(f):
+
+    @functools.wraps(f)
+    def inner(self):
+        try:
+            return f(self)
+        except KeyError:
+            return None
+
+    return property(inner)
+
+
+class AccessInfo(object):
     """Encapsulates a raw authentication token from keystone.
 
     Provides helper methods for extracting useful values from that token.
 
     """
+
+    _service_catalog_class = None
+
+    def __init__(self, body, auth_token=None):
+        self._data = body
+        self._auth_token = auth_token
+        self._service_catalog = None
+
+    @property
+    def service_catalog(self):
+        if not self._service_catalog:
+            self._service_catalog = self._service_catalog_class.from_token(
+                self._data)
+
+        return self._service_catalog
 
     def will_expire_soon(self, stale_duration=None):
         """Determines if expiration is about to occur.
@@ -81,18 +108,7 @@ class AccessInfo(dict):
 
         :returns: str
         """
-        return self['auth_token']
-
-    @auth_token.setter
-    def auth_token(self, value):
-        self['auth_token'] = value
-
-    @auth_token.deleter
-    def auth_token(self):
-        try:
-            del self['auth_token']
-        except KeyError:
-            pass
+        return self._auth_token
 
     @property
     def expires(self):
@@ -209,7 +225,7 @@ class AccessInfo(dict):
 
         :returns: bool
         """
-        raise NotImplementedError()
+        return self.project_scoped or self.domain_scoped
 
     @property
     def project_scoped(self):
@@ -360,37 +376,39 @@ class AccessInfoV2(AccessInfo):
     """
 
     version = 'v2.0'
-
-    def __init__(self, *args, **kwargs):
-        super(AccessInfo, self).__init__(*args, **kwargs)
-        self.service_catalog = (
-            service_catalog.ServiceCatalogV2.from_token({'access': kwargs}))
+    _service_catalog_class = service_catalog.ServiceCatalogV2
 
     def has_service_catalog(self):
         return 'serviceCatalog' in self
 
-    @AccessInfo.auth_token.getter
+    @missingproperty
     def auth_token(self):
-        try:
-            return super(AccessInfoV2, self).auth_token
-        except KeyError:
-            return self['token']['id']
+        set_token = super(AccessInfoV2, self).auth_token
+        return set_token or self._data['access']['token']['id']
 
-    @property
+    @missingproperty
+    def _token(self):
+        return self._data['access']['token']
+
+    @missingproperty
     def expires(self):
-        return timeutils.parse_isotime(self['token']['expires'])
+        return timeutils.parse_isotime(self._token.get('expires'))
 
-    @property
+    @missingproperty
     def issued(self):
-        return timeutils.parse_isotime(self['token']['issued_at'])
+        return self._token['issued_at']
 
     @property
+    def _user(self):
+        return self._data['access']['user']
+
+    @missingproperty
     def username(self):
-        return self['user'].get('name', self['user'].get('username'))
+        return self._user.get('name') or self._user.get('username')
 
-    @property
+    @missingproperty
     def user_id(self):
-        return self['user']['id']
+        return self._user['id']
 
     @property
     def user_domain_id(self):
@@ -400,13 +418,13 @@ class AccessInfoV2(AccessInfo):
     def user_domain_name(self):
         return 'Default'
 
-    @property
+    @missingproperty
     def role_ids(self):
         return self.get('metadata', {}).get('roles', [])
 
-    @property
+    @missingproperty
     def role_names(self):
-        return [r['name'] for r in self['user'].get('roles', [])]
+        return [r['name'] for r in self._user.get('roles', [])]
 
     @property
     def domain_name(self):
@@ -419,7 +437,7 @@ class AccessInfoV2(AccessInfo):
     @property
     def project_name(self):
         try:
-            tenant_dict = self['token']['tenant']
+            tenant_dict = self._token['tenant']
         except KeyError:
             pass
         else:
@@ -427,43 +445,39 @@ class AccessInfoV2(AccessInfo):
 
         # pre grizzly
         try:
-            return self['user']['tenantName']
+            return self._user['tenantName']
         except KeyError:
             pass
 
         # pre diablo, keystone only provided a tenantId
         try:
-            return self['token']['tenantId']
+            return self._token['tenantId']
         except KeyError:
             pass
 
     @property
-    def scoped(self):
-        if ('serviceCatalog' in self
-                and self['serviceCatalog']
-                and 'tenant' in self['token']):
-            return True
-        return False
-
-    @property
     def project_scoped(self):
-        return 'tenant' in self['token']
+        return 'tenant' in self._token
 
     @property
     def domain_scoped(self):
         return False
 
     @property
+    def _trust(self):
+        return self._data['access']['trust']
+
+    @missingproperty
     def trust_id(self):
-        return self.get('trust', {}).get('id')
+        return self._trust['id']
 
     @property
     def trust_scoped(self):
-        return 'trust' in self
+        return bool(self._trust)
 
-    @property
+    @missingproperty
     def trustee_user_id(self):
-        return self.get('trust', {}).get('trustee_user_id')
+        return self._trust['trustee_user_id']
 
     @property
     def trustor_user_id(self):
@@ -473,7 +487,7 @@ class AccessInfoV2(AccessInfo):
     @property
     def project_id(self):
         try:
-            tenant_dict = self['token']['tenant']
+            tenant_dict = self._token['tenant']
         except KeyError:
             pass
         else:
@@ -481,13 +495,13 @@ class AccessInfoV2(AccessInfo):
 
         # pre grizzly
         try:
-            return self['user']['tenantId']
+            return self._user['tenantId']
         except KeyError:
             pass
 
         # pre diablo
         try:
-            return self['token']['tenantId']
+            return self._token['tenantId']
         except KeyError:
             pass
 
@@ -516,14 +530,14 @@ class AccessInfoV2(AccessInfo):
     @property
     def audit_id(self):
         try:
-            return self['token'].get('audit_ids', [])[0]
+            return self._token.get('audit_ids', [])[0]
         except IndexError:
             return None
 
     @property
     def audit_chain_id(self):
         try:
-            return self['token'].get('audit_ids', [])[1]
+            return self._token.get('audit_ids', [])[1]
         except IndexError:
             return None
 
@@ -534,37 +548,35 @@ class AccessInfoV3(AccessInfo):
     """
 
     version = 'v3'
-
-    def __init__(self, token, *args, **kwargs):
-        super(AccessInfo, self).__init__(*args, **kwargs)
-        self.service_catalog = (
-            service_catalog.ServiceCatalogV3.from_token({'token': kwargs}))
-        if token:
-            self.auth_token = token
+    _service_catalog_class = service_catalog.ServiceCatalogV3
 
     def has_service_catalog(self):
-        return 'catalog' in self
+        return 'catalog' in self._data['token']
+
+    @property
+    def _user(self):
+        return self._data['token']['user']
 
     @property
     def is_federated(self):
-        return 'OS-FEDERATION' in self['user']
+        return 'OS-FEDERATION' in self._user
 
-    @property
+    @missingproperty
     def expires(self):
-        return timeutils.parse_isotime(self['expires_at'])
+        return timeutils.parse_isotime(self._data['token']['expires_at'])
 
-    @property
+    @missingproperty
     def issued(self):
-        return timeutils.parse_isotime(self['issued_at'])
+        return timeutils.parse_isotime(self._data['token']['issued_at'])
 
-    @property
+    @missingproperty
     def user_id(self):
-        return self['user']['id']
+        return self._user['id']
 
     @property
     def user_domain_id(self):
         try:
-            return self['user']['domain']['id']
+            return self._user['domain']['id']
         except KeyError:
             if self.is_federated:
                 return None
@@ -573,106 +585,115 @@ class AccessInfoV3(AccessInfo):
     @property
     def user_domain_name(self):
         try:
-            return self['user']['domain']['name']
+            return self._user['domain']['name']
         except KeyError:
             if self.is_federated:
                 return None
             raise
 
-    @property
+    @missingproperty
     def role_ids(self):
-        return [r['id'] for r in self.get('roles', [])]
+        return [r['id'] for r in self._data['token'].get('roles', [])]
 
-    @property
+    @missingproperty
     def role_names(self):
-        return [r['name'] for r in self.get('roles', [])]
+        return [r['name'] for r in self._data['token'].get('roles', [])]
 
-    @property
+    @missingproperty
     def username(self):
-        return self['user']['name']
+        return self._user['name']
 
-    @property
+    @missingproperty
+    def _domain(self):
+        return self._data['token']['domain']
+
+    @missingproperty
     def domain_name(self):
-        domain = self.get('domain')
-        if domain:
-            return domain['name']
+        return self._domain['name']
 
-    @property
+    @missingproperty
     def domain_id(self):
-        domain = self.get('domain')
-        if domain:
-            return domain['id']
+        return self._domain['id']
 
     @property
+    def _project(self):
+        return self._data['token']['project']
+
+    @missingproperty
     def project_id(self):
-        project = self.get('project')
-        if project:
-            return project['id']
+        return self._project['id']
 
-    @property
+    @missingproperty
     def project_domain_id(self):
-        project = self.get('project')
-        if project:
-            return project['domain']['id']
+        return self._project['domain']['id']
 
     @property
     def project_domain_name(self):
-        project = self.get('project')
-        if project:
-            return project['domain']['name']
+        return self._project['domain']['name']
 
-    @property
+    @missingproperty
     def project_name(self):
-        project = self.get('project')
-        if project:
-            return project['name']
-
-    @property
-    def scoped(self):
-        return ('catalog' in self and self['catalog'] and 'project' in self)
+        return self._project['name']
 
     @property
     def project_scoped(self):
-        return 'project' in self
+        try:
+            return bool(self._project)
+        except KeyError:
+            return False
 
     @property
     def domain_scoped(self):
-        return 'domain' in self
+        try:
+            return bool(self._domain)
+        except KeyError:
+            return False
 
     @property
+    def _trust(self):
+        return self._data['token']['OS-TRUST:trust']
+
+    @missingproperty
     def trust_id(self):
-        return self.get('OS-TRUST:trust', {}).get('id')
+        return self._trust['id']
 
     @property
     def trust_scoped(self):
-        return 'OS-TRUST:trust' in self
+        try:
+            return bool(self._trust)
+        except KeyError:
+            return False
 
-    @property
+    @missingproperty
     def trustee_user_id(self):
-        return self.get('OS-TRUST:trust', {}).get('trustee_user', {}).get('id')
+        return self._trust['trustee_user']['id']
 
-    @property
+    @missingproperty
     def trustor_user_id(self):
-        return self.get('OS-TRUST:trust', {}).get('trustor_user', {}).get('id')
+        return self._trust['trustor_user']['id']
 
     @property
+    def _oauth(self):
+        return self._data['token']['OS-OAUTH1']
+
+    @missingproperty
     def oauth_access_token_id(self):
-        return self.get('OS-OAUTH1', {}).get('access_token_id')
+        return self._oauth['access_token_id']
 
-    @property
+    @missingproperty
     def oauth_consumer_id(self):
-        return self.get('OS-OAUTH1', {}).get('consumer_id')
+        return self._oauth['consumer_id']
 
-    @property
+    @missingproperty
     def audit_id(self):
         try:
-            return self.get('audit_ids', [])[0]
+            return self._data['token']['audit_ids'][0]
         except IndexError:
             return None
 
-    @property
+    @missingproperty
     def audit_chain_id(self):
         try:
-            return self.get('audit_ids', [])[1]
+            return self._data['token']['audit_ids'][1]
         except IndexError:
             return None
