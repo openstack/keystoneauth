@@ -193,7 +193,7 @@ class CommonIdentityTests(object):
     def _create_expired_auth_plugin(self, **kwargs):
         expires = timeutils.utcnow() - datetime.timedelta(minutes=20)
         expired_token = self.get_auth_data(expires=expires)
-        expired_auth_ref = access.AccessInfo.factory(body=expired_token)
+        expired_auth_ref = access.create(body=expired_token)
 
         body = 'SUCCESS'
         self.stub_url('GET', ['path'],

@@ -32,8 +32,7 @@ class AccessInfoPluginTests(utils.TestCase):
         s = token.add_service('identity')
         s.add_standard_endpoints(public=self.TEST_ROOT_URL)
 
-        auth_ref = access.AccessInfo.factory(body=token,
-                                             auth_token=self.auth_token)
+        auth_ref = access.create(body=token, auth_token=self.auth_token)
         return access_plugin.AccessInfoPlugin(auth_ref, **kwargs)
 
     def test_auth_ref(self):

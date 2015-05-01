@@ -260,7 +260,7 @@ class V3IdentityPlugin(utils.TestCase):
 
         a = v3.Password(self.TEST_URL, username='username',
                         password='password')
-        a.auth_ref = access.AccessInfo.factory(body=d)
+        a.auth_ref = access.create(body=d)
         s = session.Session(auth=a)
 
         self.assertEqual({'X-Auth-Token': self.TEST_TOKEN},
