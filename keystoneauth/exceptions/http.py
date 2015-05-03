@@ -17,7 +17,7 @@
 #    under the License.
 
 """
-Exception definitions.
+HTTP Exceptions used by keystoneauth
 """
 
 import inspect
@@ -25,81 +25,45 @@ import sys
 
 import six
 
-from keystoneauth.openstack.common._i18n import _
+from keystoneauth.exceptions import base
+from keystoneauth.i18n import _
 
 
-class ClientException(Exception):
-    """The base exception class for all exceptions this library raises.
-    """
-    pass
+__all__ = ['HttpError',
+
+           'HTTPClientError',
+           'BadRequest',
+           'Unauthorized',
+           'PaymentRequired',
+           'Forbidden',
+           'NotFound',
+           'MethodNotAllowed',
+           'NotAcceptable',
+           'ProxyAuthenticationRequired',
+           'RequestTimeout',
+           'Conflict',
+           'Gone',
+           'LengthRequired',
+           'PreconditionFailed',
+           'RequestEntityTooLarge',
+           'RequestUriTooLong',
+           'UnsupportedMediaType',
+           'RequestedRangeNotSatisfiable',
+           'ExpectationFailed',
+           'UnprocessableEntity',
+
+           'HttpServerError',
+           'InternalServerError',
+           'HttpNotImplemented',
+           'BadGateway',
+           'ServiceUnavailable',
+           'GatewayTimeout',
+           'HttpVersionNotSupported',
+
+           'from_response']
 
 
-class ValidationError(ClientException):
-    """Error in validation on API client side."""
-    pass
-
-
-class UnsupportedVersion(ClientException):
-    """User is trying to use an unsupported version of the API."""
-    pass
-
-
-class CommandError(ClientException):
-    """Error in CLI tool."""
-    pass
-
-
-class AuthorizationFailure(ClientException):
-    """Cannot authorize API client."""
-    pass
-
-
-class ConnectionRefused(ClientException):
-    """Cannot connect to API service."""
-    pass
-
-
-class AuthPluginOptionsMissing(AuthorizationFailure):
-    """Auth plugin misses some options."""
-    def __init__(self, opt_names):
-        super(AuthPluginOptionsMissing, self).__init__(
-            _("Authentication failed. Missing options: %s") %
-            ", ".join(opt_names))
-        self.opt_names = opt_names
-
-
-class AuthSystemNotFound(AuthorizationFailure):
-    """User has specified an AuthSystem that is not installed."""
-    def __init__(self, auth_system):
-        super(AuthSystemNotFound, self).__init__(
-            _("AuthSystemNotFound: %s") % repr(auth_system))
-        self.auth_system = auth_system
-
-
-class NoUniqueMatch(ClientException):
-    """Multiple entities found instead of one."""
-    pass
-
-
-class EndpointException(ClientException):
-    """Something is rotten in Service Catalog."""
-    pass
-
-
-class EndpointNotFound(EndpointException):
-    """Could not find requested endpoint in Service Catalog."""
-    pass
-
-
-class AmbiguousEndpoints(EndpointException):
-    """Found more than one matching endpoint in Service Catalog."""
-    def __init__(self, endpoints=None):
-        super(AmbiguousEndpoints, self).__init__(
-            _("AmbiguousEndpoints: %s") % repr(endpoints))
-        self.endpoints = endpoints
-
-
-class HttpError(ClientException):
+class HttpError(base.ClientException):
     """The base exception class for all HTTP exceptions.
     """
     http_status = 0
@@ -121,11 +85,6 @@ class HttpError(ClientException):
         super(HttpError, self).__init__(formatted_string)
 
 
-class HTTPRedirection(HttpError):
-    """HTTP Redirection."""
-    message = _("HTTP Redirection")
-
-
 class HTTPClientError(HttpError):
     """Client-side HTTP error.
 
@@ -141,16 +100,6 @@ class HttpServerError(HttpError):
     erred or is incapable of performing the request.
     """
     message = _("HTTP Server Error")
-
-
-class MultipleChoices(HTTPRedirection):
-    """HTTP 300 - Multiple Choices.
-
-    Indicates multiple options for the resource that the client may follow.
-    """
-
-    http_status = 300
-    message = _("Multiple Choices")
 
 
 class BadRequest(HTTPClientError):
@@ -417,11 +366,8 @@ def from_response(response, method, url):
     :param method: HTTP method used for request
     :param url: URL used for request
     """
-
     req_id = response.headers.get("x-openstack-request-id")
-    # NOTE(hdd) true for older versions of nova and cinder
-    if not req_id:
-        req_id = response.headers.get("x-compute-request-id")
+
     kwargs = {
         "http_status": response.status_code,
         "response": response,

@@ -420,11 +420,16 @@ class Session(object):
                 raise exceptions.SSLError(msg)
             except requests.exceptions.Timeout:
                 msg = _('Request to %s timed out') % url
-                raise exceptions.RequestTimeout(msg)
+                raise exceptions.ConnectTimeout(msg)
             except requests.exceptions.ConnectionError:
                 msg = _('Unable to establish connection to %s') % url
-                raise exceptions.ConnectionRefused(msg)
-        except (exceptions.RequestTimeout, exceptions.ConnectionRefused) as e:
+                raise exceptions.ConnectFailure(msg)
+            except requests.exception.RequestException as e:
+                msg = _('Unexpected exception for %(url)s: %(error)s') % {
+                    'url': url, 'error': e}
+                raise exceptions.UnknownConnectionError(msg, e)
+
+        except exceptions.RetriableConnectionFailure as e:
             if connect_retries <= 0:
                 raise
 

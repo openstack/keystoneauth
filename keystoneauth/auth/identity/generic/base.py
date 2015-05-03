@@ -128,7 +128,7 @@ class BaseGenericPlugin(base.BaseIdentityPlugin):
                                       self.auth_url,
                                       authenticated=False)
         except (exceptions.DiscoveryFailure,
-                exceptions.HTTPError,
+                exceptions.HttpError,
                 exceptions.ConnectionError):
             LOG.warn(_LW('Discovering versions from the identity service '
                          'failed when creating the password plugin. '
