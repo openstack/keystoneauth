@@ -213,7 +213,7 @@ class Session(object):
         if not logger.isEnabledFor(logging.DEBUG):
             return
 
-        if response:
+        if response is not None:
             if not status_code:
                 status_code = response.status_code
             if not headers:
