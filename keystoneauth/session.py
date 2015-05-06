@@ -692,7 +692,7 @@ class Session(object):
              For example, to support the ``ca_file`` option pointing to the new
              ``cafile`` option name::
 
-                 old_opt = oslo.cfg.DeprecatedOpt('ca_file', 'old_group')
+                 old_opt = oslo_cfg.DeprecatedOpt('ca_file', 'old_group')
                  deprecated_opts={'cafile': [old_opt]}
 
         :returns: A list of oslo_config options.
@@ -740,7 +740,7 @@ class Session(object):
              For example, to support the ``ca_file`` option pointing to the new
              ``cafile`` option name::
 
-                 old_opt = oslo.cfg.DeprecatedOpt('ca_file', 'old_group')
+                 old_opt = oslo_cfg.DeprecatedOpt('ca_file', 'old_group')
                  deprecated_opts={'cafile': [old_opt]}
 
         :returns: The list of options that was registered.
