@@ -22,11 +22,11 @@ class CatalogException(base.ClientException):
     """Something is rotten in Service Catalog."""
 
 
-class EmptyCatalog(CatalogException):
-    """The service catalog is empty."""
+class EndpointNotFound(CatalogException):
+    """Could not find requested endpoint in Service Catalog."""
     pass
 
 
-class EndpointNotFound(CatalogException):
-    """Could not find requested endpoint in Service Catalog."""
+class EmptyCatalog(EndpointNotFound):
+    """The service catalog is empty."""
     pass
