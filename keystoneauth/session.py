@@ -115,15 +115,9 @@ class Session(object):
 
     _REDIRECT_STATUSES = (301, 302, 303, 305, 307)
 
-    REDIRECT_STATUSES = _REDIRECT_STATUSES
-    """This property is deprecated."""
-
     _DEFAULT_REDIRECT_LIMIT = 30
 
-    DEFAULT_REDIRECT_LIMIT = _DEFAULT_REDIRECT_LIMIT
-    """This property is deprecated."""
-
-    @utils.positional(2, enforcement=utils.positional.WARN)
+    @utils.positional(2)
     def __init__(self, auth=None, session=None, original_ip=None, verify=True,
                  cert=None, timeout=None, user_agent=None,
                  redirect=_DEFAULT_REDIRECT_LIMIT):
@@ -223,7 +217,7 @@ class Session(object):
 
         logger.debug(' '.join(string_parts))
 
-    @utils.positional(enforcement=utils.positional.WARN)
+    @utils.positional()
     def request(self, url, method, json=None, original_ip=None,
                 user_agent=None, redirect=None, authenticated=None,
                 endpoint_filter=None, auth=None, requests_auth=None,
@@ -424,7 +418,7 @@ class Session(object):
             except requests.exceptions.ConnectionError:
                 msg = _('Unable to establish connection to %s') % url
                 raise exceptions.ConnectFailure(msg)
-            except requests.exception.RequestException as e:
+            except requests.exceptions.RequestException as e:
                 msg = _('Unexpected exception for %(url)s: %(error)s') % {
                     'url': url, 'error': e}
                 raise exceptions.UnknownConnectionError(msg, e)
