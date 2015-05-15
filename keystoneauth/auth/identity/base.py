@@ -230,7 +230,7 @@ class BaseIdentityPlugin(base.BaseAuthPlugin):
         # other endpoint versions. So we support a list of client defined
         # situations where we can strip the version component from a URL before
         # doing discovery.
-        hacked_url = discover.get_catalog_discover_hack(service_type, url)
+        hacked_url = discover._get_catalog_discover_hack(service_type, url)
 
         try:
             disc = self.get_discovery(session, hacked_url, authenticated=False)
