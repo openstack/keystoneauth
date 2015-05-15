@@ -526,33 +526,6 @@ class Session(object):
         return self.request(url, 'PATCH', **kwargs)
 
     @classmethod
-    def construct(cls, kwargs):
-        """Handles constructing a session from the older
-        :py:class:`~keystonauth.httpclient.HTTPClient` args as well as the
-        new request-style arguments.
-
-        .. warning::
-            *DEPRECATED*: This function is purely for bridging the gap between
-            older client arguments and the session arguments that they relate
-            to. It is not intended to be used as a generic Session Factory.
-
-        This function purposefully modifies the input kwargs dictionary so that
-        the remaining kwargs dict can be reused and passed on to other
-        functions without session arguments.
-
-        """
-        params = {}
-
-        for attr in ('verify', 'cacert', 'cert', 'key', 'insecure',
-                     'timeout', 'session', 'original_ip', 'user_agent'):
-            try:
-                params[attr] = kwargs.pop(attr)
-            except KeyError:
-                pass
-
-        return cls._make(**params)
-
-    @classmethod
     def _make(cls, insecure=False, verify=None, cacert=None, cert=None,
               key=None, **kwargs):
         """Create a session with individual certificate parameters.
