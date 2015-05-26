@@ -107,8 +107,8 @@ class ServiceCatalog(object):
 
         return sc
 
-    def _get_service_endpoints(self, attr, filter_value, service_type,
-                               endpoint_type, region_name, service_name):
+    def _get_service_endpoints(self, service_type, endpoint_type,
+                               region_name, service_name):
         """Fetch the endpoints of a particular service_type and handle
         the filtering.
         """
@@ -122,20 +122,11 @@ class ServiceCatalog(object):
         except KeyError:
             return
 
-        # TODO(jamielennox): at least swiftclient is known to set attr and not
-        # filter_value and expects that to mean that filtering is ignored, so
-        # we can't check for the presence of attr. This behaviour should be
-        # deprecated and an appropriate warning provided.
-        if filter_value:
-            return [endpoint for endpoint in endpoints
-                    if endpoint.get(attr) == filter_value]
-
         return endpoints
 
     @abc.abstractmethod
-    @utils.positional(enforcement=utils.positional.WARN)
-    def get_urls(self, attr=None, filter_value=None,
-                 service_type='identity', endpoint_type='publicURL',
+    @utils.positional()
+    def get_urls(self, service_type=None, endpoint_type='public',
                  region_name=None, service_name=None):
         """Fetch endpoint urls from the service catalog.
 
@@ -143,8 +134,6 @@ class ServiceCatalog(object):
         endpoint attribute. If no attribute is given, return the first
         endpoint of the specified type.
 
-        :param string attr: Endpoint attribute name.
-        :param string filter_value: Endpoint attribute value.
         :param string service_type: Service type of the endpoint.
         :param string endpoint_type: Type of endpoint.
                                      Possible values: public or publicURL,
@@ -157,9 +146,8 @@ class ServiceCatalog(object):
         """
         raise NotImplementedError()
 
-    @utils.positional(3, enforcement=utils.positional.WARN)
-    def url_for(self, attr=None, filter_value=None,
-                service_type='identity', endpoint_type='publicURL',
+    @utils.positional()
+    def url_for(self, service_type=None, endpoint_type='public',
                 region_name=None, service_name=None):
         """Fetch an endpoint from the service catalog.
 
@@ -171,8 +159,6 @@ class ServiceCatalog(object):
                               `internal` or `internalURL`,
                               `admin` or 'adminURL`
 
-        :param string attr: Endpoint attribute name.
-        :param string filter_value: Endpoint attribute value.
         :param string service_type: Service type of the endpoint.
         :param string endpoint_type: Type of endpoint.
         :param string region_name: Region of the endpoint.
@@ -182,9 +168,7 @@ class ServiceCatalog(object):
         if not self._catalog:
             raise exceptions.EmptyCatalog(_('The service catalog is empty.'))
 
-        urls = self.get_urls(attr=attr,
-                             filter_value=filter_value,
-                             service_type=service_type,
+        urls = self.get_urls(service_type=service_type,
                              endpoint_type=endpoint_type,
                              region_name=region_name,
                              service_name=service_name)
@@ -242,14 +226,11 @@ class ServiceCatalogV2(ServiceCatalog):
     def _is_endpoint_type_match(self, endpoint, endpoint_type):
         return endpoint_type in endpoint
 
-    @utils.positional(enforcement=utils.positional.WARN)
-    def get_urls(self, attr=None, filter_value=None,
-                 service_type='identity', endpoint_type='publicURL',
+    @utils.positional()
+    def get_urls(self, service_type=None, endpoint_type='publicURL',
                  region_name=None, service_name=None):
         endpoint_type = self._normalize_endpoint_type(endpoint_type)
-        endpoints = self._get_service_endpoints(attr=attr,
-                                                filter_value=filter_value,
-                                                service_type=service_type,
+        endpoints = self._get_service_endpoints(service_type=service_type,
                                                 endpoint_type=endpoint_type,
                                                 region_name=region_name,
                                                 service_name=service_name)
@@ -284,13 +265,10 @@ class ServiceCatalogV3(ServiceCatalog):
         except KeyError:
             return False
 
-    @utils.positional(enforcement=utils.positional.WARN)
-    def get_urls(self, attr=None, filter_value=None,
-                 service_type='identity', endpoint_type='public',
+    @utils.positional()
+    def get_urls(self, service_type=None, endpoint_type='publicURL',
                  region_name=None, service_name=None):
-        endpoints = self._get_service_endpoints(attr=attr,
-                                                filter_value=filter_value,
-                                                service_type=service_type,
+        endpoints = self._get_service_endpoints(service_type=service_type,
                                                 endpoint_type=endpoint_type,
                                                 region_name=region_name,
                                                 service_name=service_name)
