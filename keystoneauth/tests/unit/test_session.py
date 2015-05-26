@@ -12,13 +12,13 @@
 
 import argparse
 import itertools
+import json
 import logging
 import uuid
 
 import mock
 from oslo_config import cfg
 from oslo_config import fixture as config
-from oslo_serialization import jsonutils
 import requests
 import six
 from testtools import matchers
@@ -675,7 +675,7 @@ class AdapterTest(utils.TestCase):
     def test_legacy_binding(self):
         key = uuid.uuid4().hex
         val = uuid.uuid4().hex
-        response = jsonutils.dumps({key: val})
+        response = json.dumps({key: val})
 
         self.stub_url('GET', text=response)
 

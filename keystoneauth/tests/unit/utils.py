@@ -10,6 +10,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import json as jsonutils
 import logging
 import sys
 import time
@@ -18,7 +19,6 @@ import uuid
 import fixtures
 import mock
 from mox3 import mox
-from oslo_serialization import jsonutils
 import requests
 from requests_mock.contrib import fixture
 import six

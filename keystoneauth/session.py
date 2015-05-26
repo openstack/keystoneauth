@@ -11,15 +11,17 @@
 # under the License.
 
 import argparse
+import datetime
 import functools
 import hashlib
+import json
 import logging
 import os
 import socket
 import time
+import uuid
 
 from oslo_config import cfg
-from oslo_serialization import jsonutils
 from oslo_utils import importutils
 import requests
 import six
@@ -28,6 +30,11 @@ from six.moves import urllib
 from keystoneauth import exceptions
 from keystoneauth.i18n import _, _LI, _LW
 from keystoneauth import utils
+
+try:
+    import netaddr
+except ImportError:
+    netaddr = None
 
 osprofiler_web = importutils.try_import("osprofiler.web")
 
@@ -54,24 +61,17 @@ def request(url, method='GET', **kwargs):
     return Session().request(url, method=method, **kwargs)
 
 
-def _remove_service_catalog(body):
-    try:
-        data = jsonutils.loads(body)
+class _JSONEncoder(json.JSONEncoder):
 
-        # V3 token
-        if 'token' in data and 'catalog' in data['token']:
-            data['token']['catalog'] = '<removed>'
-            return jsonutils.dumps(data)
+    def default(self, o):
+        if isinstance(o, datetime.datetime):
+            return o.isoformat()
+        if isinstance(o, uuid.UUID):
+            return six.text_type(o)
+        if netaddr and isinstance(o, netaddr.IPAddress):
+            return six.text_type(o)
 
-        # V2 token
-        if 'serviceCatalog' in data['access']:
-            data['access']['serviceCatalog'] = '<removed>'
-            return jsonutils.dumps(data)
-
-    except Exception:
-        # Don't fail trying to clean up the request body.
-        pass
-    return body
+        return super(_JSONEncoder, self).default(o)
 
 
 class Session(object):
@@ -142,6 +142,27 @@ class Session(object):
         if user_agent is not None:
             self.user_agent = user_agent
 
+        self._json = _JSONEncoder()
+
+    def _remove_service_catalog(self, body):
+        try:
+            data = json.loads(body)
+
+            # V3 token
+            if 'token' in data and 'catalog' in data['token']:
+                data['token']['catalog'] = '<removed>'
+                return self._json.encode(data)
+
+            # V2 token
+            if 'serviceCatalog' in data['access']:
+                data['access']['serviceCatalog'] = '<removed>'
+                return self._json.encode(data)
+
+        except Exception:
+            # Don't fail trying to clean up the request body.
+            pass
+        return body
+
     @staticmethod
     def _process_header(header):
         """Redacts the secure headers to be logged."""
@@ -182,7 +203,7 @@ class Session(object):
                 string_parts.append('-H "%s: %s"'
                                     % self._process_header(header))
         if json:
-            data = jsonutils.dumps(json)
+            data = self._json.encode(json)
         if data:
             string_parts.append("-d '%s'" % data)
 
@@ -201,9 +222,9 @@ class Session(object):
             if not headers:
                 headers = response.headers
             if not text:
-                text = _remove_service_catalog(response.text)
+                text = self._remove_service_catalog(response.text)
         if json:
-            text = jsonutils.dumps(json)
+            text = self._json.encode(json)
 
         string_parts = ['RESP:']
 
@@ -351,7 +372,7 @@ class Session(object):
 
         if json is not None:
             headers['Content-Type'] = 'application/json'
-            kwargs['data'] = jsonutils.dumps(json)
+            kwargs['data'] = self._json.encode(json)
 
         kwargs.setdefault('verify', self.verify)
 

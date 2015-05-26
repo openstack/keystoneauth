@@ -10,9 +10,9 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import json
 import re
 
-from oslo_serialization import jsonutils
 import six
 
 from keystoneauth import discover
@@ -75,7 +75,7 @@ V2_URL = "%sv2.0" % BASE_URL
 V2_VERSION = fixture.V2Discovery(V2_URL)
 V2_VERSION.updated_str = UPDATED
 
-V2_AUTH_RESPONSE = jsonutils.dumps({
+V2_AUTH_RESPONSE = json.dumps({
     "access": {
         "token": {
             "expires": "2020-01-01T00:00:10.000123Z",
@@ -97,7 +97,7 @@ V3_MEDIA_TYPES = V3_VERSION.media_types
 V3_VERSION.updated_str = UPDATED
 
 V3_TOKEN = six.u('3e2813b7ba0b4006840c3825860b86ed'),
-V3_AUTH_RESPONSE = jsonutils.dumps({
+V3_AUTH_RESPONSE = json.dumps({
     "token": {
         "methods": [
             "token",
@@ -209,11 +209,11 @@ GLANCE_EXAMPLES = {
 
 
 def _create_version_list(versions):
-    return jsonutils.dumps({'versions': {'values': versions}})
+    return json.dumps({'versions': {'values': versions}})
 
 
 def _create_single_version(version):
-    return jsonutils.dumps({'version': version})
+    return json.dumps({'version': version})
 
 
 V3_VERSION_LIST = _create_version_list([V3_VERSION, V2_VERSION])

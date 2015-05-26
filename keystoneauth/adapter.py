@@ -10,8 +10,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from oslo_serialization import jsonutils
-
 from keystoneauth import utils
 
 
@@ -205,11 +203,9 @@ class LegacyJsonAdapter(Adapter):
 
         resp = super(LegacyJsonAdapter, self).request(*args, **kwargs)
 
-        body = None
-        if resp.text:
-            try:
-                body = jsonutils.loads(resp.text)
-            except ValueError:
-                pass
+        try:
+            body = resp.json()
+        except ValueError:
+            body = None
 
         return resp, body
