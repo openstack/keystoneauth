@@ -16,11 +16,11 @@ import logging
 from oslo_config import cfg
 import six
 
+from keystoneauth import _utils as utils
 from keystoneauth.auth import base
 from keystoneauth import discover
 from keystoneauth import exceptions
 from keystoneauth.i18n import _LW
-from keystoneauth import utils
 
 LOG = logging.getLogger(__name__)
 

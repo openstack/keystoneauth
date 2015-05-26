@@ -24,9 +24,9 @@ raw data specified in version discovery responses.
 import logging
 import re
 
+from keystoneauth import _utils as utils
 from keystoneauth import exceptions
 from keystoneauth.i18n import _, _LI, _LW
-from keystoneauth import utils
 
 
 _LOGGER = logging.getLogger(__name__)

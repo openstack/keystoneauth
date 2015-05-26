@@ -27,9 +27,9 @@ import requests
 import six
 from six.moves import urllib
 
+from keystoneauth import _utils as utils
 from keystoneauth import exceptions
 from keystoneauth.i18n import _, _LI, _LW
-from keystoneauth import utils
 
 try:
     import netaddr

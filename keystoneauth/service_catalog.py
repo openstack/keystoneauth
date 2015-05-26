@@ -20,9 +20,9 @@ import abc
 
 import six
 
+from keystoneauth import _utils as utils
 from keystoneauth import exceptions
 from keystoneauth.i18n import _
-from keystoneauth import utils
 
 
 @six.add_metaclass(abc.ABCMeta)

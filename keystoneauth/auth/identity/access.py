@@ -10,8 +10,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from keystoneauth import _utils as utils
 from keystoneauth.auth.identity import base
-from keystoneauth import utils
 
 
 class AccessInfoPlugin(base.BaseIdentityPlugin):
