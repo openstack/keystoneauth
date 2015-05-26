@@ -12,8 +12,6 @@
 
 import datetime
 
-from oslo_utils import timeutils
-
 from keystoneauth import _utils as utils
 
 __all__ = ['DiscoveryList',
@@ -40,7 +38,7 @@ class DiscoveryBase(dict):
 
         self.id = id
         self.status = status or 'stable'
-        self.updated = updated or (timeutils.utcnow() -
+        self.updated = updated or (datetime.datetime.utcnow() -
                                    datetime.timedelta(days=_DEFAULT_DAYS_AGO))
 
     @property
@@ -73,11 +71,11 @@ class DiscoveryBase(dict):
 
     @property
     def updated(self):
-        return timeutils.parse_isotime(self.updated_str)
+        return utils.parse_isotime(self.updated_str)
 
     @updated.setter
     def updated(self, value):
-        self.updated_str = timeutils.isotime(value)
+        self.updated_str = value.isoformat()
 
     @utils.positional()
     def add_link(self, href, rel='self', type=None):

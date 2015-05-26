@@ -22,7 +22,6 @@ import time
 import uuid
 
 from oslo_config import cfg
-from oslo_utils import importutils
 import requests
 import six
 from six.moves import urllib
@@ -36,7 +35,10 @@ try:
 except ImportError:
     netaddr = None
 
-osprofiler_web = importutils.try_import("osprofiler.web")
+try:
+    import osprofiler.web as osprofiler_web
+except ImportError:
+    osprofiler_web = None
 
 USER_AGENT = 'keystoneauth'
 

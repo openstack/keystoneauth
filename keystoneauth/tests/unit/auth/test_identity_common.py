@@ -14,7 +14,6 @@ import abc
 import datetime
 import uuid
 
-from oslo_utils import timeutils
 import six
 
 from keystoneauth import access
@@ -191,7 +190,7 @@ class CommonIdentityTests(object):
         self.assertEqual(self.TEST_URL, auth_url)
 
     def _create_expired_auth_plugin(self, **kwargs):
-        expires = timeutils.utcnow() - datetime.timedelta(minutes=20)
+        expires = datetime.datetime.utcnow() - datetime.timedelta(minutes=20)
         expired_token = self.get_auth_data(expires=expires)
         expired_auth_ref = access.create(body=expired_token)
 
