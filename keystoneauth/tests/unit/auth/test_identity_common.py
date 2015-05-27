@@ -11,11 +11,11 @@
 # under the License.
 
 import abc
-import datetime
 import uuid
 
 import six
 
+from keystoneauth import _utils
 from keystoneauth import access
 from keystoneauth.auth import base
 from keystoneauth.auth import identity
@@ -190,7 +190,7 @@ class CommonIdentityTests(object):
         self.assertEqual(self.TEST_URL, auth_url)
 
     def _create_expired_auth_plugin(self, **kwargs):
-        expires = datetime.datetime.utcnow() - datetime.timedelta(minutes=20)
+        expires = _utils.before_utcnow(minutes=20)
         expired_token = self.get_auth_data(expires=expires)
         expired_auth_ref = access.create(body=expired_token)
 

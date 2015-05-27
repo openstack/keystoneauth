@@ -10,8 +10,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import datetime
-
 from keystoneauth import _utils as utils
 
 __all__ = ['DiscoveryList',
@@ -38,8 +36,7 @@ class DiscoveryBase(dict):
 
         self.id = id
         self.status = status or 'stable'
-        self.updated = updated or (datetime.datetime.utcnow() -
-                                   datetime.timedelta(days=_DEFAULT_DAYS_AGO))
+        self.updated = updated or utils.before_utcnow(days=_DEFAULT_DAYS_AGO)
 
     @property
     def id(self):

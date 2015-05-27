@@ -10,6 +10,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import datetime
 import functools
 import inspect
 import logging
@@ -192,3 +193,35 @@ def parse_isotime(timestr):
         raise ValueError(six.text_type(e))
     except TypeError as e:
         raise ValueError(six.text_type(e))
+
+
+def from_utcnow(**timedelta_kwargs):
+    """Calculate the time in the future from utcnow.
+
+    :param \*\*timedelta_kwargs:
+        Passed directly to :class:`datetime.timedelta` to add to the current
+        time in UTC.
+    :returns:
+        The time in the future based on ``timedelta_kwargs``.
+    :rtype:
+        datetime.datetime
+    """
+    now = datetime.datetime.utcnow()
+    delta = datetime.timedelta(**timedelta_kwargs)
+    return now + delta
+
+
+def before_utcnow(**timedelta_kwargs):
+    """Calculate the time in the past from utcnow.
+
+    :param \*\*timedelta_kwargs:
+        Passed directly to :class:`datetime.timedelta` to subtract from the
+        current time in UTC.
+    :returns:
+        The time in the past based on ``timedelta_kwargs``.
+    :rtype:
+        datetime.datetime
+    """
+    now = datetime.datetime.utcnow()
+    delta = datetime.timedelta(**timedelta_kwargs)
+    return now - delta
