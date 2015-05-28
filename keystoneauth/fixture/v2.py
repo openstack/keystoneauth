@@ -53,7 +53,7 @@ class Token(dict):
         self.audit_id = audit_id or uuid.uuid4().hex
 
         if not issued:
-            issued = datetime.datetime.utcnow() - datetime.timedelta(minutes=2)
+            issued = _utils.before_utcnow(minutes=2)
         if not expires:
             expires = issued + datetime.timedelta(hours=1)
 

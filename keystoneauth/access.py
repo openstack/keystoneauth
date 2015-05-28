@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import datetime
 import functools
 
 from keystoneauth import _utils as utils
@@ -86,8 +85,7 @@ class AccessInfo(object):
         norm_expires = utils.normalize_time(self.expires)
         # (gyee) should we move auth_token.will_expire_soon() to timeutils
         # instead of duplicating code here?
-        soon = (datetime.datetime.utcnow() + datetime.timedelta(
-                seconds=stale_duration))
+        soon = utils.from_utcnow(seconds=stale_duration)
         return norm_expires < soon
 
     def has_service_catalog(self):

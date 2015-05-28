@@ -76,7 +76,7 @@ class Token(dict):
         self.methods.extend(methods)
 
         if not issued:
-            issued = datetime.datetime.utcnow() - datetime.timedelta(minutes=2)
+            issued = _utils.before_utcnow(minutes=2)
 
         try:
             self.issued = issued
