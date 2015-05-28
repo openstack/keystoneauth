@@ -17,8 +17,6 @@
 import datetime
 import functools
 
-from oslo_utils import timeutils
-
 from keystoneauth import _utils as utils
 from keystoneauth.i18n import _
 from keystoneauth import service_catalog
@@ -78,19 +76,17 @@ class AccessInfo(object):
 
         return self._service_catalog
 
-    def will_expire_soon(self, stale_duration=None):
+    def will_expire_soon(self, stale_duration=STALE_TOKEN_DURATION):
         """Determines if expiration is about to occur.
 
         :returns: true if expiration is within the given duration
         :rtype: boolean
 
         """
-        stale_duration = (STALE_TOKEN_DURATION if stale_duration is None
-                          else stale_duration)
-        norm_expires = timeutils.normalize_time(self.expires)
+        norm_expires = utils.normalize_time(self.expires)
         # (gyee) should we move auth_token.will_expire_soon() to timeutils
         # instead of duplicating code here?
-        soon = (timeutils.utcnow() + datetime.timedelta(
+        soon = (datetime.datetime.utcnow() + datetime.timedelta(
                 seconds=stale_duration))
         return norm_expires < soon
 
@@ -380,7 +376,7 @@ class AccessInfoV2(AccessInfo):
 
     @missingproperty
     def expires(self):
-        return timeutils.parse_isotime(self._token.get('expires'))
+        return utils.parse_isotime(self._token.get('expires'))
 
     @missingproperty
     def issued(self):
@@ -549,11 +545,11 @@ class AccessInfoV3(AccessInfo):
 
     @missingproperty
     def expires(self):
-        return timeutils.parse_isotime(self._data['token']['expires_at'])
+        return utils.parse_isotime(self._data['token']['expires_at'])
 
     @missingproperty
     def issued(self):
-        return timeutils.parse_isotime(self._data['token']['issued_at'])
+        return utils.parse_isotime(self._data['token']['issued_at'])
 
     @missingproperty
     def user_id(self):

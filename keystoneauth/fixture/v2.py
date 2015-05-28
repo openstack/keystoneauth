@@ -13,8 +13,7 @@
 import datetime
 import uuid
 
-from oslo_utils import timeutils
-
+from keystoneauth import _utils
 from keystoneauth.fixture import exception
 
 
@@ -54,7 +53,7 @@ class Token(dict):
         self.audit_id = audit_id or uuid.uuid4().hex
 
         if not issued:
-            issued = timeutils.utcnow() - datetime.timedelta(minutes=2)
+            issued = datetime.datetime.utcnow() - datetime.timedelta(minutes=2)
         if not expires:
             expires = issued + datetime.timedelta(hours=1)
 
@@ -108,11 +107,11 @@ class Token(dict):
 
     @property
     def expires(self):
-        return timeutils.parse_isotime(self.expires_str)
+        return _utils.parse_isotime(self.expires_str)
 
     @expires.setter
     def expires(self, value):
-        self.expires_str = timeutils.isotime(value)
+        self.expires_str = value.isoformat()
 
     @property
     def issued_str(self):
@@ -124,11 +123,11 @@ class Token(dict):
 
     @property
     def issued(self):
-        return timeutils.parse_isotime(self.issued_str)
+        return _utils.parse_isotime(self.issued_str)
 
     @issued.setter
     def issued(self, value):
-        self.issued_str = timeutils.isotime(value)
+        self.issued_str = value.isoformat()
 
     @property
     def _user(self):

@@ -14,6 +14,9 @@ import functools
 import inspect
 import logging
 
+import iso8601
+import six
+
 
 logger = logging.getLogger(__name__)
 
@@ -171,3 +174,21 @@ class positional(object):
             return func(*args, **kwargs)
 
         return inner
+
+
+def normalize_time(timestamp):
+    """Normalize time in arbitrary timezone to UTC naive object."""
+    offset = timestamp.utcoffset()
+    if offset is None:
+        return timestamp
+    return timestamp.replace(tzinfo=None) - offset
+
+
+def parse_isotime(timestr):
+    """Parse time from ISO 8601 format."""
+    try:
+        return iso8601.parse_date(timestr)
+    except iso8601.ParseError as e:
+        raise ValueError(six.text_type(e))
+    except TypeError as e:
+        raise ValueError(six.text_type(e))
