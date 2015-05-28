@@ -12,26 +12,17 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-"""oslo.i18n integration module.
+"""oslo.i18n integration stub.
 
-See http://docs.openstack.org/developer/oslo.i18n/usage.html .
-
+This module is a stub to allow dropping the use of oslo.i18n without
+requiring a change to all of the various strings throughout keystoneauth.
 """
 
-import oslo_i18n
+# TODO(morganfainberg): Eliminate the use of translation functions around
+# each string in the keystoneauth library and then remove this file.
 
-
-_translators = oslo_i18n.TranslatorFactory(domain='keystonauth')
-
-# The primary translation function using the well-known name "_"
-_ = _translators.primary
-
-# Translators for log levels.
-#
-# The abbreviated names are meant to reflect the usual use of a short
-# name like '_'. The "L" is for "log" and the other letter comes from
-# the level.
-_LI = _translators.log_info
-_LW = _translators.log_warning
-_LE = _translators.log_error
-_LC = _translators.log_critical
+_ = lambda x: x
+_LI = _
+_LW = _
+_LE = _
+_LC = _
