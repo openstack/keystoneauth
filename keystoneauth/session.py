@@ -57,10 +57,6 @@ def _positive_non_zero_float(argument_value):
     return value
 
 
-def request(url, method='GET', **kwargs):
-    return Session().request(url, method=method, **kwargs)
-
-
 class _JSONEncoder(json.JSONEncoder):
 
     def default(self, o):
