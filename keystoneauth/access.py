@@ -19,9 +19,9 @@ import functools
 
 from oslo_utils import timeutils
 
+from keystoneauth import _utils as utils
 from keystoneauth.i18n import _
 from keystoneauth import service_catalog
-from keystoneauth import utils
 
 
 # gap, in seconds, to determine whether the given token is about to expire

@@ -14,7 +14,7 @@ import datetime
 
 from oslo_utils import timeutils
 
-from keystoneauth import utils
+from keystoneauth import _utils as utils
 
 __all__ = ['DiscoveryList',
            'V2Discovery',

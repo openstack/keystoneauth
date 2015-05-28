@@ -13,8 +13,8 @@
 import argparse
 import os
 
+from keystoneauth import _utils as utils
 from keystoneauth.auth import base
-from keystoneauth import utils
 
 
 @utils.positional()
