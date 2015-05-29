@@ -18,11 +18,11 @@ import six
 from keystoneauth.auth.identity.v3 import base
 from keystoneauth.auth.identity.v3 import token
 
-__all__ = ['FederatedBaseAuth']
+__all__ = ['FederationBaseAuth']
 
 
 @six.add_metaclass(abc.ABCMeta)
-class FederatedBaseAuth(base.BaseAuth):
+class FederationBaseAuth(base.BaseAuth):
 
     rescoping_plugin = token.Token
 
@@ -38,13 +38,13 @@ class FederatedBaseAuth(base.BaseAuth):
         :type identity_provider: string
 
         """
-        super(FederatedBaseAuth, self).__init__(auth_url=auth_url, **kwargs)
+        super(FederationBaseAuth, self).__init__(auth_url=auth_url, **kwargs)
         self.identity_provider = identity_provider
         self.protocol = protocol
 
     @classmethod
     def get_options(cls):
-        options = super(FederatedBaseAuth, cls).get_options()
+        options = super(FederationBaseAuth, cls).get_options()
 
         options.extend([
             cfg.StrOpt('identity-provider',

@@ -20,7 +20,7 @@ from keystoneauth import session
 from keystoneauth.tests.unit import utils
 
 
-class TesterFederationPlugin(v3.FederatedBaseAuth):
+class TesterFederationPlugin(v3.FederationBaseAuth):
 
     def get_unscoped_auth_ref(self, sess, **kwargs):
         # This would go and talk to an idp or something
@@ -90,7 +90,7 @@ class V3FederatedPlugin(utils.TestCase):
         self.assertTrue(self.scoped_mock.called)
 
     def test_options(self):
-        opts = [o.name for o in v3.FederatedBaseAuth.get_options()]
+        opts = [o.name for o in v3.FederationBaseAuth.get_options()]
 
         self.assertIn('protocol', opts)
         self.assertIn('identity-provider', opts)
