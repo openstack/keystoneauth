@@ -20,7 +20,6 @@ from keystoneauth import _utils as utils
 from keystoneauth.auth import base
 from keystoneauth import discover
 from keystoneauth import exceptions
-from keystoneauth.i18n import _LW
 
 LOG = logging.getLogger(__name__)
 
@@ -205,9 +204,9 @@ class BaseIdentityPlugin(base.BaseAuthPlugin):
             return self.auth_url
 
         if not service_type:
-            LOG.warn(_LW('Plugin cannot return an endpoint without knowing '
-                         'the service type that is required. Add service_type '
-                         'to endpoint filtering data.'))
+            LOG.warn('Plugin cannot return an endpoint without knowing '
+                     'the service type that is required. Add service_type '
+                     'to endpoint filtering data.')
             return None
 
         if not interface:
@@ -240,8 +239,8 @@ class BaseIdentityPlugin(base.BaseAuthPlugin):
             # NOTE(jamielennox): Again if we can't contact the server we fall
             # back to just returning the URL from the catalog. This may not be
             # the best default but we need it for now.
-            LOG.warn(_LW('Failed to contact the endpoint at %s for discovery. '
-                         'Fallback to using that endpoint as the base url.'),
+            LOG.warn('Failed to contact the endpoint at %s for discovery. '
+                     'Fallback to using that endpoint as the base url.',
                      url)
         else:
             url = disc.url_for(version)

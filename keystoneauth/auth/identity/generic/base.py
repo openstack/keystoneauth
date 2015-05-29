@@ -20,7 +20,6 @@ import six.moves.urllib.parse as urlparse
 from keystoneauth.auth.identity import base
 from keystoneauth import discover
 from keystoneauth import exceptions
-from keystoneauth.i18n import _, _LW
 
 
 LOG = logging.getLogger(__name__)
@@ -130,9 +129,9 @@ class BaseGenericPlugin(base.BaseIdentityPlugin):
         except (exceptions.DiscoveryFailure,
                 exceptions.HttpError,
                 exceptions.ConnectionError):
-            LOG.warn(_LW('Discovering versions from the identity service '
-                         'failed when creating the password plugin. '
-                         'Attempting to determine version from URL.'))
+            LOG.warn('Discovering versions from the identity service '
+                     'failed when creating the password plugin. '
+                     'Attempting to determine version from URL.')
 
             url_parts = urlparse.urlparse(self.auth_url)
             path = url_parts.path.lower()
@@ -166,7 +165,7 @@ class BaseGenericPlugin(base.BaseIdentityPlugin):
             return plugin
 
         # so there were no URLs that i could use for auth of any version.
-        msg = _('Could not determine a suitable URL for the plugin')
+        msg = 'Could not determine a suitable URL for the plugin'
         raise exceptions.DiscoveryFailure(msg)
 
     def get_auth_ref(self, session, **kwargs):

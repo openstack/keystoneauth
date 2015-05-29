@@ -20,7 +20,6 @@ from keystoneauth import _utils as utils
 from keystoneauth import access
 from keystoneauth.auth.identity import base
 from keystoneauth import exceptions
-from keystoneauth.i18n import _
 
 _logger = logging.getLogger(__name__)
 
@@ -138,7 +137,7 @@ class Auth(BaseAuth):
 
         if not ident:
             raise exceptions.AuthorizationFailure(
-                _('Authentication method required (e.g. password)'))
+                'Authentication method required (e.g. password)')
 
         mutual_exclusion = [bool(self.domain_id or self.domain_name),
                             bool(self.project_id or self.project_name),
@@ -147,8 +146,8 @@ class Auth(BaseAuth):
 
         if sum(mutual_exclusion) > 1:
             raise exceptions.AuthorizationFailure(
-                _('Authentication cannot be scoped to multiple targets. Pick '
-                  'one of: project, domain, trust or unscoped'))
+                'Authentication cannot be scoped to multiple targets. Pick '
+                'one of: project, domain, trust or unscoped')
 
         if self.domain_id:
             body['auth']['scope'] = {'domain': {'id': self.domain_id}}
@@ -211,7 +210,7 @@ class AuthMethod(object):
             setattr(self, param, kwargs.pop(param, None))
 
         if kwargs:
-            msg = _("Unexpected Attributes: %s") % ", ".join(kwargs.keys())
+            msg = "Unexpected Attributes: %s" % ", ".join(kwargs.keys())
             raise AttributeError(msg)
 
     @classmethod

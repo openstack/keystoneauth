@@ -11,7 +11,6 @@
 # under the License.
 
 from keystoneauth.exceptions import base
-from keystoneauth.i18n import _
 
 
 class AuthPluginException(base.ClientException):
@@ -35,5 +34,5 @@ class NoMatchingPlugin(AuthPluginException):
 
     def __init__(self, name):
         self.name = name
-        msg = _('The plugin %s could not be found') % name
+        msg = 'The plugin %s could not be found' % name
         super(NoMatchingPlugin, self).__init__(msg)

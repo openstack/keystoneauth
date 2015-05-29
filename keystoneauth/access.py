@@ -17,7 +17,6 @@
 import functools
 
 from keystoneauth import _utils as utils
-from keystoneauth.i18n import _
 from keystoneauth import service_catalog
 
 
@@ -38,7 +37,7 @@ def create(resp=None, body=None, auth_token=None):
     elif 'access' in body:
         return AccessInfoV2(body, auth_token)
 
-    raise ValueError(_('Unrecognized auth response'))
+    raise ValueError('Unrecognized auth response')
 
 
 def missingproperty(f):

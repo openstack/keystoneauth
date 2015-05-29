@@ -26,7 +26,6 @@ from testtools import matchers
 from keystoneauth import adapter
 from keystoneauth.auth import base
 from keystoneauth import exceptions
-from keystoneauth.i18n import _
 from keystoneauth import session as client_session
 from keystoneauth.tests.unit import utils
 
@@ -223,7 +222,7 @@ class SessionTests(utils.TestCase):
         session = client_session.Session()
 
         # The exception should contain the URL and details about the SSL error
-        msg = _('SSL exception connecting to %(url)s: %(error)s') % {
+        msg = 'SSL exception connecting to %(url)s: %(error)s' % {
             'url': self.TEST_URL, 'error': error}
         self.assertRaisesRegex(exceptions.SSLError,
                                msg,

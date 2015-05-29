@@ -28,7 +28,6 @@ from six.moves import urllib
 
 from keystoneauth import _utils as utils
 from keystoneauth import exceptions
-from keystoneauth.i18n import _, _LI, _LW
 
 try:
     import netaddr
@@ -51,10 +50,10 @@ def _positive_non_zero_float(argument_value):
     try:
         value = float(argument_value)
     except ValueError:
-        msg = _("%s must be a float") % argument_value
+        msg = "%s must be a float" % argument_value
         raise argparse.ArgumentTypeError(msg)
     if value <= 0:
-        msg = _("%s must be greater than 0") % argument_value
+        msg = "%s must be greater than 0" % argument_value
         raise argparse.ArgumentTypeError(msg)
     return value
 
@@ -326,7 +325,7 @@ class Session(object):
             auth_headers = self.get_auth_headers(auth)
 
             if auth_headers is None:
-                msg = _('No valid authentication is available')
+                msg = 'No valid authentication is available'
                 raise exceptions.AuthorizationFailure(msg)
 
             headers.update(auth_headers)
@@ -428,17 +427,17 @@ class Session(object):
             try:
                 resp = self.session.request(method, url, **kwargs)
             except requests.exceptions.SSLError as e:
-                msg = _('SSL exception connecting to %(url)s: '
-                        '%(error)s') % {'url': url, 'error': e}
+                msg = 'SSL exception connecting to %(url)s: %(error)s' % {
+                    'url': url, 'error': e}
                 raise exceptions.SSLError(msg)
             except requests.exceptions.Timeout:
-                msg = _('Request to %s timed out') % url
+                msg = 'Request to %s timed out' % url
                 raise exceptions.ConnectTimeout(msg)
             except requests.exceptions.ConnectionError:
-                msg = _('Unable to establish connection to %s') % url
+                msg = 'Unable to establish connection to %s' % url
                 raise exceptions.ConnectFailure(msg)
             except requests.exceptions.RequestException as e:
-                msg = _('Unexpected exception for %(url)s: %(error)s') % {
+                msg = 'Unexpected exception for %(url)s: %(error)s' % {
                     'url': url, 'error': e}
                 raise exceptions.UnknownConnectionError(msg, e)
 
@@ -446,7 +445,7 @@ class Session(object):
             if connect_retries <= 0:
                 raise
 
-            logger.info(_LI('Failure: %(e)s. Retrying in %(delay).1fs.'),
+            logger.info('Failure: %(e)s. Retrying in %(delay).1fs.',
                         {'e': e, 'delay': connect_retry_delay})
             time.sleep(connect_retry_delay)
 
@@ -473,8 +472,8 @@ class Session(object):
             try:
                 location = resp.headers['location']
             except KeyError:
-                logger.warn(_LW("Failed to redirect request to %s as new "
-                                "location was not provided."), resp.url)
+                logger.warn("Failed to redirect request to %s as new "
+                            "location was not provided.", resp.url)
             else:
                 # NOTE(jamielennox): We don't pass through connect_retry_delay.
                 # This request actually worked so we can reset the delay count.
@@ -565,7 +564,7 @@ class Session(object):
             auth = self.auth
 
         if not auth:
-            msg_fmt = _('An auth plugin is required to %s')
+            msg_fmt = 'An auth plugin is required to %s'
             raise exceptions.MissingAuthPlugin(msg_fmt % msg)
 
         return auth

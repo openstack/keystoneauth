@@ -26,7 +26,6 @@ import sys
 import six
 
 from keystoneauth.exceptions import base
-from keystoneauth.i18n import _
 
 
 __all__ = ['HttpError',
@@ -67,7 +66,7 @@ class HttpError(base.ClientException):
     """The base exception class for all HTTP exceptions.
     """
     http_status = 0
-    message = _("HTTP Error")
+    message = "HTTP Error"
 
     def __init__(self, message=None, details=None,
                  response=None, request_id=None,
@@ -90,7 +89,7 @@ class HTTPClientError(HttpError):
 
     Exception for cases in which the client seems to have erred.
     """
-    message = _("HTTP Client Error")
+    message = "HTTP Client Error"
 
 
 class HttpServerError(HttpError):
@@ -99,7 +98,7 @@ class HttpServerError(HttpError):
     Exception for cases in which the server is aware that it has
     erred or is incapable of performing the request.
     """
-    message = _("HTTP Server Error")
+    message = "HTTP Server Error"
 
 
 class BadRequest(HTTPClientError):
@@ -108,7 +107,7 @@ class BadRequest(HTTPClientError):
     The request cannot be fulfilled due to bad syntax.
     """
     http_status = 400
-    message = _("Bad Request")
+    message = "Bad Request"
 
 
 class Unauthorized(HTTPClientError):
@@ -118,7 +117,7 @@ class Unauthorized(HTTPClientError):
     is required and has failed or has not yet been provided.
     """
     http_status = 401
-    message = _("Unauthorized")
+    message = "Unauthorized"
 
 
 class PaymentRequired(HTTPClientError):
@@ -127,7 +126,7 @@ class PaymentRequired(HTTPClientError):
     Reserved for future use.
     """
     http_status = 402
-    message = _("Payment Required")
+    message = "Payment Required"
 
 
 class Forbidden(HTTPClientError):
@@ -137,7 +136,7 @@ class Forbidden(HTTPClientError):
     to it.
     """
     http_status = 403
-    message = _("Forbidden")
+    message = "Forbidden"
 
 
 class NotFound(HTTPClientError):
@@ -147,7 +146,7 @@ class NotFound(HTTPClientError):
     in the future.
     """
     http_status = 404
-    message = _("Not Found")
+    message = "Not Found"
 
 
 class MethodNotAllowed(HTTPClientError):
@@ -157,7 +156,7 @@ class MethodNotAllowed(HTTPClientError):
     by that resource.
     """
     http_status = 405
-    message = _("Method Not Allowed")
+    message = "Method Not Allowed"
 
 
 class NotAcceptable(HTTPClientError):
@@ -167,7 +166,7 @@ class NotAcceptable(HTTPClientError):
     acceptable according to the Accept headers sent in the request.
     """
     http_status = 406
-    message = _("Not Acceptable")
+    message = "Not Acceptable"
 
 
 class ProxyAuthenticationRequired(HTTPClientError):
@@ -176,7 +175,7 @@ class ProxyAuthenticationRequired(HTTPClientError):
     The client must first authenticate itself with the proxy.
     """
     http_status = 407
-    message = _("Proxy Authentication Required")
+    message = "Proxy Authentication Required"
 
 
 class RequestTimeout(HTTPClientError):
@@ -185,7 +184,7 @@ class RequestTimeout(HTTPClientError):
     The server timed out waiting for the request.
     """
     http_status = 408
-    message = _("Request Timeout")
+    message = "Request Timeout"
 
 
 class Conflict(HTTPClientError):
@@ -195,7 +194,7 @@ class Conflict(HTTPClientError):
     in the request, such as an edit conflict.
     """
     http_status = 409
-    message = _("Conflict")
+    message = "Conflict"
 
 
 class Gone(HTTPClientError):
@@ -205,7 +204,7 @@ class Gone(HTTPClientError):
     not be available again.
     """
     http_status = 410
-    message = _("Gone")
+    message = "Gone"
 
 
 class LengthRequired(HTTPClientError):
@@ -215,7 +214,7 @@ class LengthRequired(HTTPClientError):
     required by the requested resource.
     """
     http_status = 411
-    message = _("Length Required")
+    message = "Length Required"
 
 
 class PreconditionFailed(HTTPClientError):
@@ -225,7 +224,7 @@ class PreconditionFailed(HTTPClientError):
     put on the request.
     """
     http_status = 412
-    message = _("Precondition Failed")
+    message = "Precondition Failed"
 
 
 class RequestEntityTooLarge(HTTPClientError):
@@ -234,7 +233,7 @@ class RequestEntityTooLarge(HTTPClientError):
     The request is larger than the server is willing or able to process.
     """
     http_status = 413
-    message = _("Request Entity Too Large")
+    message = "Request Entity Too Large"
 
     def __init__(self, *args, **kwargs):
         try:
@@ -251,7 +250,7 @@ class RequestUriTooLong(HTTPClientError):
     The URI provided was too long for the server to process.
     """
     http_status = 414
-    message = _("Request-URI Too Long")
+    message = "Request-URI Too Long"
 
 
 class UnsupportedMediaType(HTTPClientError):
@@ -261,7 +260,7 @@ class UnsupportedMediaType(HTTPClientError):
     not support.
     """
     http_status = 415
-    message = _("Unsupported Media Type")
+    message = "Unsupported Media Type"
 
 
 class RequestedRangeNotSatisfiable(HTTPClientError):
@@ -271,7 +270,7 @@ class RequestedRangeNotSatisfiable(HTTPClientError):
     supply that portion.
     """
     http_status = 416
-    message = _("Requested Range Not Satisfiable")
+    message = "Requested Range Not Satisfiable"
 
 
 class ExpectationFailed(HTTPClientError):
@@ -280,7 +279,7 @@ class ExpectationFailed(HTTPClientError):
     The server cannot meet the requirements of the Expect request-header field.
     """
     http_status = 417
-    message = _("Expectation Failed")
+    message = "Expectation Failed"
 
 
 class UnprocessableEntity(HTTPClientError):
@@ -290,7 +289,7 @@ class UnprocessableEntity(HTTPClientError):
     errors.
     """
     http_status = 422
-    message = _("Unprocessable Entity")
+    message = "Unprocessable Entity"
 
 
 class InternalServerError(HttpServerError):
@@ -299,7 +298,7 @@ class InternalServerError(HttpServerError):
     A generic error message, given when no more specific message is suitable.
     """
     http_status = 500
-    message = _("Internal Server Error")
+    message = "Internal Server Error"
 
 
 # NotImplemented is a python keyword.
@@ -310,7 +309,7 @@ class HttpNotImplemented(HttpServerError):
     the ability to fulfill the request.
     """
     http_status = 501
-    message = _("Not Implemented")
+    message = "Not Implemented"
 
 
 class BadGateway(HttpServerError):
@@ -320,7 +319,7 @@ class BadGateway(HttpServerError):
     response from the upstream server.
     """
     http_status = 502
-    message = _("Bad Gateway")
+    message = "Bad Gateway"
 
 
 class ServiceUnavailable(HttpServerError):
@@ -329,7 +328,7 @@ class ServiceUnavailable(HttpServerError):
     The server is currently unavailable.
     """
     http_status = 503
-    message = _("Service Unavailable")
+    message = "Service Unavailable"
 
 
 class GatewayTimeout(HttpServerError):
@@ -339,7 +338,7 @@ class GatewayTimeout(HttpServerError):
     response from the upstream server.
     """
     http_status = 504
-    message = _("Gateway Timeout")
+    message = "Gateway Timeout"
 
 
 class HttpVersionNotSupported(HttpServerError):
@@ -348,7 +347,7 @@ class HttpVersionNotSupported(HttpServerError):
     The server does not support the HTTP protocol version used in the request.
     """
     http_status = 505
-    message = _("HTTP Version Not Supported")
+    message = "HTTP Version Not Supported"
 
 
 # _code_map contains all the classes that have http_status attribute.

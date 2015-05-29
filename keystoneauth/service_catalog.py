@@ -22,7 +22,6 @@ import six
 
 from keystoneauth import _utils as utils
 from keystoneauth import exceptions
-from keystoneauth.i18n import _
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -166,7 +165,7 @@ class ServiceCatalog(object):
 
         """
         if not self._catalog:
-            raise exceptions.EmptyCatalog(_('The service catalog is empty.'))
+            raise exceptions.EmptyCatalog('The service catalog is empty.')
 
         urls = self.get_urls(service_type=service_type,
                              endpoint_type=endpoint_type,
@@ -179,26 +178,26 @@ class ServiceCatalog(object):
             pass
 
         if service_name and region_name:
-            msg = (_('%(endpoint_type)s endpoint for %(service_type)s service '
-                     'named %(service_name)s in %(region_name)s region not '
-                     'found') %
+            msg = ('%(endpoint_type)s endpoint for %(service_type)s service '
+                   'named %(service_name)s in %(region_name)s region not '
+                   'found' %
                    {'endpoint_type': endpoint_type,
                     'service_type': service_type, 'service_name': service_name,
                     'region_name': region_name})
         elif service_name:
-            msg = (_('%(endpoint_type)s endpoint for %(service_type)s service '
-                     'named %(service_name)s not found') %
+            msg = ('%(endpoint_type)s endpoint for %(service_type)s service '
+                   'named %(service_name)s not found' %
                    {'endpoint_type': endpoint_type,
                     'service_type': service_type,
                     'service_name': service_name})
         elif region_name:
-            msg = (_('%(endpoint_type)s endpoint for %(service_type)s service '
-                     'in %(region_name)s region not found') %
+            msg = ('%(endpoint_type)s endpoint for %(service_type)s service '
+                   'in %(region_name)s region not found' %
                    {'endpoint_type': endpoint_type,
                     'service_type': service_type, 'region_name': region_name})
         else:
-            msg = (_('%(endpoint_type)s endpoint for %(service_type)s service '
-                     'not found') %
+            msg = ('%(endpoint_type)s endpoint for %(service_type)s service '
+                   'not found' %
                    {'endpoint_type': endpoint_type,
                     'service_type': service_type})
 
@@ -213,7 +212,7 @@ class ServiceCatalogV2(ServiceCatalog):
     @classmethod
     def from_token(cls, token):
         if 'access' not in token:
-            raise ValueError(_('Invalid token format for fetching catalog'))
+            raise ValueError('Invalid token format for fetching catalog')
 
         return cls(token['access'].get('serviceCatalog', {}))
 
@@ -249,7 +248,7 @@ class ServiceCatalogV3(ServiceCatalog):
     @classmethod
     def from_token(cls, token):
         if 'token' not in token:
-            raise ValueError(_('Invalid token format for fetching catalog'))
+            raise ValueError('Invalid token format for fetching catalog')
 
         return cls(token['token'].get('catalog', {}))
 
