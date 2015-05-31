@@ -165,8 +165,8 @@ class BaseGenericPlugin(base.BaseIdentityPlugin):
             return plugin
 
         # so there were no URLs that i could use for auth of any version.
-        msg = 'Could not determine a suitable URL for the plugin'
-        raise exceptions.DiscoveryFailure(msg)
+        raise exceptions.DiscoveryFailure('Could not determine a suitable URL '
+                                          'for the plugin')
 
     def get_auth_ref(self, session, **kwargs):
         if not self._plugin:
