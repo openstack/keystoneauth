@@ -177,6 +177,10 @@ class Token(dict):
     def _user_domain(self):
         return self._user.setdefault('domain', {})
 
+    @_user_domain.setter
+    def _user_domain(self, domain):
+        self._user['domain'] = domain
+
     @property
     def user_domain_id(self):
         return self._user_domain.get('id')
@@ -391,12 +395,13 @@ class V3FederationToken(Token):
     a correct V3 federation token for use in test code.
     """
 
+    FEDERATED_DOMAIN_ID = 'Federated'
+
     def __init__(self, methods=None, identity_provider=None, protocol=None,
                  groups=None):
         methods = methods or ['saml2']
         super(V3FederationToken, self).__init__(methods=methods)
-        # NOTE(stevemar): Federated tokens do not have a domain for the user
-        del self._user['domain']
+        self._user_domain = {'id': V3FederationToken.FEDERATED_DOMAIN_ID}
         self.add_federation_info_to_user(identity_provider, protocol, groups)
 
     def add_federation_info_to_user(self, identity_provider=None,
