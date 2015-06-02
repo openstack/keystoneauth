@@ -250,3 +250,19 @@ class V3TokenTests(utils.TestCase):
             endpoint = {'interface': interface, 'url': url,
                         'region': region, 'region_id': region}
             self.assertIn(endpoint, service['endpoints'])
+
+    def test_empty_default_service_providers(self):
+        token = fixture.V3Token()
+        self.assertEqual(None, token.service_providers)
+
+    def test_service_providers(self):
+        def new_sp():
+            return {
+                'id': uuid.uuid4().hex,
+                'sp_url': uuid.uuid4().hex,
+                'auth_url': uuid.uuid4().hex
+            }
+        ref_service_providers = [new_sp(), new_sp()]
+        token = fixture.V3Token(service_providers=ref_service_providers)
+
+        self.assertEqual(ref_service_providers, token.service_providers)

@@ -350,6 +350,16 @@ class AccessInfo(object):
         """
         return self.audit_chain_id or self.audit_id
 
+    @property
+    def service_providers(self):
+        """List of trusted service providers.
+
+        Used for Keystone2Keystone federating-out.
+
+        :returns: list or None
+        """
+        raise NotImplementedError()
+
 
 class AccessInfoV2(AccessInfo):
     """An object for encapsulating a raw v2 auth token from identity
@@ -520,6 +530,10 @@ class AccessInfoV2(AccessInfo):
         except IndexError:
             return None
 
+    @property
+    def service_providers(self):
+        return None
+
 
 class AccessInfoV3(AccessInfo):
     """An object for encapsulating a raw v3 auth token from identity
@@ -676,3 +690,7 @@ class AccessInfoV3(AccessInfo):
             return self._data['token']['audit_ids'][1]
         except IndexError:
             return None
+
+    @missingproperty
+    def service_providers(self):
+        return self._data['token']['service_providers']

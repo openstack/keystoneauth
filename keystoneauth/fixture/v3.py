@@ -62,7 +62,8 @@ class Token(dict):
                  project_domain_name=None, domain_id=None, domain_name=None,
                  trust_id=None, trust_impersonation=None, trustee_user_id=None,
                  trustor_user_id=None, oauth_access_token_id=None,
-                 oauth_consumer_id=None, audit_id=None, audit_chain_id=None):
+                 oauth_consumer_id=None, audit_id=None, audit_chain_id=None,
+                 service_providers=None):
         super(Token, self).__init__()
 
         self.user_id = user_id or uuid.uuid4().hex
@@ -70,6 +71,7 @@ class Token(dict):
         self.user_domain_id = user_domain_id or uuid.uuid4().hex
         self.user_domain_name = user_domain_name or uuid.uuid4().hex
         self.audit_id = audit_id or uuid.uuid4().hex
+        self.service_providers = service_providers
 
         if not methods:
             methods = ['password']
