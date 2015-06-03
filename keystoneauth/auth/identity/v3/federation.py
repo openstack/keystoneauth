@@ -36,6 +36,9 @@ class FederationBaseAuth(base.BaseAuth):
                                   will be used to build a dynamic URL used to
                                   obtain unscoped OpenStack token.
         :type identity_provider: string
+        :param protocol: name of the protocol the client will authenticate
+                         against.
+        :type protocol: string
 
         """
         super(FederationBaseAuth, self).__init__(auth_url=auth_url, **kwargs)
