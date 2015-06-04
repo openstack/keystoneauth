@@ -65,8 +65,8 @@ def get_version_data(session, url, authenticated=None):
             pass
 
     err_text = resp.text[:50] + '...' if len(resp.text) > 50 else resp.text
-    msg = 'Invalid Response - Bad version data returned: %s' % err_text
-    raise exceptions.DiscoveryFailure(msg)
+    raise exceptions.DiscoveryFailure('Invalid Response - Bad version data '
+                                      'returned: %s' % err_text)
 
 
 def normalize_version_number(version):
