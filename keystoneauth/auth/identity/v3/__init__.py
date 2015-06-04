@@ -12,6 +12,7 @@
 
 from keystoneauth.auth.identity.v3.base import *  # noqa
 from keystoneauth.auth.identity.v3.federation import *  # noqa
+from keystoneauth.auth.identity.v3.k2k import *  # noqa
 from keystoneauth.auth.identity.v3.password import *  # noqa
 from keystoneauth.auth.identity.v3.token import *  # noqa
 
@@ -22,6 +23,8 @@ __all__ = ['Auth',
            'BaseAuth',
 
            'FederationBaseAuth',
+
+           'Keystone2Keystone',
 
            'Password',
            'PasswordMethod',
