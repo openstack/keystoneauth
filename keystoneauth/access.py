@@ -18,6 +18,7 @@ import functools
 
 from keystoneauth import _utils as utils
 from keystoneauth import service_catalog
+from keystoneauth import service_providers
 
 
 # gap, in seconds, to determine whether the given token is about to expire
@@ -65,6 +66,7 @@ class AccessInfo(object):
         self._data = body
         self._auth_token = auth_token
         self._service_catalog = None
+        self._service_providers = None
 
     @property
     def service_catalog(self):
@@ -352,11 +354,12 @@ class AccessInfo(object):
 
     @property
     def service_providers(self):
-        """List of trusted service providers.
+        """Return a object representing the list of trusted service providers.
 
         Used for Keystone2Keystone federating-out.
 
-        :returns: list or None
+        :returns: :py:class:`keystoneauth.service_providers.ServiceProviders`
+                  or None
         """
         raise NotImplementedError()
 
@@ -691,6 +694,10 @@ class AccessInfoV3(AccessInfo):
         except IndexError:
             return None
 
-    @missingproperty
+    @property
     def service_providers(self):
-        return self._data['token']['service_providers']
+        if not self._service_providers:
+            self._service_providers = (
+                service_providers.ServiceProviders.from_token(self._data))
+
+        return self._service_providers

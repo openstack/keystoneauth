@@ -110,6 +110,20 @@ class V3IdentityPlugin(utils.TestCase):
         "type": "object-store"
     }]
 
+    TEST_SERVICE_PROVIDERS = [
+        {
+            "auth_url": "https://sp1.com/v3/OS-FEDERATION/"
+                        "identity_providers/acme/protocols/saml2/auth",
+            "id": "sp1",
+            "sp_url": "https://sp1.com/Shibboleth.sso/SAML2/ECP"
+        }, {
+            "auth_url": "https://sp2.com/v3/OS-FEDERATION/"
+                        "identity_providers/acme/protocols/saml2/auth",
+            "id": "sp2",
+            "sp_url": "https://sp2.com/Shibboleth.sso/SAML2/ECP"
+        }
+    ]
+
     def setUp(self):
         super(V3IdentityPlugin, self).setUp()
 
@@ -142,7 +156,8 @@ class V3IdentityPlugin(utils.TestCase):
                     "name": self.TEST_USER
                 },
                 "issued_at": "2013-05-29T16:55:21.468960Z",
-                "catalog": self.TEST_SERVICE_CATALOG
+                "catalog": self.TEST_SERVICE_CATALOG,
+                "service_providers": self.TEST_SERVICE_PROVIDERS
             },
         }
         self.TEST_PROJECTS_RESPONSE = {
@@ -398,6 +413,39 @@ class V3IdentityPlugin(utils.TestCase):
                      endpoint_filter={'service_type': 'compute'})
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.text, 'SUCCESS')
+
+    def test_service_providers_urls(self):
+        self.stub_auth(json=self.TEST_RESPONSE_DICT)
+        a = v3.Password(self.TEST_URL, username=self.TEST_USER,
+                        password=self.TEST_PASS)
+        s = session.Session()
+        auth_ref = a.get_auth_ref(s)
+
+        service_providers = auth_ref.service_providers
+        self.assertEqual('https://sp1.com/v3/OS-FEDERATION/'
+                         'identity_providers/acme/protocols/saml2/auth',
+                         service_providers.get_auth_url('sp1'))
+        self.assertEqual('https://sp1.com/Shibboleth.sso/SAML2/ECP',
+                         service_providers.get_sp_url('sp1'))
+        self.assertEqual('https://sp2.com/v3/OS-FEDERATION/'
+                         'identity_providers/acme/protocols/saml2/auth',
+                         service_providers.get_auth_url('sp2'))
+        self.assertEqual('https://sp2.com/Shibboleth.sso/SAML2/ECP',
+                         service_providers.get_sp_url('sp2'))
+
+    def test_handle_missing_service_provider(self):
+        self.stub_auth(json=self.TEST_RESPONSE_DICT)
+
+        a = v3.Password(self.TEST_URL, username=self.TEST_USER,
+                        password=self.TEST_PASS)
+        s = session.Session()
+        auth_ref = a.get_auth_ref(s)
+
+        service_providers = auth_ref.service_providers
+
+        self.assertRaises(exceptions.ServiceProviderNotFound,
+                          service_providers._get_service_provider,
+                          uuid.uuid4().hex)
 
     def test_invalid_auth_response_dict(self):
         self.stub_auth(json={'hello': 'world'})

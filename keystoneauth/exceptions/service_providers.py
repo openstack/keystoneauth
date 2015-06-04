@@ -10,13 +10,15 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from keystoneauth.exceptions import base
 
-from keystoneauth.exceptions.auth import *  # noqa
-from keystoneauth.exceptions.auth_plugins import *  # noqa
-from keystoneauth.exceptions.base import *  # noqa
-from keystoneauth.exceptions.catalog import *  # noqa
-from keystoneauth.exceptions.connection import *  # noqa
-from keystoneauth.exceptions.discovery import *  # noqa
-from keystoneauth.exceptions.http import *  # noqa
-from keystoneauth.exceptions.response import *  # noqa
-from keystoneauth.exceptions.service_providers import *  # noqa
+__all__ = ['ServiceProviderNotFound']
+
+
+class ServiceProviderNotFound(base.ClientException):
+    """A Service Provider cannot be found"""
+
+    def __init__(self, sp_id):
+        self.sp_id = sp_id
+        msg = 'The Service Provider %(sp)s could not be found' % {'sp': sp_id}
+        super(ServiceProviderNotFound, self).__init__(msg)
