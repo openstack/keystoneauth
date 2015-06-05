@@ -15,6 +15,7 @@ from oslo_config import cfg
 from keystoneauth import access
 from keystoneauth.auth import base as auth_base
 from keystoneauth.auth.identity.v3 import base
+from keystoneauth.auth.identity.v3 import token
 from keystoneauth import exceptions
 
 __all__ = ['Keystone2Keystone']
@@ -39,8 +40,10 @@ class Keystone2Keystone(base.BaseAuth):
     HTTP_MOVED_TEMPORARILY = 302
     REQUEST_ECP_URL = '/auth/OS-FEDERATION/saml2/ecp'
 
-    def __init__(self, base_plugin, service_provider):
-        super(Keystone2Keystone, self).__init__(auth_url=None)
+    rescoping_plugin = token.Token
+
+    def __init__(self, base_plugin, service_provider, **kwargs):
+        super(Keystone2Keystone, self).__init__(auth_url=None, **kwargs)
 
         self._local_cloud_plugin = base_plugin
         self._sp_id = service_provider
@@ -70,6 +73,15 @@ class Keystone2Keystone(base.BaseAuth):
         PATTERN = '/OS-FEDERATION/'
         idx = auth_url.index(PATTERN) if PATTERN in auth_url else len(auth_url)
         return auth_url[:idx]
+
+    def _get_scoping_data(self):
+        return {'trust_id': self.trust_id,
+                'domain_id': self.domain_id,
+                'domain_name': self.domain_name,
+                'project_id': self.project_id,
+                'project_name': self.project_name,
+                'project_domain_id': self.project_domain_id,
+                'project_domain_name': self.project_domain_name}
 
     @classmethod
     def get_options(cls):
@@ -165,7 +177,7 @@ class Keystone2Keystone(base.BaseAuth):
 
         return response
 
-    def get_auth_ref(self, session, **kwargs):
+    def get_unscoped_auth_ref(self, session, **kwargs):
         sp_auth_url = self._local_cloud_plugin.get_sp_auth_url(
             session, self._sp_id)
         sp_url = self._local_cloud_plugin.get_sp_url(session, self._sp_id)
@@ -174,3 +186,14 @@ class Keystone2Keystone(base.BaseAuth):
         response = self._send_service_provider_ecp_authn_response(
             session, sp_url, sp_auth_url)
         return access.create(resp=response)
+
+    def get_auth_ref(self, session, **kwargs):
+
+        auth_ref = self.get_unscoped_auth_ref(session, **kwargs)
+        scoping = self._get_scoping_data()
+        if any(scoping.values()):
+            token_plugin = self.rescoping_plugin(self.auth_url,
+                                                 token=auth_ref.auth_token,
+                                                 **scoping)
+            auth_ref = token_plugin.get_auth_ref(session)
+        return auth_ref
