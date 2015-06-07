@@ -472,8 +472,8 @@ class Session(object):
             try:
                 location = resp.headers['location']
             except KeyError:
-                logger.warn("Failed to redirect request to %s as new "
-                            "location was not provided.", resp.url)
+                logger.warning("Failed to redirect request to %s as new "
+                               "location was not provided.", resp.url)
             else:
                 # NOTE(jamielennox): We don't pass through connect_retry_delay.
                 # This request actually worked so we can reset the delay count.
