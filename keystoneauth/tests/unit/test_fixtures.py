@@ -263,6 +263,11 @@ class V3TokenTests(utils.TestCase):
                 'auth_url': uuid.uuid4().hex
             }
         ref_service_providers = [new_sp(), new_sp()]
-        token = fixture.V3Token(service_providers=ref_service_providers)
-
+        token = fixture.V3Token()
+        for sp in ref_service_providers:
+            token.add_service_provider(sp['id'],
+                                       sp['auth_url'],
+                                       sp['sp_url'])
         self.assertEqual(ref_service_providers, token.service_providers)
+        self.assertEqual(ref_service_providers,
+                         token['token']['service_providers'])
