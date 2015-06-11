@@ -117,24 +117,6 @@ class TestCase(testtools.TestCase):
         self.assertEqual(headers.get(name), val)
 
 
-if tuple(sys.version_info)[0:2] < (2, 7):
-
-    def assertDictEqual(self, d1, d2, msg=None):
-        # Simple version taken from 2.7
-        self.assertIsInstance(d1, dict,
-                              'First argument is not a dictionary')
-        self.assertIsInstance(d2, dict,
-                              'Second argument is not a dictionary')
-        if d1 != d2:
-            if msg:
-                self.fail(msg)
-            else:
-                standardMsg = '%r != %r' % (d1, d2)
-                self.fail(standardMsg)
-
-    TestCase.assertDictEqual = assertDictEqual
-
-
 class TestResponse(requests.Response):
     """Class used to wrap requests.Response and provide some
        convenience to initialize with a dict.
