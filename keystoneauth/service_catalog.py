@@ -35,11 +35,11 @@ class ServiceCatalog(object):
         return endpoint.get('region_id') or endpoint.get('region')
 
     @abc.abstractmethod
-    def _is_endpoint_type_match(self, endpoint, endpoint_type):
+    def is_endpoint_type_match(self, endpoint, endpoint_type):
         """Helper function to normalize endpoint matching across v2 and v3.
 
         :returns: True if the provided endpoint matches the required
-        endpoint_type otherwise False.
+                  endpoint_type otherwise False.
         """
 
     @abc.abstractmethod
@@ -97,7 +97,7 @@ class ServiceCatalog(object):
 
             for endpoint in service.get('endpoints', []):
                 if (endpoint_type and not
-                        self._is_endpoint_type_match(endpoint, endpoint_type)):
+                        self.is_endpoint_type_match(endpoint, endpoint_type)):
                     continue
                 if (region_name and
                         region_name != self._get_endpoint_region(endpoint)):
@@ -205,7 +205,7 @@ class ServiceCatalogV2(ServiceCatalog):
 
         return endpoint_type
 
-    def _is_endpoint_type_match(self, endpoint, endpoint_type):
+    def is_endpoint_type_match(self, endpoint, endpoint_type):
         return endpoint_type in endpoint
 
     @utils.positional()
@@ -243,7 +243,7 @@ class ServiceCatalogV3(ServiceCatalog):
 
         return endpoint_type
 
-    def _is_endpoint_type_match(self, endpoint, endpoint_type):
+    def is_endpoint_type_match(self, endpoint, endpoint_type):
         try:
             return endpoint_type == endpoint['interface']
         except KeyError:
