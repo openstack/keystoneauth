@@ -186,6 +186,35 @@ class BaseAuthPlugin(object):
         """
         return None
 
+    def get_sp_auth_url(self, session, sp_id, **kwargs):
+        """Return auth_url from the Service Provider object
+
+        This url is used for obtaining unscoped federated token from remote
+        cloud.
+
+        :param sp_id: ID of the Service Provider to be queried.
+        :type sp_id: string
+
+        :returns: A Service Provider auth_url or None if one is not available.
+        :rtype: str
+
+        """
+        return None
+
+    def get_sp_url(self, session, sp_id, **kwargs):
+        """Return sp_url from the Service Provider object
+
+        This url is used for passing SAML2 assertion to the remote cloud.
+
+        :param sp_id: ID of the Service Provider to be queried.
+        :type sp_id: str
+
+        :returns: A Service Provider sp_url or None if one is not available.
+        :rtype: str
+
+        """
+        return None
+
     @classmethod
     def get_options(cls):
         """Return the list of parameters associated with the auth plugin.
