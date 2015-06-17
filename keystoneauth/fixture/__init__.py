@@ -22,10 +22,15 @@ testing.
 """
 
 from keystoneauth.fixture.discovery import *  # noqa
-from keystoneauth.fixture.exception import FixtureValidationError  # noqa
-from keystoneauth.fixture.v2 import Token as V2Token  # noqa
-from keystoneauth.fixture.v3 import Token as V3Token  # noqa
-from keystoneauth.fixture.v3 import V3FederationToken  # noqa
+from keystoneauth.fixture import exception
+from keystoneauth.fixture import v2
+from keystoneauth.fixture import v3
+
+
+FixtureValidationError = exception.FixtureValidationError
+V2Token = v2.Token
+V3Token = v3.Token
+V3FederationToken = v3.V3FederationToken
 
 __all__ = ['DiscoveryList',
            'FixtureValidationError',
