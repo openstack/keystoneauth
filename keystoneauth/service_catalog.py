@@ -106,23 +106,6 @@ class ServiceCatalog(object):
 
         return sc
 
-    def _get_service_endpoints(self, service_type, endpoint_type,
-                               region_name, service_name):
-        """Fetch the endpoints of a particular service_type and handle
-        the filtering.
-        """
-        sc_endpoints = self.get_endpoints(service_type=service_type,
-                                          endpoint_type=endpoint_type,
-                                          region_name=region_name,
-                                          service_name=service_name)
-
-        try:
-            endpoints = sc_endpoints[service_type]
-        except KeyError:
-            return
-
-        return endpoints
-
     @abc.abstractmethod
     @utils.positional()
     def get_urls(self, service_type=None, endpoint_type='public',
@@ -229,15 +212,17 @@ class ServiceCatalogV2(ServiceCatalog):
     def get_urls(self, service_type=None, endpoint_type='publicURL',
                  region_name=None, service_name=None):
         endpoint_type = self._normalize_endpoint_type(endpoint_type)
-        endpoints = self._get_service_endpoints(service_type=service_type,
-                                                endpoint_type=endpoint_type,
-                                                region_name=region_name,
-                                                service_name=service_name)
+        sc_endpoints = self.get_endpoints(service_type=service_type,
+                                          endpoint_type=endpoint_type,
+                                          region_name=region_name,
+                                          service_name=service_name)
 
-        if endpoints:
-            return tuple([endpoint[endpoint_type] for endpoint in endpoints])
-        else:
-            return None
+        try:
+            endpoints = sc_endpoints[service_type]
+        except KeyError:
+            return
+
+        return tuple([endpoint[endpoint_type] for endpoint in endpoints])
 
 
 class ServiceCatalogV3(ServiceCatalog):
@@ -267,12 +252,14 @@ class ServiceCatalogV3(ServiceCatalog):
     @utils.positional()
     def get_urls(self, service_type=None, endpoint_type='publicURL',
                  region_name=None, service_name=None):
-        endpoints = self._get_service_endpoints(service_type=service_type,
-                                                endpoint_type=endpoint_type,
-                                                region_name=region_name,
-                                                service_name=service_name)
+        sc_endpoints = self.get_endpoints(service_type=service_type,
+                                          endpoint_type=endpoint_type,
+                                          region_name=region_name,
+                                          service_name=service_name)
 
-        if endpoints:
-            return tuple([endpoint['url'] for endpoint in endpoints])
-        else:
+        try:
+            endpoints = sc_endpoints[service_type]
+        except KeyError:
             return None
+
+        return tuple([endpoint['url'] for endpoint in endpoints])
