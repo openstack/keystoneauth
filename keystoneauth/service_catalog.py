@@ -42,8 +42,8 @@ class ServiceCatalog(object):
                   endpoint_type otherwise False.
         """
 
-    @abc.abstractmethod
-    def _normalize_endpoint_type(self, endpoint_type):
+    @staticmethod
+    def normalize_endpoint_type(self, endpoint_type):
         """Handle differences in the way v2 and v3 catalogs specify endpoint.
 
         Both v2 and v3 must be able to handle the endpoint style of the other.
@@ -53,6 +53,7 @@ class ServiceCatalog(object):
         :returns: the endpoint string in the format appropriate for this
                   service catalog.
         """
+        return endpoint_type
 
     def get_endpoints(self, service_type=None, endpoint_type=None,
                       region_name=None, service_name=None):
@@ -65,7 +66,7 @@ class ServiceCatalog(object):
         be skipped.  This allows compatibility with services that existed
         before the name was available in the catalog.
         """
-        endpoint_type = self._normalize_endpoint_type(endpoint_type)
+        endpoint_type = self.normalize_endpoint_type(endpoint_type)
 
         sc = {}
 
@@ -199,7 +200,8 @@ class ServiceCatalogV2(ServiceCatalog):
 
         return cls(token['access'].get('serviceCatalog', {}))
 
-    def _normalize_endpoint_type(self, endpoint_type):
+    @staticmethod
+    def normalize_endpoint_type(endpoint_type):
         if endpoint_type and 'URL' not in endpoint_type:
             endpoint_type = endpoint_type + 'URL'
 
@@ -211,7 +213,8 @@ class ServiceCatalogV2(ServiceCatalog):
     @utils.positional()
     def get_urls(self, service_type=None, endpoint_type='publicURL',
                  region_name=None, service_name=None):
-        endpoint_type = self._normalize_endpoint_type(endpoint_type)
+        endpoint_type = self.normalize_endpoint_type(endpoint_type)
+
         sc_endpoints = self.get_endpoints(service_type=service_type,
                                           endpoint_type=endpoint_type,
                                           region_name=region_name,
@@ -237,7 +240,8 @@ class ServiceCatalogV3(ServiceCatalog):
 
         return cls(token['token'].get('catalog', {}))
 
-    def _normalize_endpoint_type(self, endpoint_type):
+    @staticmethod
+    def normalize_endpoint_type(endpoint_type):
         if endpoint_type:
             endpoint_type = endpoint_type.rstrip('URL')
 
