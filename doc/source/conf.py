@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# keystoneauth documentation build configuration file, created by
+# keystoneauth1 documentation build configuration file, created by
 # sphinx-quickstart on Sun Dec  6 14:19:25 2009.
 #
 # This file is execfile()d with the current directory set to its containing
@@ -55,13 +55,13 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'keystoneauth'
+project = 'keystoneauth1'
 copyright = 'OpenStack Contributors'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
-version_info = pbr.version.VersionInfo('keystoneauth')
+version_info = pbr.version.VersionInfo('keystoneauth1')
 # The short X.Y version.
 version = version_info.version_string()
 # The full version, including alpha/beta/rc tags.
@@ -201,8 +201,8 @@ htmlhelp_basename = 'keystoneauthdoc'
 # (source start file, target name, title, author, documentclass [howto/manual])
 # .
 latex_documents = [
-    ('index', 'keystoneauth.tex',
-     'keystoneauth Documentation',
+    ('index', 'keystoneauth1.tex',
+     'keystoneauth1 Documentation',
      'Nebula Inc, based on work by Rackspace and Jacob Kaplan-Moss',
      'manual'),
 ]

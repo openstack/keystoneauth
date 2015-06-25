@@ -5,8 +5,8 @@ Using Sessions
 Introduction
 ============
 
-The :py:class:`keystoneauth.session.Session` class was introduced into
-keystoneauth as an attempt to bring a unified interface to the various
+The :py:class:`keystoneauth1.session.Session` class was introduced into
+keystoneauth1 as an attempt to bring a unified interface to the various
 OpenStack clients that share common authentication and request parameters
 between a variety of services.
 
@@ -55,9 +55,9 @@ service and fetch a new one.
 
 An example from keystoneauth::
 
-    >>> from keystoneauth.auth.identity import v3
-    >>> from keystoneauth import session
-    >>> from keystoneauth.v3 import client
+    >>> from keystoneauth1.auth.identity import v3
+    >>> from keystoneauth1 import session
+    >>> from keystoneauth1.v3 import client
 
     >>> auth = v3.Password(auth_url='https://my.keystone.com:5000/v2.0',
     ...                    username='myuser',
@@ -72,16 +72,16 @@ As clients adopt this means of operating they will be created in a similar
 fashion by passing the Session object to the client's constructor.
 
 
-Migrating keystoneauth to use a Session
+Migrating keystoneauth1 to use a Session
 -----------------------------------------
 
-By using a session with a keystoneauth Client we presume that you have opted
+By using a session with a keystoneauth1 Client we presume that you have opted
 in to new behavior defined by the session. For example authentication is now
 on-demand rather than on creation. To allow this change in behavior there are
 a number of functions that have changed behavior or are no longer available.
 
 For example the
-:py:meth:`keystoneauth.httpclient.HTTPClient.authenticate` method used
+:py:meth:`keystoneauth1.httpclient.HTTPClient.authenticate` method used
 to be able to always re-authenticate the current client and fetch a new token.
 As this is now controlled by the Session and not the client this has changed,
 however the function will still exist to provide compatibility with older
@@ -91,7 +91,7 @@ Likewise certain parameters such as ``user_id`` and ``auth_token`` that used to
 be available on the client object post authentication will remain
 uninitialized.
 
-When converting an application to use a session object with keystoneauth you
+When converting an application to use a session object with keystoneauth1 you
 should be aware of the possibility of changes to authentication and
 authentication parameters and make sure to test your code thoroughly. It should
 have no impact on the typical CRUD interaction with the client.
@@ -188,7 +188,7 @@ While authentication plugins will endeavour to maintain a consistent set of
 arguments for an ``endpoint_filter`` the concept of an authentication plugin is
 purposefully generic and a specific mechanism may not know how to interpret
 certain arguments and ignore them. For example the
-:py:class:`keystoneauth.auth.token_endpoint.Token` plugin (which is used when
+:py:class:`keystoneauth1.auth.token_endpoint.Token` plugin (which is used when
 you want to always use a specific endpoint and token combination) will always
 return the same endpoint regardless of the parameters to ``endpoint_filter`` or
 a custom OpenStack authentication mechanism may not have the concept of
