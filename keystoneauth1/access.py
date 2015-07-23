@@ -599,7 +599,7 @@ class AccessInfoV3(AccessInfo):
     def username(self):
         return self._user['name']
 
-    @missingproperty
+    @property
     def _domain(self):
         return self._data['token']['domain']
 
@@ -623,7 +623,7 @@ class AccessInfoV3(AccessInfo):
     def project_domain_id(self):
         return self._project['domain']['id']
 
-    @property
+    @missingproperty
     def project_domain_name(self):
         return self._project['domain']['name']
 
