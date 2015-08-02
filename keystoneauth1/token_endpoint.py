@@ -10,12 +10,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from oslo_config import cfg
-
-from keystoneauth1 import base
+from keystoneauth1 import plugin
 
 
-class Token(base.BaseAuthPlugin):
+class Token(plugin.BaseAuthPlugin):
     """A provider that will always use the given token and endpoint.
 
     This is really only useful for testing and in certain CLI cases where you
@@ -38,17 +36,3 @@ class Token(base.BaseAuthPlugin):
         parameters passed to the plugin.
         """
         return self.endpoint
-
-    @classmethod
-    def get_options(cls):
-        options = super(Token, cls).get_options()
-
-        options.extend([
-            cfg.StrOpt('endpoint',
-                       help='The endpoint that will always be used'),
-            cfg.StrOpt('token',
-                       secret=True,
-                       help='The token that will always be used'),
-        ])
-
-        return options

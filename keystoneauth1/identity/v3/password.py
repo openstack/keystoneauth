@@ -10,8 +10,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from oslo_config import cfg
-
 from keystoneauth1.identity.v3 import base
 
 
@@ -71,18 +69,3 @@ class Password(base.AuthConstructor):
     """
 
     _auth_method_class = PasswordMethod
-
-    @classmethod
-    def get_options(cls):
-        options = super(Password, cls).get_options()
-
-        options.extend([
-            cfg.StrOpt('user-id', help='User ID'),
-            cfg.StrOpt('user-name', dest='username', help='Username',
-                       deprecated_name='username'),
-            cfg.StrOpt('user-domain-id', help="User's domain id"),
-            cfg.StrOpt('user-domain-name', help="User's domain name"),
-            cfg.StrOpt('password', secret=True, help="User's password"),
-        ])
-
-        return options

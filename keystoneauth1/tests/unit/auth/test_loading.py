@@ -35,7 +35,7 @@ class TestOtherLoading(utils.TestCase):
             # return str because oslo.config should convert them back
             return str(vals[opt.name])
 
-        p = utils.MockPlugin.load_from_options_getter(_getter, other=val)
+        p = utils.MockLoader().load_from_options_getter(_getter, other=val)
 
         self.assertEqual(set(vals), set(called_opts))
 

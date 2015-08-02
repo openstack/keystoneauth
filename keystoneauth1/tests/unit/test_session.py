@@ -24,8 +24,8 @@ import six
 from testtools import matchers
 
 from keystoneauth1 import adapter
-from keystoneauth1 import base
 from keystoneauth1 import exceptions
+from keystoneauth1 import plugin
 from keystoneauth1 import session as client_session
 from keystoneauth1.tests.unit import utils
 
@@ -320,7 +320,7 @@ class RedirectTests(utils.TestCase):
             self.assertEqual(r.status_code, s.status_code)
 
 
-class AuthPlugin(base.BaseAuthPlugin):
+class AuthPlugin(plugin.BaseAuthPlugin):
     """Very simple debug authentication plugin.
 
     Takes Parameters such that it can throw exceptions at the right times.
@@ -363,7 +363,7 @@ class AuthPlugin(base.BaseAuthPlugin):
         return self.TEST_PROJECT_ID
 
 
-class CalledAuthPlugin(base.BaseAuthPlugin):
+class CalledAuthPlugin(plugin.BaseAuthPlugin):
 
     ENDPOINT = 'http://fakeendpoint/'
 

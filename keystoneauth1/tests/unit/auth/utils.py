@@ -18,20 +18,15 @@ from oslo_config import cfg
 import six
 
 from keystoneauth1 import access
-from keystoneauth1 import base
 from keystoneauth1 import exceptions
 from keystoneauth1 import fixture
+from keystoneauth1 import loading
+from keystoneauth1 import plugin
 from keystoneauth1 import session
 from keystoneauth1.tests.unit import utils
 
 
-class MockPlugin(base.BaseAuthPlugin):
-
-    INT_DESC = 'test int'
-    FLOAT_DESC = 'test float'
-    BOOL_DESC = 'test bool'
-    STR_DESC = 'test str'
-    STR_DEFAULT = uuid.uuid4().hex
+class MockPlugin(plugin.BaseAuthPlugin):
 
     def __init__(self, **kwargs):
         self._data = kwargs
@@ -45,13 +40,25 @@ class MockPlugin(base.BaseAuthPlugin):
     def get_endpoint(self, *args, **kwargs):
         return 'http://test'
 
-    @classmethod
-    def get_options(cls):
+
+class MockLoader(loading.BaseLoader):
+
+    INT_DESC = 'test int'
+    FLOAT_DESC = 'test float'
+    BOOL_DESC = 'test bool'
+    STR_DESC = 'test str'
+    STR_DEFAULT = uuid.uuid4().hex
+
+    @property
+    def plugin_class(self):
+        return MockPlugin
+
+    def get_options(self):
         return [
-            cfg.IntOpt('a-int', default='3', help=cls.INT_DESC),
-            cfg.BoolOpt('a-bool', help=cls.BOOL_DESC),
-            cfg.FloatOpt('a-float', help=cls.FLOAT_DESC),
-            cfg.StrOpt('a-str', help=cls.STR_DESC, default=cls.STR_DEFAULT),
+            cfg.IntOpt('a-int', default='3', help=self.INT_DESC),
+            cfg.BoolOpt('a-bool', help=self.BOOL_DESC),
+            cfg.FloatOpt('a-float', help=self.FLOAT_DESC),
+            cfg.StrOpt('a-str', help=self.STR_DESC, default=self.STR_DEFAULT),
         ]
 
 
@@ -64,7 +71,7 @@ class MockManager(object):
 def mock_plugin(f):
     @functools.wraps(f)
     def inner(*args, **kwargs):
-        with mock.patch.object(base, 'get_plugin_class') as m:
+        with mock.patch.object(loading, 'get_plugin_loader') as m:
             m.return_value = MockPlugin
             args = list(args) + [m]
             return f(*args, **kwargs)

@@ -12,7 +12,6 @@
 
 import abc
 
-from oslo_config import cfg
 import six
 
 from keystoneauth1.identity.v3 import base
@@ -44,19 +43,6 @@ class FederationBaseAuth(base.BaseAuth):
         super(FederationBaseAuth, self).__init__(auth_url=auth_url, **kwargs)
         self.identity_provider = identity_provider
         self.protocol = protocol
-
-    @classmethod
-    def get_options(cls):
-        options = super(FederationBaseAuth, cls).get_options()
-
-        options.extend([
-            cfg.StrOpt('identity-provider',
-                       help="Identity Provider's name"),
-            cfg.StrOpt('protocol',
-                       help='Protocol for federated plugin'),
-        ])
-
-        return options
 
     @property
     def federated_token_url(self):

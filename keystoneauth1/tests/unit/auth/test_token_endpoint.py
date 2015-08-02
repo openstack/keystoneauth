@@ -12,6 +12,7 @@
 
 from testtools import matchers
 
+from keystoneauth1.loading._plugins import token_endpoint as loader
 from keystoneauth1 import session
 from keystoneauth1.tests.unit import utils
 from keystoneauth1 import token_endpoint
@@ -47,7 +48,7 @@ class TokenEndpointTest(utils.TestCase):
         self.assertRequestHeaderEqual('X-Auth-Token', self.TEST_TOKEN)
 
     def test_token_endpoint_options(self):
-        opt_names = [opt.name for opt in token_endpoint.Token.get_options()]
+        opt_names = [opt.name for opt in loader.TokenEndpoint().get_options()]
 
         self.assertThat(opt_names, matchers.HasLength(2))
 

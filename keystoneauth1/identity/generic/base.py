@@ -13,7 +13,6 @@
 import abc
 import logging
 
-from oslo_config import cfg
 import six
 import six.moves.urllib.parse as urlparse
 
@@ -23,22 +22,6 @@ from keystoneauth1.identity import base
 
 
 LOG = logging.getLogger(__name__)
-
-
-def get_options():
-    return [
-        cfg.StrOpt('domain-id', help='Domain ID to scope to'),
-        cfg.StrOpt('domain-name', help='Domain name to scope to'),
-        cfg.StrOpt('tenant-id', help='Tenant ID to scope to'),
-        cfg.StrOpt('tenant-name', help='Tenant name to scope to'),
-        cfg.StrOpt('project-id', help='Project ID to scope to'),
-        cfg.StrOpt('project-name', help='Project name to scope to'),
-        cfg.StrOpt('project-domain-id',
-                   help='Domain ID containing project'),
-        cfg.StrOpt('project-domain-name',
-                   help='Domain name containing project'),
-        cfg.StrOpt('trust-id', help='Trust ID'),
-    ]
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -173,9 +156,3 @@ class BaseGenericPlugin(base.BaseIdentityPlugin):
             self._plugin = self._do_create_plugin(session)
 
         return self._plugin.get_auth_ref(session, **kwargs)
-
-    @classmethod
-    def get_options(cls):
-        options = super(BaseGenericPlugin, cls).get_options()
-        options.extend(get_options())
-        return options

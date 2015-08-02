@@ -18,10 +18,10 @@ import six
 
 from keystoneauth1 import _utils
 from keystoneauth1 import access
-from keystoneauth1 import base
 from keystoneauth1 import exceptions
 from keystoneauth1 import fixture
 from keystoneauth1 import identity
+from keystoneauth1 import plugin
 from keystoneauth1 import session
 from keystoneauth1.tests.unit import utils
 
@@ -187,7 +187,7 @@ class CommonIdentityTests(object):
         s = session.Session(auth=a)
 
         auth_url = s.get_endpoint(service_type='compute',
-                                  interface=base.AUTH_INTERFACE)
+                                  interface=plugin.AUTH_INTERFACE)
 
         self.assertEqual(self.TEST_URL, auth_url)
 
@@ -394,13 +394,13 @@ class CatalogHackTests(utils.TestCase):
 
         sess = session.Session(auth=v2_auth)
 
-        endpoint = sess.get_endpoint(interface=base.AUTH_INTERFACE,
+        endpoint = sess.get_endpoint(interface=plugin.AUTH_INTERFACE,
                                      version=(3, 0))
 
         self.assertEqual(self.V3_URL, endpoint)
 
 
-class GenericPlugin(base.BaseAuthPlugin):
+class GenericPlugin(plugin.BaseAuthPlugin):
 
     BAD_TOKEN = uuid.uuid4().hex
 

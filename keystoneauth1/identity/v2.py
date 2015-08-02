@@ -13,7 +13,6 @@
 import abc
 import logging
 
-from oslo_config import cfg
 import six
 
 from keystoneauth1 import _utils as utils
@@ -35,18 +34,6 @@ class Auth(base.BaseIdentityPlugin):
     :param bool reauthenticate: Allow fetching a new token if the current one
                                 is going to expire. (optional) default True
     """
-
-    @classmethod
-    def get_options(cls):
-        options = super(Auth, cls).get_options()
-
-        options.extend([
-            cfg.StrOpt('tenant-id', help='Tenant ID'),
-            cfg.StrOpt('tenant-name', help='Tenant Name'),
-            cfg.StrOpt('trust-id', help='Trust ID'),
-        ])
-
-        return options
 
     @utils.positional()
     def __init__(self, auth_url,
@@ -147,21 +134,6 @@ class Password(Auth):
 
         return {'passwordCredentials': auth}
 
-    @classmethod
-    def get_options(cls):
-        options = super(Password, cls).get_options()
-
-        options.extend([
-            cfg.StrOpt('user-name',
-                       dest='username',
-                       deprecated_name='username',
-                       help='Username to login with'),
-            cfg.StrOpt('user-id', help='User ID to login with'),
-            cfg.StrOpt('password', secret=True, help='Password to use'),
-        ])
-
-        return options
-
 
 class Token(Auth):
     """A plugin for authenticating with an existing token.
@@ -183,13 +155,3 @@ class Token(Auth):
         if headers is not None:
             headers['X-Auth-Token'] = self.token
         return {'token': {'id': self.token}}
-
-    @classmethod
-    def get_options(cls):
-        options = super(Token, cls).get_options()
-
-        options.extend([
-            cfg.StrOpt('token', secret=True, help='Token'),
-        ])
-
-        return options

@@ -93,12 +93,6 @@ class V3FederatedPlugin(utils.TestCase):
         self.assertTrue(self.unscoped_mock.called)
         self.assertTrue(self.scoped_mock.called)
 
-    def test_options(self):
-        opts = [o.name for o in v3.FederationBaseAuth.get_options()]
-
-        self.assertIn('protocol', opts)
-        self.assertIn('identity-provider', opts)
-
 
 class K2KAuthPluginTest(utils.TestCase):
 
@@ -166,10 +160,6 @@ class K2KAuthPluginTest(utils.TestCase):
         kwargs.setdefault('base_plugin', self._get_base_plugin())
         kwargs.setdefault('service_provider', self.SP_ID)
         return v3.Keystone2Keystone(**kwargs)
-
-    def test_options(self):
-        opts = [o.name for o in v3.Keystone2Keystone.get_options()]
-        self.assertIn('service-provider', opts)
 
     def test_remote_url(self):
         remote_auth_url = self.k2kplugin._remote_auth_url(self.SP_AUTH_URL)

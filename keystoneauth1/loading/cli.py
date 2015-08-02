@@ -14,7 +14,7 @@ import argparse
 import os
 
 from keystoneauth1 import _utils as utils
-from keystoneauth1 import base
+from keystoneauth1.loading import base
 
 
 @utils.positional()
@@ -53,7 +53,7 @@ def register_argparse_arguments(parser, argv, default=None):
         plugin = options.os_auth_plugin
     else:
         msg = 'Options specific to the %s plugin.' % options.os_auth_plugin
-        plugin = base.get_plugin_class(options.os_auth_plugin)
+        plugin = base.get_plugin_loader(options.os_auth_plugin)
 
     group = parser.add_argument_group('Authentication Options', msg)
     plugin.register_argparse_arguments(group)
@@ -80,6 +80,6 @@ def load_from_argparse_arguments(namespace, **kwargs):
     if isinstance(namespace.os_auth_plugin, type):
         plugin = namespace.os_auth_plugin
     else:
-        plugin = base.get_plugin_class(namespace.os_auth_plugin)
+        plugin = base.get_plugin_loader(namespace.os_auth_plugin)
 
     return plugin.load_from_argparse_arguments(namespace, **kwargs)

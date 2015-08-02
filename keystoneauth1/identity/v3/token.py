@@ -10,8 +10,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from oslo_config import cfg
-
 from keystoneauth1.identity.v3 import base
 
 
@@ -51,15 +49,3 @@ class Token(base.AuthConstructor):
 
     def __init__(self, auth_url, token, **kwargs):
         super(Token, self).__init__(auth_url, token=token, **kwargs)
-
-    @classmethod
-    def get_options(cls):
-        options = super(Token, cls).get_options()
-
-        options.extend([
-            cfg.StrOpt('token',
-                       secret=True,
-                       help='Token to authenticate with'),
-        ])
-
-        return options
