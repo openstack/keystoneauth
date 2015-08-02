@@ -13,10 +13,10 @@
 from oslo_config import cfg
 
 from keystoneauth1 import access
-from keystoneauth1.auth import base as auth_base
-from keystoneauth1.auth.identity.v3 import base
-from keystoneauth1.auth.identity.v3 import token
+from keystoneauth1 import base as auth_base
 from keystoneauth1 import exceptions
+from keystoneauth1.identity.v3 import base
+from keystoneauth1.identity.v3 import token
 
 __all__ = ['Keystone2Keystone']
 
@@ -30,7 +30,7 @@ class Keystone2Keystone(base.BaseAuth):
 
     :param base_plugin: Auth plugin already authenticated against the keystone
                         IdP.
-    :type base_plugin: ``keystoneauth1.auth.v3.base.BaseAuth``
+    :type base_plugin: ``keystoneauth1.v3.base.BaseAuth``
 
     :param service_provider: The Service Provider ID.
     :type service_provider: string

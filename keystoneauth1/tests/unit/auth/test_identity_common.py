@@ -18,10 +18,10 @@ import six
 
 from keystoneauth1 import _utils
 from keystoneauth1 import access
-from keystoneauth1.auth import base
-from keystoneauth1.auth import identity
+from keystoneauth1 import base
 from keystoneauth1 import exceptions
 from keystoneauth1 import fixture
+from keystoneauth1 import identity
 from keystoneauth1 import session
 from keystoneauth1.tests.unit import utils
 

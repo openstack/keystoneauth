@@ -17,8 +17,8 @@ import fixtures
 import mock
 from oslo_config import cfg
 
-from keystoneauth1.auth import base
-from keystoneauth1.auth import cli
+from keystoneauth1 import base
+from keystoneauth1 import cli
 from keystoneauth1.tests.unit.auth import utils
 
 

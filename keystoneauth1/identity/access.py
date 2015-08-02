@@ -11,7 +11,7 @@
 # under the License.
 
 from keystoneauth1 import _utils as utils
-from keystoneauth1.auth.identity import base
+from keystoneauth1.identity import base
 
 
 class AccessInfoPlugin(base.BaseIdentityPlugin):

@@ -15,8 +15,8 @@ import abc
 from oslo_config import cfg
 import six
 
-from keystoneauth1.auth.identity.v3 import base
-from keystoneauth1.auth.identity.v3 import token
+from keystoneauth1.identity.v3 import base
+from keystoneauth1.identity.v3 import token
 
 __all__ = ['FederationBaseAuth']
 

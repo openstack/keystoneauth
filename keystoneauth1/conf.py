@@ -12,7 +12,7 @@
 
 from oslo_config import cfg
 
-from keystoneauth1.auth import base
+from keystoneauth1 import base
 
 _AUTH_PLUGIN_OPT = cfg.StrOpt('auth_plugin', help='Name of the plugin to load')
 

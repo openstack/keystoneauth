@@ -12,7 +12,7 @@
 
 from oslo_config import cfg
 
-from keystoneauth1.auth import base
+from keystoneauth1 import base
 
 
 class Token(base.BaseAuthPlugin):

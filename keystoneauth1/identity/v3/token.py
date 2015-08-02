@@ -12,7 +12,7 @@
 
 from oslo_config import cfg
 
-from keystoneauth1.auth.identity.v3 import base
+from keystoneauth1.identity.v3 import base
 
 
 __all__ = ['TokenMethod', 'Token']

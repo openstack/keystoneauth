@@ -16,9 +16,9 @@ import uuid
 import six
 
 from keystoneauth1 import access
-from keystoneauth1.auth.identity import v3
 from keystoneauth1 import exceptions
 from keystoneauth1 import fixture
+from keystoneauth1.identity import v3
 from keystoneauth1 import session
 from keystoneauth1.tests.unit import k2k_fixtures
 from keystoneauth1.tests.unit import utils

@@ -10,28 +10,12 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from keystoneauth1.auth.identity import base
-from keystoneauth1.auth.identity import generic
-from keystoneauth1.auth.identity import v2
-from keystoneauth1.auth.identity import v3
+from keystoneauth1.identity.generic.base import BaseGenericPlugin  # noqa
+from keystoneauth1.identity.generic.password import Password  # noqa
+from keystoneauth1.identity.generic.token import Token  # noqa
 
 
-BaseIdentityPlugin = base.BaseIdentityPlugin
-
-V2Password = v2.Password
-V2Token = v2.Token
-
-V3Password = v3.Password
-V3Token = v3.Token
-
-Password = generic.Password
-Token = generic.Token
-
-
-__all__ = ['BaseIdentityPlugin',
+__all__ = ['BaseGenericPlugin',
            'Password',
            'Token',
-           'V2Password',
-           'V2Token',
-           'V3Password',
-           'V3Token']
+           ]

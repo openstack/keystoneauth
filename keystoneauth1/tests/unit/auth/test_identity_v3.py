@@ -14,10 +14,10 @@ import copy
 import uuid
 
 from keystoneauth1 import access
-from keystoneauth1.auth.identity import v3
-from keystoneauth1.auth.identity.v3 import base as v3_base
 from keystoneauth1 import exceptions
 from keystoneauth1 import fixture
+from keystoneauth1.identity import v3
+from keystoneauth1.identity.v3 import base as v3_base
 from keystoneauth1 import session
 from keystoneauth1.tests.unit import utils
 
