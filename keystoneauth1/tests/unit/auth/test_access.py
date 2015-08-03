@@ -62,13 +62,9 @@ class AccessInfoPluginTests(utils.TestCase):
     def test_project_auth_properties(self):
         plugin = self._plugin()
         auth_ref = plugin.auth_ref
+
         self.assertIsNone(auth_ref.project_domain_id)
-        try:
-            # NOTE(breton): this is currently failing
-            self.assertIsNone(auth_ref.project_domain_name)
-            self.fail()
-        except KeyError:
-            pass
+        self.assertIsNone(auth_ref.project_domain_name)
         self.assertIsNone(auth_ref.project_id)
         self.assertIsNone(auth_ref.project_name)
 
@@ -76,10 +72,5 @@ class AccessInfoPluginTests(utils.TestCase):
         plugin = self._plugin()
         auth_ref = plugin.auth_ref
 
-        try:
-            # NOTE(breton): this is currently failing
-            self.assertIsNone(auth_ref.domain_id)
-            self.assertIsNone(auth_ref.domain_name)
-            self.fail()
-        except TypeError:
-            pass
+        self.assertIsNone(auth_ref.domain_id)
+        self.assertIsNone(auth_ref.domain_name)
