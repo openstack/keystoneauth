@@ -10,6 +10,9 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import requests
+import six
+
 from keystoneauth1 import access
 from keystoneauth1 import exceptions
 from keystoneauth1.identity.v3 import base
@@ -20,7 +23,7 @@ __all__ = ['Keystone2Keystone']
 
 
 class Keystone2Keystone(base.BaseAuth):
-    """Plugin to execute the keystone to keyestone authentication flow.
+    """Plugin to execute the Keystone to Keyestone authentication flow.
 
     In this plugin, an ECP wrapped SAML assertion provided by a keystone
     Identity Provider (IdP) is used to request an OpenStack unscoped token
@@ -30,14 +33,17 @@ class Keystone2Keystone(base.BaseAuth):
                         IdP.
     :type base_plugin: ``keystoneauth1.v3.base.BaseAuth``
 
-    :param service_provider: The Service Provider ID.
+    :param service_provider: The Service Provider ID as returned by
+                             ServiceProviderManager.list()
     :type service_provider: string
 
     """
 
-    HTTP_MOVED_TEMPORARILY = 302
+    # Path where the ECP wrapped SAML assertion should be presented to
+    # the Keystone Service Provider.
     REQUEST_ECP_URL = '/auth/OS-FEDERATION/saml2/ecp'
 
+    # Auth plugin class to use when scoping a new token
     rescoping_plugin = token.Token
 
     def __init__(self, base_plugin, service_provider, **kwargs):
@@ -48,13 +54,13 @@ class Keystone2Keystone(base.BaseAuth):
 
     @classmethod
     def _remote_auth_url(cls, auth_url):
-        """Return auth_url of the remote OpenStack cloud.
+        """Return auth_url of the remote Keystone Service Provider
 
         Remote cloud's auth_url is an endpoint for getting federated unscoped
         token, typically that would be
         ``https://remote.example.com:5000/v3/OS-FEDERATION/identity_providers/
-        <idp>/protocols/<proto>/auth``. However we need to generate a real
-        auth_url, used for token scoping.  This function assumes there are
+        <idp>/protocols/<protocol_id>/auth``. However we need to generate a
+        real auth_url, used for token scoping.  This function assumes there are
         static values today in the remote auth_url stored in the Service
         Provider attribute and those can be used as a delimiter. If the
         sp_auth_url doesn't comply with standard federation auth url the
@@ -109,7 +115,7 @@ class Keystone2Keystone(base.BaseAuth):
         resp = session.post(url=url + self.REQUEST_ECP_URL, json=body,
                             raise_exc=False)
 
-        # NOTE(marek-denis): I am not sure whether disablig exceptions in the
+        # NOTE(marek-denis): I am not sure whether disabling exceptions in the
         # Session object and testing if resp.ok is sufficient. An alternative
         # would be catching locally all exceptions and reraising with custom
         # warning.
@@ -122,7 +128,7 @@ class Keystone2Keystone(base.BaseAuth):
         if not resp.text:
             raise exceptions.InvalidResponse(resp)
 
-        return str(resp.text)
+        return six.text_type(resp.text)
 
     def _send_service_provider_ecp_authn_response(self, session, sp_url,
                                                   sp_auth_url):
@@ -157,7 +163,7 @@ class Keystone2Keystone(base.BaseAuth):
         # the call directed to the Location URL. In this case, this is an
         # indication that SAML2 session is now active and protected resource
         # can be accessed.
-        if response.status_code == self.HTTP_MOVED_TEMPORARILY:
+        if response.status_code == requests.codes['found']:
             response = session.get(
                 sp_auth_url,
                 headers={'Content-Type': 'application/vnd.paos+xml'},
