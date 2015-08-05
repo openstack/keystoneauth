@@ -17,12 +17,18 @@
 import functools
 
 from keystoneauth1 import _utils as utils
-from keystoneauth1 import service_catalog
-from keystoneauth1 import service_providers
+from keystoneauth1.access import service_catalog
+from keystoneauth1.access import service_providers
 
 
 # gap, in seconds, to determine whether the given token is about to expire
 STALE_TOKEN_DURATION = 30
+
+
+__all__ = ['AccessInfo',
+           'AccessInfoV2',
+           'AccessInfoV3',
+           'create']
 
 
 @utils.positional()
