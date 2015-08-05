@@ -14,7 +14,6 @@ import functools
 import uuid
 
 import mock
-from oslo_config import cfg
 import six
 
 from keystoneauth1 import access
@@ -41,6 +40,12 @@ class MockPlugin(plugin.BaseAuthPlugin):
         return 'http://test'
 
 
+class BoolType(object):
+
+    def __call__(self, value):
+        return value.lower() in ('1', 'true', 't', 'yes', 'y')
+
+
 class MockLoader(loading.BaseLoader):
 
     INT_DESC = 'test int'
@@ -55,10 +60,10 @@ class MockLoader(loading.BaseLoader):
 
     def get_options(self):
         return [
-            cfg.IntOpt('a-int', default='3', help=self.INT_DESC),
-            cfg.BoolOpt('a-bool', help=self.BOOL_DESC),
-            cfg.FloatOpt('a-float', help=self.FLOAT_DESC),
-            cfg.StrOpt('a-str', help=self.STR_DESC, default=self.STR_DEFAULT),
+            loading.Opt('a-int', default=3, type=int, help=self.INT_DESC),
+            loading.Opt('a-bool', type=BoolType(), help=self.BOOL_DESC),
+            loading.Opt('a-float', type=float, help=self.FLOAT_DESC),
+            loading.Opt('a-str', help=self.STR_DESC, default=self.STR_DEFAULT),
         ]
 
 

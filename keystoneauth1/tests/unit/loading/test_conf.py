@@ -13,7 +13,6 @@
 import uuid
 
 import mock
-from oslo_config import cfg
 from oslo_config import fixture as config
 import stevedore
 
@@ -157,14 +156,14 @@ class ConfTests(utils.TestCase):
 
         def inner(driver):
             for p in driver.plugin().get_options():
-                self.assertIsInstance(p, cfg.Opt)
+                self.assertIsInstance(p, loading.Opt)
 
         manager.map(inner)
 
     def test_get_common(self):
         opts = loading.get_common_conf_options()
         for opt in opts:
-            self.assertIsInstance(opt, cfg.Opt)
+            self.assertIsInstance(opt, loading.Opt)
         self.assertEqual(2, len(opts))
 
     def test_get_named(self):

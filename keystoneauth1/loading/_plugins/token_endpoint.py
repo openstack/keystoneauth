@@ -10,8 +10,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from oslo_config import cfg
-
 from keystoneauth1 import loading
 from keystoneauth1 import token_endpoint
 
@@ -26,11 +24,11 @@ class TokenEndpoint(loading.BaseLoader):
         options = super(TokenEndpoint, self).get_options()
 
         options.extend([
-            cfg.StrOpt('endpoint',
-                       help='The endpoint that will always be used'),
-            cfg.StrOpt('token',
-                       secret=True,
-                       help='The token that will always be used'),
+            loading.Opt('endpoint',
+                        help='The endpoint that will always be used'),
+            loading.Opt('token',
+                        secret=True,
+                        help='The token that will always be used'),
         ])
 
         return options

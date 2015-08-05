@@ -10,9 +10,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from oslo_config import cfg
-
 from keystoneauth1 import identity
+from keystoneauth1 import loading
 from keystoneauth1.loading._plugins.identity import base
 
 
@@ -22,15 +21,15 @@ class BaseV3Loader(base.BaseIdentityLoader):
         options = super(BaseV3Loader, self).get_options()
 
         options.extend([
-            cfg.StrOpt('domain-id', help='Domain ID to scope to'),
-            cfg.StrOpt('domain-name', help='Domain name to scope to'),
-            cfg.StrOpt('project-id', help='Project ID to scope to'),
-            cfg.StrOpt('project-name', help='Project name to scope to'),
-            cfg.StrOpt('project-domain-id',
-                       help='Domain ID containing project'),
-            cfg.StrOpt('project-domain-name',
-                       help='Domain name containing project'),
-            cfg.StrOpt('trust-id', help='Trust ID'),
+            loading.Opt('domain-id', help='Domain ID to scope to'),
+            loading.Opt('domain-name', help='Domain name to scope to'),
+            loading.Opt('project-id', help='Project ID to scope to'),
+            loading.Opt('project-name', help='Project name to scope to'),
+            loading.Opt('project-domain-id',
+                        help='Domain ID containing project'),
+            loading.Opt('project-domain-name',
+                        help='Domain name containing project'),
+            loading.Opt('trust-id', help='Trust ID'),
         ])
 
         return options
@@ -46,14 +45,14 @@ class Password(BaseV3Loader):
         options = super(Password, self).get_options()
 
         options.extend([
-            cfg.StrOpt('user-id', help='User ID'),
-            cfg.StrOpt('user-name',
-                       dest='username',
-                       help='Username',
-                       deprecated_name='username'),
-            cfg.StrOpt('user-domain-id', help="User's domain id"),
-            cfg.StrOpt('user-domain-name', help="User's domain name"),
-            cfg.StrOpt('password', secret=True, help="User's password"),
+            loading.Opt('user-id', help='User ID'),
+            loading.Opt('user-name',
+                        dest='username',
+                        help='Username',
+                        deprecated=[loading.Opt('username')]),
+            loading.Opt('user-domain-id', help="User's domain id"),
+            loading.Opt('user-domain-name', help="User's domain name"),
+            loading.Opt('password', secret=True, help="User's password"),
         ])
 
         return options
@@ -69,9 +68,9 @@ class Token(BaseV3Loader):
         options = super(Token, self).get_options()
 
         options.extend([
-            cfg.StrOpt('token',
-                       secret=True,
-                       help='Token to authenticate with'),
+            loading.Opt('token',
+                        secret=True,
+                        help='Token to authenticate with'),
         ])
 
         return options
@@ -83,10 +82,10 @@ class FederatedBase(BaseV3Loader):
         options = super(FederatedBase, self).get_options()
 
         options.extend([
-            cfg.StrOpt('identity-provider',
-                       help="Identity Provider's name"),
-            cfg.StrOpt('protocol',
-                       help='Protocol for federated plugin'),
+            loading.Opt('identity-provider',
+                        help="Identity Provider's name"),
+            loading.Opt('protocol',
+                        help='Protocol for federated plugin'),
         ])
 
         return options

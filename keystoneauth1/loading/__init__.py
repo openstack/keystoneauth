@@ -13,6 +13,7 @@
 from keystoneauth1.loading.base import *  # noqa
 from keystoneauth1.loading.cli import *  # noqa
 from keystoneauth1.loading.conf import *  # noqa
+from keystoneauth1.loading.opts import *  # noqa
 
 
 __all__ = [
@@ -32,4 +33,7 @@ __all__ = [
     'get_plugin_options',
     'load_from_conf_options',
     'register_conf_options',
+
+    # loading.opts
+    'Opt',
 ]
