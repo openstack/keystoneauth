@@ -55,8 +55,10 @@ class ServiceCatalog(object):
         """
         return endpoint_type
 
+    @utils.positional()
     def get_endpoints(self, service_type=None, endpoint_type=None,
-                      region_name=None, service_name=None):
+                      region_name=None, service_name=None,
+                      service_id=None, endpoint_id=None):
         """Fetch and filter endpoints for the specified service(s).
 
         Returns endpoints for the specified service (or all) containing
@@ -94,6 +96,12 @@ class ServiceCatalog(object):
                     if service_name != sn:
                         continue
 
+            # NOTE(jamielennox): there is no such thing as a service_id in v2
+            # similarly to service_name we'll have to skip this check if it's
+            # not available.
+            if service_id and 'id' in service and service_id != service['id']:
+                continue
+
             endpoints = sc.setdefault(st, [])
 
             for endpoint in service.get('endpoints', []):
@@ -103,6 +111,8 @@ class ServiceCatalog(object):
                 if (region_name and
                         region_name != self._get_endpoint_region(endpoint)):
                     continue
+                if (endpoint_id and endpoint_id != endpoint.get('id')):
+                    continue
                 endpoints.append(endpoint)
 
         return sc
@@ -110,7 +120,8 @@ class ServiceCatalog(object):
     @abc.abstractmethod
     @utils.positional()
     def get_urls(self, service_type=None, endpoint_type='public',
-                 region_name=None, service_name=None):
+                 region_name=None, service_name=None,
+                 service_id=None, endpoint_id=None):
         """Fetch endpoint urls from the service catalog.
 
         Fetch the endpoints from the service catalog for a particular
@@ -124,6 +135,8 @@ class ServiceCatalog(object):
                                      adminURL
         :param string region_name: Region of the endpoint.
         :param string service_name: The assigned name of the service.
+        :param string service_id: The identifier of a service.
+        :param string endpoint_id: The identifier of an endpoint.
 
         :returns: tuple of urls or None (if no match found)
         """
@@ -131,7 +144,8 @@ class ServiceCatalog(object):
 
     @utils.positional()
     def url_for(self, service_type=None, endpoint_type='public',
-                region_name=None, service_name=None):
+                region_name=None, service_name=None,
+                service_id=None, endpoint_id=None):
         """Fetch an endpoint from the service catalog.
 
         Fetch the specified endpoint from the service catalog for
@@ -146,7 +160,8 @@ class ServiceCatalog(object):
         :param string endpoint_type: Type of endpoint.
         :param string region_name: Region of the endpoint.
         :param string service_name: The assigned name of the service.
-
+        :param string service_id: The identifier of a service.
+        :param string endpoint_id: The identifier of an endpoint.
         """
         if not self._catalog:
             raise exceptions.EmptyCatalog('The service catalog is empty.')
@@ -154,7 +169,9 @@ class ServiceCatalog(object):
         urls = self.get_urls(service_type=service_type,
                              endpoint_type=endpoint_type,
                              region_name=region_name,
-                             service_name=service_name)
+                             service_name=service_name,
+                             service_id=service_id,
+                             endpoint_id=endpoint_id)
 
         try:
             return urls[0]
@@ -212,13 +229,16 @@ class ServiceCatalogV2(ServiceCatalog):
 
     @utils.positional()
     def get_urls(self, service_type=None, endpoint_type='publicURL',
-                 region_name=None, service_name=None):
+                 region_name=None, service_name=None,
+                 service_id=None, endpoint_id=None):
         endpoint_type = self.normalize_endpoint_type(endpoint_type)
 
         sc_endpoints = self.get_endpoints(service_type=service_type,
                                           endpoint_type=endpoint_type,
                                           region_name=region_name,
-                                          service_name=service_name)
+                                          service_name=service_name,
+                                          service_id=service_id,
+                                          endpoint_id=endpoint_id)
 
         try:
             endpoints = sc_endpoints[service_type]
@@ -255,11 +275,14 @@ class ServiceCatalogV3(ServiceCatalog):
 
     @utils.positional()
     def get_urls(self, service_type=None, endpoint_type='publicURL',
-                 region_name=None, service_name=None):
+                 region_name=None, service_name=None,
+                 service_id=None, endpoint_id=None):
         sc_endpoints = self.get_endpoints(service_type=service_type,
                                           endpoint_type=endpoint_type,
                                           region_name=region_name,
-                                          service_name=service_name)
+                                          service_name=service_name,
+                                          service_id=service_id,
+                                          endpoint_id=endpoint_id)
 
         try:
             endpoints = sc_endpoints[service_type]

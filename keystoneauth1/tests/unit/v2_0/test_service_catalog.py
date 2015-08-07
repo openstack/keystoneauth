@@ -211,3 +211,41 @@ class ServiceCatalogTest(utils.TestCase):
                                                  region_name='region-1')
 
         self.assertEqual(('public-1', ), urls)
+
+    def test_service_catalog_endpoint_id(self):
+        token = fixture.V2Token()
+        token.set_scope()
+        endpoint_id = uuid.uuid4().hex
+        public_url = uuid.uuid4().hex
+
+        s = token.add_service('compute')
+        s.add_endpoint(public=public_url, id=endpoint_id)
+        s.add_endpoint(public=uuid.uuid4().hex)
+
+        auth_ref = access.create(body=token)
+
+        # initially assert that we get back all our urls for a simple filter
+        urls = auth_ref.service_catalog.get_urls(service_type='compute',
+                                                 endpoint_type='public')
+        self.assertEqual(2, len(urls))
+
+        urls = auth_ref.service_catalog.get_urls(service_type='compute',
+                                                 endpoint_id=endpoint_id,
+                                                 endpoint_type='public')
+
+        self.assertEqual((public_url, ), urls)
+
+        # with bad endpoint_id nothing should be found
+        urls = auth_ref.service_catalog.get_urls(service_type='compute',
+                                                 endpoint_id=uuid.uuid4().hex,
+                                                 endpoint_type='public')
+
+        self.assertEqual(0, len(urls))
+
+        # we ignore a service_id because v2 doesn't know what it is
+        urls = auth_ref.service_catalog.get_urls(service_type='compute',
+                                                 endpoint_id=endpoint_id,
+                                                 service_id=uuid.uuid4().hex,
+                                                 endpoint_type='public')
+
+        self.assertEqual((public_url, ), urls)

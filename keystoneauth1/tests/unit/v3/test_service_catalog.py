@@ -321,3 +321,50 @@ class ServiceCatalogV3Test(ServiceCatalogTest):
                                                  region_name='region-1')
 
         self.assertEqual(('public-1', ), urls)
+
+    def test_service_catalog_endpoint_id(self):
+        token = fixture.V3Token()
+        token.set_project_scope()
+
+        service_id = uuid.uuid4().hex
+        endpoint_id = uuid.uuid4().hex
+        public_url = uuid.uuid4().hex
+
+        s = token.add_service('compute', id=service_id)
+        s.add_endpoint('public', public_url, id=endpoint_id)
+        s.add_endpoint('public', uuid.uuid4().hex)
+
+        auth_ref = access.create(body=token)
+
+        # initially assert that we get back all our urls for a simple filter
+        urls = auth_ref.service_catalog.get_urls(service_type='compute',
+                                                 endpoint_type='public')
+        self.assertEqual(2, len(urls))
+
+        # with bad endpoint_id nothing should be found
+        urls = auth_ref.service_catalog.get_urls(service_type='compute',
+                                                 endpoint_id=uuid.uuid4().hex,
+                                                 endpoint_type='public')
+
+        self.assertEqual(0, len(urls))
+
+        # with service_id we get back both public endpoints
+        urls = auth_ref.service_catalog.get_urls(service_type='compute',
+                                                 service_id=service_id,
+                                                 endpoint_type='public')
+        self.assertEqual(2, len(urls))
+
+        # with service_id and endpoint_id we get back the url we want
+        urls = auth_ref.service_catalog.get_urls(service_type='compute',
+                                                 service_id=service_id,
+                                                 endpoint_id=endpoint_id,
+                                                 endpoint_type='public')
+
+        self.assertEqual((public_url, ), urls)
+
+        # with service_id and endpoint_id we get back the url we want
+        urls = auth_ref.service_catalog.get_urls(service_type='compute',
+                                                 endpoint_id=endpoint_id,
+                                                 endpoint_type='public')
+
+        self.assertEqual((public_url, ), urls)
