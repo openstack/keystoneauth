@@ -117,6 +117,19 @@ class ServiceCatalog(object):
 
         return sc
 
+    def _get_service_endpoints(self, service_type=None, **kwargs):
+        sc_endpoints = self.get_endpoints(service_type=service_type, **kwargs)
+
+        if service_type:
+            endpoints = sc_endpoints.get(service_type, [])
+        else:
+            # flatten list of lists
+            endpoints = [x
+                         for endpoint in six.itervalues(sc_endpoints)
+                         for x in endpoint]
+
+        return endpoints
+
     @abc.abstractmethod
     @utils.positional()
     def get_urls(self, service_type=None, endpoint_type='public',
@@ -233,17 +246,12 @@ class ServiceCatalogV2(ServiceCatalog):
                  service_id=None, endpoint_id=None):
         endpoint_type = self.normalize_endpoint_type(endpoint_type)
 
-        sc_endpoints = self.get_endpoints(service_type=service_type,
-                                          endpoint_type=endpoint_type,
-                                          region_name=region_name,
-                                          service_name=service_name,
-                                          service_id=service_id,
-                                          endpoint_id=endpoint_id)
-
-        try:
-            endpoints = sc_endpoints[service_type]
-        except KeyError:
-            return
+        endpoints = self._get_service_endpoints(service_type=service_type,
+                                                endpoint_type=endpoint_type,
+                                                region_name=region_name,
+                                                service_name=service_name,
+                                                service_id=service_id,
+                                                endpoint_id=endpoint_id)
 
         return tuple([endpoint[endpoint_type] for endpoint in endpoints])
 
@@ -277,16 +285,11 @@ class ServiceCatalogV3(ServiceCatalog):
     def get_urls(self, service_type=None, endpoint_type='publicURL',
                  region_name=None, service_name=None,
                  service_id=None, endpoint_id=None):
-        sc_endpoints = self.get_endpoints(service_type=service_type,
-                                          endpoint_type=endpoint_type,
-                                          region_name=region_name,
-                                          service_name=service_name,
-                                          service_id=service_id,
-                                          endpoint_id=endpoint_id)
-
-        try:
-            endpoints = sc_endpoints[service_type]
-        except KeyError:
-            return None
+        endpoints = self._get_service_endpoints(service_type=service_type,
+                                                endpoint_type=endpoint_type,
+                                                region_name=region_name,
+                                                service_name=service_name,
+                                                service_id=service_id,
+                                                endpoint_id=endpoint_id)
 
         return tuple([endpoint['url'] for endpoint in endpoints])

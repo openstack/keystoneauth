@@ -203,10 +203,11 @@ class ServiceCatalogTest(utils.TestCase):
         self.assertIn('http://glance.north.host/glanceapi/public', urls)
         self.assertIn('http://glance.south.host/glanceapi/public', urls)
 
-        urls = sc.get_urls(service_type='image', service_name='Servers',
+        urls = sc.get_urls(service_type='image',
+                           service_name='Servers',
                            endpoint_type='public')
 
-        self.assertIsNone(urls)
+        self.assertEqual(0, len(urls))
 
     def test_service_catalog_without_name(self):
         f = fixture.V3Token(audit_chain_id=uuid.uuid4().hex)
@@ -368,3 +369,24 @@ class ServiceCatalogV3Test(ServiceCatalogTest):
                                                  endpoint_type='public')
 
         self.assertEqual((public_url, ), urls)
+
+    def test_service_catalog_without_service_type(self):
+        token = fixture.V3Token()
+        token.set_project_scope()
+
+        public_urls = []
+
+        for i in range(0, 3):
+            public_url = uuid.uuid4().hex
+            public_urls.append(public_url)
+
+            s = token.add_service(uuid.uuid4().hex)
+            s.add_endpoint('public', public_url)
+
+        auth_ref = access.create(body=token)
+        urls = auth_ref.service_catalog.get_urls(endpoint_type='public')
+
+        self.assertEqual(3, len(urls))
+
+        for p in public_urls:
+            self.assertIn(p, urls)

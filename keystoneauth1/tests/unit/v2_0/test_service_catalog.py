@@ -186,7 +186,7 @@ class ServiceCatalogTest(utils.TestCase):
         urls = sc.get_urls(service_type='image', service_name='Servers',
                            endpoint_type='public')
 
-        self.assertIsNone(urls)
+        self.assertEqual(0, len(urls))
 
     def test_service_catalog_multiple_service_types(self):
         token = fixture.V2Token()
@@ -225,27 +225,45 @@ class ServiceCatalogTest(utils.TestCase):
         auth_ref = access.create(body=token)
 
         # initially assert that we get back all our urls for a simple filter
-        urls = auth_ref.service_catalog.get_urls(service_type='compute',
-                                                 endpoint_type='public')
+        urls = auth_ref.service_catalog.get_urls(endpoint_type='public')
         self.assertEqual(2, len(urls))
 
-        urls = auth_ref.service_catalog.get_urls(service_type='compute',
-                                                 endpoint_id=endpoint_id,
+        urls = auth_ref.service_catalog.get_urls(endpoint_id=endpoint_id,
                                                  endpoint_type='public')
 
         self.assertEqual((public_url, ), urls)
 
         # with bad endpoint_id nothing should be found
-        urls = auth_ref.service_catalog.get_urls(service_type='compute',
-                                                 endpoint_id=uuid.uuid4().hex,
+        urls = auth_ref.service_catalog.get_urls(endpoint_id=uuid.uuid4().hex,
                                                  endpoint_type='public')
 
         self.assertEqual(0, len(urls))
 
         # we ignore a service_id because v2 doesn't know what it is
-        urls = auth_ref.service_catalog.get_urls(service_type='compute',
-                                                 endpoint_id=endpoint_id,
+        urls = auth_ref.service_catalog.get_urls(endpoint_id=endpoint_id,
                                                  service_id=uuid.uuid4().hex,
                                                  endpoint_type='public')
 
         self.assertEqual((public_url, ), urls)
+
+    def test_service_catalog_without_service_type(self):
+        token = fixture.V2Token()
+        token.set_scope()
+
+        public_urls = []
+
+        for i in range(0, 3):
+            public_url = uuid.uuid4().hex
+            public_urls.append(public_url)
+
+            s = token.add_service(uuid.uuid4().hex)
+            s.add_endpoint(public=public_url)
+
+        auth_ref = access.create(body=token)
+        urls = auth_ref.service_catalog.get_urls(service_type=None,
+                                                 endpoint_type='public')
+
+        self.assertEqual(3, len(urls))
+
+        for p in public_urls:
+            self.assertIn(p, urls)
