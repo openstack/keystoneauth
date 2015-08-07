@@ -217,7 +217,7 @@ class BaseIdentityPlugin(base.BaseAuthPlugin):
 
             service_catalog = self.get_access(session).service_catalog
             url = service_catalog.url_for(service_type=service_type,
-                                          endpoint_type=interface,
+                                          interface=interface,
                                           region_name=region_name,
                                           service_name=service_name)
 

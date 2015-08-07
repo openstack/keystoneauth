@@ -35,28 +35,28 @@ class ServiceCatalog(object):
         return endpoint.get('region_id') or endpoint.get('region')
 
     @abc.abstractmethod
-    def is_endpoint_type_match(self, endpoint, endpoint_type):
+    def is_interface_match(self, endpoint, interface):
         """Helper function to normalize endpoint matching across v2 and v3.
 
         :returns: True if the provided endpoint matches the required
-                  endpoint_type otherwise False.
+                  interface otherwise False.
         """
 
     @staticmethod
-    def normalize_endpoint_type(self, endpoint_type):
+    def normalize_interface(self, interface):
         """Handle differences in the way v2 and v3 catalogs specify endpoint.
 
         Both v2 and v3 must be able to handle the endpoint style of the other.
-        For example v2 must be able to handle a 'public' endpoint_type and
-        v3 must be able to handle a 'publicURL' endpoint_type.
+        For example v2 must be able to handle a 'public' interface and
+        v3 must be able to handle a 'publicURL' interface.
 
         :returns: the endpoint string in the format appropriate for this
                   service catalog.
         """
-        return endpoint_type
+        return interface
 
     @utils.positional()
-    def get_endpoints(self, service_type=None, endpoint_type=None,
+    def get_endpoints(self, service_type=None, interface=None,
                       region_name=None, service_name=None,
                       service_id=None, endpoint_id=None):
         """Fetch and filter endpoints for the specified service(s).
@@ -68,7 +68,7 @@ class ServiceCatalog(object):
         be skipped.  This allows compatibility with services that existed
         before the name was available in the catalog.
         """
-        endpoint_type = self.normalize_endpoint_type(endpoint_type)
+        interface = self.normalize_interface(interface)
 
         sc = {}
 
@@ -105,8 +105,8 @@ class ServiceCatalog(object):
             endpoints = sc.setdefault(st, [])
 
             for endpoint in service.get('endpoints', []):
-                if (endpoint_type and not
-                        self.is_endpoint_type_match(endpoint, endpoint_type)):
+                if (interface and not
+                        self.is_interface_match(endpoint, interface)):
                     continue
                 if (region_name and
                         region_name != self._get_endpoint_region(endpoint)):
@@ -132,7 +132,7 @@ class ServiceCatalog(object):
 
     @abc.abstractmethod
     @utils.positional()
-    def get_urls(self, service_type=None, endpoint_type='public',
+    def get_urls(self, service_type=None, interface='public',
                  region_name=None, service_name=None,
                  service_id=None, endpoint_id=None):
         """Fetch endpoint urls from the service catalog.
@@ -142,7 +142,7 @@ class ServiceCatalog(object):
         endpoint of the specified type.
 
         :param string service_type: Service type of the endpoint.
-        :param string endpoint_type: Type of endpoint.
+        :param string interface: Type of endpoint.
                                      Possible values: public or publicURL,
                                      internal or internalURL, admin or
                                      adminURL
@@ -156,7 +156,7 @@ class ServiceCatalog(object):
         raise NotImplementedError()
 
     @utils.positional()
-    def url_for(self, service_type=None, endpoint_type='public',
+    def url_for(self, service_type=None, interface='public',
                 region_name=None, service_name=None,
                 service_id=None, endpoint_id=None):
         """Fetch an endpoint from the service catalog.
@@ -170,7 +170,7 @@ class ServiceCatalog(object):
                               `admin` or 'adminURL`
 
         :param string service_type: Service type of the endpoint.
-        :param string endpoint_type: Type of endpoint.
+        :param string interface: Type of endpoint.
         :param string region_name: Region of the endpoint.
         :param string service_name: The assigned name of the service.
         :param string service_id: The identifier of a service.
@@ -180,7 +180,7 @@ class ServiceCatalog(object):
             raise exceptions.EmptyCatalog('The service catalog is empty.')
 
         urls = self.get_urls(service_type=service_type,
-                             endpoint_type=endpoint_type,
+                             interface=interface,
                              region_name=region_name,
                              service_name=service_name,
                              service_id=service_id,
@@ -192,27 +192,27 @@ class ServiceCatalog(object):
             pass
 
         if service_name and region_name:
-            msg = ('%(endpoint_type)s endpoint for %(service_type)s service '
+            msg = ('%(interface)s endpoint for %(service_type)s service '
                    'named %(service_name)s in %(region_name)s region not '
                    'found' %
-                   {'endpoint_type': endpoint_type,
+                   {'interface': interface,
                     'service_type': service_type, 'service_name': service_name,
                     'region_name': region_name})
         elif service_name:
-            msg = ('%(endpoint_type)s endpoint for %(service_type)s service '
+            msg = ('%(interface)s endpoint for %(service_type)s service '
                    'named %(service_name)s not found' %
-                   {'endpoint_type': endpoint_type,
+                   {'interface': interface,
                     'service_type': service_type,
                     'service_name': service_name})
         elif region_name:
-            msg = ('%(endpoint_type)s endpoint for %(service_type)s service '
+            msg = ('%(interface)s endpoint for %(service_type)s service '
                    'in %(region_name)s region not found' %
-                   {'endpoint_type': endpoint_type,
+                   {'interface': interface,
                     'service_type': service_type, 'region_name': region_name})
         else:
-            msg = ('%(endpoint_type)s endpoint for %(service_type)s service '
+            msg = ('%(interface)s endpoint for %(service_type)s service '
                    'not found' %
-                   {'endpoint_type': endpoint_type,
+                   {'interface': interface,
                     'service_type': service_type})
 
         raise exceptions.EndpointNotFound(msg)
@@ -231,29 +231,29 @@ class ServiceCatalogV2(ServiceCatalog):
         return cls(token['access'].get('serviceCatalog', {}))
 
     @staticmethod
-    def normalize_endpoint_type(endpoint_type):
-        if endpoint_type and 'URL' not in endpoint_type:
-            endpoint_type = endpoint_type + 'URL'
+    def normalize_interface(interface):
+        if interface and 'URL' not in interface:
+            interface = interface + 'URL'
 
-        return endpoint_type
+        return interface
 
-    def is_endpoint_type_match(self, endpoint, endpoint_type):
-        return endpoint_type in endpoint
+    def is_interface_match(self, endpoint, interface):
+        return interface in endpoint
 
     @utils.positional()
-    def get_urls(self, service_type=None, endpoint_type='publicURL',
+    def get_urls(self, service_type=None, interface='publicURL',
                  region_name=None, service_name=None,
                  service_id=None, endpoint_id=None):
-        endpoint_type = self.normalize_endpoint_type(endpoint_type)
+        interface = self.normalize_interface(interface)
 
         endpoints = self._get_service_endpoints(service_type=service_type,
-                                                endpoint_type=endpoint_type,
+                                                interface=interface,
                                                 region_name=region_name,
                                                 service_name=service_name,
                                                 service_id=service_id,
                                                 endpoint_id=endpoint_id)
 
-        return tuple([endpoint[endpoint_type] for endpoint in endpoints])
+        return tuple([endpoint[interface] for endpoint in endpoints])
 
 
 class ServiceCatalogV3(ServiceCatalog):
@@ -269,24 +269,24 @@ class ServiceCatalogV3(ServiceCatalog):
         return cls(token['token'].get('catalog', {}))
 
     @staticmethod
-    def normalize_endpoint_type(endpoint_type):
-        if endpoint_type:
-            endpoint_type = endpoint_type.rstrip('URL')
+    def normalize_interface(interface):
+        if interface:
+            interface = interface.rstrip('URL')
 
-        return endpoint_type
+        return interface
 
-    def is_endpoint_type_match(self, endpoint, endpoint_type):
+    def is_interface_match(self, endpoint, interface):
         try:
-            return endpoint_type == endpoint['interface']
+            return interface == endpoint['interface']
         except KeyError:
             return False
 
     @utils.positional()
-    def get_urls(self, service_type=None, endpoint_type='publicURL',
+    def get_urls(self, service_type=None, interface='publicURL',
                  region_name=None, service_name=None,
                  service_id=None, endpoint_id=None):
         endpoints = self._get_service_endpoints(service_type=service_type,
-                                                endpoint_type=endpoint_type,
+                                                interface=interface,
                                                 region_name=region_name,
                                                 service_name=service_name,
                                                 service_id=service_id,
