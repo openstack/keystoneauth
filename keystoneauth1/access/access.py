@@ -47,7 +47,7 @@ def create(resp=None, body=None, auth_token=None):
     raise ValueError('Unrecognized auth response')
 
 
-def missingproperty(f):
+def _missingproperty(f):
 
     @functools.wraps(f)
     def inner(self):
@@ -381,20 +381,20 @@ class AccessInfoV2(AccessInfo):
     def has_service_catalog(self):
         return 'serviceCatalog' in self
 
-    @missingproperty
+    @_missingproperty
     def auth_token(self):
         set_token = super(AccessInfoV2, self).auth_token
         return set_token or self._data['access']['token']['id']
 
-    @missingproperty
+    @_missingproperty
     def _token(self):
         return self._data['access']['token']
 
-    @missingproperty
+    @_missingproperty
     def expires(self):
         return utils.parse_isotime(self._token.get('expires'))
 
-    @missingproperty
+    @_missingproperty
     def issued(self):
         return self._token['issued_at']
 
@@ -402,11 +402,11 @@ class AccessInfoV2(AccessInfo):
     def _user(self):
         return self._data['access']['user']
 
-    @missingproperty
+    @_missingproperty
     def username(self):
         return self._user.get('name') or self._user.get('username')
 
-    @missingproperty
+    @_missingproperty
     def user_id(self):
         return self._user['id']
 
@@ -418,11 +418,11 @@ class AccessInfoV2(AccessInfo):
     def user_domain_name(self):
         return None
 
-    @missingproperty
+    @_missingproperty
     def role_ids(self):
         return self.get('metadata', {}).get('roles', [])
 
-    @missingproperty
+    @_missingproperty
     def role_names(self):
         return [r['name'] for r in self._user.get('roles', [])]
 
@@ -467,7 +467,7 @@ class AccessInfoV2(AccessInfo):
     def _trust(self):
         return self._data['access']['trust']
 
-    @missingproperty
+    @_missingproperty
     def trust_id(self):
         return self._trust['id']
 
@@ -475,7 +475,7 @@ class AccessInfoV2(AccessInfo):
     def trust_scoped(self):
         return bool(self._trust)
 
-    @missingproperty
+    @_missingproperty
     def trustee_user_id(self):
         return self._trust['trustee_user_id']
 
@@ -563,15 +563,15 @@ class AccessInfoV3(AccessInfo):
     def is_federated(self):
         return 'OS-FEDERATION' in self._user
 
-    @missingproperty
+    @_missingproperty
     def expires(self):
         return utils.parse_isotime(self._data['token']['expires_at'])
 
-    @missingproperty
+    @_missingproperty
     def issued(self):
         return utils.parse_isotime(self._data['token']['issued_at'])
 
-    @missingproperty
+    @_missingproperty
     def user_id(self):
         return self._user['id']
 
@@ -593,15 +593,15 @@ class AccessInfoV3(AccessInfo):
                 return None
             raise
 
-    @missingproperty
+    @_missingproperty
     def role_ids(self):
         return [r['id'] for r in self._data['token'].get('roles', [])]
 
-    @missingproperty
+    @_missingproperty
     def role_names(self):
         return [r['name'] for r in self._data['token'].get('roles', [])]
 
-    @missingproperty
+    @_missingproperty
     def username(self):
         return self._user['name']
 
@@ -609,11 +609,11 @@ class AccessInfoV3(AccessInfo):
     def _domain(self):
         return self._data['token']['domain']
 
-    @missingproperty
+    @_missingproperty
     def domain_name(self):
         return self._domain['name']
 
-    @missingproperty
+    @_missingproperty
     def domain_id(self):
         return self._domain['id']
 
@@ -621,19 +621,19 @@ class AccessInfoV3(AccessInfo):
     def _project(self):
         return self._data['token']['project']
 
-    @missingproperty
+    @_missingproperty
     def project_id(self):
         return self._project['id']
 
-    @missingproperty
+    @_missingproperty
     def project_domain_id(self):
         return self._project['domain']['id']
 
-    @missingproperty
+    @_missingproperty
     def project_domain_name(self):
         return self._project['domain']['name']
 
-    @missingproperty
+    @_missingproperty
     def project_name(self):
         return self._project['name']
 
@@ -655,7 +655,7 @@ class AccessInfoV3(AccessInfo):
     def _trust(self):
         return self._data['token']['OS-TRUST:trust']
 
-    @missingproperty
+    @_missingproperty
     def trust_id(self):
         return self._trust['id']
 
@@ -666,11 +666,11 @@ class AccessInfoV3(AccessInfo):
         except KeyError:
             return False
 
-    @missingproperty
+    @_missingproperty
     def trustee_user_id(self):
         return self._trust['trustee_user']['id']
 
-    @missingproperty
+    @_missingproperty
     def trustor_user_id(self):
         return self._trust['trustor_user']['id']
 
@@ -678,22 +678,22 @@ class AccessInfoV3(AccessInfo):
     def _oauth(self):
         return self._data['token']['OS-OAUTH1']
 
-    @missingproperty
+    @_missingproperty
     def oauth_access_token_id(self):
         return self._oauth['access_token_id']
 
-    @missingproperty
+    @_missingproperty
     def oauth_consumer_id(self):
         return self._oauth['consumer_id']
 
-    @missingproperty
+    @_missingproperty
     def audit_id(self):
         try:
             return self._data['token']['audit_ids'][0]
         except IndexError:
             return None
 
-    @missingproperty
+    @_missingproperty
     def audit_chain_id(self):
         try:
             return self._data['token']['audit_ids'][1]
