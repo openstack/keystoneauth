@@ -17,11 +17,11 @@ from oslo_config import cfg
 from oslo_config import fixture as config
 import stevedore
 
-from keystoneauth1.auth import base
-from keystoneauth1.auth import conf
-from keystoneauth1.auth.identity import v2 as v2_auth
-from keystoneauth1.auth.identity import v3 as v3_auth
+from keystoneauth1 import base
+from keystoneauth1 import conf
 from keystoneauth1 import exceptions
+from keystoneauth1.identity import v2 as v2_auth
+from keystoneauth1.identity import v3 as v3_auth
 from keystoneauth1.tests.unit.auth import utils
 
 

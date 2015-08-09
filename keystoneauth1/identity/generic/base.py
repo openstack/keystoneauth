@@ -17,9 +17,9 @@ from oslo_config import cfg
 import six
 import six.moves.urllib.parse as urlparse
 
-from keystoneauth1.auth.identity import base
 from keystoneauth1 import discover
 from keystoneauth1 import exceptions
+from keystoneauth1.identity import base
 
 
 LOG = logging.getLogger(__name__)

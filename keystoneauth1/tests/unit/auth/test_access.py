@@ -13,9 +13,9 @@
 import uuid
 
 from keystoneauth1 import access
-from keystoneauth1 import auth
-from keystoneauth1.auth.identity import access as access_plugin
+from keystoneauth1 import base
 from keystoneauth1 import fixture
+from keystoneauth1.identity import access as access_plugin
 from keystoneauth1 import session
 from keystoneauth1.tests.unit import utils
 
@@ -49,7 +49,7 @@ class AccessInfoPluginTests(utils.TestCase):
 
         self.assertEqual(auth_url,
                          plugin.get_endpoint(self.session,
-                                             interface=auth.AUTH_INTERFACE))
+                                             interface=base.AUTH_INTERFACE))
 
     def test_invalidate(self):
         plugin = self._plugin()

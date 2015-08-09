@@ -15,10 +15,10 @@ import logging
 from oslo_config import cfg
 
 from keystoneauth1 import _utils as utils
-from keystoneauth1.auth.identity.generic import base
-from keystoneauth1.auth.identity import v2
-from keystoneauth1.auth.identity import v3
 from keystoneauth1 import discover
+from keystoneauth1.identity.generic import base
+from keystoneauth1.identity import v2
+from keystoneauth1.identity import v3
 
 LOG = logging.getLogger(__name__)
 

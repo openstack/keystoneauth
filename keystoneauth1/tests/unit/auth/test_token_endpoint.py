@@ -12,9 +12,9 @@
 
 from testtools import matchers
 
-from keystoneauth1.auth import token_endpoint
 from keystoneauth1 import session
 from keystoneauth1.tests.unit import utils
+from keystoneauth1 import token_endpoint
 
 
 class TokenEndpointTest(utils.TestCase):

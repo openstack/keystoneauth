@@ -14,7 +14,7 @@ import argparse
 import os
 
 from keystoneauth1 import _utils as utils
-from keystoneauth1.auth import base
+from keystoneauth1 import base
 
 
 @utils.positional()

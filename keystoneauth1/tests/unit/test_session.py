@@ -24,7 +24,7 @@ import six
 from testtools import matchers
 
 from keystoneauth1 import adapter
-from keystoneauth1.auth import base
+from keystoneauth1 import base
 from keystoneauth1 import exceptions
 from keystoneauth1 import session as client_session
 from keystoneauth1.tests.unit import utils

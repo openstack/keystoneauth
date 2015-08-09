@@ -17,7 +17,7 @@ from oslo_config import cfg
 import six
 
 from keystoneauth1 import _utils as utils
-from keystoneauth1.auth import base
+from keystoneauth1 import base
 from keystoneauth1 import discover
 from keystoneauth1 import exceptions
 

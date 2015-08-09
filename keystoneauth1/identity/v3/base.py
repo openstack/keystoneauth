@@ -18,8 +18,8 @@ import six
 
 from keystoneauth1 import _utils as utils
 from keystoneauth1 import access
-from keystoneauth1.auth.identity import base
 from keystoneauth1 import exceptions
+from keystoneauth1.identity import base
 
 _logger = logging.getLogger(__name__)
 

@@ -12,10 +12,10 @@
 
 import uuid
 
-from keystoneauth1.auth.identity.generic import password
-from keystoneauth1.auth.identity import v2
-from keystoneauth1.auth.identity import v3
-from keystoneauth1.auth.identity.v3 import password as v3_password
+from keystoneauth1.identity.generic import password
+from keystoneauth1.identity import v2
+from keystoneauth1.identity import v3
+from keystoneauth1.identity.v3 import password as v3_password
 from keystoneauth1.tests.unit.auth import utils
 
 

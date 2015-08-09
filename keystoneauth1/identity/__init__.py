@@ -10,24 +10,28 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from keystoneauth1.auth.identity.v3.base import *  # noqa
-from keystoneauth1.auth.identity.v3.federation import *  # noqa
-from keystoneauth1.auth.identity.v3.k2k import *  # noqa
-from keystoneauth1.auth.identity.v3.password import *  # noqa
-from keystoneauth1.auth.identity.v3.token import *  # noqa
+from keystoneauth1.identity import base
+from keystoneauth1.identity import generic
+from keystoneauth1.identity import v2
+from keystoneauth1.identity import v3
 
 
-__all__ = ['Auth',
-           'AuthConstructor',
-           'AuthMethod',
-           'BaseAuth',
+BaseIdentityPlugin = base.BaseIdentityPlugin
 
-           'FederationBaseAuth',
+V2Password = v2.Password
+V2Token = v2.Token
 
-           'Keystone2Keystone',
+V3Password = v3.Password
+V3Token = v3.Token
 
+Password = generic.Password
+Token = generic.Token
+
+
+__all__ = ['BaseIdentityPlugin',
            'Password',
-           'PasswordMethod',
-
            'Token',
-           'TokenMethod']
+           'V2Password',
+           'V2Token',
+           'V3Password',
+           'V3Token']
