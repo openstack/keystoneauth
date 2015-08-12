@@ -10,9 +10,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from oslo_config import cfg
-
 from keystoneauth1 import identity
+from keystoneauth1 import loading
 from keystoneauth1.loading._plugins.identity import base
 
 
@@ -22,9 +21,9 @@ class BaseV2Loader(base.BaseIdentityLoader):
         options = super(BaseV2Loader, self).get_options()
 
         options.extend([
-            cfg.StrOpt('tenant-id', help='Tenant ID'),
-            cfg.StrOpt('tenant-name', help='Tenant Name'),
-            cfg.StrOpt('trust-id', help='Trust ID'),
+            loading.Opt('tenant-id', help='Tenant ID'),
+            loading.Opt('tenant-name', help='Tenant Name'),
+            loading.Opt('trust-id', help='Trust ID'),
         ])
 
         return options
@@ -40,7 +39,7 @@ class V2Token(BaseV2Loader):
         options = super(V2Token, self).get_options()
 
         options.extend([
-            cfg.StrOpt('token', secret=True, help='Token'),
+            loading.Opt('token', secret=True, help='Token'),
         ])
 
         return options
@@ -56,12 +55,12 @@ class V2Password(BaseV2Loader):
         options = super(V2Password, self).get_options()
 
         options.extend([
-            cfg.StrOpt('user-name',
+            loading.Opt('user-name',
                        dest='username',
-                       deprecated_name='username',
+                       deprecated=[loading.Opt('username')],
                        help='Username to login with'),
-            cfg.StrOpt('user-id', help='User ID to longin with'),
-            cfg.StrOpt('password', secret=True, help='Password to use'),
+            loading.Opt('user-id', help='User ID to longin with'),
+            loading.Opt('password', secret=True, help='Password to use'),
         ])
 
         return options

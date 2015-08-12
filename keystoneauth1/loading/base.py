@@ -11,7 +11,6 @@
 # under the License.
 
 import abc
-import os
 
 import six
 import stevedore
@@ -104,27 +103,9 @@ class BaseLoader(object):
         :param parser: the parser to attach argparse options.
         :type parser: argparse.ArgumentParser
         """
-
-        # NOTE(jamielennox): ideally oslo_config would be smart enough to
-        # handle all the Opt manipulation that goes on in this file. However it
-        # is currently not.  Options are handled in as similar a way as
-        # possible to oslo_config such that when available we should be able to
-        # transition.
-
         for opt in self.get_options():
-            args = []
-            envs = []
-
-            for o in [opt] + opt.deprecated_opts:
-                args.append('--os-%s' % o.name)
-                envs.append('OS_%s' % o.name.replace('-', '_').upper())
-
-            # select the first ENV that is not false-y or return None
-            env_vars = (os.environ.get(e) for e in envs)
-            default = six.next(six.moves.filter(None, env_vars), None)
-
-            parser.add_argument(*args,
-                                default=default or opt.default,
+            parser.add_argument(*opt.argparse_args,
+                                default=opt.argparse_default,
                                 metavar=opt.metavar,
                                 help=opt.help,
                                 dest='os_%s' % opt.dest)
@@ -153,7 +134,7 @@ class BaseLoader(object):
         :type conf: oslo_config.cfg.ConfigOpts
         :param string group: The group name that options should be read from.
         """
-        plugin_opts = self.get_options()
+        plugin_opts = [o._to_oslo_opt() for o in self.get_options()]
         conf.register_opts(plugin_opts, group=group)
 
     def load_from_conf_options(self, conf, group, **kwargs):
@@ -181,8 +162,8 @@ class BaseLoader(object):
         specify a custom loader function that will be queried for the option
         value.
 
-        The getter is a function that takes one value, an
-        :py:class:`oslo_config.cfg.Opt` and returns a value to load with.
+        The getter is a function that takes one value, a
+        :py:class:`keystoneauth1.loading.Opt` and returns a value to load with.
 
         :param getter: A function that returns a value for the given opt.
         :type getter: callable

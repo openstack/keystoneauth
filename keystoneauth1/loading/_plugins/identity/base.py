@@ -10,8 +10,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from oslo_config import cfg
-
 from keystoneauth1 import loading
 
 
@@ -21,7 +19,7 @@ class BaseIdentityLoader(loading.BaseLoader):
         options = super(BaseIdentityLoader, self).get_options()
 
         options.extend([
-            cfg.StrOpt('auth-url', help='Authentication URL'),
+            loading.Opt('auth-url', help='Authentication URL'),
         ])
 
         return options

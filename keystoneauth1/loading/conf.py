@@ -10,14 +10,13 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from oslo_config import cfg
-
 from keystoneauth1.loading import base
+from keystoneauth1.loading import opts
 
-_AUTH_PLUGIN_OPT = cfg.StrOpt('auth_plugin', help='Name of the plugin to load')
+_AUTH_PLUGIN_OPT = opts.Opt('auth_plugin', help='Name of the plugin to load')
 
 _section_help = 'Config Section from which to load plugin specific options'
-_AUTH_SECTION_OPT = cfg.StrOpt('auth_section', help=_section_help)
+_AUTH_SECTION_OPT = opts.Opt('auth_section', help=_section_help)
 
 
 def get_common_conf_options():
@@ -64,7 +63,7 @@ def register_conf_options(conf, group):
     :type conf: oslo_config.cfg.ConfigOpts
     :param string group: The ini group to register options in.
     """
-    conf.register_opt(_AUTH_SECTION_OPT, group=group)
+    conf.register_opt(_AUTH_SECTION_OPT._to_oslo_opt(), group=group)
 
     # NOTE(jamielennox): plugins are allowed to specify a 'section' which is
     # the group that auth options should be taken from. If not present they
@@ -74,7 +73,7 @@ def register_conf_options(conf, group):
     if conf[group].auth_section:
         group = conf[group].auth_section
 
-    conf.register_opt(_AUTH_PLUGIN_OPT, group=group)
+    conf.register_opt(_AUTH_PLUGIN_OPT._to_oslo_opt(), group=group)
 
 
 def load_from_conf_options(conf, group, **kwargs):

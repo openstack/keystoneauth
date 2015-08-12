@@ -15,7 +15,6 @@ import uuid
 
 import fixtures
 import mock
-from oslo_config import cfg
 
 from keystoneauth1 import base
 from keystoneauth1 import loading
@@ -38,9 +37,9 @@ class TesterLoader(loading.BaseLoader):
         # NOTE(jamielennox): this is kind of horrible. If you specify this as
         # a deprecated_name= value it will convert - to _ which is not what we
         # want for a CLI option.
-        deprecated = [cfg.DeprecatedOpt('test-other')]
+        deprecated = [loading.Opt('test-other')]
         return [
-            cfg.StrOpt('test-opt', help='tester', deprecated_opts=deprecated)
+            loading.Opt('test-opt', help='tester', deprecated=deprecated)
         ]
 
 
