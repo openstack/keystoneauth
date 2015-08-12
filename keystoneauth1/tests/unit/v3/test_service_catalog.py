@@ -78,7 +78,7 @@ class ServiceCatalogTest(utils.TestCase):
         self.assertEqual(sc.url_for(service_type='compute'),
                          "https://compute.north.host/novapi/public")
         self.assertEqual(sc.url_for(service_type='compute',
-                                    endpoint_type='internal'),
+                                    interface='internal'),
                          "https://compute.north.host/novapi/internal")
 
         self.assertRaises(exceptions.EndpointNotFound,
@@ -92,7 +92,7 @@ class ServiceCatalogTest(utils.TestCase):
         sc = auth_ref.service_catalog
 
         public_ep = sc.get_endpoints(service_type='compute',
-                                     endpoint_type='public')
+                                     interface='public')
         self.assertEqual(public_ep['compute'][0]['region'], 'North')
         self.assertEqual(public_ep['compute'][0]['url'],
                          "https://compute.north.host/novapi/public")
@@ -103,7 +103,7 @@ class ServiceCatalogTest(utils.TestCase):
                                  body=self.AUTH_RESPONSE_BODY)
         sc = auth_ref.service_catalog
 
-        url = sc.url_for(service_type='image', endpoint_type='public')
+        url = sc.url_for(service_type='image', interface='public')
         self.assertEqual(url, "http://glance.north.host/glanceapi/public")
 
         self.AUTH_RESPONSE_BODY['token']['region_name'] = "South"
@@ -112,7 +112,7 @@ class ServiceCatalogTest(utils.TestCase):
         sc = auth_ref.service_catalog
         url = sc.url_for(service_type='image',
                          region_name="South",
-                         endpoint_type='internal')
+                         interface='internal')
         self.assertEqual(url, "http://glance.south.host/glanceapi/internal")
 
     def test_service_catalog_empty(self):
@@ -122,7 +122,7 @@ class ServiceCatalogTest(utils.TestCase):
         self.assertRaises(exceptions.EmptyCatalog,
                           auth_ref.service_catalog.url_for,
                           service_type='image',
-                          endpoint_type='internalURL')
+                          interface='internalURL')
 
     def test_service_catalog_get_endpoints_region_names(self):
         sc = access.create(auth_token=uuid.uuid4().hex,
@@ -186,11 +186,11 @@ class ServiceCatalogTest(utils.TestCase):
         sc = access.create(auth_token=uuid.uuid4().hex,
                            body=self.AUTH_RESPONSE_BODY).service_catalog
 
-        url = sc.url_for(service_name='glance', endpoint_type='public',
+        url = sc.url_for(service_name='glance', interface='public',
                          service_type='image', region_name='North')
         self.assertEqual('http://glance.north.host/glanceapi/public', url)
 
-        url = sc.url_for(service_name='glance', endpoint_type='public',
+        url = sc.url_for(service_name='glance', interface='public',
                          service_type='image', region_name='South')
         self.assertEqual('http://glance.south.host/glanceapi/public', url)
 
@@ -198,14 +198,14 @@ class ServiceCatalogTest(utils.TestCase):
                           service_name='glance', service_type='compute')
 
         urls = sc.get_urls(service_type='image', service_name='glance',
-                           endpoint_type='public')
+                           interface='public')
 
         self.assertIn('http://glance.north.host/glanceapi/public', urls)
         self.assertIn('http://glance.south.host/glanceapi/public', urls)
 
         urls = sc.get_urls(service_type='image',
                            service_name='Servers',
-                           endpoint_type='public')
+                           interface='public')
 
         self.assertEqual(0, len(urls))
 
@@ -260,7 +260,7 @@ class ServiceCatalogTest(utils.TestCase):
         # this will work because there are no service names on that token
         url_ref = 'http://public.com:8774/v2/225da22d3ce34b15877ea70b2a575f58'
         url = pr_sc.url_for(service_type='compute', service_name='NotExist',
-                            endpoint_type='public')
+                            interface='public')
         self.assertEqual(url_ref, url)
 
         ab_auth_ref = access.create(body=self.AUTH_RESPONSE_BODY)
@@ -269,7 +269,7 @@ class ServiceCatalogTest(utils.TestCase):
         # this won't work because there is a name and it's not this one
         self.assertRaises(exceptions.EndpointNotFound, ab_sc.url_for,
                           service_type='compute', service_name='NotExist',
-                          endpoint_type='public')
+                          interface='public')
 
 
 class ServiceCatalogV3Test(ServiceCatalogTest):
@@ -281,7 +281,7 @@ class ServiceCatalogV3Test(ServiceCatalogTest):
         self.assertEqual(sc.url_for(service_type='compute'),
                          'https://compute.north.host/novapi/public')
         self.assertEqual(sc.url_for(service_type='compute',
-                                    endpoint_type='internal'),
+                                    interface='internal'),
                          'https://compute.north.host/novapi/internal')
 
         self.assertRaises(exceptions.EndpointNotFound,
@@ -294,7 +294,7 @@ class ServiceCatalogV3Test(ServiceCatalogTest):
                            body=self.AUTH_RESPONSE_BODY).service_catalog
 
         public_ep = sc.get_endpoints(service_type='compute',
-                                     endpoint_type='public')
+                                     interface='public')
         self.assertEqual(public_ep['compute'][0]['region_id'], 'North')
         self.assertEqual(public_ep['compute'][0]['url'],
                          'https://compute.north.host/novapi/public')
@@ -313,12 +313,12 @@ class ServiceCatalogV3Test(ServiceCatalogTest):
         auth_ref = access.create(resp=None, body=token)
 
         urls = auth_ref.service_catalog.get_urls(service_type='compute',
-                                                 endpoint_type='public')
+                                                 interface='public')
 
         self.assertEqual(set(['public-0', 'public-1', 'public-2']), set(urls))
 
         urls = auth_ref.service_catalog.get_urls(service_type='compute',
-                                                 endpoint_type='public',
+                                                 interface='public',
                                                  region_name='region-1')
 
         self.assertEqual(('public-1', ), urls)
@@ -339,34 +339,34 @@ class ServiceCatalogV3Test(ServiceCatalogTest):
 
         # initially assert that we get back all our urls for a simple filter
         urls = auth_ref.service_catalog.get_urls(service_type='compute',
-                                                 endpoint_type='public')
+                                                 interface='public')
         self.assertEqual(2, len(urls))
 
         # with bad endpoint_id nothing should be found
         urls = auth_ref.service_catalog.get_urls(service_type='compute',
                                                  endpoint_id=uuid.uuid4().hex,
-                                                 endpoint_type='public')
+                                                 interface='public')
 
         self.assertEqual(0, len(urls))
 
         # with service_id we get back both public endpoints
         urls = auth_ref.service_catalog.get_urls(service_type='compute',
                                                  service_id=service_id,
-                                                 endpoint_type='public')
+                                                 interface='public')
         self.assertEqual(2, len(urls))
 
         # with service_id and endpoint_id we get back the url we want
         urls = auth_ref.service_catalog.get_urls(service_type='compute',
                                                  service_id=service_id,
                                                  endpoint_id=endpoint_id,
-                                                 endpoint_type='public')
+                                                 interface='public')
 
         self.assertEqual((public_url, ), urls)
 
         # with service_id and endpoint_id we get back the url we want
         urls = auth_ref.service_catalog.get_urls(service_type='compute',
                                                  endpoint_id=endpoint_id,
-                                                 endpoint_type='public')
+                                                 interface='public')
 
         self.assertEqual((public_url, ), urls)
 
@@ -384,7 +384,7 @@ class ServiceCatalogV3Test(ServiceCatalogTest):
             s.add_endpoint('public', public_url)
 
         auth_ref = access.create(body=token)
-        urls = auth_ref.service_catalog.get_urls(endpoint_type='public')
+        urls = auth_ref.service_catalog.get_urls(interface='public')
 
         self.assertEqual(3, len(urls))
 
