@@ -10,13 +10,11 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from oslo_config import cfg
-
 from keystoneauth1 import access
-from keystoneauth1 import base as auth_base
 from keystoneauth1 import exceptions
 from keystoneauth1.identity.v3 import base
 from keystoneauth1.identity.v3 import token
+from keystoneauth1 import plugin
 
 __all__ = ['Keystone2Keystone']
 
@@ -83,16 +81,6 @@ class Keystone2Keystone(base.BaseAuth):
                 'project_domain_id': self.project_domain_id,
                 'project_domain_name': self.project_domain_name}
 
-    @classmethod
-    def get_options(cls):
-        options = super(Keystone2Keystone, cls).get_options()
-
-        options.extend([
-            cfg.StrOpt("service-provider", help="Service Provider's ID")
-        ])
-
-        return options
-
     def _ecp_assertion_request(self, session):
         token_id = self._local_cloud_plugin.get_access(session).auth_token
         body = {
@@ -115,7 +103,7 @@ class Keystone2Keystone(base.BaseAuth):
 
     def _get_ecp_assertion(self, session):
         url = self._local_cloud_plugin.get_endpoint(
-            session, interface=auth_base.AUTH_INTERFACE)
+            session, interface=plugin.AUTH_INTERFACE)
         body = self._ecp_assertion_request(session)
 
         resp = session.post(url=url + self.REQUEST_ECP_URL, json=body,

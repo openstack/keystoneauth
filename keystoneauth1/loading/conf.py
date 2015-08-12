@@ -12,7 +12,7 @@
 
 from oslo_config import cfg
 
-from keystoneauth1 import base
+from keystoneauth1.loading import base
 
 _AUTH_PLUGIN_OPT = cfg.StrOpt('auth_plugin', help='Name of the plugin to load')
 
@@ -43,7 +43,7 @@ def get_plugin_options(name):
 
     :returns: A list of oslo_config options.
     """
-    return base.get_plugin_class(name).get_options()
+    return base.get_plugin_loader(name).get_options()
 
 
 def register_conf_options(conf, group):
@@ -106,6 +106,6 @@ def load_from_conf_options(conf, group, **kwargs):
     if not name:
         return None
 
-    plugin_class = base.get_plugin_class(name)
+    plugin_class = base.get_plugin_loader(name)
     plugin_class.register_conf_options(conf, group)
     return plugin_class.load_from_conf_options(conf, group, **kwargs)

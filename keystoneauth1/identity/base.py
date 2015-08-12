@@ -13,25 +13,18 @@
 import abc
 import logging
 
-from oslo_config import cfg
 import six
 
 from keystoneauth1 import _utils as utils
-from keystoneauth1 import base
 from keystoneauth1 import discover
 from keystoneauth1 import exceptions
+from keystoneauth1 import plugin
 
 LOG = logging.getLogger(__name__)
 
 
-def get_options():
-    return [
-        cfg.StrOpt('auth-url', help='Authentication URL'),
-    ]
-
-
 @six.add_metaclass(abc.ABCMeta)
-class BaseIdentityPlugin(base.BaseAuthPlugin):
+class BaseIdentityPlugin(plugin.BaseAuthPlugin):
 
     # we count a token as valid (not needing refreshing) if it is valid for at
     # least this many seconds before the token expiry time
@@ -201,7 +194,7 @@ class BaseIdentityPlugin(base.BaseAuthPlugin):
         # are asking for the auth endpoint it means that there is no catalog to
         # query however we still need to support asking for a specific version
         # of the auth_url for generic plugins.
-        if interface is base.AUTH_INTERFACE:
+        if interface is plugin.AUTH_INTERFACE:
             url = self.auth_url
             service_type = service_type or 'identity'
 
@@ -318,9 +311,3 @@ class BaseIdentityPlugin(base.BaseAuthPlugin):
             session_endpoint_cache[url] = disc
 
         return disc
-
-    @classmethod
-    def get_options(cls):
-        options = super(BaseIdentityPlugin, cls).get_options()
-        options.extend(get_options())
-        return options

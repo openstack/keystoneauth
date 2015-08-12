@@ -16,6 +16,7 @@ from keystoneauth1.identity.generic import password
 from keystoneauth1.identity import v2
 from keystoneauth1.identity import v3
 from keystoneauth1.identity.v3 import password as v3_password
+from keystoneauth1.loading._plugins.identity import generic
 from keystoneauth1.tests.unit.auth import utils
 
 
@@ -41,7 +42,7 @@ class PasswordTests(utils.GenericPluginTestCase):
         self.assertDiscoveryFailure(user_domain_id=uuid.uuid4().hex)
 
     def test_options(self):
-        opts = [o.name for o in self.PLUGIN_CLASS.get_options()]
+        opts = [o.name for o in generic.Password().get_options()]
 
         allowed_opts = ['user-name',
                         'user-domain-id',

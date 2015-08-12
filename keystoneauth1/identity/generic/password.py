@@ -12,8 +12,6 @@
 
 import logging
 
-from oslo_config import cfg
-
 from keystoneauth1 import _utils as utils
 from keystoneauth1 import discover
 from keystoneauth1.identity.generic import base
@@ -21,17 +19,6 @@ from keystoneauth1.identity import v2
 from keystoneauth1.identity import v3
 
 LOG = logging.getLogger(__name__)
-
-
-def get_options():
-    return [
-        cfg.StrOpt('user-id', help='User id'),
-        cfg.StrOpt('user-name', dest='username', help='Username',
-                   deprecated_name='username'),
-        cfg.StrOpt('user-domain-id', help="User's domain id"),
-        cfg.StrOpt('user-domain-name', help="User's domain name"),
-        cfg.StrOpt('password', help="User's password"),
-    ]
 
 
 class Password(base.BaseGenericPlugin):
@@ -76,9 +63,3 @@ class Password(base.BaseGenericPlugin):
                                user_domain_name=self._user_domain_name,
                                password=self._password,
                                **self._v3_params)
-
-    @classmethod
-    def get_options(cls):
-        options = super(Password, cls).get_options()
-        options.extend(get_options())
-        return options

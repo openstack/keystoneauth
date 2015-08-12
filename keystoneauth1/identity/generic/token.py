@@ -12,20 +12,12 @@
 
 import logging
 
-from oslo_config import cfg
-
 from keystoneauth1 import discover
 from keystoneauth1.identity.generic import base
 from keystoneauth1.identity import v2
 from keystoneauth1.identity import v3
 
 LOG = logging.getLogger(__name__)
-
-
-def get_options():
-    return [
-        cfg.StrOpt('token', help='Token to authenticate with'),
-    ]
 
 
 class Token(base.BaseGenericPlugin):
@@ -44,9 +36,3 @@ class Token(base.BaseGenericPlugin):
 
         elif discover.version_match((3,), version):
             return v3.Token(url, self._token, **self._v3_params)
-
-    @classmethod
-    def get_options(cls):
-        options = super(Token, cls).get_options()
-        options.extend(get_options())
-        return options

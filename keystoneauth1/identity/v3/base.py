@@ -13,7 +13,6 @@
 import abc
 import logging
 
-from oslo_config import cfg
 import six
 
 from keystoneauth1 import _utils as utils
@@ -75,24 +74,6 @@ class BaseAuth(base.BaseIdentityPlugin):
     @abc.abstractmethod
     def get_auth_ref(self, session, **kwargs):
         return None
-
-    @classmethod
-    def get_options(cls):
-        options = super(BaseAuth, cls).get_options()
-
-        options.extend([
-            cfg.StrOpt('domain-id', help='Domain ID to scope to'),
-            cfg.StrOpt('domain-name', help='Domain name to scope to'),
-            cfg.StrOpt('project-id', help='Project ID to scope to'),
-            cfg.StrOpt('project-name', help='Project name to scope to'),
-            cfg.StrOpt('project-domain-id',
-                       help='Domain ID containing project'),
-            cfg.StrOpt('project-domain-name',
-                       help='Domain name containing project'),
-            cfg.StrOpt('trust-id', help='Trust ID'),
-        ])
-
-        return options
 
 
 class Auth(BaseAuth):
