@@ -10,14 +10,13 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import logging
-
+from keystoneauth1 import _utils as utils
 from keystoneauth1 import discover
 from keystoneauth1.identity.generic import base
 from keystoneauth1.identity import v2
 from keystoneauth1.identity import v3
 
-LOG = logging.getLogger(__name__)
+LOG = utils.get_logger(__name__)
 
 
 class Token(base.BaseGenericPlugin):

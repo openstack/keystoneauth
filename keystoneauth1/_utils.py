@@ -19,7 +19,12 @@ import iso8601
 import six
 
 
-logger = logging.getLogger(__name__)
+def get_logger(name):
+    name = name.replace(__name__.split('.')[0], 'keystoneauth')
+    return logging.getLogger(name)
+
+
+logger = get_logger(__name__)
 
 
 class positional(object):

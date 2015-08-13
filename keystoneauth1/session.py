@@ -38,7 +38,7 @@ except ImportError:
 
 USER_AGENT = 'keystoneauth1'
 
-_logger = logging.getLogger(__name__)
+_logger = utils.get_logger(__name__)
 
 
 class _JSONEncoder(json.JSONEncoder):

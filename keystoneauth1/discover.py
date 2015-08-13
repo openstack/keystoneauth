@@ -21,14 +21,13 @@ This includes functions like url_for which allow you to retrieve URLs and the
 raw data specified in version discovery responses.
 """
 
-import logging
 import re
 
 from keystoneauth1 import _utils as utils
 from keystoneauth1 import exceptions
 
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = utils.get_logger(__name__)
 
 
 @utils.positional()

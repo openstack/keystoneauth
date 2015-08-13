@@ -11,7 +11,6 @@
 # under the License.
 
 import abc
-import logging
 
 import six
 
@@ -20,7 +19,7 @@ from keystoneauth1 import access
 from keystoneauth1 import exceptions
 from keystoneauth1.identity import base
 
-_logger = logging.getLogger(__name__)
+_logger = utils.get_logger(__name__)
 
 
 @six.add_metaclass(abc.ABCMeta)
