@@ -14,11 +14,11 @@ from keystoneauth1.exceptions import base
 
 
 class AuthPluginException(base.ClientException):
-    """Something went wrong with auth plugins."""
+    message = "Something went wrong with auth plugins."
 
 
 class MissingAuthPlugin(AuthPluginException):
-    """An authenticated request is required but no plugin available."""
+    message = "An authenticated request is required but no plugin available."
 
 
 class NoMatchingPlugin(AuthPluginException):

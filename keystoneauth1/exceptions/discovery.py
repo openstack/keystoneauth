@@ -18,8 +18,8 @@ __all__ = ['DiscoveryFailure',
 
 
 class DiscoveryFailure(base.ClientException):
-    """Discovery of client versions failed."""
+    message = "Discovery of client versions failed."
 
 
 class VersionNotAvailable(DiscoveryFailure):
-    """Discovery failed as the version you requested is not available."""
+    message = "Discovery failed as the version you requested is not available."

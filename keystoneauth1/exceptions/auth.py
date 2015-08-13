@@ -14,5 +14,4 @@ from keystoneauth1.exceptions import base
 
 
 class AuthorizationFailure(base.ClientException):
-    """Cannot authorize API client."""
-    pass
+    message = "Cannot authorize API client."

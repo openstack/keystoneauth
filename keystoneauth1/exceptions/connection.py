@@ -26,23 +26,19 @@ class RetriableConnectionFailure(Exception):
 
 
 class ConnectionError(base.ClientException):
-    """Cannot connect to API service."""
-    pass
+    message = "Cannot connect to API service."
 
 
 class ConnectTimeout(ConnectionError, RetriableConnectionFailure):
-    """Timed out connecting to service"""
-    pass
+    message = "Timed out connecting to service"
 
 
 class ConnectFailure(ConnectionError, RetriableConnectionFailure):
-    """A retryable connection failure."""
-    pass
+    message = "A retryable connection failure."
 
 
 class SSLError(ConnectionError):
-    """An SSL error occurred."""
-    pass
+    message = "An SSL error occurred."
 
 
 class UnknownConnectionError(ConnectionError):

@@ -18,7 +18,7 @@ __all__ = ['InvalidResponse']
 
 
 class InvalidResponse(base.ClientException):
-    """The response from the server is not valid for this request."""
+    message = "The response from the server is not valid for this request."
 
     def __init__(self, response):
         super(InvalidResponse, self).__init__()
