@@ -12,7 +12,7 @@
 
 from testtools import matchers
 
-from keystoneauth1.loading._plugins import token_endpoint as loader
+from keystoneauth1.loading._plugins.identity import admin_token as loader
 from keystoneauth1 import session
 from keystoneauth1.tests.unit import utils
 from keystoneauth1 import token_endpoint
@@ -47,14 +47,6 @@ class TokenEndpointTest(utils.TestCase):
         self.assertEqual('body', data.text)
         self.assertRequestHeaderEqual('X-Auth-Token', self.TEST_TOKEN)
 
-    def test_token_endpoint_options(self):
-        opt_names = [opt.name for opt in loader.TokenEndpoint().get_options()]
-
-        self.assertThat(opt_names, matchers.HasLength(2))
-
-        self.assertIn('token', opt_names)
-        self.assertIn('endpoint', opt_names)
-
     def test_token_endpoint_user_id(self):
         a = token_endpoint.Token(self.TEST_URL, self.TEST_TOKEN)
         s = session.Session()
@@ -62,3 +54,14 @@ class TokenEndpointTest(utils.TestCase):
         # we can't know this information about this sort of plugin
         self.assertIsNone(a.get_user_id(s))
         self.assertIsNone(a.get_project_id(s))
+
+
+class AdminTokenTest(utils.TestCase):
+
+    def test_token_endpoint_options(self):
+        opt_names = [opt.name for opt in loader.AdminToken().get_options()]
+
+        self.assertThat(opt_names, matchers.HasLength(2))
+
+        self.assertIn('token', opt_names)
+        self.assertIn('endpoint', opt_names)
