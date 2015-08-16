@@ -19,14 +19,12 @@ __all__ = ['CatalogException',
 
 
 class CatalogException(base.ClientException):
-    """Something is rotten in Service Catalog."""
+    message = "Something is rotten in Service Catalog."
 
 
 class EndpointNotFound(CatalogException):
-    """Could not find requested endpoint in Service Catalog."""
-    pass
+    message = "Could not find requested endpoint in Service Catalog."
 
 
 class EmptyCatalog(EndpointNotFound):
-    """The service catalog is empty."""
-    pass
+    message = "The service catalog is empty."
