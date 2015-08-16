@@ -36,8 +36,6 @@ class TokenTests(utils.GenericPluginTestCase):
         allowed_opts = ['token',
                         'domain-id',
                         'domain-name',
-                        'tenant-id',
-                        'tenant-name',
                         'project-id',
                         'project-name',
                         'project-domain-id',
