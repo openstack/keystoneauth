@@ -32,7 +32,8 @@ class Opt(object):
                  dest=None,
                  deprecated=None,
                  default=None,
-                 metavar=None):
+                 metavar=None,
+                 required=False):
         if not callable(type):
             raise TypeError('type must be callable')
 
@@ -43,6 +44,7 @@ class Opt(object):
         self.type = type
         self.help = help
         self.secret = secret
+        self.required = required
         self.dest = dest
         self.deprecated = [] if deprecated is None else deprecated
         self.default = default
@@ -64,6 +66,7 @@ class Opt(object):
                        type=self.type,
                        help=self.help,
                        secret=self.secret,
+                       required=self.required,
                        dest=self.dest,
                        deprecated_opts=deprecated_opts,
                        metavar=self.metavar)
