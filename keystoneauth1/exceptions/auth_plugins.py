@@ -14,7 +14,7 @@ from keystoneauth1.exceptions import base
 
 
 class AuthPluginException(base.ClientException):
-    message = "Something went wrong with auth plugins."
+    message = "Unknown error with authentication plugins."
 
 
 class MissingAuthPlugin(AuthPluginException):

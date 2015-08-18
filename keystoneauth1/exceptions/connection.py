@@ -30,11 +30,11 @@ class ConnectionError(base.ClientException):
 
 
 class ConnectTimeout(ConnectionError, RetriableConnectionFailure):
-    message = "Timed out connecting to service"
+    message = "Timed out connecting to service."
 
 
 class ConnectFailure(ConnectionError, RetriableConnectionFailure):
-    message = "A retryable connection failure."
+    message = "Connection failure that may be retried."
 
 
 class SSLError(ConnectionError):

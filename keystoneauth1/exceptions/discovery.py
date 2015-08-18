@@ -22,4 +22,4 @@ class DiscoveryFailure(base.ClientException):
 
 
 class VersionNotAvailable(DiscoveryFailure):
-    message = "Discovery failed as the version you requested is not available."
+    message = "Discovery failed. Requested version is not available."

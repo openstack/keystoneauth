@@ -19,7 +19,7 @@ __all__ = ['CatalogException',
 
 
 class CatalogException(base.ClientException):
-    message = "Something is rotten in Service Catalog."
+    message = "Unknown error with service catalog."
 
 
 class EndpointNotFound(CatalogException):
