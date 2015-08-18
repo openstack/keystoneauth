@@ -202,6 +202,11 @@ class Session(object):
         if json:
             data = self._json.encode(json)
         if data:
+            if isinstance(data, six.binary_type):
+                try:
+                    data = data.decode("ascii")
+                except UnicodeDecodeError:
+                    data = "<binary_data>"
             string_parts.append("-d '%s'" % data)
 
         logger.debug(' '.join(string_parts))
