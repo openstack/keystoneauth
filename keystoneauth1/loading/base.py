@@ -66,6 +66,88 @@ def get_plugin_loader(name):
     return mgr.driver
 
 
+def _find_winning_auth_value(opt, config):
+    opt_name = opt.name.replace('-', '_')
+    if opt_name in config:
+        return config[opt_name]
+    else:
+        for d_opt in opt.deprecated_opts:
+            d_opt_name = d_opt.name.replace('-', '_')
+            if d_opt_name in config:
+                return config[d_opt_name]
+
+
+def _dashes_to_underscores(in_dict):
+    out_dict = {}
+    for key, value in in_dict.items():
+        out_dict[key.replace('-', '_')] = value
+    return out_dict
+
+
+def validate_auth(config):
+    """Validate and extract the auth parameters from the given dict.
+
+    Given a dictionary of parameters, extract a normalized dictionary
+    of parameters suitable for passing to an auth plugin constructor.
+
+    Because it's working with input and output dictionaries, and because the
+    targets are input parameters to constructors, normalize to underscores.
+
+    :param dict config: The config dictionary containing the values to process
+
+    :returns: An tuple with two dicts. The first dict is a copy of the input
+        dict, scrubbed of auth parameters. The second dict are the auth
+        parameters. Both will have all keys normalized to underscores.
+
+    :raises keystoneauth1.exceptions.MissingRequiredParameters:
+        if a required parameter is not provided.
+    """
+    config = _dashes_to_underscores(config)
+    auth_params = _dashes_to_underscores(config.pop('auth', {}))
+
+    auth_plugin = get_plugin_loader(config['auth_type'])
+
+    plugin_options = auth_plugin.get_options()
+    missing_required = []
+
+    for p_opt in plugin_options:
+        # if it's in auth_params, win, kill it from config dict
+        # if it's in config and not in auth_params, move it
+        # deprecated loses to current
+        # provided beats default, deprecated or not
+        winning_value = _find_winning_auth_value(p_opt, auth_params)
+        if not winning_value:
+            winning_value = _find_winning_auth_value(p_opt, config)
+
+        # if the plugin tells us that this value is required
+        # add it to the list of missing values so we can return a
+        # complete list
+        if not winning_value and p_opt.required:
+            missing_required.append(p_opt)
+            continue
+
+        # Clean up after ourselves
+        for opt in [p_opt.name] + [o.name for o in p_opt.deprecated_opts]:
+            opt = opt.replace('-', '_')
+            config.pop(opt, None)
+            auth_params.pop(opt, None)
+
+        if winning_value:
+            # Prefer the plugin configuration dest value if the value's key
+            # is marked as depreciated.
+            if p_opt.dest is None:
+                auth_params[p_opt.name.replace('-', '_')] = (
+                    winning_value)
+            else:
+                auth_params[p_opt.dest] = winning_value
+
+    if missing_required:
+        raise exceptions.MissingRequiredParameters(
+            plugin=auth_plugin, parameters=missing_required)
+
+    return (config, auth_params)
+
+
 @six.add_metaclass(abc.ABCMeta)
 class BaseLoader(object):
 
