@@ -14,14 +14,14 @@ from keystoneauth1 import loading
 from keystoneauth1 import token_endpoint
 
 
-class TokenEndpoint(loading.BaseLoader):
+class AdminToken(loading.BaseLoader):
 
     @property
     def plugin_class(self):
         return token_endpoint.TokenEndpoint
 
     def get_options(self):
-        options = super(TokenEndpoint, self).get_options()
+        options = super(AdminToken, self).get_options()
 
         options.extend([
             loading.Opt('endpoint',
