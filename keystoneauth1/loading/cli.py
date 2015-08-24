@@ -17,6 +17,15 @@ from keystoneauth1 import _utils as utils
 from keystoneauth1.loading import base
 
 
+def _register_plugin_argparse_arguments(parser, plugin):
+    for opt in plugin.get_options():
+        parser.add_argument(*opt.argparse_args,
+                            default=opt.argparse_default,
+                            metavar=opt.metavar,
+                            help=opt.help,
+                            dest='os_%s' % opt.dest)
+
+
 @utils.positional()
 def register_argparse_arguments(parser, argv, default=None):
     """Register CLI options needed to create a plugin.
@@ -56,7 +65,7 @@ def register_argparse_arguments(parser, argv, default=None):
         plugin = base.get_plugin_loader(options.os_auth_plugin)
 
     group = parser.add_argument_group('Authentication Options', msg)
-    plugin.register_argparse_arguments(group)
+    _register_plugin_argparse_arguments(group, plugin)
     return plugin
 
 
@@ -82,4 +91,12 @@ def load_from_argparse_arguments(namespace, **kwargs):
     else:
         plugin = base.get_plugin_loader(namespace.os_auth_plugin)
 
-    return plugin.load_from_argparse_arguments(namespace, **kwargs)
+    plugin_opts = plugin.get_options()
+
+    for opt in plugin_opts:
+        val = getattr(namespace, 'os_%s' % opt.dest)
+        if val is not None:
+            val = opt.type(val)
+        kwargs.setdefault(opt.dest, val)
+
+    return plugin.load_from_options(**kwargs)

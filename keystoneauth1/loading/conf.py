@@ -105,6 +105,16 @@ def load_from_conf_options(conf, group, **kwargs):
     if not name:
         return None
 
-    plugin_class = base.get_plugin_loader(name)
-    plugin_class.register_conf_options(conf, group)
-    return plugin_class.load_from_conf_options(conf, group, **kwargs)
+    plugin = base.get_plugin_loader(name)
+    plugin_opts = plugin.get_options()
+    oslo_opts = [o._to_oslo_opt() for o in plugin_opts]
+
+    conf.register_opts(oslo_opts, group=group)
+
+    for opt in plugin_opts:
+        val = conf[group][opt.dest]
+        if val is not None:
+            val = opt.type(val)
+        kwargs.setdefault(opt.dest, val)
+
+    return plugin.load_from_options(**kwargs)

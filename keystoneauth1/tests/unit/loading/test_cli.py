@@ -17,6 +17,7 @@ import fixtures
 import mock
 
 from keystoneauth1 import loading
+from keystoneauth1.loading import cli
 from keystoneauth1 import plugin
 from keystoneauth1.tests.unit.auth import utils
 
@@ -164,19 +165,20 @@ class CliTests(utils.TestCase):
         self.env('OS_A_STR', val)
 
         klass = loading.register_argparse_arguments(self.p, [], default=name)
+        self.assertIsInstance(klass, utils.MockLoader)
         opts = self.p.parse_args([])
-        a = klass.load_from_argparse_arguments(opts)
+        a = loading.load_from_argparse_arguments(opts)
 
         self.assertEqual(val, a['a_str'])
 
     def test_deprecated_cli_options(self):
-        TesterLoader().register_argparse_arguments(self.p)
+        cli._register_plugin_argparse_arguments(self.p, TesterLoader())
         val = uuid.uuid4().hex
         opts = self.p.parse_args(['--os-test-other', val])
         self.assertEqual(val, opts.os_test_opt)
 
     def test_deprecated_multi_cli_options(self):
-        TesterLoader().register_argparse_arguments(self.p)
+        cli._register_plugin_argparse_arguments(self.p, TesterLoader())
         val1 = uuid.uuid4().hex
         val2 = uuid.uuid4().hex
         # argarse rules say that the last specified wins.
@@ -188,7 +190,7 @@ class CliTests(utils.TestCase):
         val = uuid.uuid4().hex
 
         with mock.patch.dict('os.environ', {'OS_TEST_OTHER': val}):
-            TesterLoader().register_argparse_arguments(self.p)
+            cli._register_plugin_argparse_arguments(self.p, TesterLoader())
 
         opts = self.p.parse_args([])
         self.assertEqual(val, opts.os_test_opt)
@@ -199,7 +201,7 @@ class CliTests(utils.TestCase):
 
         with mock.patch.dict('os.environ', {'OS_TEST_OPT': val1,
                                             'OS_TEST_OTHER': val2}):
-            TesterLoader().register_argparse_arguments(self.p)
+            cli._register_plugin_argparse_arguments(self.p, TesterLoader())
 
         opts = self.p.parse_args([])
         self.assertEqual(val1, opts.os_test_opt)
