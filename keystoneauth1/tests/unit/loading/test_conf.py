@@ -23,6 +23,10 @@ from keystoneauth1.loading._plugins.identity import v3
 from keystoneauth1.tests.unit.auth import utils
 
 
+def to_oslo_opts(opts):
+    return [o._to_oslo_opt() for o in opts]
+
+
 class ConfTests(utils.TestCase):
 
     def setUp(self):
@@ -45,8 +49,9 @@ class ConfTests(utils.TestCase):
         self.conf_fixture.config(auth_section=section, group=self.GROUP)
         loading.register_conf_options(self.conf_fixture.conf, group=self.GROUP)
 
-        self.conf_fixture.register_opts(v2.Password.get_options(),
-                                        group=section)
+        self.conf_fixture.register_opts(
+            to_oslo_opts(v2.Password().get_options()),
+            group=section)
 
         self.conf_fixture.config(auth_plugin=self.V2PASS,
                                  username=username,
@@ -72,7 +77,7 @@ class ConfTests(utils.TestCase):
         self.conf_fixture.config(auth_section=section, group=self.GROUP)
         loading.register_conf_options(self.conf_fixture.conf, group=self.GROUP)
 
-        self.conf_fixture.register_opts(v3.Token().get_options(),
+        self.conf_fixture.register_opts(to_oslo_opts(v3.Token().get_options()),
                                         group=section)
 
         self.conf_fixture.config(auth_plugin=self.V3TOKEN,
@@ -107,11 +112,12 @@ class ConfTests(utils.TestCase):
 
     @mock.patch('stevedore.DriverManager')
     def test_other_params(self, m):
-        m.return_value = utils.MockManager(utils.MockPlugin)
+        m.return_value = utils.MockManager(utils.MockLoader())
         driver_name = uuid.uuid4().hex
 
-        self.conf_fixture.register_opts(utils.MockPlugin.get_options(),
-                                        group=self.GROUP)
+        self.conf_fixture.register_opts(
+            to_oslo_opts(utils.MockLoader().get_options()),
+            group=self.GROUP)
         self.conf_fixture.config(auth_plugin=driver_name,
                                  group=self.GROUP,
                                  **self.TEST_VALS)
@@ -120,12 +126,15 @@ class ConfTests(utils.TestCase):
         self.assertTestVals(a)
 
         m.assert_called_once_with(namespace=loading.PLUGIN_NAMESPACE,
-                                  name=driver_name)
+                                  name=driver_name,
+                                  invoke_on_load=True)
 
     @utils.mock_plugin
     def test_same_section(self, m):
-        self.conf_fixture.register_opts(utils.MockPlugin.get_options(),
-                                        group=self.GROUP)
+        self.conf_fixture.register_opts(
+            to_oslo_opts(utils.MockLoader().get_options()),
+            group=self.GROUP)
+
         loading.register_conf_options(self.conf_fixture.conf, group=self.GROUP)
         self.conf_fixture.config(auth_plugin=uuid.uuid4().hex,
                                  group=self.GROUP,
@@ -141,8 +150,9 @@ class ConfTests(utils.TestCase):
         self.conf_fixture.config(auth_section=section, group=self.GROUP)
         loading.register_conf_options(self.conf_fixture.conf, group=self.GROUP)
 
-        self.conf_fixture.register_opts(utils.MockPlugin.get_options(),
-                                        group=section)
+        self.conf_fixture.register_opts(to_oslo_opts(
+            utils.MockLoader().get_options()),
+            group=section)
         self.conf_fixture.config(group=section,
                                  auth_plugin=uuid.uuid4().hex,
                                  **self.TEST_VALS)
@@ -168,6 +178,6 @@ class ConfTests(utils.TestCase):
 
     def test_get_named(self):
         loaded_opts = loading.get_plugin_options('v2password')
-        plugin_opts = v2.Password.get_options()
+        plugin_opts = v2.Password().get_options()
 
         self.assertEqual(plugin_opts, loaded_opts)

@@ -48,7 +48,7 @@ def register_argparse_arguments(parser, argv, default=None):
     if not options.os_auth_plugin:
         return None
 
-    if isinstance(options.os_auth_plugin, type):
+    if isinstance(options.os_auth_plugin, base.BaseLoader):
         msg = 'Default Authentication options'
         plugin = options.os_auth_plugin
     else:

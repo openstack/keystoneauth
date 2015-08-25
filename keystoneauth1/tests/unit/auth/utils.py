@@ -20,6 +20,7 @@ from keystoneauth1 import access
 from keystoneauth1 import exceptions
 from keystoneauth1 import fixture
 from keystoneauth1 import loading
+from keystoneauth1.loading import base
 from keystoneauth1 import plugin
 from keystoneauth1 import session
 from keystoneauth1.tests.unit import utils
@@ -42,8 +43,12 @@ class MockPlugin(plugin.BaseAuthPlugin):
 
 class BoolType(object):
 
+    def __eq__(self, other):
+        # hack around oslo.config type comparison
+        return type(self) == type(other)
+
     def __call__(self, value):
-        return value.lower() in ('1', 'true', 't', 'yes', 'y')
+        return str(value).lower() in ('1', 'true', 't', 'yes', 'y')
 
 
 class MockLoader(loading.BaseLoader):
@@ -76,8 +81,8 @@ class MockManager(object):
 def mock_plugin(f):
     @functools.wraps(f)
     def inner(*args, **kwargs):
-        with mock.patch.object(loading, 'get_plugin_loader') as m:
-            m.return_value = MockPlugin
+        with mock.patch.object(base, 'get_plugin_loader') as m:
+            m.return_value = MockLoader()
             args = list(args) + [m]
             return f(*args, **kwargs)
 

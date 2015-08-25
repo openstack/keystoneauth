@@ -62,7 +62,7 @@ class Token(BaseV3Loader):
 
     @property
     def plugin_class(self):
-        return identity.Token
+        return identity.V3Token
 
     def get_options(self):
         options = super(Token, self).get_options()
