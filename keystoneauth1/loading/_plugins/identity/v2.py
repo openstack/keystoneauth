@@ -29,14 +29,14 @@ class BaseV2Loader(base.BaseIdentityLoader):
         return options
 
 
-class V2Token(BaseV2Loader):
+class Token(BaseV2Loader):
 
     @property
     def plugin_class(self):
         return identity.V2Token
 
     def get_options(self):
-        options = super(V2Token, self).get_options()
+        options = super(Token, self).get_options()
 
         options.extend([
             loading.Opt('token', secret=True, help='Token'),
@@ -45,14 +45,14 @@ class V2Token(BaseV2Loader):
         return options
 
 
-class V2Password(BaseV2Loader):
+class Password(BaseV2Loader):
 
     @property
     def plugin_class(self):
         return identity.V2Password
 
     def get_options(self):
-        options = super(V2Password, self).get_options()
+        options = super(Password, self).get_options()
 
         options.extend([
             loading.Opt('user-name',
