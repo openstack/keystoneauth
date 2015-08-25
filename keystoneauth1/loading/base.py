@@ -59,6 +59,7 @@ def get_plugin_loader(name):
     """
     try:
         mgr = stevedore.DriverManager(namespace=PLUGIN_NAMESPACE,
+                                      invoke_on_load=True,
                                       name=name)
     except RuntimeError:
         raise exceptions.NoMatchingPlugin(name)

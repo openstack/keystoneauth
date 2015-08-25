@@ -16,12 +16,12 @@ import uuid
 import fixtures
 import mock
 
-from keystoneauth1 import base
 from keystoneauth1 import loading
+from keystoneauth1 import plugin
 from keystoneauth1.tests.unit.auth import utils
 
 
-class TesterPlugin(base.BaseAuthPlugin):
+class TesterPlugin(plugin.BaseAuthPlugin):
 
     def get_token(self, *args, **kwargs):
         return None
@@ -71,7 +71,7 @@ class CliTests(utils.TestCase):
         name = uuid.uuid4().hex
         argv = ['--os-auth-plugin', name]
         ret = loading.register_argparse_arguments(self.p, argv)
-        self.assertIs(utils.MockPlugin, ret)
+        self.assertIsInstance(ret, utils.MockLoader)
 
         for n in ('--os-a-int', '--os-a-bool', '--os-a-float'):
             self.assertIn(n, self.p.format_usage())
@@ -87,7 +87,7 @@ class CliTests(utils.TestCase):
                 '--os-a-bool', str(self.a_bool)]
 
         klass = loading.register_argparse_arguments(self.p, argv)
-        self.assertIs(utils.MockPlugin, klass)
+        self.assertIsInstance(klass, utils.MockLoader)
 
         opts = self.p.parse_args(argv)
         self.assertEqual(name, opts.os_auth_plugin)
@@ -107,7 +107,7 @@ class CliTests(utils.TestCase):
                 '--os-a-float', str(self.a_float)]
 
         klass = loading.register_argparse_arguments(self.p, argv)
-        self.assertIs(utils.MockPlugin, klass)
+        self.assertIsInstance(klass, utils.MockLoader)
 
         opts = self.p.parse_args(argv)
         self.assertEqual(name, opts.os_auth_plugin)
@@ -121,7 +121,7 @@ class CliTests(utils.TestCase):
     def test_with_default_string_value(self, m):
         name = uuid.uuid4().hex
         klass = loading.register_argparse_arguments(self.p, [], default=name)
-        self.assertIs(utils.MockPlugin, klass)
+        self.assertIsInstance(klass, utils.MockLoader)
         m.assert_called_once_with(name)
 
     @utils.mock_plugin
@@ -132,29 +132,29 @@ class CliTests(utils.TestCase):
         klass = loading.register_argparse_arguments(self.p,
                                                     argv,
                                                     default=default)
-        self.assertIs(utils.MockPlugin, klass)
+        self.assertIsInstance(klass, utils.MockLoader)
         m.assert_called_once_with(name)
 
     @utils.mock_plugin
     def test_with_default_type_value(self, m):
         klass = loading.register_argparse_arguments(self.p,
                                                     [],
-                                                    default=utils.MockPlugin)
-        self.assertIs(utils.MockPlugin, klass)
+                                                    default=utils.MockLoader())
+        self.assertIsInstance(klass, utils.MockLoader)
         self.assertEqual(0, m.call_count)
 
     @utils.mock_plugin
     def test_overrides_default_type_value(self, m):
         # using this test plugin would fail if called because there
         # is no get_options() function
-        class TestPlugin(object):
+        class TestLoader(object):
             pass
         name = uuid.uuid4().hex
         argv = ['--os-auth-plugin', name]
         klass = loading.register_argparse_arguments(self.p,
                                                     argv,
-                                                    default=TestPlugin)
-        self.assertIs(utils.MockPlugin, klass)
+                                                    default=TestLoader)
+        self.assertIsInstance(klass, utils.MockLoader)
         m.assert_called_once_with(name)
 
     @utils.mock_plugin

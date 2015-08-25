@@ -71,6 +71,18 @@ class Opt(object):
                        deprecated_opts=deprecated_opts,
                        metavar=self.metavar)
 
+    def __eq__(self, other):
+        return (type(self) == type(other) and
+                self.name == other.name and
+                self.type == other.type and
+                self.help == other.help and
+                self.secret == other.secret and
+                self.required == other.required and
+                self.dest == other.dest and
+                self.deprecated == other.deprecated and
+                self.default == other.default and
+                self.metavar == other.metavar)
+
     @property
     def _all_opts(self):
         return itertools.chain([self], self.deprecated)
@@ -83,7 +95,7 @@ class Opt(object):
     def argparse_default(self):
         # select the first ENV that is not false-y or return None
         for o in self._all_opts:
-            v = os.environ.get('OS_%s' % self.name.replace('-', '_').upper())
+            v = os.environ.get('OS_%s' % o.name.replace('-', '_').upper())
             if v:
                 return v
 
