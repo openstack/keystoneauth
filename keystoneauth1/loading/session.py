@@ -109,16 +109,15 @@ class Session(base.BaseLoader):
                             help='Set request timeout (in seconds).')
 
     def load_from_argparse_arguments(self, namespace, **kwargs):
-        kwargs['insecure'] = namespace.insecure
-        kwargs['cacert'] = namespace.os_cacert
-        kwargs['cert'] = namespace.os_cert
-        kwargs['key'] = namespace.os_key
-        kwargs['timeout'] = namespace.timeout
+        kwargs.setdefault('insecure', namespace.insecure)
+        kwargs.setdefault('cacert', namespace.os_cacert)
+        kwargs.setdefault('cert', namespace.os_cert)
+        kwargs.setdefault('key', namespace.os_key)
+        kwargs.setdefault('timeout', namespace.timeout)
 
-        return super(Session, self).load_from_argparse_arguments(namespace,
-                                                                 **kwargs)
+        return self.load_from_options(**kwargs)
 
-    def _get_conf_options(self, deprecated_opts=None):
+    def get_conf_options(self, deprecated_opts=None):
         """Get the oslo_config options that are needed for a
         :py:class:`.Session`.
 
@@ -198,7 +197,7 @@ class Session(base.BaseLoader):
 
         :returns: The list of options that was registered.
         """
-        opts = self._get_conf_options(deprecated_opts=deprecated_opts)
+        opts = self.get_conf_options(deprecated_opts=deprecated_opts)
         conf.register_group(cfg.OptGroup(group))
         conf.register_opts(opts, group=group)
         return opts
@@ -218,12 +217,30 @@ class Session(base.BaseLoader):
         """
         c = conf[group]
 
-        kwargs['insecure'] = c.insecure
-        kwargs['cacert'] = c.cafile
-        kwargs['cert'] = c.certfile
-        kwargs['key'] = c.keyfile
-        kwargs['timeout'] = c.timeout
+        kwargs.setdefault('insecure', c.insecure)
+        kwargs.setdefault('cacert', c.cafile)
+        kwargs.setdefault('cert', c.certfile)
+        kwargs.setdefault('key', c.keyfile)
+        kwargs.setdefault('timeout', c.timeout)
 
-        return super(Session, self).load_from_conf_options(conf,
-                                                           group,
-                                                           **kwargs)
+        return self.load_from_options(**kwargs)
+
+
+def register_argparse_arguments(*args, **kwargs):
+    return Session().register_argparse_arguments(*args, **kwargs)
+
+
+def load_from_argparse_arguments(*args, **kwargs):
+    return Session().load_from_argparse_arguments(*args, **kwargs)
+
+
+def register_conf_options(*args, **kwargs):
+    return Session().register_conf_options(*args, **kwargs)
+
+
+def load_from_conf_options(*args, **kwargs):
+    return Session().load_from_conf_options(*args, **kwargs)
+
+
+def get_conf_options(*args, **kwargs):
+    return Session().get_conf_options(*args, **kwargs)

@@ -828,18 +828,17 @@ class ConfLoadingTests(utils.TestCase):
         super(ConfLoadingTests, self).setUp()
 
         self.conf_fixture = self.useFixture(config.Config())
-        session_loader.Session().register_conf_options(self.conf_fixture.conf,
-                                                       self.GROUP)
+        session_loader.register_conf_options(self.conf_fixture.conf,
+                                             self.GROUP)
 
     def config(self, **kwargs):
         kwargs['group'] = self.GROUP
         self.conf_fixture.config(**kwargs)
 
     def get_session(self, **kwargs):
-        return session_loader.Session().load_from_conf_options(
-            self.conf_fixture.conf,
-            self.GROUP,
-            **kwargs)
+        return session_loader.load_from_conf_options(self.conf_fixture.conf,
+                                                     self.GROUP,
+                                                     **kwargs)
 
     def test_insecure_timeout(self):
         self.config(insecure=True, timeout=5)
@@ -872,7 +871,7 @@ class ConfLoadingTests(utils.TestCase):
 
         opt_names = ['cafile', 'certfile', 'keyfile', 'insecure', 'timeout']
         depr = dict([(n, [new_deprecated()]) for n in opt_names])
-        opts = session_loader.Session()._get_conf_options(deprecated_opts=depr)
+        opts = session_loader.get_conf_options(deprecated_opts=depr)
 
         self.assertThat(opt_names, matchers.HasLength(len(opts)))
         for opt in opts:
@@ -885,12 +884,11 @@ class CliLoadingTests(utils.TestCase):
         super(CliLoadingTests, self).setUp()
 
         self.parser = argparse.ArgumentParser()
-        session_loader.Session().register_argparse_arguments(self.parser)
+        session_loader.register_argparse_arguments(self.parser)
 
     def get_session(self, val, **kwargs):
         args = self.parser.parse_args(val.split())
-        return session_loader.Session().load_from_argparse_arguments(args,
-                                                                     **kwargs)
+        return session_loader.load_from_argparse_arguments(args, **kwargs)
 
     def test_insecure_timeout(self):
         s = self.get_session('--insecure --timeout 5.5')
