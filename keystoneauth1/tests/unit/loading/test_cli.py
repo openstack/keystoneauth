@@ -18,30 +18,16 @@ import mock
 
 from keystoneauth1 import loading
 from keystoneauth1.loading import cli
-from keystoneauth1 import plugin
-from keystoneauth1.tests.unit.auth import utils
+from keystoneauth1.tests.unit.loading import utils
 
 
-class TesterPlugin(plugin.BaseAuthPlugin):
-
-    def get_token(self, *args, **kwargs):
-        return None
-
-
-class TesterLoader(loading.BaseLoader):
-
-    @property
-    def plugin_class(self):
-        return TesterPlugin
-
-    def get_options(self):
-        # NOTE(jamielennox): this is kind of horrible. If you specify this as
-        # a deprecated_name= value it will convert - to _ which is not what we
-        # want for a CLI option.
-        deprecated = [loading.Opt('test-other')]
-        return [
-            loading.Opt('test-opt', help='tester', deprecated=deprecated)
-        ]
+TesterPlugin, TesterLoader = utils.create_plugin(
+    opts=[
+        loading.Opt('test-opt',
+                    help='tester',
+                    deprecated=[loading.Opt('test-other')])
+    ]
+)
 
 
 class CliTests(utils.TestCase):
@@ -67,7 +53,7 @@ class CliTests(utils.TestCase):
         opts = self.p.parse_args([])
         self.assertIsNone(loading.load_from_argparse_arguments(opts))
 
-    @utils.mock_plugin
+    @utils.mock_plugin()
     def test_basic_params_added(self, m):
         name = uuid.uuid4().hex
         argv = ['--os-auth-plugin', name]
@@ -79,7 +65,7 @@ class CliTests(utils.TestCase):
 
         m.assert_called_once_with(name)
 
-    @utils.mock_plugin
+    @utils.mock_plugin()
     def test_param_loading(self, m):
         name = uuid.uuid4().hex
         argv = ['--os-auth-plugin', name,
@@ -101,7 +87,7 @@ class CliTests(utils.TestCase):
         self.assertEqual(str(self.a_float), opts.os_a_float)
         self.assertEqual(str(self.a_bool), opts.os_a_bool)
 
-    @utils.mock_plugin
+    @utils.mock_plugin()
     def test_default_options(self, m):
         name = uuid.uuid4().hex
         argv = ['--os-auth-plugin', name,
@@ -118,14 +104,14 @@ class CliTests(utils.TestCase):
         self.assertEqual(self.a_float, a['a_float'])
         self.assertEqual(3, a['a_int'])
 
-    @utils.mock_plugin
+    @utils.mock_plugin()
     def test_with_default_string_value(self, m):
         name = uuid.uuid4().hex
         klass = loading.register_argparse_arguments(self.p, [], default=name)
         self.assertIsInstance(klass, utils.MockLoader)
         m.assert_called_once_with(name)
 
-    @utils.mock_plugin
+    @utils.mock_plugin()
     def test_overrides_default_string_value(self, m):
         name = uuid.uuid4().hex
         default = uuid.uuid4().hex
@@ -136,7 +122,7 @@ class CliTests(utils.TestCase):
         self.assertIsInstance(klass, utils.MockLoader)
         m.assert_called_once_with(name)
 
-    @utils.mock_plugin
+    @utils.mock_plugin()
     def test_with_default_type_value(self, m):
         klass = loading.register_argparse_arguments(self.p,
                                                     [],
@@ -144,7 +130,7 @@ class CliTests(utils.TestCase):
         self.assertIsInstance(klass, utils.MockLoader)
         self.assertEqual(0, m.call_count)
 
-    @utils.mock_plugin
+    @utils.mock_plugin()
     def test_overrides_default_type_value(self, m):
         # using this test plugin would fail if called because there
         # is no get_options() function
@@ -158,7 +144,7 @@ class CliTests(utils.TestCase):
         self.assertIsInstance(klass, utils.MockLoader)
         m.assert_called_once_with(name)
 
-    @utils.mock_plugin
+    @utils.mock_plugin()
     def test_env_overrides_default_opt(self, m):
         name = uuid.uuid4().hex
         val = uuid.uuid4().hex

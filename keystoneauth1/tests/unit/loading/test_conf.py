@@ -20,7 +20,7 @@ from keystoneauth1 import exceptions
 from keystoneauth1 import loading
 from keystoneauth1.loading._plugins.identity import v2
 from keystoneauth1.loading._plugins.identity import v3
-from keystoneauth1.tests.unit.auth import utils
+from keystoneauth1.tests.unit.loading import utils
 
 
 def to_oslo_opts(opts):
@@ -129,7 +129,7 @@ class ConfTests(utils.TestCase):
                                   name=driver_name,
                                   invoke_on_load=True)
 
-    @utils.mock_plugin
+    @utils.mock_plugin()
     def test_same_section(self, m):
         self.conf_fixture.register_opts(
             to_oslo_opts(utils.MockLoader().get_options()),
@@ -143,7 +143,7 @@ class ConfTests(utils.TestCase):
         a = loading.load_from_conf_options(self.conf_fixture.conf, self.GROUP)
         self.assertTestVals(a)
 
-    @utils.mock_plugin
+    @utils.mock_plugin()
     def test_diff_section(self, m):
         section = uuid.uuid4().hex
 

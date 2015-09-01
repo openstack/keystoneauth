@@ -10,102 +10,13 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import functools
 import uuid
-
-import mock
-import six
 
 from keystoneauth1 import access
 from keystoneauth1 import exceptions
 from keystoneauth1 import fixture
-from keystoneauth1 import loading
-from keystoneauth1.loading import base
-from keystoneauth1 import plugin
 from keystoneauth1 import session
 from keystoneauth1.tests.unit import utils
-
-
-class MockPlugin(plugin.BaseAuthPlugin):
-
-    def __init__(self, **kwargs):
-        self._data = kwargs
-
-    def __getitem__(self, key):
-        return self._data[key]
-
-    def get_token(self, *args, **kwargs):
-        return 'aToken'
-
-    def get_endpoint(self, *args, **kwargs):
-        return 'http://test'
-
-
-class BoolType(object):
-
-    def __eq__(self, other):
-        # hack around oslo.config type comparison
-        return type(self) == type(other)
-
-    def __call__(self, value):
-        return str(value).lower() in ('1', 'true', 't', 'yes', 'y')
-
-
-class MockLoader(loading.BaseLoader):
-
-    INT_DESC = 'test int'
-    FLOAT_DESC = 'test float'
-    BOOL_DESC = 'test bool'
-    STR_DESC = 'test str'
-    STR_DEFAULT = uuid.uuid4().hex
-
-    @property
-    def plugin_class(self):
-        return MockPlugin
-
-    def get_options(self):
-        return [
-            loading.Opt('a-int', default=3, type=int, help=self.INT_DESC),
-            loading.Opt('a-bool', type=BoolType(), help=self.BOOL_DESC),
-            loading.Opt('a-float', type=float, help=self.FLOAT_DESC),
-            loading.Opt('a-str', help=self.STR_DESC, default=self.STR_DEFAULT),
-        ]
-
-
-class MockManager(object):
-
-    def __init__(self, driver):
-        self.driver = driver
-
-
-def mock_plugin(f):
-    @functools.wraps(f)
-    def inner(*args, **kwargs):
-        with mock.patch.object(base, 'get_plugin_loader') as m:
-            m.return_value = MockLoader()
-            args = list(args) + [m]
-            return f(*args, **kwargs)
-
-    return inner
-
-
-class TestCase(utils.TestCase):
-
-    GROUP = 'auth'
-    V2PASS = 'v2password'
-    V3TOKEN = 'v3token'
-
-    a_int = 88
-    a_float = 88.8
-    a_bool = False
-
-    TEST_VALS = {'a_int': a_int,
-                 'a_float': a_float,
-                 'a_bool': a_bool}
-
-    def assertTestVals(self, plugin, vals=TEST_VALS):
-        for k, v in six.iteritems(vals):
-            self.assertEqual(v, plugin[k])
 
 
 class GenericPluginTestCase(utils.TestCase):
