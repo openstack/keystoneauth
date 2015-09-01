@@ -55,28 +55,19 @@ class UnsupportedParameters(AuthPluginException):
         super(UnsupportedParameters, self).__init__(m % ', '.join(self.names))
 
 
-class MissingRequiredParameters(AuthPluginException):
-    """One or more required parameters were not provided.
+class MissingRequiredOptions(AuthPluginException):
+    """One or more required options were not provided.
 
-    :param string name: Name of the missing parameters.
-    :param list(str) parameters: Name of the missing parameters.
+    :param list(keystoneauth1.loading.Opt) options: Missing options.
 
-    .. py:attribute:: plugin
+    .. py:attribute:: options
 
-        Plugin class that was attempted to load.
-
-    .. py:attribute:: parameters
-
-        List of the missing parameters.
+        List of the missing options.
     """
 
-    def __init__(self, plugin, parameters):
-        self.plugin = plugin
-        self.parameters = parameters
+    def __init__(self, options):
+        self.options = options
 
-        m = ('Auth plugin %(plugin)s requires parameters'
-             ' which were not given: %(parameters)s')
-        super(UnsupportedParameters, self).__init__(
-            m % dict(
-                plugin=self.plugin.plugin_class.__name__,
-                parameters=', '.join(self.parameters)))
+        names = ", ".join(o.name for o in options)
+        m = 'Auth plugin requires parameters which were not given: %s'
+        super(MissingRequiredOptions, self).__init__(m % names)
