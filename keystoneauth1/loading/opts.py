@@ -21,6 +21,9 @@ except ImportError:
 from keystoneauth1 import _utils as utils
 
 
+__all__ = ['Opt']
+
+
 class Opt(object):
 
     @utils.positional()

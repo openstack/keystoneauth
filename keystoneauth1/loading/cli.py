@@ -17,6 +17,10 @@ from keystoneauth1 import _utils as utils
 from keystoneauth1.loading import base
 
 
+__all__ = ['register_argparse_arguments',
+           'load_from_argparse_arguments']
+
+
 def _register_plugin_argparse_arguments(parser, plugin):
     for opt in plugin.get_options():
         parser.add_argument(*opt.argparse_args,

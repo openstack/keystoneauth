@@ -23,6 +23,13 @@ from keystoneauth1.loading import base
 from keystoneauth1 import session
 
 
+__all__ = ['register_argparse_arguments',
+           'load_from_argparse_arguments',
+           'register_conf_options',
+           'load_from_conf_options',
+           'get_conf_options']
+
+
 def _positive_non_zero_float(argument_value):
     if argument_value is None:
         return None

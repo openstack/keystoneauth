@@ -38,7 +38,8 @@ class ConfTests(utils.TestCase):
         # we need them in place before we can stub them. We will need to run
         # the register again after we stub the auth section and auth plugin so
         # it can load the plugin specific options.
-        loading.register_conf_options(self.conf_fixture.conf, group=self.GROUP)
+        loading.register_auth_conf_options(self.conf_fixture.conf,
+                                           group=self.GROUP)
 
     def test_loading_v2(self):
         section = uuid.uuid4().hex
@@ -49,7 +50,8 @@ class ConfTests(utils.TestCase):
         tenant_id = uuid.uuid4().hex
 
         self.conf_fixture.config(auth_section=section, group=self.GROUP)
-        loading.register_conf_options(self.conf_fixture.conf, group=self.GROUP)
+        loading.register_auth_conf_options(self.conf_fixture.conf,
+                                           group=self.GROUP)
 
         self.conf_fixture.register_opts(
             to_oslo_opts(v2.Password().get_options()),
@@ -63,7 +65,8 @@ class ConfTests(utils.TestCase):
                                  tenant_id=tenant_id,
                                  group=section)
 
-        a = loading.load_from_conf_options(self.conf_fixture.conf, self.GROUP)
+        a = loading.load_auth_from_conf_options(self.conf_fixture.conf,
+                                                self.GROUP)
 
         self.assertEqual(auth_url, a.auth_url)
         self.assertEqual(username, a.username)
@@ -80,7 +83,8 @@ class ConfTests(utils.TestCase):
         project_domain_name = uuid.uuid4().hex
 
         self.conf_fixture.config(auth_section=section, group=self.GROUP)
-        loading.register_conf_options(self.conf_fixture.conf, group=self.GROUP)
+        loading.register_auth_conf_options(self.conf_fixture.conf,
+                                           group=self.GROUP)
 
         self.conf_fixture.register_opts(to_oslo_opts(v3.Token().get_options()),
                                         group=section)
@@ -93,7 +97,8 @@ class ConfTests(utils.TestCase):
                                  project_domain_name=project_domain_name,
                                  group=section)
 
-        a = loading.load_from_conf_options(self.conf_fixture.conf, self.GROUP)
+        a = loading.load_auth_from_conf_options(self.conf_fixture.conf,
+                                                self.GROUP)
 
         self.assertEqual(token, a.auth_methods[0].token)
         self.assertEqual(trust_id, a.trust_id)
@@ -106,14 +111,15 @@ class ConfTests(utils.TestCase):
                                  group=self.GROUP)
 
         e = self.assertRaises(exceptions.NoMatchingPlugin,
-                              loading.load_from_conf_options,
+                              loading.load_auth_from_conf_options,
                               self.conf_fixture.conf,
                               self.GROUP)
 
         self.assertEqual(auth_plugin, e.name)
 
     def test_loading_with_no_data(self):
-        l = loading.load_from_conf_options(self.conf_fixture.conf, self.GROUP)
+        l = loading.load_auth_from_conf_options(self.conf_fixture.conf,
+                                                self.GROUP)
         self.assertIsNone(l)
 
     @mock.patch('stevedore.DriverManager')
@@ -128,7 +134,8 @@ class ConfTests(utils.TestCase):
                                  group=self.GROUP,
                                  **self.TEST_VALS)
 
-        a = loading.load_from_conf_options(self.conf_fixture.conf, self.GROUP)
+        a = loading.load_auth_from_conf_options(self.conf_fixture.conf,
+                                                self.GROUP)
         self.assertTestVals(a)
 
         m.assert_called_once_with(namespace=loading.PLUGIN_NAMESPACE,
@@ -141,12 +148,14 @@ class ConfTests(utils.TestCase):
             to_oslo_opts(utils.MockLoader().get_options()),
             group=self.GROUP)
 
-        loading.register_conf_options(self.conf_fixture.conf, group=self.GROUP)
+        loading.register_auth_conf_options(self.conf_fixture.conf,
+                                           group=self.GROUP)
         self.conf_fixture.config(auth_plugin=uuid.uuid4().hex,
                                  group=self.GROUP,
                                  **self.TEST_VALS)
 
-        a = loading.load_from_conf_options(self.conf_fixture.conf, self.GROUP)
+        a = loading.load_auth_from_conf_options(self.conf_fixture.conf,
+                                                self.GROUP)
         self.assertTestVals(a)
 
     @utils.mock_plugin()
@@ -154,7 +163,8 @@ class ConfTests(utils.TestCase):
         section = uuid.uuid4().hex
 
         self.conf_fixture.config(auth_section=section, group=self.GROUP)
-        loading.register_conf_options(self.conf_fixture.conf, group=self.GROUP)
+        loading.register_auth_conf_options(self.conf_fixture.conf,
+                                           group=self.GROUP)
 
         self.conf_fixture.register_opts(to_oslo_opts(
             utils.MockLoader().get_options()),
@@ -163,7 +173,8 @@ class ConfTests(utils.TestCase):
                                  auth_plugin=uuid.uuid4().hex,
                                  **self.TEST_VALS)
 
-        a = loading.load_from_conf_options(self.conf_fixture.conf, self.GROUP)
+        a = loading.load_auth_from_conf_options(self.conf_fixture.conf,
+                                                self.GROUP)
         self.assertTestVals(a)
 
     def test_plugins_are_all_opts(self):
@@ -177,7 +188,7 @@ class ConfTests(utils.TestCase):
         manager.map(inner)
 
     def test_get_common(self):
-        opts = loading.get_common_conf_options()
+        opts = loading.get_auth_common_conf_options()
         for opt in opts:
             self.assertIsInstance(opt, cfg.Opt)
         self.assertEqual(2, len(opts))

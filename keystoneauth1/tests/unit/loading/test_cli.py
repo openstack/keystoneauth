@@ -44,20 +44,20 @@ class CliTests(utils.TestCase):
         return self.useFixture(fixtures.EnvironmentVariable(name, value))
 
     def test_creating_with_no_args(self):
-        ret = loading.register_argparse_arguments(self.p, [])
+        ret = loading.register_auth_argparse_arguments(self.p, [])
         self.assertIsNone(ret)
         self.assertIn('--os-auth-plugin', self.p.format_usage())
 
     def test_load_with_nothing(self):
-        loading.register_argparse_arguments(self.p, [])
+        loading.register_auth_argparse_arguments(self.p, [])
         opts = self.p.parse_args([])
-        self.assertIsNone(loading.load_from_argparse_arguments(opts))
+        self.assertIsNone(loading.load_auth_from_argparse_arguments(opts))
 
     @utils.mock_plugin()
     def test_basic_params_added(self, m):
         name = uuid.uuid4().hex
         argv = ['--os-auth-plugin', name]
-        ret = loading.register_argparse_arguments(self.p, argv)
+        ret = loading.register_auth_argparse_arguments(self.p, argv)
         self.assertIsInstance(ret, utils.MockLoader)
 
         for n in ('--os-a-int', '--os-a-bool', '--os-a-float'):
@@ -73,13 +73,13 @@ class CliTests(utils.TestCase):
                 '--os-a-float', str(self.a_float),
                 '--os-a-bool', str(self.a_bool)]
 
-        klass = loading.register_argparse_arguments(self.p, argv)
+        klass = loading.register_auth_argparse_arguments(self.p, argv)
         self.assertIsInstance(klass, utils.MockLoader)
 
         opts = self.p.parse_args(argv)
         self.assertEqual(name, opts.os_auth_plugin)
 
-        a = loading.load_from_argparse_arguments(opts)
+        a = loading.load_auth_from_argparse_arguments(opts)
         self.assertTestVals(a)
 
         self.assertEqual(name, opts.os_auth_plugin)
@@ -93,13 +93,13 @@ class CliTests(utils.TestCase):
         argv = ['--os-auth-plugin', name,
                 '--os-a-float', str(self.a_float)]
 
-        klass = loading.register_argparse_arguments(self.p, argv)
+        klass = loading.register_auth_argparse_arguments(self.p, argv)
         self.assertIsInstance(klass, utils.MockLoader)
 
         opts = self.p.parse_args(argv)
         self.assertEqual(name, opts.os_auth_plugin)
 
-        a = loading.load_from_argparse_arguments(opts)
+        a = loading.load_auth_from_argparse_arguments(opts)
 
         self.assertEqual(self.a_float, a['a_float'])
         self.assertEqual(3, a['a_int'])
@@ -107,7 +107,9 @@ class CliTests(utils.TestCase):
     @utils.mock_plugin()
     def test_with_default_string_value(self, m):
         name = uuid.uuid4().hex
-        klass = loading.register_argparse_arguments(self.p, [], default=name)
+        klass = loading.register_auth_argparse_arguments(self.p,
+                                                         [],
+                                                         default=name)
         self.assertIsInstance(klass, utils.MockLoader)
         m.assert_called_once_with(name)
 
@@ -116,17 +118,18 @@ class CliTests(utils.TestCase):
         name = uuid.uuid4().hex
         default = uuid.uuid4().hex
         argv = ['--os-auth-plugin', name]
-        klass = loading.register_argparse_arguments(self.p,
-                                                    argv,
-                                                    default=default)
+        klass = loading.register_auth_argparse_arguments(self.p,
+                                                         argv,
+                                                         default=default)
         self.assertIsInstance(klass, utils.MockLoader)
         m.assert_called_once_with(name)
 
     @utils.mock_plugin()
     def test_with_default_type_value(self, m):
-        klass = loading.register_argparse_arguments(self.p,
-                                                    [],
-                                                    default=utils.MockLoader())
+        default = utils.MockLoader()
+        klass = loading.register_auth_argparse_arguments(self.p,
+                                                         [],
+                                                         default=default)
         self.assertIsInstance(klass, utils.MockLoader)
         self.assertEqual(0, m.call_count)
 
@@ -138,9 +141,9 @@ class CliTests(utils.TestCase):
             pass
         name = uuid.uuid4().hex
         argv = ['--os-auth-plugin', name]
-        klass = loading.register_argparse_arguments(self.p,
-                                                    argv,
-                                                    default=TestLoader)
+        klass = loading.register_auth_argparse_arguments(self.p,
+                                                         argv,
+                                                         default=TestLoader)
         self.assertIsInstance(klass, utils.MockLoader)
         m.assert_called_once_with(name)
 
@@ -150,10 +153,12 @@ class CliTests(utils.TestCase):
         val = uuid.uuid4().hex
         self.env('OS_A_STR', val)
 
-        klass = loading.register_argparse_arguments(self.p, [], default=name)
+        klass = loading.register_auth_argparse_arguments(self.p,
+                                                         [],
+                                                         default=name)
         self.assertIsInstance(klass, utils.MockLoader)
         opts = self.p.parse_args([])
-        a = loading.load_from_argparse_arguments(opts)
+        a = loading.load_auth_from_argparse_arguments(opts)
 
         self.assertEqual(val, a['a_str'])
 

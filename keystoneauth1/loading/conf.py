@@ -19,6 +19,12 @@ _section_help = 'Config Section from which to load plugin specific options'
 _AUTH_SECTION_OPT = opts.Opt('auth_section', help=_section_help)
 
 
+__all__ = ['get_common_conf_options',
+           'get_plugin_conf_options',
+           'register_conf_options',
+           'load_from_conf_options']
+
+
 def get_common_conf_options():
     """Get the oslo_config options common for all auth plugins.
 
@@ -34,7 +40,7 @@ def get_common_conf_options():
     return [_AUTH_PLUGIN_OPT._to_oslo_opt(), _AUTH_SECTION_OPT._to_oslo_opt()]
 
 
-def get_plugin_options(name):
+def get_plugin_conf_options(name):
     """Get the oslo_config options for a specific plugin.
 
     This will be the list of config options that is registered and loaded by

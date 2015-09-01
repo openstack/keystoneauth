@@ -11,9 +11,25 @@
 # under the License.
 
 from keystoneauth1.loading.base import *  # noqa
-from keystoneauth1.loading.cli import *  # noqa
-from keystoneauth1.loading.conf import *  # noqa
+from keystoneauth1.loading import cli
+from keystoneauth1.loading import conf
 from keystoneauth1.loading.opts import *  # noqa
+from keystoneauth1.loading import session
+
+
+register_auth_argparse_arguments = cli.register_argparse_arguments
+load_auth_from_argparse_arguments = cli.load_from_argparse_arguments
+
+get_auth_common_conf_options = conf.get_common_conf_options
+get_auth_plugin_conf_options = conf.get_plugin_conf_options
+register_auth_conf_options = conf.register_conf_options
+load_auth_from_conf_options = conf.load_from_conf_options
+
+register_session_argparse_arguments = session.register_argparse_arguments
+load_session_from_argparse_arguments = session.load_from_argparse_arguments
+register_session_conf_options = session.register_conf_options
+load_session_from_conf_options = session.load_from_conf_options
+get_session_conf_options = session.get_conf_options
 
 
 __all__ = [
@@ -24,15 +40,22 @@ __all__ = [
     'get_plugin_loader',
     'PLUGIN_NAMESPACE',
 
-    # loading.cli
-    'load_from_argparse_arguments',
-    'register_argparse_arguments',
+    # auth cli
+    'register_auth_argparse_arguments',
+    'load_auth_from_argparse_arguments',
 
-    # loading.conf
-    'get_common_conf_options',
-    'get_plugin_options',
-    'load_from_conf_options',
-    'register_conf_options',
+    # auth conf
+    'get_auth_common_conf_options',
+    'get_auth_plugin_conf_options',
+    'register_auth_conf_options',
+    'load_auth_from_conf_options',
+
+    # session
+    'register_session_argparse_arguments',
+    'load_session_from_argparse_arguments',
+    'register_session_conf_options',
+    'load_session_from_conf_options',
+    'get_session_conf_options',
 
     # loading.opts
     'Opt',

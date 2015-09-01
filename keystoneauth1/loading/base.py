@@ -20,6 +20,14 @@ from keystoneauth1 import exceptions
 PLUGIN_NAMESPACE = 'keystoneauth1.plugin'
 
 
+__all__ = ['get_available_plugin_names',
+           'get_available_plugin_loaders',
+           'get_plugin_loader',
+           'get_plugin_options',
+           'BaseLoader',
+           'PLUGIN_NAMESPACE']
+
+
 def get_available_plugin_names():
     """Get the names of all the plugins that are available on the system.
 
