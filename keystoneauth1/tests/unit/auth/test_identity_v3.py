@@ -197,6 +197,7 @@ class V3IdentityPlugin(utils.TestCase):
         a = v3.Password(self.TEST_URL,
                         username=self.TEST_USER,
                         password=self.TEST_PASS)
+        self.assertFalse(a.has_scope_parameters)
         s = session.Session(auth=a)
 
         self.assertEqual({'X-Auth-Token': self.TEST_TOKEN},
@@ -216,6 +217,7 @@ class V3IdentityPlugin(utils.TestCase):
         self.stub_auth(json=self.TEST_RESPONSE_DICT)
         a = v3.Password(self.TEST_URL, username=self.TEST_USER,
                         password=self.TEST_PASS, domain_id=self.TEST_DOMAIN_ID)
+        self.assertTrue(a.has_scope_parameters)
         s = session.Session(a)
 
         self.assertEqual({'X-Auth-Token': self.TEST_TOKEN},
@@ -234,6 +236,7 @@ class V3IdentityPlugin(utils.TestCase):
         a = v3.Password(self.TEST_URL, username=self.TEST_USER,
                         password=self.TEST_PASS,
                         project_id=self.TEST_TENANT_ID)
+        self.assertTrue(a.has_scope_parameters)
         s = session.Session(a)
 
         self.assertEqual({'X-Auth-Token': self.TEST_TOKEN},
@@ -288,6 +291,7 @@ class V3IdentityPlugin(utils.TestCase):
                         password='password', project_id='project',
                         domain_id='domain')
 
+        self.assertTrue(a.has_scope_parameters)
         self.assertRaises(exceptions.AuthorizationFailure,
                           a.get_token, None)
         self.assertRaises(exceptions.AuthorizationFailure,
@@ -297,6 +301,7 @@ class V3IdentityPlugin(utils.TestCase):
         self.stub_auth(json=self.TEST_RESPONSE_DICT)
         a = v3.Password(self.TEST_URL, username=self.TEST_USER,
                         password=self.TEST_PASS, trust_id='trust')
+        self.assertTrue(a.has_scope_parameters)
         s = session.Session(a)
 
         self.assertEqual({'X-Auth-Token': self.TEST_TOKEN},
@@ -335,6 +340,7 @@ class V3IdentityPlugin(utils.TestCase):
                               password=self.TEST_PASS)
         t = v3.TokenMethod(token='foo')
         a = v3.Auth(self.TEST_URL, [p, t], trust_id='trust')
+        self.assertTrue(a.has_scope_parameters)
         s = session.Session(auth=a)
 
         self.assertEqual({'X-Auth-Token': self.TEST_TOKEN},
