@@ -13,6 +13,7 @@
 import uuid
 
 import mock
+from oslo_config import cfg
 from oslo_config import fixture as config
 import stevedore
 
@@ -173,11 +174,14 @@ class ConfTests(utils.TestCase):
     def test_get_common(self):
         opts = loading.get_common_conf_options()
         for opt in opts:
-            self.assertIsInstance(opt, loading.Opt)
+            self.assertIsInstance(opt, cfg.Opt)
         self.assertEqual(2, len(opts))
 
     def test_get_named(self):
         loaded_opts = loading.get_plugin_options('v2password')
         plugin_opts = v2.Password().get_options()
 
-        self.assertEqual(plugin_opts, loaded_opts)
+        loaded_names = set([o.name for o in loaded_opts])
+        plugin_names = set([o.name for o in plugin_opts])
+
+        self.assertEqual(plugin_names, loaded_names)

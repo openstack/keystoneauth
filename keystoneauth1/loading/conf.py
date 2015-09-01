@@ -31,7 +31,7 @@ def get_common_conf_options():
 
     :returns: A list of oslo_config options.
     """
-    return [_AUTH_PLUGIN_OPT, _AUTH_SECTION_OPT]
+    return [_AUTH_PLUGIN_OPT._to_oslo_opt(), _AUTH_SECTION_OPT._to_oslo_opt()]
 
 
 def get_plugin_options(name):
@@ -42,7 +42,7 @@ def get_plugin_options(name):
 
     :returns: A list of oslo_config options.
     """
-    return base.get_plugin_loader(name).get_options()
+    return [o._to_oslo_opt() for o in base.get_plugin_options(name)]
 
 
 def register_conf_options(conf, group):
