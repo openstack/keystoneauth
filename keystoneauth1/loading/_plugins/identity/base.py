@@ -19,7 +19,9 @@ class BaseIdentityLoader(loading.BaseLoader):
         options = super(BaseIdentityLoader, self).get_options()
 
         options.extend([
-            loading.Opt('auth-url', help='Authentication URL'),
+            loading.Opt('auth-url',
+                        required=True,
+                        help='Authentication URL'),
         ])
 
         return options

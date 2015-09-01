@@ -41,6 +41,7 @@ class ConfTests(utils.TestCase):
 
     def test_loading_v2(self):
         section = uuid.uuid4().hex
+        auth_url = uuid.uuid4().hex
         username = uuid.uuid4().hex
         password = uuid.uuid4().hex
         trust_id = uuid.uuid4().hex
@@ -54,6 +55,7 @@ class ConfTests(utils.TestCase):
             group=section)
 
         self.conf_fixture.config(auth_plugin=self.V2PASS,
+                                 auth_url=auth_url,
                                  username=username,
                                  password=password,
                                  trust_id=trust_id,
@@ -62,6 +64,7 @@ class ConfTests(utils.TestCase):
 
         a = loading.load_from_conf_options(self.conf_fixture.conf, self.GROUP)
 
+        self.assertEqual(auth_url, a.auth_url)
         self.assertEqual(username, a.username)
         self.assertEqual(password, a.password)
         self.assertEqual(trust_id, a.trust_id)
@@ -69,6 +72,7 @@ class ConfTests(utils.TestCase):
 
     def test_loading_v3(self):
         section = uuid.uuid4().hex
+        auth_url = uuid.uuid4().hex,
         token = uuid.uuid4().hex
         trust_id = uuid.uuid4().hex
         project_id = uuid.uuid4().hex
@@ -81,6 +85,7 @@ class ConfTests(utils.TestCase):
                                         group=section)
 
         self.conf_fixture.config(auth_plugin=self.V3TOKEN,
+                                 auth_url=auth_url,
                                  token=token,
                                  trust_id=trust_id,
                                  project_id=project_id,
