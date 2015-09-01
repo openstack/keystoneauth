@@ -10,6 +10,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from keystoneauth1 import exceptions
 from keystoneauth1 import identity
 from keystoneauth1 import loading
 from keystoneauth1.loading._plugins.identity import base
@@ -34,6 +35,18 @@ class BaseV3Loader(base.BaseIdentityLoader):
 
         return options
 
+    def load_from_options(self, **kwargs):
+        if (kwargs.get('project_name') and
+                not (kwargs.get('project_domain_name') or
+                     kwargs.get('project_domain_id'))):
+            m = "You have provided a project_name. In the V3 identity API a " \
+                "project_name is only unique within a domain so you must " \
+                "also provide either a project_domain_id or " \
+                "project_domain_name."
+            raise exceptions.OptionError(m)
+
+        return super(BaseV3Loader, self).load_from_options(**kwargs)
+
 
 class Password(BaseV3Loader):
 
@@ -56,6 +69,17 @@ class Password(BaseV3Loader):
         ])
 
         return options
+
+    def load_from_options(self, **kwargs):
+        if (kwargs.get('username') and
+                not (kwargs.get('user_domain_name') or
+                     kwargs.get('user_domain_id'))):
+            m = "You have provided a username. In the V3 identity API a " \
+                "username is only unique within a domain so you must " \
+                "also provide either a user_domain_id or user_domain_name."
+            raise exceptions.OptionError(m)
+
+        return super(Password, self).load_from_options(**kwargs)
 
 
 class Token(BaseV3Loader):

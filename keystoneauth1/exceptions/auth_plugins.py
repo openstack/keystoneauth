@@ -13,6 +13,14 @@
 from keystoneauth1.exceptions import base
 
 
+__all__ = ['AuthPluginException',
+           'MissingAuthPlugin',
+           'NoMatchingPlugin',
+           'UnsupportedParameters',
+           'OptionError',
+           'MissingRequiredOptions']
+
+
 class AuthPluginException(base.ClientException):
     message = "Unknown error with authentication plugins."
 
@@ -55,7 +63,20 @@ class UnsupportedParameters(AuthPluginException):
         super(UnsupportedParameters, self).__init__(m % ', '.join(self.names))
 
 
-class MissingRequiredOptions(AuthPluginException):
+class OptionError(AuthPluginException):
+    """A requirement of this plugin loader was not met.
+
+    This error can be raised by a specific plugin loader during the
+    load_from_options stage to indicate a parameter problem that can not be
+    handled by the generic options loader.
+
+    The intention here is that a plugin can do checks like if a name parameter
+    is provided then a domain parameter must also be provided, but that Opt
+    checking doesn't handle.
+    """
+
+
+class MissingRequiredOptions(OptionError):
     """One or more required options were not provided.
 
     :param list(keystoneauth1.loading.Opt) options: Missing options.
