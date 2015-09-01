@@ -12,6 +12,8 @@
 
 import uuid
 
+from testtools import matchers
+
 from keystoneauth1 import exceptions
 from keystoneauth1 import loading
 from keystoneauth1.tests.unit.loading import utils
@@ -41,3 +43,10 @@ class LoadingTests(utils.TestCase):
             self.assertIsInstance(o, loading.Opt)
 
         self.assertEqual('b', e.options[0].name)
+
+    def test_loaders(self):
+        loaders = loading.get_available_plugin_loaders()
+        self.assertThat(len(loaders), matchers.GreaterThan(0))
+
+        for l in loaders.values():
+            self.assertIsInstance(l, loading.BaseLoader)
