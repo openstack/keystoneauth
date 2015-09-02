@@ -83,6 +83,11 @@ class Auth(base.BaseIdentityPlugin):
         :rtype: dict
         """
 
+    @property
+    def has_scope_parameters(self):
+        """Does the plugin have parameters that will create a scoped token"""
+        return self.tenant_id or self.tenant_name or self.trust_id
+
 
 _NOT_PASSED = object()
 

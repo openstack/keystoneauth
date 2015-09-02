@@ -101,6 +101,7 @@ class V2IdentityPlugin(utils.TestCase):
         a = v2.Password(self.TEST_URL, username=self.TEST_USER,
                         password=self.TEST_PASS)
         self.assertIsNone(a.user_id)
+        self.assertFalse(a.has_scope_parameters)
         s = session.Session(a)
         self.assertEqual({'X-Auth-Token': self.TEST_TOKEN},
                          s.get_auth_headers())
@@ -117,6 +118,7 @@ class V2IdentityPlugin(utils.TestCase):
         a = v2.Password(self.TEST_URL, user_id=self.TEST_USER,
                         password=self.TEST_PASS)
         self.assertIsNone(a.username)
+        self.assertFalse(a.has_scope_parameters)
         s = session.Session(a)
         self.assertEqual({'X-Auth-Token': self.TEST_TOKEN},
                          s.get_auth_headers())
@@ -132,6 +134,7 @@ class V2IdentityPlugin(utils.TestCase):
         self.stub_auth(json=self.TEST_RESPONSE_DICT)
         a = v2.Password(self.TEST_URL, username=self.TEST_USER,
                         password=self.TEST_PASS, tenant_id=self.TEST_TENANT_ID)
+        self.assertTrue(a.has_scope_parameters)
         self.assertIsNone(a.user_id)
         s = session.Session(a)
         self.assertEqual({'X-Auth-Token': self.TEST_TOKEN},
@@ -148,6 +151,7 @@ class V2IdentityPlugin(utils.TestCase):
         a = v2.Password(self.TEST_URL, user_id=self.TEST_USER,
                         password=self.TEST_PASS, tenant_id=self.TEST_TENANT_ID)
         self.assertIsNone(a.username)
+        self.assertTrue(a.has_scope_parameters)
         s = session.Session(a)
         self.assertEqual({'X-Auth-Token': self.TEST_TOKEN},
                          s.get_auth_headers())
@@ -176,6 +180,7 @@ class V2IdentityPlugin(utils.TestCase):
         self.stub_auth(json=self.TEST_RESPONSE_DICT)
         a = v2.Password(self.TEST_URL, username=self.TEST_USER,
                         password=self.TEST_PASS, trust_id='trust')
+        self.assertTrue(a.has_scope_parameters)
         s = session.Session(a)
         self.assertEqual({'X-Auth-Token': self.TEST_TOKEN},
                          s.get_auth_headers())

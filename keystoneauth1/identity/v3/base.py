@@ -74,6 +74,13 @@ class BaseAuth(base.BaseIdentityPlugin):
     def get_auth_ref(self, session, **kwargs):
         return None
 
+    @property
+    def has_scope_parameters(self):
+        """Does the plugin have parameters that will create a scoped token"""
+        return (self.domain_id or self.domain_name or
+                self.project_id or self.project_name or
+                self.trust_id)
+
 
 class Auth(BaseAuth):
     """Identity V3 Authentication Plugin.
