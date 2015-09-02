@@ -12,7 +12,7 @@
 
 from testtools import matchers
 
-from keystoneauth1.loading._plugins.identity import admin_token as loader
+from keystoneauth1.loading._plugins import admin_token as loader
 from keystoneauth1 import session
 from keystoneauth1.tests.unit import utils
 from keystoneauth1 import token_endpoint
