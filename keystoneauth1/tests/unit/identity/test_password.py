@@ -17,7 +17,7 @@ from keystoneauth1.identity import v2
 from keystoneauth1.identity import v3
 from keystoneauth1.identity.v3 import password as v3_password
 from keystoneauth1.loading._plugins.identity import generic
-from keystoneauth1.tests.unit.auth import utils
+from keystoneauth1.tests.unit.identity import utils
 
 
 class PasswordTests(utils.GenericPluginTestCase):
