@@ -34,6 +34,16 @@ class ServiceCatalog(object):
     def _get_endpoint_region(self, endpoint):
         return endpoint.get('region_id') or endpoint.get('region')
 
+    @property
+    def catalog(self):
+        """Return the raw service catalog content, mostly useful for debugging.
+
+        Applications should avoid this and use accessor methods instead.
+        However, there are times when inspecting the raw catalog can be useful
+        for analysis and other reasons.
+        """
+        return self._catalog
+
     @abc.abstractmethod
     def is_interface_match(self, endpoint, interface):
         """Helper function to normalize endpoint matching across v2 and v3.
