@@ -29,13 +29,7 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
     # least this many seconds before the token expiry time
     MIN_TOKEN_LIFE_SECONDS = 120
 
-    def __init__(self,
-                 auth_url=None,
-                 username=None,
-                 password=None,
-                 token=None,
-                 trust_id=None,
-                 reauthenticate=True):
+    def __init__(self, auth_url=None, reauthenticate=True):
 
         super(BaseIdentityPlugin, self).__init__()
 
@@ -44,13 +38,6 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
         self.reauthenticate = reauthenticate
 
         self._endpoint_cache = {}
-
-        # NOTE(jamielennox): DEPRECATED. The following should not really be set
-        # here but handled by the individual auth plugin.
-        self.username = username
-        self.password = password
-        self.token = token
-        self.trust_id = trust_id
 
     @abc.abstractmethod
     def get_auth_ref(self, session, **kwargs):
