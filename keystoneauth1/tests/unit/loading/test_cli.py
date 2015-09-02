@@ -46,7 +46,7 @@ class CliTests(utils.TestCase):
     def test_creating_with_no_args(self):
         ret = loading.register_auth_argparse_arguments(self.p, [])
         self.assertIsNone(ret)
-        self.assertIn('--os-auth-plugin', self.p.format_usage())
+        self.assertIn('--os-auth-type', self.p.format_usage())
 
     def test_load_with_nothing(self):
         loading.register_auth_argparse_arguments(self.p, [])
@@ -68,7 +68,7 @@ class CliTests(utils.TestCase):
     @utils.mock_plugin()
     def test_param_loading(self, m):
         name = uuid.uuid4().hex
-        argv = ['--os-auth-plugin', name,
+        argv = ['--os-auth-type', name,
                 '--os-a-int', str(self.a_int),
                 '--os-a-float', str(self.a_float),
                 '--os-a-bool', str(self.a_bool)]
@@ -77,12 +77,12 @@ class CliTests(utils.TestCase):
         self.assertIsInstance(klass, utils.MockLoader)
 
         opts = self.p.parse_args(argv)
-        self.assertEqual(name, opts.os_auth_plugin)
+        self.assertEqual(name, opts.os_auth_type)
 
         a = loading.load_auth_from_argparse_arguments(opts)
         self.assertTestVals(a)
 
-        self.assertEqual(name, opts.os_auth_plugin)
+        self.assertEqual(name, opts.os_auth_type)
         self.assertEqual(str(self.a_int), opts.os_a_int)
         self.assertEqual(str(self.a_float), opts.os_a_float)
         self.assertEqual(str(self.a_bool), opts.os_a_bool)
@@ -90,14 +90,14 @@ class CliTests(utils.TestCase):
     @utils.mock_plugin()
     def test_default_options(self, m):
         name = uuid.uuid4().hex
-        argv = ['--os-auth-plugin', name,
+        argv = ['--os-auth-type', name,
                 '--os-a-float', str(self.a_float)]
 
         klass = loading.register_auth_argparse_arguments(self.p, argv)
         self.assertIsInstance(klass, utils.MockLoader)
 
         opts = self.p.parse_args(argv)
-        self.assertEqual(name, opts.os_auth_plugin)
+        self.assertEqual(name, opts.os_auth_type)
 
         a = loading.load_auth_from_argparse_arguments(opts)
 
@@ -117,7 +117,7 @@ class CliTests(utils.TestCase):
     def test_overrides_default_string_value(self, m):
         name = uuid.uuid4().hex
         default = uuid.uuid4().hex
-        argv = ['--os-auth-plugin', name]
+        argv = ['--os-auth-type', name]
         klass = loading.register_auth_argparse_arguments(self.p,
                                                          argv,
                                                          default=default)
@@ -140,7 +140,7 @@ class CliTests(utils.TestCase):
         class TestLoader(object):
             pass
         name = uuid.uuid4().hex
-        argv = ['--os-auth-plugin', name]
+        argv = ['--os-auth-type', name]
         klass = loading.register_auth_argparse_arguments(self.p,
                                                          argv,
                                                          default=TestLoader)

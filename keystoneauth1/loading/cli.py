@@ -49,24 +49,26 @@ def register_argparse_arguments(parser, argv, default=None):
                                                         created.
     """
     in_parser = argparse.ArgumentParser(add_help=False)
-    env_plugin = os.environ.get('OS_AUTH_PLUGIN', default)
+    env_plugin = os.environ.get('OS_AUTH_TYPE',
+                                os.environ.get('OS_AUTH_PLUGIN', default))
     for p in (in_parser, parser):
-        p.add_argument('--os-auth-plugin',
+        p.add_argument('--os-auth-type',
+                       '--os-auth-plugin',
                        metavar='<name>',
                        default=env_plugin,
                        help='The auth plugin to load')
 
     options, _args = in_parser.parse_known_args(argv)
 
-    if not options.os_auth_plugin:
+    if not options.os_auth_type:
         return None
 
-    if isinstance(options.os_auth_plugin, base.BaseLoader):
+    if isinstance(options.os_auth_type, base.BaseLoader):
         msg = 'Default Authentication options'
-        plugin = options.os_auth_plugin
+        plugin = options.os_auth_type
     else:
-        msg = 'Options specific to the %s plugin.' % options.os_auth_plugin
-        plugin = base.get_plugin_loader(options.os_auth_plugin)
+        msg = 'Options specific to the %s plugin.' % options.os_auth_type
+        plugin = base.get_plugin_loader(options.os_auth_type)
 
     group = parser.add_argument_group('Authentication Options', msg)
     _register_plugin_argparse_arguments(group, plugin)
@@ -87,13 +89,13 @@ def load_from_argparse_arguments(namespace, **kwargs):
     :raises keystonauth.exceptions.NoMatchingPlugin: if a plugin cannot be
                                                         created.
     """
-    if not namespace.os_auth_plugin:
+    if not namespace.os_auth_type:
         return None
 
-    if isinstance(namespace.os_auth_plugin, type):
-        plugin = namespace.os_auth_plugin
+    if isinstance(namespace.os_auth_type, type):
+        plugin = namespace.os_auth_type
     else:
-        plugin = base.get_plugin_loader(namespace.os_auth_plugin)
+        plugin = base.get_plugin_loader(namespace.os_auth_type)
 
     plugin_opts = plugin.get_options()
 

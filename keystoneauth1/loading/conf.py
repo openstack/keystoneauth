@@ -13,7 +13,9 @@
 from keystoneauth1.loading import base
 from keystoneauth1.loading import opts
 
-_AUTH_PLUGIN_OPT = opts.Opt('auth_plugin', help='Name of the plugin to load')
+_AUTH_TYPE_OPT = opts.Opt('auth_type',
+                          deprecated=[opts.Opt('auth_plugin')],
+                          help='Name of the plugin to load')
 
 _section_help = 'Config Section from which to load plugin specific options'
 _AUTH_SECTION_OPT = opts.Opt('auth_section', help=_section_help)
@@ -32,12 +34,12 @@ def get_common_conf_options():
     or to manipulate the options before registering them yourself.
 
     The options that are set are:
-        :auth_plugin: The name of the pluign to load.
+        :auth_type: The name of the pluign to load.
         :auth_section: The config file section to load options from.
 
     :returns: A list of oslo_config options.
     """
-    return [_AUTH_PLUGIN_OPT._to_oslo_opt(), _AUTH_SECTION_OPT._to_oslo_opt()]
+    return [_AUTH_TYPE_OPT._to_oslo_opt(), _AUTH_SECTION_OPT._to_oslo_opt()]
 
 
 def get_plugin_conf_options(name):
@@ -59,7 +61,7 @@ def register_conf_options(conf, group):
 
     The defined options are:
 
-     - auth_plugin: the name of the auth plugin that will be used for
+     - auth_type: the name of the auth plugin that will be used for
          authentication.
      - auth_section: the group from which further auth plugin options should be
          taken. If section is not provided then the auth plugin options will be
@@ -79,7 +81,7 @@ def register_conf_options(conf, group):
     if conf[group].auth_section:
         group = conf[group].auth_section
 
-    conf.register_opt(_AUTH_PLUGIN_OPT._to_oslo_opt(), group=group)
+    conf.register_opt(_AUTH_TYPE_OPT._to_oslo_opt(), group=group)
 
 
 def load_from_conf_options(conf, group, **kwargs):
@@ -107,7 +109,7 @@ def load_from_conf_options(conf, group, **kwargs):
     if conf[group].auth_section:
         group = conf[group].auth_section
 
-    name = conf[group].auth_plugin
+    name = conf[group].auth_type
     if not name:
         return None
 

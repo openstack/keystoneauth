@@ -57,7 +57,7 @@ class ConfTests(utils.TestCase):
             to_oslo_opts(v2.Password().get_options()),
             group=section)
 
-        self.conf_fixture.config(auth_plugin=self.V2PASS,
+        self.conf_fixture.config(auth_type=self.V2PASS,
                                  auth_url=auth_url,
                                  username=username,
                                  password=password,
@@ -89,7 +89,7 @@ class ConfTests(utils.TestCase):
         self.conf_fixture.register_opts(to_oslo_opts(v3.Token().get_options()),
                                         group=section)
 
-        self.conf_fixture.config(auth_plugin=self.V3TOKEN,
+        self.conf_fixture.config(auth_type=self.V3TOKEN,
                                  auth_url=auth_url,
                                  token=token,
                                  trust_id=trust_id,
@@ -106,8 +106,8 @@ class ConfTests(utils.TestCase):
         self.assertEqual(project_domain_name, a.project_domain_name)
 
     def test_loading_invalid_plugin(self):
-        auth_plugin = uuid.uuid4().hex
-        self.conf_fixture.config(auth_plugin=auth_plugin,
+        auth_type = uuid.uuid4().hex
+        self.conf_fixture.config(auth_type=auth_type,
                                  group=self.GROUP)
 
         e = self.assertRaises(exceptions.NoMatchingPlugin,
@@ -115,7 +115,7 @@ class ConfTests(utils.TestCase):
                               self.conf_fixture.conf,
                               self.GROUP)
 
-        self.assertEqual(auth_plugin, e.name)
+        self.assertEqual(auth_type, e.name)
 
     def test_loading_with_no_data(self):
         l = loading.load_auth_from_conf_options(self.conf_fixture.conf,
@@ -130,7 +130,7 @@ class ConfTests(utils.TestCase):
         self.conf_fixture.register_opts(
             to_oslo_opts(utils.MockLoader().get_options()),
             group=self.GROUP)
-        self.conf_fixture.config(auth_plugin=driver_name,
+        self.conf_fixture.config(auth_type=driver_name,
                                  group=self.GROUP,
                                  **self.TEST_VALS)
 
@@ -150,7 +150,7 @@ class ConfTests(utils.TestCase):
 
         loading.register_auth_conf_options(self.conf_fixture.conf,
                                            group=self.GROUP)
-        self.conf_fixture.config(auth_plugin=uuid.uuid4().hex,
+        self.conf_fixture.config(auth_type=uuid.uuid4().hex,
                                  group=self.GROUP,
                                  **self.TEST_VALS)
 
@@ -170,7 +170,7 @@ class ConfTests(utils.TestCase):
             utils.MockLoader().get_options()),
             group=section)
         self.conf_fixture.config(group=section,
-                                 auth_plugin=uuid.uuid4().hex,
+                                 auth_type=uuid.uuid4().hex,
                                  **self.TEST_VALS)
 
         a = loading.load_auth_from_conf_options(self.conf_fixture.conf,
