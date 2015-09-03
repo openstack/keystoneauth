@@ -41,6 +41,16 @@ class PasswordTests(utils.GenericPluginTestCase):
         self.stub_discovery(v3=False)
         self.assertDiscoveryFailure(user_domain_id=uuid.uuid4().hex)
 
+    def test_v3_domain_params_v2_url(self):
+        self.stub_discovery(v3=False)
+        self.assertDiscoveryFailure(domain_id=uuid.uuid4().hex)
+
+    def test_v3_disocovery_failure_v2_url(self):
+        auth_url = self.TEST_URL + 'v2.0'
+        self.stub_url('GET', json={}, base_url='/v2.0', status_code=500)
+        self.assertDiscoveryFailure(domain_id=uuid.uuid4().hex,
+                                    auth_url=auth_url)
+
     def test_options(self):
         opts = [o.name for o in generic.Password().get_options()]
 

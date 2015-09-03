@@ -119,7 +119,10 @@ class BaseGenericPlugin(base.BaseIdentityPlugin):
             url_parts = urlparse.urlparse(self.auth_url)
             path = url_parts.path.lower()
 
-            if path.startswith('/v2.0') and not self._has_domain_scope:
+            if path.startswith('/v2.0'):
+                if self._has_domain_scope:
+                    raise exceptions.DiscoveryFailure(
+                        'Cannot use v2 authentication with domain scope')
                 plugin = self.create_plugin(session, (2, 0), self.auth_url)
             elif path.startswith('/v3'):
                 plugin = self.create_plugin(session, (3, 0), self.auth_url)
@@ -127,6 +130,7 @@ class BaseGenericPlugin(base.BaseIdentityPlugin):
         else:
             disc_data = disc.version_data()
 
+            v2_with_domain_scope = False
             for data in disc_data:
                 version = data['version']
 
@@ -134,6 +138,7 @@ class BaseGenericPlugin(base.BaseIdentityPlugin):
                         self._has_domain_scope):
                     # NOTE(jamielennox): if there are domain parameters there
                     # is no point even trying against v2 APIs.
+                    v2_with_domain_scope = True
                     continue
 
                 plugin = self.create_plugin(session,
@@ -143,6 +148,9 @@ class BaseGenericPlugin(base.BaseIdentityPlugin):
 
                 if plugin:
                     break
+            if not plugin and v2_with_domain_scope:
+                raise exceptions.DiscoveryFailure(
+                    'Cannot use v2 authentication with domain scope')
 
         if plugin:
             return plugin
