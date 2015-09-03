@@ -2,11 +2,7 @@
 keystoneauth
 ===============================
 
-Authentication for OpenStack Clients
-
-THIS LIBRARY IS IN A PRE-RELEASE STATE. IT WILL NOT BE CONSIDERED STABLE UNTIL
-THE 1.0.0 RELEASE. FEEL FREE TO TRY IT BUT WE WILL BREAK COMPATIBILITY UNTIL
-THEN.
+Authentication Library for OpenStack Clients
 
 * Free software: Apache license
 * Documentation: http://docs.openstack.org/developer/keystoneauth
