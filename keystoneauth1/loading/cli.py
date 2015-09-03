@@ -56,7 +56,7 @@ def register_argparse_arguments(parser, argv, default=None):
                        '--os-auth-plugin',
                        metavar='<name>',
                        default=env_plugin,
-                       help='The auth plugin to load')
+                       help='Authentication type to use')
 
     options, _args = in_parser.parse_known_args(argv)
 

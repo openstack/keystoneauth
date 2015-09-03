@@ -15,7 +15,7 @@ from keystoneauth1.loading import opts
 
 _AUTH_TYPE_OPT = opts.Opt('auth_type',
                           deprecated=[opts.Opt('auth_plugin')],
-                          help='Name of the plugin to load')
+                          help='Authentication type to load')
 
 _section_help = 'Config Section from which to load plugin specific options'
 _AUTH_SECTION_OPT = opts.Opt('auth_section', help=_section_help)
