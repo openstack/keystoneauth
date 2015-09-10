@@ -129,10 +129,7 @@ def load_from_conf_options(conf, group, **kwargs):
 
     conf.register_opts(oslo_opts, group=group)
 
-    for opt in plugin_opts:
-        val = conf[group][opt.dest]
-        if val is not None:
-            val = opt.type(val)
-        kwargs.setdefault(opt.dest, val)
+    def _getter(opt):
+        return conf[group][opt.dest]
 
-    return plugin.load_from_options(**kwargs)
+    return plugin.load_from_options_getter(_getter, **kwargs)
