@@ -10,22 +10,18 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import argparse
 import itertools
 import json
 import logging
 import uuid
 
 import mock
-from oslo_config import cfg
-from oslo_config import fixture as config
 import requests
 import six
 from testtools import matchers
 
 from keystoneauth1 import adapter
 from keystoneauth1 import exceptions
-from keystoneauth1.loading import session as session_loader
 from keystoneauth1 import plugin
 from keystoneauth1 import session as client_session
 from keystoneauth1.tests.unit import utils
@@ -818,96 +814,3 @@ class AdapterTest(utils.TestCase):
 
         self.assertNotIn(self.TEST_URL, self.logger.output)
         self.assertNotIn(response, self.logger.output)
-
-
-class ConfLoadingTests(utils.TestCase):
-
-    GROUP = 'sessiongroup'
-
-    def setUp(self):
-        super(ConfLoadingTests, self).setUp()
-
-        self.conf_fixture = self.useFixture(config.Config())
-        session_loader.register_conf_options(self.conf_fixture.conf,
-                                             self.GROUP)
-
-    def config(self, **kwargs):
-        kwargs['group'] = self.GROUP
-        self.conf_fixture.config(**kwargs)
-
-    def get_session(self, **kwargs):
-        return session_loader.load_from_conf_options(self.conf_fixture.conf,
-                                                     self.GROUP,
-                                                     **kwargs)
-
-    def test_insecure_timeout(self):
-        self.config(insecure=True, timeout=5)
-        s = self.get_session()
-
-        self.assertFalse(s.verify)
-        self.assertEqual(5, s.timeout)
-
-    def test_client_certs(self):
-        cert = '/path/to/certfile'
-        key = '/path/to/keyfile'
-
-        self.config(certfile=cert, keyfile=key)
-        s = self.get_session()
-
-        self.assertTrue(s.verify)
-        self.assertEqual((cert, key), s.cert)
-
-    def test_cacert(self):
-        cafile = '/path/to/cacert'
-
-        self.config(cafile=cafile)
-        s = self.get_session()
-
-        self.assertEqual(cafile, s.verify)
-
-    def test_deprecated(self):
-        def new_deprecated():
-            return cfg.DeprecatedOpt(uuid.uuid4().hex, group=uuid.uuid4().hex)
-
-        opt_names = ['cafile', 'certfile', 'keyfile', 'insecure', 'timeout']
-        depr = dict([(n, [new_deprecated()]) for n in opt_names])
-        opts = session_loader.get_conf_options(deprecated_opts=depr)
-
-        self.assertThat(opt_names, matchers.HasLength(len(opts)))
-        for opt in opts:
-            self.assertIn(depr[opt.name][0], opt.deprecated_opts)
-
-
-class CliLoadingTests(utils.TestCase):
-
-    def setUp(self):
-        super(CliLoadingTests, self).setUp()
-
-        self.parser = argparse.ArgumentParser()
-        session_loader.register_argparse_arguments(self.parser)
-
-    def get_session(self, val, **kwargs):
-        args = self.parser.parse_args(val.split())
-        return session_loader.load_from_argparse_arguments(args, **kwargs)
-
-    def test_insecure_timeout(self):
-        s = self.get_session('--insecure --timeout 5.5')
-
-        self.assertFalse(s.verify)
-        self.assertEqual(5.5, s.timeout)
-
-    def test_client_certs(self):
-        cert = '/path/to/certfile'
-        key = '/path/to/keyfile'
-
-        s = self.get_session('--os-cert %s --os-key %s' % (cert, key))
-
-        self.assertTrue(s.verify)
-        self.assertEqual((cert, key), s.cert)
-
-    def test_cacert(self):
-        cacert = '/path/to/cacert'
-
-        s = self.get_session('--os-cacert %s' % cacert)
-
-        self.assertEqual(cacert, s.verify)
