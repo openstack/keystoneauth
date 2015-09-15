@@ -16,7 +16,6 @@ from keystoneauth1.identity.generic import password
 from keystoneauth1.identity import v2
 from keystoneauth1.identity import v3
 from keystoneauth1.identity.v3 import password as v3_password
-from keystoneauth1.loading._plugins.identity import generic
 from keystoneauth1.tests.unit.identity import utils
 
 
@@ -50,27 +49,6 @@ class PasswordTests(utils.GenericPluginTestCase):
         self.stub_url('GET', json={}, base_url='/v2.0', status_code=500)
         self.assertDiscoveryFailure(domain_id=uuid.uuid4().hex,
                                     auth_url=auth_url)
-
-    def test_options(self):
-        opts = [o.name for o in generic.Password().get_options()]
-
-        allowed_opts = ['user-name',
-                        'user-domain-id',
-                        'user-domain-name',
-                        'user-id',
-                        'password',
-
-                        'domain-id',
-                        'domain-name',
-                        'project-id',
-                        'project-name',
-                        'project-domain-id',
-                        'project-domain-name',
-                        'trust-id',
-                        'auth-url']
-
-        self.assertEqual(set(allowed_opts), set(opts))
-        self.assertEqual(len(allowed_opts), len(opts))
 
     def test_symbols(self):
         self.assertIs(v3.Password, v3_password.Password)
