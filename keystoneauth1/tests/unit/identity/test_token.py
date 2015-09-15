@@ -16,7 +16,6 @@ from keystoneauth1.identity.generic import token
 from keystoneauth1.identity import v2
 from keystoneauth1.identity import v3
 from keystoneauth1.identity.v3 import token as v3_token
-from keystoneauth1.loading._plugins.identity import generic
 from keystoneauth1.tests.unit.identity import utils
 
 
@@ -29,22 +28,6 @@ class TokenTests(utils.GenericPluginTestCase):
     def new_plugin(self, **kwargs):
         kwargs.setdefault('token', uuid.uuid4().hex)
         return super(TokenTests, self).new_plugin(**kwargs)
-
-    def test_options(self):
-        opts = [o.name for o in generic.Token().get_options()]
-
-        allowed_opts = ['token',
-                        'domain-id',
-                        'domain-name',
-                        'project-id',
-                        'project-name',
-                        'project-domain-id',
-                        'project-domain-name',
-                        'trust-id',
-                        'auth-url']
-
-        self.assertEqual(set(allowed_opts), set(opts))
-        self.assertEqual(len(allowed_opts), len(opts))
 
     def test_symbols(self):
         self.assertIs(v3.Token, v3_token.Token)
