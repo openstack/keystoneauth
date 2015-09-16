@@ -89,6 +89,6 @@ class MissingRequiredOptions(OptionError):
     def __init__(self, options):
         self.options = options
 
-        names = ", ".join(o.name for o in options)
+        names = ", ".join(o.dest for o in options)
         m = 'Auth plugin requires parameters which were not given: %s'
         super(MissingRequiredOptions, self).__init__(m % names)
