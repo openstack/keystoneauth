@@ -18,7 +18,7 @@ class AdminToken(loading.BaseLoader):
 
     @property
     def plugin_class(self):
-        return token_endpoint.TokenEndpoint
+        return token_endpoint.Token
 
     def get_options(self):
         options = super(AdminToken, self).get_options()
