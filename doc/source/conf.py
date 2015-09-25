@@ -107,11 +107,7 @@ pygments_style = 'sphinx'
 
 # Grouping the document tree for man pages.
 # List of tuples 'sourcefile', 'target', 'title', 'Authors name', 'manual'
-
-man_pages = [
-    ('man/keystone', 'keystone', 'Client for OpenStack Identity API',
-     ['OpenStack Contributors'], 1),
-]
+#man_pages = []
 
 # -- Options for HTML output --------------------------------------------------
 

@@ -11,7 +11,6 @@ Contents:
 .. toctree::
    :maxdepth: 1
 
-   man/keystone
    using-sessions
    authentication-plugins
    api/modules
