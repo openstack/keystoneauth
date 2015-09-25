@@ -16,6 +16,14 @@ Contents:
    authentication-plugins
    api/modules
 
+Release Notes
+=============
+
+.. toctree::
+   :maxdepth: 1
+
+   history
+
 Contributing
 ============
 
