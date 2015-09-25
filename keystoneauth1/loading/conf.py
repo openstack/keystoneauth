@@ -42,15 +42,25 @@ def get_common_conf_options():
     return [_AUTH_TYPE_OPT._to_oslo_opt(), _AUTH_SECTION_OPT._to_oslo_opt()]
 
 
-def get_plugin_conf_options(name):
+def get_plugin_conf_options(plugin):
     """Get the oslo_config options for a specific plugin.
 
     This will be the list of config options that is registered and loaded by
     the specified plugin.
 
+    :param plugin: The name of the plugin loader or a plugin loader object
+    :type plugin: str or keystoneauth1._loading.BaseLoader
+
     :returns: A list of oslo_config options.
     """
-    return [o._to_oslo_opt() for o in base.get_plugin_options(name)]
+    try:
+        getter = plugin.get_options
+    except AttributeError:
+        opts = base.get_plugin_options(plugin)
+    else:
+        opts = getter()
+
+    return [o._to_oslo_opt() for o in opts]
 
 
 def register_conf_options(conf, group):

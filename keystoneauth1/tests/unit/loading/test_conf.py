@@ -24,10 +24,6 @@ from keystoneauth1.loading._plugins.identity import v3
 from keystoneauth1.tests.unit.loading import utils
 
 
-def to_oslo_opts(opts):
-    return [o._to_oslo_opt() for o in opts]
-
-
 class ConfTests(utils.TestCase):
 
     def setUp(self):
@@ -53,9 +49,8 @@ class ConfTests(utils.TestCase):
         loading.register_auth_conf_options(self.conf_fixture.conf,
                                            group=self.GROUP)
 
-        self.conf_fixture.register_opts(
-            to_oslo_opts(v2.Password().get_options()),
-            group=section)
+        opts = loading.get_auth_plugin_conf_options(v2.Password())
+        self.conf_fixture.register_opts(opts, group=section)
 
         self.conf_fixture.config(auth_type=self.V2PASS,
                                  auth_url=auth_url,
@@ -86,8 +81,8 @@ class ConfTests(utils.TestCase):
         loading.register_auth_conf_options(self.conf_fixture.conf,
                                            group=self.GROUP)
 
-        self.conf_fixture.register_opts(to_oslo_opts(v3.Token().get_options()),
-                                        group=section)
+        opts = loading.get_auth_plugin_conf_options(v3.Token())
+        self.conf_fixture.register_opts(opts, group=section)
 
         self.conf_fixture.config(auth_type=self.V3TOKEN,
                                  auth_url=auth_url,
@@ -127,9 +122,8 @@ class ConfTests(utils.TestCase):
         m.return_value = utils.MockManager(utils.MockLoader())
         driver_name = uuid.uuid4().hex
 
-        self.conf_fixture.register_opts(
-            to_oslo_opts(utils.MockLoader().get_options()),
-            group=self.GROUP)
+        opts = loading.get_auth_plugin_conf_options(utils.MockLoader())
+        self.conf_fixture.register_opts(opts, group=self.GROUP)
         self.conf_fixture.config(auth_type=driver_name,
                                  group=self.GROUP,
                                  **self.TEST_VALS)
@@ -144,9 +138,8 @@ class ConfTests(utils.TestCase):
 
     @utils.mock_plugin()
     def test_same_section(self, m):
-        self.conf_fixture.register_opts(
-            to_oslo_opts(utils.MockLoader().get_options()),
-            group=self.GROUP)
+        opts = loading.get_auth_plugin_conf_options(utils.MockLoader())
+        self.conf_fixture.register_opts(opts, group=self.GROUP)
 
         loading.register_auth_conf_options(self.conf_fixture.conf,
                                            group=self.GROUP)
@@ -166,9 +159,8 @@ class ConfTests(utils.TestCase):
         loading.register_auth_conf_options(self.conf_fixture.conf,
                                            group=self.GROUP)
 
-        self.conf_fixture.register_opts(to_oslo_opts(
-            utils.MockLoader().get_options()),
-            group=section)
+        opts = loading.get_auth_plugin_conf_options(utils.MockLoader())
+        self.conf_fixture.register_opts(opts, group=section)
         self.conf_fixture.config(group=section,
                                  auth_type=uuid.uuid4().hex,
                                  **self.TEST_VALS)
