@@ -814,3 +814,10 @@ class AdapterTest(utils.TestCase):
 
         self.assertNotIn(self.TEST_URL, self.logger.output)
         self.assertNotIn(response, self.logger.output)
+
+    def test_unknown_connection_error(self):
+        self.stub_url('GET', exc=requests.exceptions.RequestException)
+        self.assertRaises(exceptions.UnknownConnectionError,
+                          client_session.Session().request,
+                          self.TEST_URL,
+                          'GET')

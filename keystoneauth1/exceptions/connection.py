@@ -17,7 +17,8 @@ __all__ = ['ConnectionError',
            'ConnectTimeout',
            'ConnectFailure',
            'SSLError',
-           'RetriableConnectionFailure']
+           'RetriableConnectionFailure',
+           'UnknownConnectionError']
 
 
 class RetriableConnectionFailure(Exception):
