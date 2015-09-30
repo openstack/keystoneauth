@@ -14,6 +14,7 @@ from keystoneauth1.identity import base
 from keystoneauth1.identity import generic
 from keystoneauth1.identity import v2
 from keystoneauth1.identity import v3
+from keystoneauth1.identity.v3 import oidc
 
 
 BaseIdentityPlugin = base.BaseIdentityPlugin
@@ -27,6 +28,8 @@ V3Token = v3.Token
 Password = generic.Password
 Token = generic.Token
 
+V3OidcPassword = oidc.OidcPassword
+V3OidcAuthorizationCode = oidc.OidcAuthorizationCode
 
 __all__ = ['BaseIdentityPlugin',
            'Password',
@@ -34,4 +37,6 @@ __all__ = ['BaseIdentityPlugin',
            'V2Password',
            'V2Token',
            'V3Password',
-           'V3Token']
+           'V3Token',
+           'V3OidcPassword',
+           'V3OidcAuthorizationCode']

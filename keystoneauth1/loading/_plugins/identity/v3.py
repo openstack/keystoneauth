@@ -113,3 +113,61 @@ class FederatedBase(BaseV3Loader):
         ])
 
         return options
+
+
+class _OpenIDConnectBase(FederatedBase):
+
+    def get_options(self):
+        options = super(_OpenIDConnectBase, self).get_options()
+
+        options.extend([
+            loading.Opt('client-id', help='OAuth 2.0 Client ID'),
+            loading.Opt('client-secret', help='OAuth 2.0 Client Secret'),
+            loading.Opt('access-token-endpoint',
+                        help='OpenID Connect Provider Token Endpoint'),
+            loading.Opt('access-token-type',
+                        help='OAuth 2.0 Authorization Server Introspection '
+                             'token type, it is used to decide which type '
+                             'of token will be used when processing token '
+                             'introspection. Valid values are: '
+                             '"access_token" or "id_token"'),
+        ])
+
+        return options
+
+
+class OpenIDConnectPassword(_OpenIDConnectBase):
+
+    @property
+    def plugin_class(self):
+        return identity.V3OidcPassword
+
+    def get_options(self):
+        options = super(OpenIDConnectPassword, self).get_options()
+
+        options.extend([
+            loading.Opt('username', help='Username'),
+            loading.Opt('password', help='Password'),
+            loading.Opt('openid-scope', default="profile",
+                        help='OpenID Connect scope that is requested from OP')
+        ])
+
+        return options
+
+
+class OpenIDConnectAuthorizationCode(_OpenIDConnectBase):
+
+    @property
+    def plugin_class(self):
+        return identity.V3OidcAuthorizationCode
+
+    def get_options(self):
+        options = super(OpenIDConnectAuthorizationCode, self).get_options()
+
+        options.extend([
+            loading.Opt('redirect-uri', help='OpenID Connect Redirect URL'),
+            loading.Opt('authorization-code',
+                        help='OAuth 2.0 Authorization Code'),
+        ])
+
+        return options
