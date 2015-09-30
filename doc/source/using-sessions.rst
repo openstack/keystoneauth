@@ -55,14 +55,16 @@ service and fetch a new one.
 
 An example from keystoneauth::
 
-    >>> from keystoneauth1.auth.identity import v3
+    >>> from keystoneauth1.identity import v3
     >>> from keystoneauth1 import session
-    >>> from keystoneauth1.v3 import client
+    >>> from keystoneclient.v3 import client
 
-    >>> auth = v3.Password(auth_url='https://my.keystone.com:5000/v2.0',
+    >>> auth = v3.Password(auth_url='https://my.keystone.com:5000/v3',
     ...                    username='myuser',
     ...                    password='mypassword',
-    ...                    project_id='proj')
+    ...                    project_name='proj',
+    ...                    user_domain_id='default',
+    ...                    project_domain_id='default')
     >>> sess = session.Session(auth=auth,
     ...                        verify='/path/to/ca.cert')
     >>> ks = client.Client(session=sess)
