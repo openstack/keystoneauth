@@ -14,7 +14,7 @@
 from keystoneauth1.exceptions import base
 
 
-__all__ = ['InvalidResponse']
+__all__ = ('InvalidResponse',)
 
 
 class InvalidResponse(base.ClientException):

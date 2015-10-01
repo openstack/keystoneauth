@@ -31,7 +31,7 @@ Token = generic.Token
 V3OidcPassword = oidc.OidcPassword
 V3OidcAuthorizationCode = oidc.OidcAuthorizationCode
 
-__all__ = ['BaseIdentityPlugin',
+__all__ = ('BaseIdentityPlugin',
            'Password',
            'Token',
            'V2Password',
@@ -39,4 +39,4 @@ __all__ = ['BaseIdentityPlugin',
            'V3Password',
            'V3Token',
            'V3OidcPassword',
-           'V3OidcAuthorizationCode']
+           'V3OidcAuthorizationCode')

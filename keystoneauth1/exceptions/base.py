@@ -11,7 +11,7 @@
 # under the License.
 
 
-__all__ = ['ClientException']
+__all__ = ('ClientException',)
 
 
 class ClientException(Exception):

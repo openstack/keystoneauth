@@ -25,10 +25,10 @@ from keystoneauth1.access import service_providers
 STALE_TOKEN_DURATION = 30
 
 
-__all__ = ['AccessInfo',
+__all__ = ('AccessInfo',
            'AccessInfoV2',
            'AccessInfoV3',
-           'create']
+           'create')
 
 
 @utils.positional()

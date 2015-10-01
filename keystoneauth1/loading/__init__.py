@@ -32,7 +32,7 @@ load_session_from_conf_options = session.load_from_conf_options
 get_session_conf_options = session.get_conf_options
 
 
-__all__ = [
+__all__ = (
     # loading.base
     'BaseLoader',
     'get_available_plugin_names',
@@ -59,4 +59,4 @@ __all__ = [
 
     # loading.opts
     'Opt',
-]
+)

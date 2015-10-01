@@ -14,8 +14,8 @@ from keystoneauth1 import _utils
 from keystoneauth1 import access
 from keystoneauth1.identity.v3 import federation
 
-__all__ = ['OidcAuthorizationCode',
-           'OidcPassword']
+__all__ = ('OidcAuthorizationCode',
+           'OidcPassword')
 
 
 class _OidcBase(federation.FederationBaseAuth):

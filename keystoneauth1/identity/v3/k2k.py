@@ -19,7 +19,7 @@ from keystoneauth1.identity.v3 import base
 from keystoneauth1.identity.v3 import token
 from keystoneauth1 import plugin
 
-__all__ = ['Keystone2Keystone']
+__all__ = ('Keystone2Keystone',)
 
 
 class Keystone2Keystone(base.BaseAuth):
