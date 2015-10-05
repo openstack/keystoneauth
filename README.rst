@@ -1,6 +1,6 @@
-===============================
+============
 keystoneauth
-===============================
+============
 
 .. image:: https://img.shields.io/pypi/v/keystoneauth.svg
     :target: https://pypi.python.org/pypi/keystoneauth/
