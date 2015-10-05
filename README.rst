@@ -10,7 +10,15 @@ keystoneauth
     :target: https://pypi.python.org/pypi/keystoneauth/
     :alt: Downloads
 
-Authentication Library for OpenStack Clients
+This package contains tools for authenticating to an OpenStack-based cloud.
+These tools include:
+
+* Authentication plugins (password, token, and federation based)
+* Discovery mechanisms to determine API version support
+* A session that is used to maintain client settings across requests (based on
+  the requests Python library)
+
+Further information:
 
 * Free software: Apache license
 * Documentation: http://docs.openstack.org/developer/keystoneauth
