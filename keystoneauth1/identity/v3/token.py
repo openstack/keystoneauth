@@ -13,7 +13,7 @@
 from keystoneauth1.identity.v3 import base
 
 
-__all__ = ['TokenMethod', 'Token']
+__all__ = ('TokenMethod', 'Token')
 
 
 class TokenMethod(base.AuthMethod):

@@ -13,8 +13,8 @@
 from keystoneauth1.exceptions import base
 
 
-__all__ = ['DiscoveryFailure',
-           'VersionNotAvailable']
+__all__ = ('DiscoveryFailure',
+           'VersionNotAvailable')
 
 
 class DiscoveryFailure(base.ClientException):

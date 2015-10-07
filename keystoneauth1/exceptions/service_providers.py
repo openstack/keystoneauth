@@ -12,7 +12,7 @@
 
 from keystoneauth1.exceptions import base
 
-__all__ = ['ServiceProviderNotFound']
+__all__ = ('ServiceProviderNotFound',)
 
 
 class ServiceProviderNotFound(base.ClientException):

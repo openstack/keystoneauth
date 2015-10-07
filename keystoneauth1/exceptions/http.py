@@ -28,7 +28,7 @@ import six
 from keystoneauth1.exceptions import base
 
 
-__all__ = ['HttpError',
+__all__ = ('HttpError',
 
            'HTTPClientError',
            'BadRequest',
@@ -59,7 +59,7 @@ __all__ = ['HttpError',
            'GatewayTimeout',
            'HttpVersionNotSupported',
 
-           'from_response']
+           'from_response')
 
 
 class HttpError(base.ClientException):

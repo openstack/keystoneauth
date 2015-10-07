@@ -12,10 +12,10 @@
 
 from keystoneauth1 import _utils as utils
 
-__all__ = ['DiscoveryList',
+__all__ = ('DiscoveryList',
            'V2Discovery',
            'V3Discovery',
-           ]
+           )
 
 _DEFAULT_DAYS_AGO = 30
 

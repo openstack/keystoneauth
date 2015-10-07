@@ -17,8 +17,8 @@ from keystoneauth1 import _utils as utils
 from keystoneauth1.loading import base
 
 
-__all__ = ['register_argparse_arguments',
-           'load_from_argparse_arguments']
+__all__ = ('register_argparse_arguments',
+           'load_from_argparse_arguments')
 
 
 def _register_plugin_argparse_arguments(parser, plugin):

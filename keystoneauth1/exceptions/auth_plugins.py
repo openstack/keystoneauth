@@ -13,12 +13,12 @@
 from keystoneauth1.exceptions import base
 
 
-__all__ = ['AuthPluginException',
+__all__ = ('AuthPluginException',
            'MissingAuthPlugin',
            'NoMatchingPlugin',
            'UnsupportedParameters',
            'OptionError',
-           'MissingRequiredOptions']
+           'MissingRequiredOptions')
 
 
 class AuthPluginException(base.ClientException):

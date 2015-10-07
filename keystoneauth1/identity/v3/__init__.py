@@ -18,7 +18,7 @@ from keystoneauth1.identity.v3.token import *  # noqa
 from keystoneauth1.identity.v3.oidc import *  # noqa
 
 
-__all__ = ['Auth',
+__all__ = ('Auth',
            'AuthConstructor',
            'AuthMethod',
            'BaseAuth',
@@ -34,4 +34,4 @@ __all__ = ['Auth',
            'TokenMethod'
 
            'OidcAuthorizationCode',
-           'OidcPassword']
+           'OidcPassword')

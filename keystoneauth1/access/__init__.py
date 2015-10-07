@@ -13,7 +13,7 @@
 from keystoneauth1.access.access import *  # noqa
 
 
-__all__ = ['AccessInfo',
+__all__ = ('AccessInfo',
            'AccessInfoV2',
            'AccessInfoV3',
-           'create']
+           'create')

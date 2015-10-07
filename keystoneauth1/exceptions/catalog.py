@@ -13,9 +13,9 @@
 
 from keystoneauth1.exceptions import base
 
-__all__ = ['CatalogException',
+__all__ = ('CatalogException',
            'EmptyCatalog',
-           'EndpointNotFound']
+           'EndpointNotFound')
 
 
 class CatalogException(base.ClientException):
