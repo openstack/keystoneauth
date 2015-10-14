@@ -379,7 +379,7 @@ class AccessInfoV2(AccessInfo):
     _service_catalog_class = service_catalog.ServiceCatalogV2
 
     def has_service_catalog(self):
-        return 'serviceCatalog' in self
+        return 'serviceCatalog' in self._data.get('access', {})
 
     @_missingproperty
     def auth_token(self):
@@ -396,7 +396,7 @@ class AccessInfoV2(AccessInfo):
 
     @_missingproperty
     def issued(self):
-        return self._token['issued_at']
+        return utils.parse_isotime(self._token['issued_at'])
 
     @property
     def _user(self):
@@ -420,7 +420,8 @@ class AccessInfoV2(AccessInfo):
 
     @_missingproperty
     def role_ids(self):
-        return self.get('metadata', {}).get('roles', [])
+        metadata = self._data.get('access', {}).get('metadata', {})
+        return metadata.get('roles', [])
 
     @_missingproperty
     def role_names(self):
@@ -471,7 +472,7 @@ class AccessInfoV2(AccessInfo):
     def trust_id(self):
         return self._trust['id']
 
-    @property
+    @_missingproperty
     def trust_scoped(self):
         return bool(self._trust)
 
