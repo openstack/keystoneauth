@@ -201,3 +201,15 @@ class ConfTests(utils.TestCase):
         plugin_names = set([o.name for o in plugin_opts])
 
         self.assertEqual(plugin_names, loaded_names)
+
+    def test_register_cfg(self):
+        loading.register_auth_conf_options(self.conf_fixture.conf,
+                                           group=self.GROUP)
+
+    def test_common_conf_options(self):
+        opts = loading.get_auth_common_conf_options()
+
+        self.assertEqual(2, len(opts))
+        auth_type = [o for o in opts if o.name == 'auth_type'][0]
+        self.assertEqual(1, len(auth_type.deprecated_opts))
+        self.assertIsInstance(auth_type.deprecated_opts[0], cfg.DeprecatedOpt)
