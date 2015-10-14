@@ -109,6 +109,19 @@ class V2TokenTests(utils.TestCase):
         self.assertEqual(region, service['region'])
         self.assertEqual(endpoint_id, service['id'])
 
+    def test_token_bind(self):
+        name1 = uuid.uuid4().hex
+        data1 = uuid.uuid4().hex
+        name2 = uuid.uuid4().hex
+        data2 = {uuid.uuid4().hex: uuid.uuid4().hex}
+
+        token = fixture.V2Token()
+        token.set_bind(name1, data1)
+        token.set_bind(name2, data2)
+
+        self.assertEqual({name1: data1, name2: data2},
+                         token['access']['token']['bind'])
+
 
 class V3TokenTests(utils.TestCase):
 
@@ -271,3 +284,16 @@ class V3TokenTests(utils.TestCase):
         self.assertEqual(ref_service_providers, token.service_providers)
         self.assertEqual(ref_service_providers,
                          token['token']['service_providers'])
+
+    def test_token_bind(self):
+        name1 = uuid.uuid4().hex
+        data1 = uuid.uuid4().hex
+        name2 = uuid.uuid4().hex
+        data2 = {uuid.uuid4().hex: uuid.uuid4().hex}
+
+        token = fixture.V3Token()
+        token.set_bind(name1, data1)
+        token.set_bind(name2, data2)
+
+        self.assertEqual({name1: data1, name2: data2},
+                         token['token']['bind'])

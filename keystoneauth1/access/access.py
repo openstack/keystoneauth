@@ -369,6 +369,22 @@ class AccessInfo(object):
         """
         raise NotImplementedError()
 
+    @property
+    def bind(self):
+        """Information about external mechanisms the token is bound to.
+
+        If a token is bound to an external authentication mechanism it can only
+        be used in conjunction with that mechanism. For example if bound to a
+        kerberos principal it may only be accepted if there is also kerberos
+        authentication performed on the request.
+
+        :returns: A dictionary or None. The key will be the bind type the value
+                  is a dictionary that is specific to the format of the bind
+                  type. Returns None if there is no bind information in the
+                  token.
+        """
+        raise NotImplementedError()
+
 
 class AccessInfoV2(AccessInfo):
     """An object for encapsulating a raw v2 auth token from identity
@@ -379,14 +395,14 @@ class AccessInfoV2(AccessInfo):
     _service_catalog_class = service_catalog.ServiceCatalogV2
 
     def has_service_catalog(self):
-        return 'serviceCatalog' in self
+        return 'serviceCatalog' in self._data.get('access', {})
 
     @_missingproperty
     def auth_token(self):
         set_token = super(AccessInfoV2, self).auth_token
         return set_token or self._data['access']['token']['id']
 
-    @_missingproperty
+    @property
     def _token(self):
         return self._data['access']['token']
 
@@ -396,7 +412,7 @@ class AccessInfoV2(AccessInfo):
 
     @_missingproperty
     def issued(self):
-        return self._token['issued_at']
+        return utils.parse_isotime(self._token['issued_at'])
 
     @property
     def _user(self):
@@ -420,7 +436,8 @@ class AccessInfoV2(AccessInfo):
 
     @_missingproperty
     def role_ids(self):
-        return self.get('metadata', {}).get('roles', [])
+        metadata = self._data.get('access', {}).get('metadata', {})
+        return metadata.get('roles', [])
 
     @_missingproperty
     def role_names(self):
@@ -471,7 +488,7 @@ class AccessInfoV2(AccessInfo):
     def trust_id(self):
         return self._trust['id']
 
-    @property
+    @_missingproperty
     def trust_scoped(self):
         return bool(self._trust)
 
@@ -542,6 +559,10 @@ class AccessInfoV2(AccessInfo):
     @property
     def service_providers(self):
         return None
+
+    @_missingproperty
+    def bind(self):
+        return self._token['bind']
 
 
 class AccessInfoV3(AccessInfo):
@@ -707,3 +728,7 @@ class AccessInfoV3(AccessInfo):
                 service_providers.ServiceProviders.from_token(self._data))
 
         return self._service_providers
+
+    @_missingproperty
+    def bind(self):
+        return self._data['token']['bind']
