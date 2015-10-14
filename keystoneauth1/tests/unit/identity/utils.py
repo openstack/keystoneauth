@@ -126,3 +126,49 @@ class GenericPluginTestCase(utils.TestCase):
         # make a v4 entry that's mostly the same as a v3
         self.stub_discovery(v2=False, v3_id='v4.0')
         self.assertDiscoveryFailure()
+
+    def test_default_domain_id_with_v3(self, **kwargs):
+        self.stub_discovery()
+        project_name = uuid.uuid4().hex
+        default_domain_id = kwargs.setdefault('default_domain_id',
+                                              uuid.uuid4().hex)
+
+        p = self.assertCreateV3(project_name=project_name, **kwargs)
+
+        self.assertEqual(default_domain_id, p._plugin.project_domain_id)
+        self.assertEqual(project_name, p._plugin.project_name)
+
+        return p
+
+    def test_default_domain_id_no_v3(self):
+        self.stub_discovery(v3=False)
+        project_name = uuid.uuid4().hex
+        default_domain_id = uuid.uuid4().hex
+
+        p = self.assertCreateV2(project_name=project_name,
+                                default_domain_id=default_domain_id)
+
+        self.assertEqual(project_name, p._plugin.tenant_name)
+
+    def test_default_domain_name_with_v3(self, **kwargs):
+        self.stub_discovery()
+        project_name = uuid.uuid4().hex
+        default_domain_name = kwargs.setdefault('default_domain_name',
+                                                uuid.uuid4().hex)
+
+        p = self.assertCreateV3(project_name=project_name, **kwargs)
+
+        self.assertEqual(default_domain_name, p._plugin.project_domain_name)
+        self.assertEqual(project_name, p._plugin.project_name)
+
+        return p
+
+    def test_default_domain_name_no_v3(self):
+        self.stub_discovery(v3=False)
+        project_name = uuid.uuid4().hex
+        default_domain_name = uuid.uuid4().hex
+
+        p = self.assertCreateV2(project_name=project_name,
+                                default_domain_name=default_domain_name)
+
+        self.assertEqual(project_name, p._plugin.tenant_name)

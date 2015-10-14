@@ -147,6 +147,16 @@ class BaseGenericLoader(BaseIdentityLoader):
             opts.Opt('project-domain-name',
                      help='Domain name containing project'),
             opts.Opt('trust-id', help='Trust ID'),
+            opts.Opt('default-domain-id',
+                     help='Optional domain ID to use with v3 and v2 '
+                          'parameters. It will be used for both the user '
+                          'and project domain in v3 and ignored in '
+                          'v2 authentication.'),
+            opts.Opt('default-domain-name',
+                     help='Optional domain name to use with v3 API and v2 '
+                          'parameters. It will be used for both the user '
+                          'and project domain in v3 and ignored in '
+                          'v2 authentication.'),
         ])
 
         return options

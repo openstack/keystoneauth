@@ -53,3 +53,21 @@ class PasswordTests(utils.GenericPluginTestCase):
     def test_symbols(self):
         self.assertIs(v3.Password, v3_password.Password)
         self.assertIs(v3.PasswordMethod, v3_password.PasswordMethod)
+
+    def test_default_domain_id_with_v3(self):
+        default_domain_id = uuid.uuid4().hex
+
+        p = super(PasswordTests, self).test_default_domain_id_with_v3(
+            default_domain_id=default_domain_id)
+
+        self.assertEqual(default_domain_id,
+                         p._plugin.auth_methods[0].user_domain_id)
+
+    def test_default_domain_name_with_v3(self):
+        default_domain_name = uuid.uuid4().hex
+
+        p = super(PasswordTests, self).test_default_domain_name_with_v3(
+            default_domain_name=default_domain_name)
+
+        self.assertEqual(default_domain_name,
+                         p._plugin.auth_methods[0].user_domain_name)

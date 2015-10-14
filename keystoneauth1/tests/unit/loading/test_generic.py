@@ -37,7 +37,10 @@ class PasswordTests(utils.TestCase):
                         'project-domain-id',
                         'project-domain-name',
                         'trust-id',
-                        'auth-url']
+                        'auth-url',
+                        'default-domain-id',
+                        'default-domain-name',
+                        ]
 
         self.assertEqual(set(allowed_opts), set(opts))
         self.assertEqual(len(allowed_opts), len(opts))
@@ -74,7 +77,10 @@ class TokenTests(utils.TestCase):
                         'project-domain-id',
                         'project-domain-name',
                         'trust-id',
-                        'auth-url']
+                        'auth-url',
+                        'default-domain-id',
+                        'default-domain-name',
+                        ]
 
         self.assertEqual(set(allowed_opts), set(opts))
         self.assertEqual(len(allowed_opts), len(opts))
