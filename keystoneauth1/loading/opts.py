@@ -63,7 +63,7 @@ class Opt(object):
                               "you need to import it into your application's "
                               "requirements file. ")
 
-        deprecated_opts = [o._to_oslo_opt() for o in self.deprecated]
+        deprecated_opts = [cfg.DeprecatedOpt(o.name) for o in self.deprecated]
 
         return cfg.Opt(name=self.name,
                        type=self.type,
