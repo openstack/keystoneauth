@@ -62,6 +62,7 @@ class AccessV3Test(utils.TestCase):
         self.assertEqual(auth_ref.audit_id, token.audit_id)
         self.assertIsNone(auth_ref.audit_chain_id)
         self.assertIsNone(token.audit_chain_id)
+        self.assertIsNone(auth_ref.bind)
 
     def test_will_expire_soon(self):
         expires = timeutils.utcnow() + datetime.timedelta(minutes=5)
@@ -184,3 +185,13 @@ class AccessV3Test(utils.TestCase):
         token.set_project_scope()
         auth_ref = access.create(body=token)
         self.assertFalse(auth_ref.is_federated)
+
+    def test_binding(self):
+        token = fixture.V3Token()
+        principal = uuid.uuid4().hex
+        token.set_bind('kerberos', principal)
+
+        auth_ref = access.create(body=token)
+        self.assertIsInstance(auth_ref, access.AccessInfoV3)
+
+        self.assertEqual({'kerberos': principal}, auth_ref.bind)
