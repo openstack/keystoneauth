@@ -12,7 +12,6 @@
 
 from keystoneauth1 import _utils as utils
 from keystoneauth1 import discover
-from keystoneauth1 import exceptions
 from keystoneauth1.identity.generic import base
 from keystoneauth1.identity import v2
 from keystoneauth1.identity import v3
@@ -45,8 +44,7 @@ class Password(base.BaseGenericPlugin):
     def create_plugin(self, session, version, url, raw_status=None):
         if discover.version_match((2,), version):
             if self._user_domain_id or self._user_domain_name:
-                raise exceptions.DiscoveryFailure(
-                    'Cannot use v2 authentication with domain scope')
+                return None
 
             return v2.Password(auth_url=url,
                                user_id=self._user_id,
