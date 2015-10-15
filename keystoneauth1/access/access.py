@@ -229,7 +229,7 @@ class AccessInfo(object):
 
         :returns: bool
         """
-        raise NotImplementedError()
+        return bool(self.project_id)
 
     @property
     def domain_scoped(self):
@@ -473,10 +473,6 @@ class AccessInfoV2(AccessInfo):
             pass
 
     @property
-    def project_scoped(self):
-        return 'tenant' in self._token
-
-    @property
     def domain_scoped(self):
         return False
 
@@ -657,13 +653,6 @@ class AccessInfoV3(AccessInfo):
     @_missingproperty
     def project_name(self):
         return self._project['name']
-
-    @property
-    def project_scoped(self):
-        try:
-            return bool(self._project)
-        except KeyError:
-            return False
 
     @property
     def domain_scoped(self):
