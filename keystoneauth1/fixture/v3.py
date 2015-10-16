@@ -405,6 +405,9 @@ class Token(dict):
         _service_providers.append(sp)
         return sp
 
+    def set_bind(self, name, data):
+        self.root.setdefault('bind', {})[name] = data
+
 
 class V3FederationToken(Token):
     """A V3 Keystone Federation token that can be used for testing.

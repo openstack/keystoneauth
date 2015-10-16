@@ -55,6 +55,7 @@ class AccessV2Test(utils.TestCase):
         self.assertEqual(token.audit_id, auth_ref.audit_id)
         self.assertIsNone(auth_ref.audit_chain_id)
         self.assertIsNone(token.audit_chain_id)
+        self.assertIsNone(auth_ref.bind)
 
     def test_will_expire_soon(self):
         token = fixture.V2Token()
@@ -199,3 +200,13 @@ class AccessV2Test(utils.TestCase):
         self.assertEqual(user_id, auth_ref.trustee_user_id)
 
         self.assertEqual(trust_id, token['access']['trust']['id'])
+
+    def test_binding(self):
+        token = fixture.V2Token()
+        principal = uuid.uuid4().hex
+        token.set_bind('kerberos', principal)
+
+        auth_ref = access.create(body=token)
+        self.assertIsInstance(auth_ref, access.AccessInfoV2)
+
+        self.assertEqual({'kerberos': principal}, auth_ref.bind)
