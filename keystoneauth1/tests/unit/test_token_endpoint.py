@@ -65,3 +65,12 @@ class AdminTokenTest(utils.TestCase):
 
         self.assertIn('token', opt_names)
         self.assertIn('endpoint', opt_names)
+
+    def test_token_endpoint_deprecated_options(self):
+        endpoint_opt = [
+            opt for opt in loader.AdminToken().get_options()
+            if opt.name == 'endpoint'][0]
+
+        opt_names = [opt.name for opt in endpoint_opt.deprecated]
+
+        self.assertEqual(['url'], opt_names)

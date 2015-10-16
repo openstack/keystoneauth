@@ -25,6 +25,7 @@ class AdminToken(loading.BaseLoader):
 
         options.extend([
             loading.Opt('endpoint',
+                        deprecated=[loading.Opt('url')],
                         help='The endpoint that will always be used'),
             loading.Opt('token',
                         secret=True,
