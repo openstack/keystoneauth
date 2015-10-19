@@ -12,24 +12,9 @@
 
 from keystoneauth1 import identity
 from keystoneauth1 import loading
-from keystoneauth1.loading._plugins.identity import base
 
 
-class BaseV2Loader(base.BaseIdentityLoader):
-
-    def get_options(self):
-        options = super(BaseV2Loader, self).get_options()
-
-        options.extend([
-            loading.Opt('tenant-id', help='Tenant ID'),
-            loading.Opt('tenant-name', help='Tenant Name'),
-            loading.Opt('trust-id', help='Trust ID'),
-        ])
-
-        return options
-
-
-class Token(BaseV2Loader):
+class Token(loading.BaseV2Loader):
 
     @property
     def plugin_class(self):
@@ -45,7 +30,7 @@ class Token(BaseV2Loader):
         return options
 
 
-class Password(BaseV2Loader):
+class Password(loading.BaseV2Loader):
 
     @property
     def plugin_class(self):

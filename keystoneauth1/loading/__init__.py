@@ -13,6 +13,7 @@
 from keystoneauth1.loading.base import *  # noqa
 from keystoneauth1.loading import cli
 from keystoneauth1.loading import conf
+from keystoneauth1.loading.identity import *  # noqa
 from keystoneauth1.loading.opts import *  # noqa
 from keystoneauth1.loading import session
 
@@ -39,6 +40,13 @@ __all__ = (
     'get_available_plugin_loaders',
     'get_plugin_loader',
     'PLUGIN_NAMESPACE',
+
+    # loading.identity
+    'BaseIdentityLoader',
+    'BaseV2Loader',
+    'BaseV3Loader',
+    'BaseFederationLoader',
+    'BaseGenericLoader',
 
     # auth cli
     'register_auth_argparse_arguments',

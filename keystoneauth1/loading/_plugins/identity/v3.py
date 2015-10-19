@@ -13,42 +13,9 @@
 from keystoneauth1 import exceptions
 from keystoneauth1 import identity
 from keystoneauth1 import loading
-from keystoneauth1.loading._plugins.identity import base
 
 
-class BaseV3Loader(base.BaseIdentityLoader):
-
-    def get_options(self):
-        options = super(BaseV3Loader, self).get_options()
-
-        options.extend([
-            loading.Opt('domain-id', help='Domain ID to scope to'),
-            loading.Opt('domain-name', help='Domain name to scope to'),
-            loading.Opt('project-id', help='Project ID to scope to'),
-            loading.Opt('project-name', help='Project name to scope to'),
-            loading.Opt('project-domain-id',
-                        help='Domain ID containing project'),
-            loading.Opt('project-domain-name',
-                        help='Domain name containing project'),
-            loading.Opt('trust-id', help='Trust ID'),
-        ])
-
-        return options
-
-    def load_from_options(self, **kwargs):
-        if (kwargs.get('project_name') and
-                not (kwargs.get('project_domain_name') or
-                     kwargs.get('project_domain_id'))):
-            m = "You have provided a project_name. In the V3 identity API a " \
-                "project_name is only unique within a domain so you must " \
-                "also provide either a project_domain_id or " \
-                "project_domain_name."
-            raise exceptions.OptionError(m)
-
-        return super(BaseV3Loader, self).load_from_options(**kwargs)
-
-
-class Password(BaseV3Loader):
+class Password(loading.BaseV3Loader):
 
     @property
     def plugin_class(self):
@@ -82,7 +49,7 @@ class Password(BaseV3Loader):
         return super(Password, self).load_from_options(**kwargs)
 
 
-class Token(BaseV3Loader):
+class Token(loading.BaseV3Loader):
 
     @property
     def plugin_class(self):
@@ -100,22 +67,7 @@ class Token(BaseV3Loader):
         return options
 
 
-class FederatedBase(BaseV3Loader):
-
-    def get_options(self):
-        options = super(FederatedBase, self).get_options()
-
-        options.extend([
-            loading.Opt('identity-provider',
-                        help="Identity Provider's name"),
-            loading.Opt('protocol',
-                        help='Protocol for federated plugin'),
-        ])
-
-        return options
-
-
-class _OpenIDConnectBase(FederatedBase):
+class _OpenIDConnectBase(loading.BaseFederationLoader):
 
     def get_options(self):
         options = super(_OpenIDConnectBase, self).get_options()

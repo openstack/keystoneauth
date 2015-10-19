@@ -12,32 +12,9 @@
 
 from keystoneauth1 import identity
 from keystoneauth1 import loading
-from keystoneauth1.loading._plugins.identity import base
 
 
-class GenericBaseLoader(base.BaseIdentityLoader):
-
-    def get_options(self):
-        options = super(GenericBaseLoader, self).get_options()
-
-        options.extend([
-            loading.Opt('domain-id', help='Domain ID to scope to'),
-            loading.Opt('domain-name', help='Domain name to scope to'),
-            loading.Opt('project-id', help='Project ID to scope to',
-                        deprecated=[loading.Opt('tenant-id')]),
-            loading.Opt('project-name', help='Project name to scope to',
-                        deprecated=[loading.Opt('tenant-name')]),
-            loading.Opt('project-domain-id',
-                        help='Domain ID containing project'),
-            loading.Opt('project-domain-name',
-                        help='Domain name containing project'),
-            loading.Opt('trust-id', help='Trust ID'),
-        ])
-
-        return options
-
-
-class Token(GenericBaseLoader):
+class Token(loading.BaseGenericLoader):
 
     @property
     def plugin_class(self):
@@ -53,7 +30,7 @@ class Token(GenericBaseLoader):
         return options
 
 
-class Password(GenericBaseLoader):
+class Password(loading.BaseGenericLoader):
 
     @property
     def plugin_class(self):
