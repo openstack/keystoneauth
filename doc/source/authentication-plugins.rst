@@ -55,6 +55,8 @@ this V3 defines a number of different
   against a V3 identity service using a username and password.
 - :py:class:`~keystoneauth1.identity.v3.TokenMethod`: Authenticate against
   a V3 identity service using an existing token.
+- :py:class:`~keystoneauth1.extras.kerberos.KerberosMethod`: Authenticate
+  against a V3 identity service using Kerberos.
 
 The :py:class:`~keystoneauth1.identity.v3.AuthMethod` objects are then
 passed to the :py:class:`~keystoneauth1.identity.v3.Auth` plugin::
@@ -78,6 +80,8 @@ like the V2 plugins:
   only a :py:class:`~keystoneauth1.identity.v3.PasswordMethod`.
 - :py:class:`~keystoneauth1.identity.v3.Token`: Authenticate using only a
   :py:class:`~keystoneauth1.identity.v3.TokenMethod`.
+- :py:class:`~keystoneauth1.extras.kerberos.Kerberos`: Authenticate using
+  only a :py:class:`~keystoneauth1.extras.kerberos.KerberosMethod`.
 
 ::
 
