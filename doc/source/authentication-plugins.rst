@@ -28,39 +28,39 @@ V2 Identity Plugins
 -------------------
 
 Standard V2 identity plugins are defined in the module:
-:py:mod:`keystoneauth1.auth.identity.v2`
+:py:mod:`keystoneauth1.identity.v2`
 
 They include:
 
-- :py:class:`~keystoneauth1.auth.identity.v2.Password`: Authenticate against
+- :py:class:`~keystoneauth1.identity.v2.Password`: Authenticate against
   a V2 identity service using a username and password.
-- :py:class:`~keystoneauth1.auth.identity.v2.Token`: Authenticate against a
+- :py:class:`~keystoneauth1.identity.v2.Token`: Authenticate against a
   V2 identity service using an existing token.
 
-V2 identity plugins must use an auth_url that points to the root of a V2
+V2 identity plugins must use an `auth_url` that points to the root of a V2
 identity server URL, i.e.: `http://hostname:5000/v2.0`.
 
 V3 Identity Plugins
 -------------------
 
 Standard V3 identity plugins are defined in the module
-:py:mod:`keystoneauth1.auth.identity.v3`.
+:py:mod:`keystoneauth1.identity.v3`.
 
 V3 Identity plugins are slightly different from their V2 counterparts as a V3
 authentication request can contain multiple authentication methods.  To handle
 this V3 defines a number of different
-:py:class:`~keystoneauth1.auth.identity.v3.AuthMethod` classes:
+:py:class:`~keystoneauth1.identity.v3.AuthMethod` classes:
 
-- :py:class:`~keystoneauth1.auth.identity.v3.PasswordMethod`: Authenticate
+- :py:class:`~keystoneauth1.identity.v3.PasswordMethod`: Authenticate
   against a V3 identity service using a username and password.
-- :py:class:`~keystoneauth1.auth.identity.v3.TokenMethod`: Authenticate against
-  a V2 identity service using an existing token.
+- :py:class:`~keystoneauth1.identity.v3.TokenMethod`: Authenticate against
+  a V3 identity service using an existing token.
 
-The :py:class:`~keystoneauth1.auth.identity.v3.AuthMethod` objects are then
-passed to the :py:class:`~keystoneauth1.auth.identity.v3.Auth` plugin::
+The :py:class:`~keystoneauth1.identity.v3.AuthMethod` objects are then
+passed to the :py:class:`~keystoneauth1.identity.v3.Auth` plugin::
 
     >>> from keystoneauth1 import session
-    >>> from keystoneauth1.auth.identity import v3
+    >>> from keystoneauth1.identity import v3
     >>> password = v3.PasswordMethod(username='user',
     ...                              password='password')
     >>> auth = v3.Auth(auth_url='http://my.keystone.com:5000/v3',
@@ -69,15 +69,15 @@ passed to the :py:class:`~keystoneauth1.auth.identity.v3.Auth` plugin::
     >>> sess = session.Session(auth=auth)
 
 As in the majority of cases you will only want to use one
-:py:class:`~keystoneauth1.auth.identity.v3.AuthMethod` there are also helper
+:py:class:`~keystoneauth1.identity.v3.AuthMethod` there are also helper
 authentication plugins for the various
-:py:class:`~keystoneauth1.auth.identity.v3.AuthMethod` which can be used more
+:py:class:`~keystoneauth1.identity.v3.AuthMethod` which can be used more
 like the V2 plugins:
 
-- :py:class:`~keystoneauth1.auth.identity.v3.Password`: Authenticate using
-  only a :py:class:`~keystoneauth1.auth.identity.v3.PasswordMethod`.
-- :py:class:`~keystoneauth1.auth.identity.v3.Token`: Authenticate using only a
-  :py:class:`~keystoneauth1.auth.identity.v3.TokenMethod`.
+- :py:class:`~keystoneauth1.identity.v3.Password`: Authenticate using
+  only a :py:class:`~keystoneauth1.identity.v3.PasswordMethod`.
+- :py:class:`~keystoneauth1.identity.v3.Token`: Authenticate using only a
+  :py:class:`~keystoneauth1.identity.v3.TokenMethod`.
 
 ::
 
@@ -88,16 +88,16 @@ like the V2 plugins:
     >>> sess = session.Session(auth=auth)
 
 This will have exactly the same effect as using the single
-:py:class:`~keystoneauth1.auth.identity.v3.PasswordMethod` above.
+:py:class:`~keystoneauth1.identity.v3.PasswordMethod` above.
 
-V3 identity plugins must use an auth_url that points to the root of a V3
+V3 identity plugins must use an `auth_url` that points to the root of a V3
 identity server URL, i.e.: `http://hostname:5000/v3`.
 
 Version Independent Identity Plugins
 ------------------------------------
 
 Standard version independent identity plugins are defined in the module
-:py:mod:`keystoneauth1.auth.identity.generic`.
+:py:mod:`keystoneauth1.identity.generic`.
 
 For the cases of plugins that exist under both the identity V2 and V3 APIs
 there is an abstraction to allow the plugin to determine which of the V2 and V3
@@ -105,9 +105,9 @@ APIs are supported by the server and use the most appropriate API.
 
 These plugins are:
 
-- :py:class:`~keystoneauth1.auth.identity.generic.Password`: Authenticate
+- :py:class:`~keystoneauth1.identity.generic.Password`: Authenticate
   using a user/password against either v2 or v3 API.
-- :py:class:`~keystoneauth1.auth.identity.generic.Token`: Authenticate using
+- :py:class:`~keystoneauth1.identity.generic.Token`: Authenticate using
   an existing token against either v2 or v3 API.
 
 These plugins work by first querying the identity server to determine available
@@ -124,7 +124,7 @@ same provided token and endpoint is available. This is useful in situations
 where you have an ``ADMIN_TOKEN`` or in testing when you specifically know the
 endpoint you want to communicate with.
 
-It can be found at :py:class:`keystoneauth1.auth.token_endpoint.Token`.
+It can be found at :py:class:`keystoneauth1.token_endpoint.Token`.
 
 
 V3 OAuth 1.0a Plugins
@@ -155,12 +155,12 @@ possible to specify a plugin to load via name. The authentication options that
 are available are then specific to the plugin that you specified. Currently the
 authentication plugins that are available in `keystoneauth` are:
 
-- password: :py:class:`keystoneauth1.auth.identity.generic.Password`
-- token: :py:class:`keystoneauth1.auth.identity.generic.Token`
-- v2password: :py:class:`keystoneauth1.auth.identity.v2.Password`
-- v2token: :py:class:`keystoneauth1.auth.identity.v2.Token`
-- v3password: :py:class:`keystoneauth1.auth.identity.v3.Password`
-- v3token: :py:class:`keystoneauth1.auth.identity.v3.Token`
+- password: :py:class:`keystoneauth1.identity.generic.Password`
+- token: :py:class:`keystoneauth1.identity.generic.Token`
+- v2password: :py:class:`keystoneauth1.identity.v2.Password`
+- v2token: :py:class:`keystoneauth1.identity.v2.Token`
+- v3password: :py:class:`keystoneauth1.identity.v3.Password`
+- v3token: :py:class:`keystoneauth1.identity.v3.Token`
 
 
 Creating Authentication Plugins
@@ -175,51 +175,51 @@ for the existing Identity mechanisms. As the V2 identity API is essentially
 frozen, it is expected that new plugins are for the V3 API.
 
 To implement a new V3 plugin that can be combined with others you should
-implement the base :py:class:`keystoneauth1.auth.identity.v3.AuthMethod` class
+implement the base :py:class:`keystoneauth1.identity.v3.AuthMethod` class
 and implement the
-:py:meth:`~keystoneauth1.auth.identity.v3.AuthMethod.get_auth_data` function.
+:py:meth:`~keystoneauth1.identity.v3.AuthMethod.get_auth_data` function.
 If your Plugin cannot be used in conjunction with existing
-:py:class:`keystoneauth1.auth.identity.v3.AuthMethod` then you should just
-override :py:class:`keystoneauth1.auth.identity.v3.Auth` directly.
+:py:class:`keystoneauth1.identity.v3.AuthMethod` then you should just
+override :py:class:`keystoneauth1.identity.v3.Auth` directly.
 
-The new :py:class:`~keystoneauth1.auth.identity.v3.AuthMethod` should take all
+The new :py:class:`~keystoneauth1.identity.v3.AuthMethod` should take all
 the required parameters via
-:py:meth:`~keystoneauth1.auth.identity.v3.AuthMethod.__init__` and return from
-:py:meth:`~keystoneauth1.auth.identity.v3.AuthMethod.get_auth_data` a tuple
+:py:meth:`~keystoneauth1.identity.v3.AuthMethod.__init__` and return from
+:py:meth:`~keystoneauth1.identity.v3.AuthMethod.get_auth_data` a tuple
 with the unique identifier of this plugin (e.g. *password*) and a dictionary
 containing the payload of values to send to the authentication server. The
 session, calling auth object and request headers are also passed to this
 function so that the plugin may use or manipulate them.
 
 You should also provide a class that inherits from
-:py:class:`keystoneauth1.auth.identity.v3.Auth` with an instance of your new
-:py:class:`~keystoneauth1.auth.identity.v3.AuthMethod` as the `auth_methods`
-parameter to :py:class:`keystoneauth1.auth.identity.v3.Auth`.
+:py:class:`keystoneauth1.identity.v3.Auth` with an instance of your new
+:py:class:`~keystoneauth1.identity.v3.AuthMethod` as the `auth_methods`
+parameter to :py:class:`keystoneauth1.identity.v3.Auth`.
 
 By convention (and like above) these are named `PluginType` and
 `PluginTypeMethod` (for example
-:py:class:`~keystoneauth1.auth.identity.v3.Password` and
-:py:class:`~keystoneauth1.auth.identity.v3.PasswordMethod`).
+:py:class:`~keystoneauth1.identity.v3.Password` and
+:py:class:`~keystoneauth1.identity.v3.PasswordMethod`).
 
 
 Creating a Custom Plugin
 ------------------------
 
 To implement an entirely new plugin you should implement the base class
-:py:class:`keystoneauth1.auth.base.BaseAuthPlugin` and provide the
-:py:meth:`~keystoneauth1.auth.base.BaseAuthPlugin.get_endpoint`,
-:py:meth:`~keystoneauth1.auth.base.BaseAuthPlugin.get_token` and
-:py:meth:`~keystoneauth1.auth.base.BaseAuthPlugin.invalidate` functions.
+:py:class:`keystoneauth1.plugin.BaseAuthPlugin` and provide the
+:py:meth:`~keystoneauth1.plugin.BaseAuthPlugin.get_endpoint`,
+:py:meth:`~keystoneauth1.plugin.BaseAuthPlugin.get_token` and
+:py:meth:`~keystoneauth1.plugin.BaseAuthPlugin.invalidate` methods.
 
-:py:meth:`~keystoneauth1.auth.base.BaseAuthPlugin.get_token` is called to
-retrieve the string token from a plugin. It is intended that a plugin will
-cache a received token and so if the token is still valid then it should be
-re-used rather than fetching a new one. A session object is provided with which
-the plugin can contact it's server. (Note: use `authenticated=False` when
-making those requests or it will end up being called recursively). The return
-value should be the token as a string.
+:py:meth:`~keystoneauth1.plugin.BaseAuthPlugin.get_token` is called to retrieve
+the string token from a plugin. It is intended that a plugin will cache a
+received token and so if the token is still valid then it should be re-used
+rather than fetching a new one. A session object is provided with which the
+plugin can contact it's server. (Note: use `authenticated=False` when making
+those requests or it will end up being called recursively). The return value
+should be the token as a string.
 
-:py:meth:`~keystoneauth1.auth.base.BaseAuthPlugin.get_endpoint` is called to
+:py:meth:`~keystoneauth1.plugin.BaseAuthPlugin.get_endpoint` is called to
 determine a base URL for a particular service's requests. The keyword arguments
 provided to the function are those that are given by the `endpoint_filter`
 variable in :py:meth:`keystoneauth1.session.Session.request`. A session object
@@ -228,10 +228,10 @@ the endpoint.  Again this will be generally be called once per request and so
 it is up to the plugin to cache these responses if appropriate. The return
 value should be the base URL to communicate with.
 
-:py:meth:`~keystoneauth1.auth.base.BaseAuthPlugin.invalidate` should also be
+:py:meth:`~keystoneauth1.plugin.BaseAuthPlugin.invalidate` should also be
 implemented to clear the current user credentials so that on the next
-:py:meth:`~keystoneauth1.auth.base.BaseAuthPlugin.get_token` call a new token
-can be retrieved.
+:py:meth:`~keystoneauth1.plugin.BaseAuthPlugin.get_token` call a new token can
+be retrieved.
 
 The most simple example of a plugin is the
-:py:class:`keystoneauth1.auth.token_endpoint.Token` plugin.
+:py:class:`keystoneauth1.token_endpoint.Token` plugin.
