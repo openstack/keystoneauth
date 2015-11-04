@@ -13,6 +13,9 @@ Contents:
 
    using-sessions
    authentication-plugins
+
+   extras
+
    api/modules
 
 Release Notes
