@@ -36,8 +36,15 @@ def saml_assertion(**kwargs):
     return template('saml_assertion.xml', **kwargs).encode('utf-8')
 
 
+def authn_request(**kwargs):
+    kwargs.setdefault('issuer',
+                      'https://openstack4.local/Shibboleth.sso/SAML2/ECP')
+    return template('authn_request.xml', **kwargs).encode('utf-8')
+
+
 SP_SOAP_RESPONSE = soap_response()
 SAML2_ASSERTION = saml_assertion()
+AUTHN_REQUEST = authn_request()
 
 UNSCOPED_TOKEN_HEADER = 'UNSCOPED_TOKEN'
 

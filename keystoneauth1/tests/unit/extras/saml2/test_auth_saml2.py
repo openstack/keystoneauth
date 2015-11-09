@@ -10,255 +10,281 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import base64
 import uuid
 
-from lxml import etree
+import requests
 
 from keystoneauth1 import exceptions
 from keystoneauth1.extras import _saml2 as saml2
+from keystoneauth1 import fixture as ksa_fixtures
+from keystoneauth1 import session
 from keystoneauth1.tests.unit.extras.saml2 import fixtures as saml2_fixtures
 from keystoneauth1.tests.unit.extras.saml2 import utils
 from keystoneauth1.tests.unit import matchers
 
+PAOS_HEADER = {'Content-Type': 'application/vnd.paos+xml'}
+InvalidResponse = saml2.v3.saml2.InvalidResponse
 
-class AuthenticateviaSAML2Tests(utils.TestCase):
 
-    GROUP = 'auth'
-    TEST_TOKEN = uuid.uuid4().hex
+class SamlAuth2PluginTests(utils.TestCase):
+    """These test ONLY the standalone requests auth plugin.
 
-    def setUp(self):
-        super(AuthenticateviaSAML2Tests, self).setUp()
+    Tests for the auth plugin are later so that hopefully these can be
+    extracted into it's own module.
+    """
 
-        self.ECP_SP_EMPTY_REQUEST_HEADERS = {
-            'Accept': 'text/html; application/vnd.paos+xml',
-            'PAOS': ('ver="urn:liberty:paos:2003-08";'
-                     '"urn:oasis:names:tc:SAML:2.0:profiles:SSO:ecp"')
-        }
+    TEST_USER = 'user'
+    TEST_PASS = 'pass'
+    TEST_SP_URL = 'http://sp.test'
+    TEST_IDP_URL = 'http://idp.test'
+    TEST_CONSUMER_URL = "https://openstack4.local/Shibboleth.sso/SAML2/ECP"
 
-        self.ECP_SP_SAML2_REQUEST_HEADERS = {
-            'Content-Type': 'application/vnd.paos+xml'
-        }
+    def get_plugin(self, **kwargs):
+        kwargs.setdefault('identity_provider_url', self.TEST_IDP_URL)
+        kwargs.setdefault('requests_auth', (self.TEST_USER, self.TEST_PASS))
+        return saml2.v3.saml2._SamlAuth(**kwargs)
 
-        self.ECP_SAML2_NAMESPACES = {
-            'ecp': 'urn:oasis:names:tc:SAML:2.0:profiles:SSO:ecp',
-            'S': 'http://schemas.xmlsoap.org/soap/envelope/',
-            'paos': 'urn:liberty:paos:2003-08'
-        }
-        self.ECP_RELAY_STATE = '//ecp:RelayState'
-        self.ECP_SERVICE_PROVIDER_CONSUMER_URL = ('/S:Envelope/S:Header/paos:'
-                                                  'Request/'
-                                                  '@responseConsumerURL')
-        self.ECP_IDP_CONSUMER_URL = ('/S:Envelope/S:Header/ecp:Response/'
-                                     '@AssertionConsumerServiceURL')
+    @property
+    def calls(self):
+        return [r.url.strip('/') for r in self.requests_mock.request_history]
 
-        self.IDENTITY_PROVIDER = 'testidp'
-        self.IDENTITY_PROVIDER_URL = 'http://local.url'
-        self.PROTOCOL = 'saml2'
-        self.FEDERATION_AUTH_URL = '%s/%s' % (
-            self.TEST_URL,
-            'OS-FEDERATION/identity_providers/testidp/protocols/saml2/auth')
-        self.SHIB_CONSUMER_URL = ('https://openstack4.local/'
-                                  'Shibboleth.sso/SAML2/ECP')
+    def basic_header(self, username=TEST_USER, password=TEST_PASS):
+        user_pass = ('%s:%s' % (username, password)).encode('utf-8')
+        return 'Basic %s' % base64.b64encode(user_pass).decode('utf-8')
 
-        self.saml2plugin = saml2.V3Saml2Password(
-            self.TEST_URL,
-            self.IDENTITY_PROVIDER, self.IDENTITY_PROVIDER_URL,
-            self.TEST_USER, self.TEST_TOKEN, self.PROTOCOL)
+    def test_passed_when_not_200(self):
+        text = uuid.uuid4().hex
+        test_url = 'http://another.test'
+        self.requests_mock.get(test_url,
+                               status_code=201,
+                               headers=PAOS_HEADER,
+                               text=text)
 
-    def test_initial_sp_call(self):
-        """Test initial call, expect SOAP message."""
-        self.requests_mock.get(
-            self.FEDERATION_AUTH_URL,
-            content=utils.make_oneline(saml2_fixtures.SP_SOAP_RESPONSE))
-        a = self.saml2plugin._send_service_provider_request(self.session)
+        resp = requests.get(test_url, auth=self.get_plugin())
+        self.assertEqual(201, resp.status_code)
+        self.assertEqual(text, resp.text)
 
-        self.assertFalse(a)
+    def test_200_without_paos_header(self):
+        text = uuid.uuid4().hex
+        test_url = 'http://another.test'
+        self.requests_mock.get(test_url, status_code=200, text=text)
 
-        sp_soap_response = etree.tostring(self.saml2plugin.saml2_authn_request)
+        resp = requests.get(test_url, auth=self.get_plugin())
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual(text, resp.text)
 
-        self.assertThat(saml2_fixtures.SP_SOAP_RESPONSE,
-                        matchers.XMLEquals(sp_soap_response))
+    def test_standard_workflow_302_redirect(self):
+        text = uuid.uuid4().hex
 
-        self.assertEqual(
-            self.saml2plugin.sp_response_consumer_url, self.SHIB_CONSUMER_URL,
-            "Expected consumer_url set to %s instead of %s" % (
-                self.SHIB_CONSUMER_URL,
-                str(self.saml2plugin.sp_response_consumer_url)))
+        self.requests_mock.get(self.TEST_SP_URL, response_list=[
+            dict(headers=PAOS_HEADER,
+                 content=utils.make_oneline(saml2_fixtures.SP_SOAP_RESPONSE)),
+            dict(text=text)
+        ])
 
-    def test_initial_sp_call_when_saml_authenticated(self):
-        self.requests_mock.get(
-            self.FEDERATION_AUTH_URL,
-            json=saml2_fixtures.UNSCOPED_TOKEN,
-            headers={'X-Subject-Token': saml2_fixtures.UNSCOPED_TOKEN_HEADER})
+        authm = self.requests_mock.post(self.TEST_IDP_URL,
+                                        content=saml2_fixtures.SAML2_ASSERTION)
 
-        a = self.saml2plugin._send_service_provider_request(self.session)
-        self.assertTrue(a)
-        self.assertEqual(
-            saml2_fixtures.UNSCOPED_TOKEN['token'],
-            self.saml2plugin.authenticated_response.json()['token'])
-        self.assertEqual(
-            saml2_fixtures.UNSCOPED_TOKEN_HEADER,
-            self.saml2plugin.authenticated_response.headers['X-Subject-Token'])
+        self.requests_mock.post(
+            self.TEST_CONSUMER_URL,
+            status_code=302,
+            headers={'Location': self.TEST_SP_URL})
 
-    def test_get_unscoped_token_when_authenticated(self):
-        self.requests_mock.get(
-            self.FEDERATION_AUTH_URL,
-            json=saml2_fixtures.UNSCOPED_TOKEN,
-            headers={'X-Subject-Token': saml2_fixtures.UNSCOPED_TOKEN_HEADER,
-                     'Content-Type': 'application/json'})
+        resp = requests.get(self.TEST_SP_URL, auth=self.get_plugin())
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual(text, resp.text)
 
-        token = self.saml2plugin.get_auth_ref(self.session)
+        self.assertEqual(self.calls, [self.TEST_SP_URL,
+                                      self.TEST_IDP_URL,
+                                      self.TEST_CONSUMER_URL,
+                                      self.TEST_SP_URL])
 
-        self.assertEqual(saml2_fixtures.UNSCOPED_TOKEN_HEADER,
-                         token.auth_token)
+        self.assertEqual(self.basic_header(),
+                         authm.last_request.headers['Authorization'])
+
+        authn_request = self.requests_mock.request_history[1].text
+        self.assertThat(saml2_fixtures.AUTHN_REQUEST,
+                        matchers.XMLEquals(authn_request))
+
+    def test_standard_workflow_303_redirect(self):
+        text = uuid.uuid4().hex
+
+        self.requests_mock.get(self.TEST_SP_URL, response_list=[
+            dict(headers=PAOS_HEADER,
+                 content=utils.make_oneline(saml2_fixtures.SP_SOAP_RESPONSE)),
+            dict(text=text)
+        ])
+
+        authm = self.requests_mock.post(self.TEST_IDP_URL,
+                                        content=saml2_fixtures.SAML2_ASSERTION)
+
+        self.requests_mock.post(
+            self.TEST_CONSUMER_URL,
+            status_code=303,
+            headers={'Location': self.TEST_SP_URL})
+
+        resp = requests.get(self.TEST_SP_URL, auth=self.get_plugin())
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual(text, resp.text)
+
+        url_flow = [self.TEST_SP_URL,
+                    self.TEST_IDP_URL,
+                    self.TEST_CONSUMER_URL,
+                    self.TEST_SP_URL]
+
+        self.assertEqual(url_flow, [r.url.rstrip('/') for r in resp.history])
+        self.assertEqual(url_flow, self.calls)
+
+        self.assertEqual(self.basic_header(),
+                         authm.last_request.headers['Authorization'])
+
+        authn_request = self.requests_mock.request_history[1].text
+        self.assertThat(saml2_fixtures.AUTHN_REQUEST,
+                        matchers.XMLEquals(authn_request))
 
     def test_initial_sp_call_invalid_response(self):
         """Send initial SP HTTP request and receive wrong server response."""
-        self.requests_mock.get(self.FEDERATION_AUTH_URL,
+        self.requests_mock.get(self.TEST_SP_URL,
+                               headers=PAOS_HEADER,
                                text='NON XML RESPONSE')
 
-        self.assertRaises(
-            exceptions.AuthorizationFailure,
-            self.saml2plugin._send_service_provider_request,
-            self.session)
+        self.assertRaises(InvalidResponse,
+                          requests.get,
+                          self.TEST_SP_URL,
+                          auth=self.get_plugin())
 
-    def test_send_authn_req_to_idp(self):
-        self.requests_mock.post(self.IDENTITY_PROVIDER_URL,
-                                content=saml2_fixtures.SAML2_ASSERTION)
+        self.assertEqual(self.calls, [self.TEST_SP_URL])
 
-        self.saml2plugin.sp_response_consumer_url = self.SHIB_CONSUMER_URL
-        self.saml2plugin.saml2_authn_request = etree.XML(
-            saml2_fixtures.SP_SOAP_RESPONSE)
-        self.saml2plugin._send_idp_saml2_authn_request(self.session)
+    def test_consumer_mismatch_error_workflow(self):
+        consumer1 = 'http://consumer1/Shibboleth.sso/SAML2/ECP'
+        consumer2 = 'http://consumer2/Shibboleth.sso/SAML2/ECP'
+        soap_response = saml2_fixtures.soap_response(consumer=consumer1)
+        saml_assertion = saml2_fixtures.saml_assertion(destination=consumer2)
 
-        idp_response = etree.tostring(
-            self.saml2plugin.saml2_idp_authn_response)
+        self.requests_mock.get(self.TEST_SP_URL,
+                               headers=PAOS_HEADER,
+                               content=soap_response)
 
-        self.assertThat(idp_response,
-                        matchers.XMLEquals(saml2_fixtures.SAML2_ASSERTION))
+        self.requests_mock.post(self.TEST_IDP_URL, content=saml_assertion)
 
-    def test_fail_basicauth_idp_authentication(self):
-        self.requests_mock.post(self.IDENTITY_PROVIDER_URL,
-                                status_code=401)
+        # receive the SAML error, body unchecked
+        saml_error = self.requests_mock.post(consumer1)
 
-        self.saml2plugin.sp_response_consumer_url = self.SHIB_CONSUMER_URL
-        self.saml2plugin.saml2_authn_request = etree.XML(
-            saml2_fixtures.SP_SOAP_RESPONSE)
-        self.assertRaises(
-            exceptions.Unauthorized,
-            self.saml2plugin._send_idp_saml2_authn_request,
-            self.session)
+        self.assertRaises(saml2.v3.saml2.ConsumerMismatch,
+                          requests.get,
+                          self.TEST_SP_URL,
+                          auth=self.get_plugin())
 
-    def test_mising_username_password_in_plugin(self):
-        self.assertRaises(TypeError,
-                          saml2.V3Saml2Password,
-                          self.TEST_URL, self.IDENTITY_PROVIDER,
-                          self.IDENTITY_PROVIDER_URL)
+        self.assertTrue(saml_error.called)
 
-    def test_send_authn_response_to_sp(self):
-        self.requests_mock.post(
-            self.SHIB_CONSUMER_URL,
-            json=saml2_fixtures.UNSCOPED_TOKEN,
-            headers={'X-Subject-Token': saml2_fixtures.UNSCOPED_TOKEN_HEADER})
 
-        self.saml2plugin.relay_state = etree.XML(
-            saml2_fixtures.SP_SOAP_RESPONSE).xpath(
-            self.ECP_RELAY_STATE, namespaces=self.ECP_SAML2_NAMESPACES)[0]
+class AuthenticateviaSAML2Tests(utils.TestCase):
 
-        self.saml2plugin.saml2_idp_authn_response = etree.XML(
-            saml2_fixtures.SAML2_ASSERTION)
+    TEST_USER = 'user'
+    TEST_PASS = 'pass'
+    TEST_IDP = 'tester'
+    TEST_PROTOCOL = 'saml2'
+    TEST_AUTH_URL = 'http://keystone.test:5000/v3/'
 
-        self.saml2plugin.idp_response_consumer_url = self.SHIB_CONSUMER_URL
-        self.saml2plugin._send_service_provider_saml2_authn_response(
-            self.session)
-        token_json = self.saml2plugin.authenticated_response.json()['token']
-        token = self.saml2plugin.authenticated_response.headers[
-            'X-Subject-Token']
-        self.assertEqual(saml2_fixtures.UNSCOPED_TOKEN['token'],
-                         token_json)
+    TEST_IDP_URL = 'https://idp.test'
+    TEST_CONSUMER_URL = "https://openstack4.local/Shibboleth.sso/SAML2/ECP"
 
-        self.assertEqual(saml2_fixtures.UNSCOPED_TOKEN_HEADER,
-                         token)
+    def get_plugin(self, **kwargs):
+        kwargs.setdefault('auth_url', self.TEST_AUTH_URL)
+        kwargs.setdefault('username', self.TEST_USER)
+        kwargs.setdefault('password', self.TEST_PASS)
+        kwargs.setdefault('identity_provider', self.TEST_IDP)
+        kwargs.setdefault('identity_provider_url', self.TEST_IDP_URL)
+        kwargs.setdefault('protocol', self.TEST_PROTOCOL)
+        return saml2.V3Saml2Password(**kwargs)
 
-    def test_consumer_url_mismatch_success(self):
-        self.saml2plugin._check_consumer_urls(
-            self.session, self.SHIB_CONSUMER_URL,
-            self.SHIB_CONSUMER_URL)
+    def sp_url(self, **kwargs):
+        kwargs.setdefault('base', self.TEST_AUTH_URL.rstrip('/'))
+        kwargs.setdefault('identity_provider', self.TEST_IDP)
+        kwargs.setdefault('protocol', self.TEST_PROTOCOL)
 
-    def test_consumer_url_mismatch(self):
-        self.requests_mock.post(self.SHIB_CONSUMER_URL)
-        invalid_consumer_url = uuid.uuid4().hex
-        self.assertRaises(
-            exceptions.AuthorizationFailure,
-            self.saml2plugin._check_consumer_urls,
-            self.session, self.SHIB_CONSUMER_URL,
-            invalid_consumer_url)
+        templ = ('%(base)s/OS-FEDERATION/identity_providers/'
+                 '%(identity_provider)s/protocols/%(protocol)s/auth')
+        return templ % kwargs
 
-    def test_custom_302_redirection(self):
-        self.requests_mock.post(
-            self.SHIB_CONSUMER_URL,
-            text='BODY',
-            headers={'location': self.FEDERATION_AUTH_URL},
-            status_code=302)
+    @property
+    def calls(self):
+        return [r.url.strip('/') for r in self.requests_mock.request_history]
 
-        self.requests_mock.get(
-            self.FEDERATION_AUTH_URL,
-            json=saml2_fixtures.UNSCOPED_TOKEN,
-            headers={'X-Subject-Token': saml2_fixtures.UNSCOPED_TOKEN_HEADER})
+    def basic_header(self, username=TEST_USER, password=TEST_PASS):
+        user_pass = ('%s:%s' % (username, password)).encode('utf-8')
+        return 'Basic %s' % base64.b64encode(user_pass).decode('utf-8')
 
-        self.session.redirect = False
-        response = self.session.post(
-            self.SHIB_CONSUMER_URL, data='CLIENT BODY')
-        self.assertEqual(302, response.status_code)
-        self.assertEqual(self.FEDERATION_AUTH_URL,
-                         response.headers['location'])
+    def setUp(self):
+        super(AuthenticateviaSAML2Tests, self).setUp()
+        self.session = session.Session()
+        self.default_sp_url = self.sp_url()
 
-        response = self.saml2plugin._handle_http_ecp_redirect(
-            self.session, response, 'GET')
+    def test_workflow(self):
+        token_id = uuid.uuid4().hex
+        token = ksa_fixtures.V3Token()
 
-        self.assertEqual(self.FEDERATION_AUTH_URL, response.request.url)
-        self.assertEqual('GET', response.request.method)
+        self.requests_mock.get(self.default_sp_url, response_list=[
+            dict(headers=PAOS_HEADER,
+                 content=utils.make_oneline(saml2_fixtures.SP_SOAP_RESPONSE)),
+            dict(headers={'X-Subject-Token': token_id}, json=token)
+        ])
 
-    def test_custom_303_redirection(self):
-        self.requests_mock.post(
-            self.SHIB_CONSUMER_URL,
-            text='BODY',
-            headers={'location': self.FEDERATION_AUTH_URL},
-            status_code=303)
-
-        self.requests_mock.get(
-            self.FEDERATION_AUTH_URL,
-            json=saml2_fixtures.UNSCOPED_TOKEN,
-            headers={'X-Subject-Token': saml2_fixtures.UNSCOPED_TOKEN_HEADER})
-
-        self.session.redirect = False
-        response = self.session.post(
-            self.SHIB_CONSUMER_URL, data='CLIENT BODY')
-        self.assertEqual(303, response.status_code)
-        self.assertEqual(self.FEDERATION_AUTH_URL,
-                         response.headers['location'])
-
-        response = self.saml2plugin._handle_http_ecp_redirect(
-            self.session, response, 'GET')
-
-        self.assertEqual(self.FEDERATION_AUTH_URL, response.request.url)
-        self.assertEqual('GET', response.request.method)
-
-    def test_end_to_end_workflow(self):
-        self.requests_mock.get(
-            self.FEDERATION_AUTH_URL,
-            content=utils.make_oneline(saml2_fixtures.SP_SOAP_RESPONSE))
-
-        self.requests_mock.post(self.IDENTITY_PROVIDER_URL,
-                                content=saml2_fixtures.SAML2_ASSERTION)
+        authm = self.requests_mock.post(self.TEST_IDP_URL,
+                                        content=saml2_fixtures.SAML2_ASSERTION)
 
         self.requests_mock.post(
-            self.SHIB_CONSUMER_URL,
-            json=saml2_fixtures.UNSCOPED_TOKEN,
-            headers={'X-Subject-Token': saml2_fixtures.UNSCOPED_TOKEN_HEADER,
-                     'Content-Type': 'application/json'})
+            self.TEST_CONSUMER_URL,
+            status_code=302,
+            headers={'Location': self.sp_url()})
 
-        self.session.redirect = False
-        response = self.saml2plugin.get_auth_ref(self.session)
-        self.assertEqual(saml2_fixtures.UNSCOPED_TOKEN_HEADER,
-                         response.auth_token)
+        auth_ref = self.get_plugin().get_auth_ref(self.session)
+
+        self.assertEqual(token_id, auth_ref.auth_token)
+
+        self.assertEqual(self.calls, [self.default_sp_url,
+                                      self.TEST_IDP_URL,
+                                      self.TEST_CONSUMER_URL,
+                                      self.default_sp_url])
+
+        self.assertEqual(self.basic_header(),
+                         authm.last_request.headers['Authorization'])
+
+        authn_request = self.requests_mock.request_history[1].text
+        self.assertThat(saml2_fixtures.AUTHN_REQUEST,
+                        matchers.XMLEquals(authn_request))
+
+    def test_consumer_mismatch_error_workflow(self):
+        consumer1 = 'http://keystone.test/Shibboleth.sso/SAML2/ECP'
+        consumer2 = 'http://consumer2/Shibboleth.sso/SAML2/ECP'
+
+        soap_response = saml2_fixtures.soap_response(consumer=consumer1)
+        saml_assertion = saml2_fixtures.saml_assertion(destination=consumer2)
+
+        self.requests_mock.get(self.default_sp_url,
+                               headers=PAOS_HEADER,
+                               content=soap_response)
+
+        self.requests_mock.post(self.TEST_IDP_URL, content=saml_assertion)
+
+        # receive the SAML error, body unchecked
+        saml_error = self.requests_mock.post(consumer1)
+
+        self.assertRaises(exceptions.AuthorizationFailure,
+                          self.get_plugin().get_auth_ref,
+                          self.session)
+
+        self.assertTrue(saml_error.called)
+
+    def test_initial_sp_call_invalid_response(self):
+        """Send initial SP HTTP request and receive wrong server response."""
+        self.requests_mock.get(self.default_sp_url,
+                               headers=PAOS_HEADER,
+                               text='NON XML RESPONSE')
+
+        self.assertRaises(exceptions.AuthorizationFailure,
+                          self.get_plugin().get_auth_ref,
+                          self.session)
+
+        self.assertEqual(self.calls, [self.default_sp_url])

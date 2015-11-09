@@ -13,6 +13,8 @@
 from keystoneauth1.extras._saml2.v3 import adfs
 from keystoneauth1.extras._saml2.v3 import saml2
 
+_SAML2_AVAILABLE = saml2.etree is not None
+
 Saml2Password = saml2.Password
 ADFSPassword = adfs.Password
 
