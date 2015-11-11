@@ -63,8 +63,7 @@ __all__ = ('HttpError',
 
 
 class HttpError(base.ClientException):
-    """The base exception class for all HTTP exceptions.
-    """
+    """The base exception class for all HTTP exceptions."""
     http_status = 0
     message = "HTTP Error"
 

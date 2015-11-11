@@ -137,6 +137,7 @@ class OidcPassword(_OidcBase):
                  grant_type='password', access_token_type='access_token',
                  username=None, password=None, scope='profile'):
         """The OpenID Password plugin expects the following:
+
         :param username: Username used to authenticate
         :type username: string
 
@@ -209,6 +210,7 @@ class OidcAuthorizationCode(_OidcBase):
                  access_token_type='access_token',
                  redirect_uri=None, code=None):
         """The OpenID Authorization Code plugin expects the following:
+
         :param redirect_uri: OpenID Connect Client Redirect URL
         :type redirect_uri: string
 
