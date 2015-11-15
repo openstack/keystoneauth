@@ -41,7 +41,9 @@ class BaseGenericPlugin(base.BaseIdentityPlugin):
                  project_domain_name=None,
                  domain_id=None,
                  domain_name=None,
-                 trust_id=None):
+                 trust_id=None,
+                 default_domain_id=None,
+                 default_domain_name=None):
         super(BaseGenericPlugin, self).__init__(auth_url=auth_url)
 
         self._project_id = project_id or tenant_id
@@ -51,6 +53,8 @@ class BaseGenericPlugin(base.BaseIdentityPlugin):
         self._domain_id = domain_id
         self._domain_name = domain_name
         self._trust_id = trust_id
+        self._default_domain_id = default_domain_id
+        self._default_domain_name = default_domain_name
 
         self._plugin = None
 
@@ -94,11 +98,14 @@ class BaseGenericPlugin(base.BaseIdentityPlugin):
     @property
     def _v3_params(self):
         """Parameters that are common to v3 plugins."""
+        pr_domain_id = self._project_domain_id or self._default_domain_id
+        pr_domain_name = self._project_domain_name or self._default_domain_name
+
         return {'trust_id': self._trust_id,
                 'project_id': self._project_id,
                 'project_name': self._project_name,
-                'project_domain_id': self._project_domain_id,
-                'project_domain_name': self._project_domain_name,
+                'project_domain_id': pr_domain_id,
+                'project_domain_name': pr_domain_name,
                 'domain_id': self._domain_id,
                 'domain_name': self._domain_name}
 
@@ -128,7 +135,15 @@ class BaseGenericPlugin(base.BaseIdentityPlugin):
                 plugin = self.create_plugin(session, (3, 0), self.auth_url)
 
         else:
-            disc_data = disc.version_data()
+            # NOTE(jamielennox): version_data is always in oldest to newest
+            # order. This is fine normally because we explicitly skip v2 below
+            # if there is domain data present. With default_domain params
+            # though we want a v3 plugin if available and fall back to v2 so we
+            # have to process in reverse order.  FIXME(jamielennox): if we ever
+            # go for another version we should reverse this logic as we always
+            # want to favour the newest available version.
+            reverse = self._default_domain_id or self._default_domain_name
+            disc_data = disc.version_data(reverse=bool(reverse))
 
             v2_with_domain_scope = False
             for data in disc_data:
