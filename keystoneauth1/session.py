@@ -124,6 +124,17 @@ class Session(object):
 
         self._json = _JSONEncoder()
 
+    @property
+    def adapters(self):
+        return self.session.adapters
+
+    @adapters.setter
+    def adapters(self, value):
+        self.session.adapters = value
+
+    def mount(self, scheme, adapter):
+        self.session.mount(scheme, adapter)
+
     def _remove_service_catalog(self, body):
         try:
             data = json.loads(body)
