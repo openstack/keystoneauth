@@ -20,6 +20,7 @@ from keystoneauth1.extras import _saml2 as saml2
 from keystoneauth1.tests.unit import client_fixtures
 from keystoneauth1.tests.unit.extras.saml2 import fixtures as saml2_fixtures
 from keystoneauth1.tests.unit.extras.saml2 import utils
+from keystoneauth1.tests.unit import matchers
 
 
 class AuthenticateviaADFSTests(utils.TestCase):
@@ -93,7 +94,8 @@ class AuthenticateviaADFSTests(utils.TestCase):
         adfs_response = etree.tostring(self.adfsplugin.adfs_token)
         fixture_response = self.ADFS_SECURITY_TOKEN_RESPONSE
 
-        self.assertEqual(fixture_response, adfs_response)
+        self.assertThat(fixture_response,
+                        matchers.XMLEquals(adfs_response))
 
     def test_adfs_request_user(self):
         self.adfsplugin._prepare_adfs_request()

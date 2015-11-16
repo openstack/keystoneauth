@@ -18,6 +18,7 @@ from keystoneauth1 import exceptions
 from keystoneauth1.extras import _saml2 as saml2
 from keystoneauth1.tests.unit.extras.saml2 import fixtures as saml2_fixtures
 from keystoneauth1.tests.unit.extras.saml2 import utils
+from keystoneauth1.tests.unit import matchers
 
 
 class AuthenticateviaSAML2Tests(utils.TestCase):
@@ -73,16 +74,10 @@ class AuthenticateviaSAML2Tests(utils.TestCase):
 
         self.assertFalse(a)
 
-        fixture_soap_response = utils.make_oneline(
-            saml2_fixtures.SP_SOAP_RESPONSE)
+        sp_soap_response = etree.tostring(self.saml2plugin.saml2_authn_request)
 
-        sp_soap_response = utils.make_oneline(
-            etree.tostring(self.saml2plugin.saml2_authn_request))
-
-        error_msg = "Expected %s instead of %s" % (fixture_soap_response,
-                                                   sp_soap_response)
-
-        self.assertEqual(fixture_soap_response, sp_soap_response, error_msg)
+        self.assertThat(saml2_fixtures.SP_SOAP_RESPONSE,
+                        matchers.XMLEquals(sp_soap_response))
 
         self.assertEqual(
             self.saml2plugin.sp_response_consumer_url, self.SHIB_CONSUMER_URL,
@@ -136,14 +131,11 @@ class AuthenticateviaSAML2Tests(utils.TestCase):
             saml2_fixtures.SP_SOAP_RESPONSE)
         self.saml2plugin._send_idp_saml2_authn_request(self.session)
 
-        idp_response = utils.make_oneline(etree.tostring(
-            self.saml2plugin.saml2_idp_authn_response))
+        idp_response = etree.tostring(
+            self.saml2plugin.saml2_idp_authn_response)
 
-        saml2_assertion_oneline = utils.make_oneline(
-            saml2_fixtures.SAML2_ASSERTION)
-        error = "Expected %s instead of %s" % (saml2_fixtures.SAML2_ASSERTION,
-                                               idp_response)
-        self.assertEqual(idp_response, saml2_assertion_oneline, error)
+        self.assertThat(idp_response,
+                        matchers.XMLEquals(saml2_fixtures.SAML2_ASSERTION))
 
     def test_fail_basicauth_idp_authentication(self):
         self.requests_mock.post(self.IDENTITY_PROVIDER_URL,

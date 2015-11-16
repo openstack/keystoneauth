@@ -27,7 +27,7 @@ def make_oneline(s):
 
 def _load_xml(filename):
     with open(XMLDIR + filename, 'rb') as f:
-        return make_oneline(f.read())
+        return f.read()
 
 
 class TestCase(utils.TestCase):
