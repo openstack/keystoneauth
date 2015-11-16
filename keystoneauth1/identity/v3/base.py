@@ -176,6 +176,29 @@ class Auth(BaseAuth):
         return access.AccessInfoV3(auth_token=resp.headers['X-Subject-Token'],
                                    body=resp_data)
 
+    def get_cache_id_elements(self):
+        if not self.auth_methods:
+            return None
+
+        params = {'auth_url': self.auth_url,
+                  'domain_id': self.domain_id,
+                  'domain_name': self.domain_name,
+                  'project_id': self.project_id,
+                  'project_name': self.project_name,
+                  'project_domain_id': self.project_domain_id,
+                  'project_domain_name': self.project_domain_name,
+                  'trust_id': self.trust_id}
+
+        for method in self.auth_methods:
+            try:
+                elements = method.get_cache_id_elements()
+            except NotImplemented:
+                return None
+
+            params.update(elements)
+
+        return params
+
 
 @six.add_metaclass(abc.ABCMeta)
 class AuthMethod(object):
@@ -219,6 +242,22 @@ class AuthMethod(object):
                  data for the auth type.
         :rtype: tuple(string, dict)
         """
+
+    def get_cache_id_elements(self):
+        """Get the elements for this auth method that make it unique.
+
+        These elements will be used as part of the
+        :py:meth:`keystoneauth1.plugin.BaseIdentityPlugin.get_cache_id` to
+        allow caching of the auth plugin.
+
+        Plugins should override this if they want to allow caching of their
+        state.
+
+        To avoid collision or overrides the keys of the returned dictionary
+        should be prefixed with the plugin identifier. For example the password
+        plugin returns its username value as 'password_username'.
+        """
+        raise NotImplemented()
 
 
 @six.add_metaclass(abc.ABCMeta)

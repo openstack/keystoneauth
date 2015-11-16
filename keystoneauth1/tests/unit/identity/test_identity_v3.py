@@ -11,8 +11,10 @@
 # under the License.
 
 import copy
+import json
 import uuid
 
+from keystoneauth1 import _utils as ksa_utils
 from keystoneauth1 import access
 from keystoneauth1 import exceptions
 from keystoneauth1 import fixture
@@ -560,3 +562,71 @@ class V3IdentityPlugin(utils.TestCase):
         s = session.Session()
 
         self.assertRaises(exceptions.AuthorizationFailure, a.get_auth_ref, s)
+
+    def test_password_cache_id(self):
+        self.stub_auth(json=self.TEST_RESPONSE_DICT)
+        project_name = uuid.uuid4().hex
+
+        a = v3.Password(self.TEST_URL,
+                        username=self.TEST_USER,
+                        password=self.TEST_PASS,
+                        user_domain_id=self.TEST_DOMAIN_ID,
+                        project_domain_name=self.TEST_DOMAIN_NAME,
+                        project_name=project_name)
+
+        b = v3.Password(self.TEST_URL,
+                        username=self.TEST_USER,
+                        password=self.TEST_PASS,
+                        user_domain_id=self.TEST_DOMAIN_ID,
+                        project_domain_name=self.TEST_DOMAIN_NAME,
+                        project_name=project_name)
+
+        a_id = a.get_cache_id()
+        b_id = b.get_cache_id()
+
+        self.assertEqual(a_id, b_id)
+
+        c = v3.Password(self.TEST_URL,
+                        username=self.TEST_USER,
+                        password=self.TEST_PASS,
+                        user_domain_id=self.TEST_DOMAIN_ID,
+                        project_domain_name=self.TEST_DOMAIN_NAME,
+                        project_id=project_name)  # same value different param
+
+        c_id = c.get_cache_id()
+
+        self.assertNotEqual(a_id, c_id)
+
+        self.assertIsNone(a.get_auth_state())
+        self.assertIsNone(b.get_auth_state())
+        self.assertIsNone(c.get_auth_state())
+
+        s = session.Session()
+        self.assertEqual(self.TEST_TOKEN, a.get_token(s))
+        self.assertTrue(self.requests_mock.called)
+
+    def test_password_change_auth_state(self):
+        self.stub_auth(json=self.TEST_RESPONSE_DICT)
+
+        expired = ksa_utils.before_utcnow(days=2)
+        token = fixture.V3Token(expires=expired)
+        token_id = uuid.uuid4().hex
+
+        state = json.dumps({'auth_token': token_id, 'body': token})
+
+        a = v3.Password(self.TEST_URL,
+                        username=self.TEST_USER,
+                        password=self.TEST_PASS,
+                        user_domain_id=self.TEST_DOMAIN_ID,
+                        project_id=uuid.uuid4().hex)
+
+        initial_cache_id = a.get_cache_id()
+
+        self.assertIsNone(a.get_auth_state())
+        a.set_auth_state(state)
+
+        self.assertEqual(token_id, a.auth_ref.auth_token)
+
+        s = session.Session()
+        self.assertEqual(self.TEST_TOKEN, a.get_token(s))  # updates expired
+        self.assertEqual(initial_cache_id, a.get_cache_id())

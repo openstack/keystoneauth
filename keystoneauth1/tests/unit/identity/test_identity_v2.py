@@ -11,9 +11,13 @@
 # under the License.
 
 import copy
+import json
 import uuid
 
+from keystoneauth1 import _utils as ksa_utils
+from keystoneauth1 import access
 from keystoneauth1 import exceptions
+from keystoneauth1 import fixture
 from keystoneauth1.identity import v2
 from keystoneauth1 import session
 from keystoneauth1.tests.unit import utils
@@ -299,3 +303,67 @@ class V2IdentityPlugin(utils.TestCase):
     def test_password_with_no_user_id_or_name(self):
         self.assertRaises(TypeError,
                           v2.Password, self.TEST_URL, password=self.TEST_PASS)
+
+    def test_password_cache_id(self):
+        self.stub_auth(json=self.TEST_RESPONSE_DICT)
+        trust_id = uuid.uuid4().hex
+
+        a = v2.Password(self.TEST_URL,
+                        username=self.TEST_USER,
+                        password=self.TEST_PASS,
+                        trust_id=trust_id)
+
+        b = v2.Password(self.TEST_URL,
+                        username=self.TEST_USER,
+                        password=self.TEST_PASS,
+                        trust_id=trust_id)
+
+        a_id = a.get_cache_id()
+        b_id = b.get_cache_id()
+
+        self.assertEqual(a_id, b_id)
+
+        c = v2.Password(self.TEST_URL,
+                        username=self.TEST_USER,
+                        password=self.TEST_PASS,
+                        tenant_id=trust_id)  # same value different param
+
+        c_id = c.get_cache_id()
+
+        self.assertNotEqual(a_id, c_id)
+
+        self.assertIsNone(a.get_auth_state())
+        self.assertIsNone(b.get_auth_state())
+        self.assertIsNone(c.get_auth_state())
+
+        s = session.Session()
+        self.assertEqual(self.TEST_TOKEN, a.get_token(s))
+        self.assertTrue(self.requests_mock.called)
+
+    def test_password_change_auth_state(self):
+        self.stub_auth(json=self.TEST_RESPONSE_DICT)
+
+        expired = ksa_utils.before_utcnow(days=2)
+        token = fixture.V2Token(expires=expired)
+
+        auth_ref = access.create(body=token)
+
+        a = v2.Password(self.TEST_URL,
+                        username=self.TEST_USER,
+                        password=self.TEST_PASS,
+                        tenant_id=uuid.uuid4().hex)
+
+        initial_cache_id = a.get_cache_id()
+
+        state = a.get_auth_state()
+        self.assertIsNone(state)
+
+        state = json.dumps({'auth_token': auth_ref.auth_token,
+                            'body': auth_ref._data})
+        a.set_auth_state(state)
+
+        self.assertEqual(token.token_id, a.auth_ref.auth_token)
+
+        s = session.Session()
+        self.assertEqual(self.TEST_TOKEN, a.get_token(s))  # updates expired
+        self.assertEqual(initial_cache_id, a.get_cache_id())

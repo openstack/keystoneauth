@@ -11,11 +11,15 @@
 # under the License.
 
 import abc
+import base64
+import hashlib
+import json
 import threading
 
 import six
 
 from keystoneauth1 import _utils as utils
+from keystoneauth1 import access
 from keystoneauth1 import discover
 from keystoneauth1 import exceptions
 from keystoneauth1 import plugin
@@ -305,3 +309,82 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
             session_endpoint_cache[url] = disc
 
         return disc
+
+    def get_cache_id_elements(self):
+        """Get the elements for this auth plugin that make it unique.
+
+        As part of the get_cache_id requirement we need to determine what
+        aspects of this plugin and its values that make up the unique elements.
+
+        This should be overriden by plugins that wish to allow caching.
+
+        :returns: The unique attributes and values of this plugin.
+        :rtype: A flat dict with a str key and str or None value. This is
+                required as we feed these values into a hash. Pairs where the
+                value is None are ignored in the hashed id.
+        """
+        raise NotImplementedError()
+
+    def get_cache_id(self):
+        """Fetch an identifier that uniquely identifies the auth options.
+
+        The returned identifier need not be decomposable or otherwise provide
+        any way to recreate the plugin.
+
+        This string MUST change if any of the parameters that are used to
+        uniquely identity this plugin change. It should not change upon a
+        reauthentication of the plugin.
+
+        :returns: A unique string for the set of options
+        :rtype: str or None if this is unsupported or unavailable.
+        """
+        try:
+            elements = self.get_cache_id_elements()
+        except NotImplementedError:
+            return None
+
+        hasher = hashlib.sha256()
+
+        for k, v in sorted(six.iteritems(elements)):
+            if v is not None:
+                # NOTE(jamielennox): in python3 you need to pass bytes to hash
+                if isinstance(k, six.string_types):
+                    k = k.encode('utf-8')
+                if isinstance(v, six.string_types):
+                    v = v.encode('utf-8')
+
+                hasher.update(k)
+                hasher.update(v)
+
+        return base64.b64encode(hasher.digest()).decode('utf-8')
+
+    def get_auth_state(self):
+        """Retrieve the current authentication state for the plugin.
+
+        Retrieve any internal state that represents the authenticated plugin.
+
+        This should not fetch any new data if it is not present.
+
+        :returns: a string that can be stored or None if there is no auth state
+                  present in the plugin. This string can be reloaded with
+                  set_auth_state to set the same authentication.
+        :rtype: str or None if no auth present.
+        """
+        if self.auth_ref:
+            data = {'auth_token': self.auth_ref.auth_token,
+                    'body': self.auth_ref._data}
+
+            return json.dumps(data)
+
+    def set_auth_state(self, data):
+        """Install existing authentication state for a plugin.
+
+        Take the output of get_auth_state and install that authentication state
+        into the current authentication plugin.
+        """
+        if data:
+            auth_data = json.loads(data)
+            self.auth_ref = access.create(body=auth_data['body'],
+                                          auth_token=auth_data['auth_token'])
+        else:
+            self.auth_ref = None
