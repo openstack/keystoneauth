@@ -96,7 +96,7 @@ class AccessInfo(object):
         return norm_expires < soon
 
     def has_service_catalog(self):
-        """Returns true if the authorization token has a service catalog.
+        """Returns true if the auth token has a service catalog.
 
         :returns: boolean
         """
@@ -104,8 +104,9 @@ class AccessInfo(object):
 
     @property
     def auth_token(self):
-        """Returns the token_id associated with the auth request, to be used
-        in headers for authenticating OpenStack API requests.
+        """Returns the token_id associated with the auth request.
+
+        To be used in headers for authenticating OpenStack API requests.
 
         :returns: str
         """
@@ -129,7 +130,8 @@ class AccessInfo(object):
 
     @property
     def username(self):
-        """Returns the username associated with the authentication request.
+        """Returns the username associated with the auth request.
+
         Follows the pattern defined in the V2 API of first looking for 'name',
         returning that if available, and falling back to 'username' if name
         is unavailable.
@@ -140,7 +142,7 @@ class AccessInfo(object):
 
     @property
     def user_id(self):
-        """Returns the user id associated with the authentication request.
+        """Returns the user id associated with the auth request.
 
         :returns: str
         """
@@ -148,8 +150,7 @@ class AccessInfo(object):
 
     @property
     def user_domain_id(self):
-        """Returns the domain id of the user associated with the authentication
-        request.
+        """Returns the user's domain id associated with the auth request.
 
         :returns: str
         """
@@ -157,8 +158,7 @@ class AccessInfo(object):
 
     @property
     def user_domain_name(self):
-        """Returns the domain name of the user associated with the
-        authentication request.
+        """Returns the user's  domain name associated with the auth request.
 
         :returns: str
         """
@@ -166,8 +166,7 @@ class AccessInfo(object):
 
     @property
     def role_ids(self):
-        """Returns a list of role ids of the user associated with the
-        authentication request.
+        """Returns a list of user's role ids associated with the auth request.
 
         :returns: a list of strings of role ids
         """
@@ -175,8 +174,7 @@ class AccessInfo(object):
 
     @property
     def role_names(self):
-        """Returns a list of role names of the user associated with the
-        authentication request.
+        """Returns a list of user's role names associated with the auth request.
 
         :returns: a list of strings of role names
         """
@@ -184,7 +182,7 @@ class AccessInfo(object):
 
     @property
     def domain_name(self):
-        """Returns the domain name associated with the authentication token.
+        """Returns the domain name associated with the auth request.
 
         :returns: str or None (if no domain associated with the token)
         """
@@ -192,7 +190,7 @@ class AccessInfo(object):
 
     @property
     def domain_id(self):
-        """Returns the domain id associated with the authentication token.
+        """Returns the domain id associated with the auth request.
 
         :returns: str or None (if no domain associated with the token)
         """
@@ -200,7 +198,7 @@ class AccessInfo(object):
 
     @property
     def project_name(self):
-        """Returns the project name associated with the authentication request.
+        """Returns the project name associated with the auth request.
 
         :returns: str or None (if no project associated with the token)
         """
@@ -213,10 +211,12 @@ class AccessInfo(object):
 
     @property
     def scoped(self):
-        """Returns true if the authorization token was scoped to a tenant
-           (project), and contains a populated service catalog.
+        """Returns true if the auth token was scoped.
 
-           This is deprecated, use project_scoped instead.
+        Returns true if scoped to a tenant(project) or domain,
+        and contains a populated service catalog.
+
+        This is deprecated, use project_scoped instead.
 
         :returns: bool
         """
@@ -224,8 +224,7 @@ class AccessInfo(object):
 
     @property
     def project_scoped(self):
-        """Returns true if the authorization token was scoped to a tenant
-           (project).
+        """Returns true if the auth token was scoped to a tenant(project).
 
         :returns: bool
         """
@@ -233,7 +232,7 @@ class AccessInfo(object):
 
     @property
     def domain_scoped(self):
-        """Returns true if the authorization token was scoped to a domain.
+        """Returns true if the auth token was scoped to a domain.
 
         :returns: bool
         """
@@ -241,7 +240,7 @@ class AccessInfo(object):
 
     @property
     def trust_id(self):
-        """Returns the trust id associated with the authentication token.
+        """Returns the trust id associated with the auth request.
 
         :returns: str or None (if no trust associated with the token)
         """
@@ -249,8 +248,9 @@ class AccessInfo(object):
 
     @property
     def trust_scoped(self):
-        """Returns true if the authorization token was scoped as delegated in a
-        trust, via the OS-TRUST v3 extension.
+        """Returns true if the auth token was scoped from a delegated trust.
+
+        The trust delegation is via the OS-TRUST v3 extension.
 
         :returns: bool
         """
@@ -274,9 +274,9 @@ class AccessInfo(object):
 
     @property
     def project_id(self):
-        """Returns the project ID associated with the authentication
-        request, or None if the authentication request wasn't scoped to a
-        project.
+        """Returns the project ID associated with the auth request.
+
+        This returns None if the auth token wasn't scoped to a project.
 
         :returns: str or None (if no project associated with the token)
         """
@@ -289,8 +289,7 @@ class AccessInfo(object):
 
     @property
     def project_domain_id(self):
-        """Returns the domain id of the project associated with the
-        authentication request.
+        """Returns the project's domain id associated with the auth request.
 
         :returns: str
         """
@@ -298,8 +297,7 @@ class AccessInfo(object):
 
     @property
     def project_domain_name(self):
-        """Returns the domain name of the project associated with the
-        authentication request.
+        """Returns the project's domain name associated with the auth request.
 
         :returns: str
         """
@@ -387,9 +385,7 @@ class AccessInfo(object):
 
 
 class AccessInfoV2(AccessInfo):
-    """An object for encapsulating a raw v2 auth token from identity
-       service.
-    """
+    """An object for encapsulating raw v2 auth token from identity service."""
 
     version = 'v2.0'
     _service_catalog_class = service_catalog.ServiceCatalogV2
@@ -562,9 +558,7 @@ class AccessInfoV2(AccessInfo):
 
 
 class AccessInfoV3(AccessInfo):
-    """An object for encapsulating a raw v3 auth token from identity
-       service.
-    """
+    """An object encapsulating raw v3 auth token from identity service."""
 
     version = 'v3'
     _service_catalog_class = service_catalog.ServiceCatalogV3

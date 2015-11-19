@@ -125,8 +125,7 @@ class Session(base.BaseLoader):
         return self.load_from_options(**kwargs)
 
     def get_conf_options(self, deprecated_opts=None):
-        """Get the oslo_config options that are needed for a
-        :py:class:`.Session`.
+        """Get oslo_config options that are needed for a :py:class:`.Session`.
 
         These may be useful without being registered for config file generation
         or to manipulate the options before registering them yourself.

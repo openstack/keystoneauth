@@ -30,8 +30,7 @@ class MissingAuthPlugin(AuthPluginException):
 
 
 class NoMatchingPlugin(AuthPluginException):
-    """There were no auth plugins that could be created from the parameters
-    provided.
+    """No auth plugins could be created from the parameters provided.
 
     :param str name: The name of the plugin that was attempted to load.
 

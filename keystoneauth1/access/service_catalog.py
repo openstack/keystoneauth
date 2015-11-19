@@ -229,8 +229,9 @@ class ServiceCatalog(object):
 
 
 class ServiceCatalogV2(ServiceCatalog):
-    """An object for encapsulating the service catalog using raw v2 auth token
-    from Keystone.
+    """An object for encapsulating the v2 service catalog.
+
+    The object is created using raw v2 auth token from Keystone.
     """
 
     @classmethod
@@ -267,8 +268,9 @@ class ServiceCatalogV2(ServiceCatalog):
 
 
 class ServiceCatalogV3(ServiceCatalog):
-    """An object for encapsulating the service catalog using raw v3 auth token
-    from Keystone.
+    """An object for encapsulating the v3 service catalog.
+
+    The object is created using raw v3 auth token from Keystone.
     """
 
     @classmethod
