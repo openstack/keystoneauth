@@ -25,6 +25,42 @@ __all__ = ('Opt',)
 
 
 class Opt(object):
+    """An option required by an authentication plugin.
+
+    Opts provide a means for authentication plugins that are going to be
+    dynamically loaded to specify the parameters that are to be passed to the
+    plugin on initialization.
+
+    The Opt specifies information about the way the plugin parameter is to be
+    represented in different loading mechanisms.
+
+    When defining an Opt with a - the - should be present in the name
+    parameter. This will automatically be converted to an _ when passing to the
+    plugin initialization. For example, you should specify::
+
+        Opt('user-domain-id')
+
+    which will pass the value as `user_domain_id` to the plugin's
+    initialization.
+
+    :param str name: The name of the option.
+    :param callable type: The type of the option. This is a callable which is
+        passed the raw option that was loaded (often a string) and is required
+        to return the parameter in the type expected by __init__.
+    :param str help: The help text that is shown along with the option.
+    :param bool secret: If the parameter is secret it should not be printed or
+        logged in debug output.
+    :param str dest: the name of the argument that will be passed to __init__.
+        This allows you to have a different name in loading than is used by the
+        __init__ function. Defaults to the the value of name.
+    :param opt: A list of other options that are deprecated in favour of this
+        one. This ensures the old options are still registered.
+    :type opt: list(Opt)
+    :param default: A default value that can be used if one is not provided.
+    :param str metavar: The <metavar> that should be printed in CLI help text.
+    :param bool required: If the option is required to load the plugin. If a
+        required option is not present loading should fail.
+    """
 
     @utils.positional()
     def __init__(self,
