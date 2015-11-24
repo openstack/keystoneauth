@@ -235,6 +235,66 @@ class CommonIdentityTests(object):
         self.assertEqual(self.user_id, a.get_user_id(s))
         self.assertEqual(self.project_id, a.get_project_id(s))
 
+    def assertAccessInfoEqual(self, a, b):
+        self.assertEqual(a.auth_token, b.auth_token)
+        self.assertEqual(a._data, b._data)
+
+    def test_check_cache_id_match(self):
+        a = self.create_auth_plugin()
+        b = self.create_auth_plugin()
+
+        self.assertIsNot(a, b)
+        self.assertIsNone(a.get_auth_state())
+        self.assertIsNone(b.get_auth_state())
+
+        a_id = a.get_cache_id()
+        b_id = b.get_cache_id()
+
+        self.assertIsNotNone(a_id)
+        self.assertIsNotNone(b_id)
+
+        self.assertEqual(a_id, b_id)
+
+    def test_check_cache_id_no_match(self):
+        a = self.create_auth_plugin(project_id='a')
+        b = self.create_auth_plugin(project_id='b')
+
+        self.assertIsNot(a, b)
+        self.assertIsNone(a.get_auth_state())
+        self.assertIsNone(b.get_auth_state())
+
+        a_id = a.get_cache_id()
+        b_id = b.get_cache_id()
+
+        self.assertIsNotNone(a_id)
+        self.assertIsNotNone(b_id)
+
+        self.assertNotEqual(a_id, b_id)
+
+    def test_get_set_auth_state(self):
+        a = self.create_auth_plugin()
+        b = self.create_auth_plugin()
+
+        self.assertEqual(a.get_cache_id(), b.get_cache_id())
+
+        s = session.Session()
+
+        a_token = a.get_token(s)
+
+        self.assertEqual(1, self.requests_mock.call_count)
+
+        auth_state = a.get_auth_state()
+
+        self.assertIsNotNone(auth_state)
+
+        b.set_auth_state(auth_state)
+
+        b_token = b.get_token(s)
+        self.assertEqual(1, self.requests_mock.call_count)
+
+        self.assertEqual(a_token, b_token)
+        self.assertAccessInfoEqual(a.auth_ref, b.auth_ref)
+
 
 class V3(CommonIdentityTests, utils.TestCase):
 
@@ -281,6 +341,17 @@ class V2(CommonIdentityTests, utils.TestCase):
         kwargs.setdefault('auth_url', self.TEST_URL)
         kwargs.setdefault('username', self.TEST_USER)
         kwargs.setdefault('password', self.TEST_PASS)
+
+        try:
+            kwargs.setdefault('tenant_id', kwargs.pop('project_id'))
+        except KeyError:
+            pass
+
+        try:
+            kwargs.setdefault('tenant_name', kwargs.pop('project_name'))
+        except KeyError:
+            pass
+
         return identity.V2Password(**kwargs)
 
     def get_auth_data(self, **kwargs):

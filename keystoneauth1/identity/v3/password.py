@@ -47,6 +47,10 @@ class PasswordMethod(base.AuthMethod):
 
         return 'password', {'user': user}
 
+    def get_cache_id_elements(self):
+        return dict(('password_%s' % p, getattr(self, p))
+                    for p in self._method_parameters)
+
 
 class Password(base.AuthConstructor):
     """A plugin for authenticating with a username and password.

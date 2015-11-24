@@ -138,6 +138,15 @@ class Password(Auth):
 
         return {'passwordCredentials': auth}
 
+    def get_cache_id_elements(self):
+        return {'username': self.username,
+                'user_id': self.user_id,
+                'password': self.password,
+                'auth_url': self.auth_url,
+                'tenant_id': self.tenant_id,
+                'tenant_name': self.tenant_name,
+                'trust_id': self.trust_id}
+
 
 class Token(Auth):
     """A plugin for authenticating with an existing token.
@@ -159,3 +168,10 @@ class Token(Auth):
         if headers is not None:
             headers['X-Auth-Token'] = self.token
         return {'token': {'id': self.token}}
+
+    def get_cache_id_elements(self):
+        return {'token': self.token,
+                'auth_url': self.auth_url,
+                'tenant_id': self.tenant_id,
+                'tenant_name': self.tenant_name,
+                'trust_id': self.trust_id}

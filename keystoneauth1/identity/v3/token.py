@@ -28,6 +28,9 @@ class TokenMethod(base.AuthMethod):
         headers['X-Auth-Token'] = self.token
         return 'token', {'id': self.token}
 
+    def get_cache_id_elements(self):
+        return {'token_token': self.token}
+
 
 class Token(base.AuthConstructor):
     """A plugin for authenticating with an existing Token.

@@ -197,3 +197,50 @@ class BaseAuthPlugin(object):
 
         """
         return None
+
+    def get_cache_id(self):
+        """Fetch an identifier that uniquely identifies the auth options.
+
+        The returned identifier need not be decomposable or otherwise provide
+        anyway to recreate the plugin. It should not contain sensitive data in
+        plaintext.
+
+        This string MUST change if any of the parameters that are used to
+        uniquely identity this plugin change.
+
+        If get_cache_id returns a str value suggesting that caching is
+        supported then get_auth_cache and set_auth_cache must also be
+        implemented.
+
+        :returns: A unique string for the set of options
+        :rtype: str or None if this is unsupported or unavailable.
+        """
+        return None
+
+    def get_auth_state(self):
+        """Retrieve the current authentication state for the plugin.
+
+        Retrieve any internal state that represents the authenticated plugin.
+
+        This should not fetch any new data if it is not present.
+
+        :raises: keystoneclient.exceptions.NotImplementedError:
+            if the plugin does not support this feature.
+
+        :returns: raw python data (which can be JSON serialized) that can be
+                  moved into another plugin (of the same type) to have the
+                  same authenticated state.
+        :rtype: object or None if unauthenticated.
+        """
+        return NotImplementedError()
+
+    def set_auth_state(self, data):
+        """Install existing authentication state for a plugin.
+
+        Take the output of get_auth_state and install that authentication state
+        into the current authentication plugin.
+
+        :raises: keystoneclient.exceptions.NotImplementedError:
+            if the plugin does not support this feature.
+        """
+        return NotImplementedError()
