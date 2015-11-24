@@ -97,12 +97,7 @@ def load_from_argparse_arguments(namespace, **kwargs):
     else:
         plugin = base.get_plugin_loader(namespace.os_auth_type)
 
-    plugin_opts = plugin.get_options()
+    def _getter(opt):
+        return getattr(namespace, 'os_%s' % opt.dest)
 
-    for opt in plugin_opts:
-        val = getattr(namespace, 'os_%s' % opt.dest)
-        if val is not None:
-            val = opt.type(val)
-        kwargs.setdefault(opt.dest, val)
-
-    return plugin.load_from_options(**kwargs)
+    return plugin.load_from_options_getter(_getter)

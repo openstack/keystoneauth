@@ -50,3 +50,30 @@ class LoadingTests(utils.TestCase):
 
         for l in loaders.values():
             self.assertIsInstance(l, loading.BaseLoader)
+
+    def test_loading_getter(self):
+
+        called_opts = []
+
+        vals = {'a-int': 44,
+                'a-bool': False,
+                'a-float': 99.99,
+                'a-str': 'value'}
+
+        val = uuid.uuid4().hex
+
+        def _getter(opt):
+            called_opts.append(opt.name)
+            # return str because oslo.config should convert them back
+            return str(vals[opt.name])
+
+        p = utils.MockLoader().load_from_options_getter(_getter, other=val)
+
+        self.assertEqual(set(vals), set(called_opts))
+
+        for k, v in vals.items():
+            # replace - to _ because it's the dest used to create kwargs
+            self.assertEqual(v, p[k.replace('-', '_')])
+
+        # check that additional kwargs get passed through
+        self.assertEqual(val, p['other'])
