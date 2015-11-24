@@ -139,10 +139,10 @@ class BaseLoader(object):
         :returns: An authentication Plugin.
         :rtype: :py:class:`keystoneauth1.plugin.BaseAuthPlugin`
         """
-        for opt in self.get_options():
+        for opt in (o for o in self.get_options() if o.dest not in kwargs):
             val = getter(opt)
             if val is not None:
                 val = opt.type(val)
-            kwargs.setdefault(opt.dest, val)
+            kwargs[opt.dest] = val
 
         return self.load_from_options(**kwargs)
