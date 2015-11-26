@@ -41,6 +41,18 @@ USER_AGENT = 'keystoneauth1'
 _logger = utils.get_logger(__name__)
 
 
+def _construct_session(session_obj=None):
+    # NOTE(morganfainberg): if the logic in this function changes be sure to
+    # update the betamax fixture's '_construct_session_with_betamax" function
+    # as well.
+    if not session_obj:
+        session_obj = requests.Session()
+        # Use TCPKeepAliveAdapter to fix bug 1323862
+        for scheme in session_obj.adapters.keys():
+            session_obj.mount(scheme, TCPKeepAliveAdapter())
+    return session_obj
+
+
 class _JSONEncoder(json.JSONEncoder):
 
     def default(self, o):
@@ -101,14 +113,9 @@ class Session(object):
     def __init__(self, auth=None, session=None, original_ip=None, verify=True,
                  cert=None, timeout=None, user_agent=None,
                  redirect=_DEFAULT_REDIRECT_LIMIT):
-        if not session:
-            session = requests.Session()
-            # Use TCPKeepAliveAdapter to fix bug 1323862
-            for scheme in session.adapters.keys():
-                session.mount(scheme, TCPKeepAliveAdapter())
 
         self.auth = auth
-        self.session = session
+        self.session = _construct_session(session)
         self.original_ip = original_ip
         self.verify = verify
         self.cert = cert
