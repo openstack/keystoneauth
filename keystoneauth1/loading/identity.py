@@ -14,11 +14,11 @@ from keystoneauth1 import exceptions
 from keystoneauth1.loading import base
 from keystoneauth1.loading import opts
 
-__all__ = ['BaseIdentityLoader',
+__all__ = ('BaseIdentityLoader',
            'BaseV2Loader',
            'BaseV3Loader',
            'BaseFederationLoader',
-           'BaseGenericLoader']
+           'BaseGenericLoader')
 
 
 class BaseIdentityLoader(base.BaseLoader):
