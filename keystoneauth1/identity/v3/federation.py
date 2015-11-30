@@ -21,42 +21,21 @@ __all__ = ('FederationBaseAuth',)
 
 
 @six.add_metaclass(abc.ABCMeta)
-class FederationBaseAuth(base.BaseAuth):
+class _Rescoped(base.BaseAuth):
+    """A plugin that is always going to go through a rescope process.
+
+    The original keystone plugins could simply pass a project or domain to
+    along with the credentials and get a scoped token. For federation, K2K and
+    newer mechanisms we always get an unscoped token first and then rescope.
+
+    This is currently not public as it's generally an abstraction of a flow
+    used by plugins within keystoneauth1.
+
+    It also cannot go in base as it depends on token.Token for rescoping which
+    would create a circular dependency.
+    """
 
     rescoping_plugin = token.Token
-
-    def __init__(self, auth_url, identity_provider, protocol, **kwargs):
-        """Class constructor accepting following parameters:
-
-        :param auth_url: URL of the Identity Service
-        :type auth_url: string
-        :param identity_provider: name of the Identity Provider the client
-                                  will authenticate against. This parameter
-                                  will be used to build a dynamic URL used to
-                                  obtain unscoped OpenStack token.
-        :type identity_provider: string
-        :param protocol: name of the protocol the client will authenticate
-                         against.
-        :type protocol: string
-
-        """
-        super(FederationBaseAuth, self).__init__(auth_url=auth_url, **kwargs)
-        self.identity_provider = identity_provider
-        self.protocol = protocol
-
-    @property
-    def federated_token_url(self):
-        """Full URL where authorization data is sent."""
-        values = {
-            'host': self.auth_url.rstrip('/'),
-            'identity_provider': self.identity_provider,
-            'protocol': self.protocol
-        }
-        url = ("%(host)s/OS-FEDERATION/identity_providers/"
-               "%(identity_provider)s/protocols/%(protocol)s/auth")
-        url = url % values
-
-        return url
 
     def _get_scoping_data(self):
         return {'trust_id': self.trust_id,
@@ -98,3 +77,39 @@ class FederationBaseAuth(base.BaseAuth):
     @abc.abstractmethod
     def get_unscoped_auth_ref(self, session, **kwargs):
         """Fetch unscoped federated token."""
+
+
+class FederationBaseAuth(_Rescoped):
+
+    def __init__(self, auth_url, identity_provider, protocol, **kwargs):
+        """Class constructor accepting following parameters:
+
+        :param auth_url: URL of the Identity Service
+        :type auth_url: string
+        :param identity_provider: name of the Identity Provider the client
+                                  will authenticate against. This parameter
+                                  will be used to build a dynamic URL used to
+                                  obtain unscoped OpenStack token.
+        :type identity_provider: string
+        :param protocol: name of the protocol the client will authenticate
+                         against.
+        :type protocol: string
+
+        """
+        super(FederationBaseAuth, self).__init__(auth_url=auth_url, **kwargs)
+        self.identity_provider = identity_provider
+        self.protocol = protocol
+
+    @property
+    def federated_token_url(self):
+        """Full URL where authorization data is sent."""
+        values = {
+            'host': self.auth_url.rstrip('/'),
+            'identity_provider': self.identity_provider,
+            'protocol': self.protocol
+        }
+        url = ("%(host)s/OS-FEDERATION/identity_providers/"
+               "%(identity_provider)s/protocols/%(protocol)s/auth")
+        url = url % values
+
+        return url
