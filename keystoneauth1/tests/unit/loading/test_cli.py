@@ -16,6 +16,7 @@ import uuid
 import fixtures
 import mock
 
+from keystoneauth1 import adapter
 from keystoneauth1 import loading
 from keystoneauth1.loading import cli
 from keystoneauth1.tests.unit.loading import utils
@@ -196,3 +197,22 @@ class CliTests(utils.TestCase):
 
         opts = self.p.parse_args([])
         self.assertEqual(val1, opts.os_test_opt)
+
+    def test_adapter_service_type(self):
+        argv = ['--os-service-type', 'compute']
+
+        adapter.Adapter.register_argparse_arguments(self.p, 'compute')
+
+        opts = self.p.parse_args(argv)
+        self.assertEqual('compute', opts.os_service_type)
+        self.assertFalse(hasattr(opts, 'os_compute_service_type'))
+
+    def test_adapter_service_type_per_service(self):
+        argv = ['--os-compute-service-type', 'weirdness']
+
+        adapter.Adapter.register_argparse_arguments(self.p, 'compute')
+        adapter.Adapter.register_service_argparse_arguments(self.p, 'compute')
+
+        opts = self.p.parse_args(argv)
+        self.assertEqual('compute', opts.os_service_type)
+        self.assertEqual('weirdness', opts.os_compute_service_type)

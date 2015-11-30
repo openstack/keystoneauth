@@ -10,6 +10,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import os
+
 from keystoneauth1 import _utils as utils
 
 
@@ -49,7 +51,10 @@ class Adapter(object):
                  version=None, auth=None, user_agent=None,
                  connect_retries=None, logger=None):
         # NOTE(jamielennox): when adding new parameters to adapter please also
-        # add them to the adapter call in httpclient.HTTPClient.__init__
+        # add them to the adapter call in httpclient.HTTPClient.__init__ as
+        # well as to load_adapter_from_argparse below if the argument is
+        # intended to be something a user would reasonably expect to set on
+        # a command line
         self.session = session
         self.service_type = service_type
         self.service_name = service_name
@@ -182,6 +187,128 @@ class Adapter(object):
     def delete(self, url, **kwargs):
         return self.request(url, 'DELETE', **kwargs)
 
+    @classmethod
+    def register_argparse_arguments(cls, parser, service_type=None):
+        """Attach arguments to a given argparse Parser for Adapters
+
+        :param parser: The argparse parser to attach options to.
+        :type parser: argparse.ArgumentParser
+        :param str service_type: Default service_type value. (optional)
+        """
+
+        adapter_group = parser.add_argument_group(
+            'Service Options',
+            'Options controlling the specialization of the API'
+            ' Connection from information found in the catalog')
+
+        adapter_group.add_argument(
+            '--os-service-type',
+            metavar='<name>',
+            default=os.environ.get('OS_SERVICE_TYPE', service_type),
+            help='Service type to request from the catalog')
+
+        adapter_group.add_argument(
+            '--os-service-name',
+            metavar='<name>',
+            default=os.environ.get('OS_SERVICE_NAME', None),
+            help='Service name to request from the catalog')
+
+        adapter_group.add_argument(
+            '--os-interface',
+            metavar='<name>',
+            default=os.environ.get('OS_INTERFACE', 'public'),
+            help='API Interface to use [public, internal, admin]')
+
+        adapter_group.add_argument(
+            '--os-region-name',
+            metavar='<name>',
+            default=os.environ.get('OS_REGION_NAME', None),
+            help='Region of the cloud to use')
+
+        adapter_group.add_argument(
+            '--os-endpoint-override',
+            metavar='<name>',
+            default=os.environ.get('OS_ENDPOINT_OVERRIDE', None),
+            help='Endpoint to use instead of the endpoint in the catalog')
+
+        adapter_group.add_argument(
+            '--os-api-version',
+            metavar='<name>',
+            default=os.environ.get('OS_API_VERSION', None),
+            help='Which version of the service API to use')
+
+    @classmethod
+    def register_service_argparse_arguments(cls, parser, service_type):
+        """Attach arguments to a given argparse Parser for Adapters
+
+        :param parser: The argparse parser to attach options to.
+        :type parser: argparse.ArgumentParser
+        :param str service_type: Name of a service to generate additional
+                                 arguments for.
+        """
+        service_env = service_type.upper().replace('-', '_')
+        adapter_group = parser.add_argument_group(
+            '{service_type} Service Options'.format(
+                service_type=service_type.title()),
+            'Options controlling the specialization of the {service_type}'
+            ' API Connection from information found in the catalog'.format(
+                service_type=service_type.title()))
+
+        adapter_group.add_argument(
+            '--os-{service_type}-service-type'.format(
+                service_type=service_type),
+            metavar='<name>',
+            default=os.environ.get(
+                'OS_{service_type}_SERVICE_TYPE'.format(
+                    service_type=service_env), service_type),
+            help=('Service type to request from the catalog for the'
+                  ' {service_type} service'.format(
+                      service_type=service_type)))
+
+        adapter_group.add_argument(
+            '--os-{service_type}-service-name'.format(
+                service_type=service_type),
+            metavar='<name>',
+            default=os.environ.get(
+                'OS_{service_type}_SERVICE_NAME'.format(
+                    service_type=service_env), None),
+            help=('Service name to request from the catalog for the'
+                  ' {service_type} service'.format(
+                      service_type=service_type)))
+
+        adapter_group.add_argument(
+            '--os-{service_type}-interface'.format(
+                service_type=service_type),
+            metavar='<name>',
+            default=os.environ.get(
+                'OS_{service_type}_INTERFACE'.format(
+                    service_type=service_env), None),
+            help=('API Interface to use for the {service_type} service'
+                  ' [public, internal, admin]'.format(
+                      service_type=service_type)))
+
+        adapter_group.add_argument(
+            '--os-{service_type}-api-version'.format(
+                service_type=service_type),
+            metavar='<name>',
+            default=os.environ.get(
+                'OS_{service_type}_API_VERSION'.format(
+                    service_type=service_env), None),
+            help=('Which version of the service API to use for'
+                  ' the {service_type} service'.format(
+                      service_type=service_type)))
+
+        adapter_group.add_argument(
+            '--os-{service_type}-endpoint-override'.format(
+                service_type=service_type),
+            metavar='<name>',
+            default=os.environ.get(
+                'OS_{service_type}_ENDPOINT_OVERRIDE'.format(
+                    service_type=service_env), None),
+            help=('Endpoint to use for the {service_type} service'
+                  ' instead of the endpoint in the catalog'.format(
+                      service_type=service_type)))
+
 
 class LegacyJsonAdapter(Adapter):
     """Make something that looks like an old HTTPClient.
@@ -209,3 +336,11 @@ class LegacyJsonAdapter(Adapter):
             body = None
 
         return resp, body
+
+
+def register_adapter_argparse_arguments(*args, **kwargs):
+    return Adapter.register_argparse_arguments(*args, **kwargs)
+
+
+def register_service_adapter_argparse_arguments(*args, **kwargs):
+    return Adapter.register_service_argparse_arguments(*args, **kwargs)
