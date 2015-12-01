@@ -74,14 +74,13 @@ class Keystone2Keystone(federation._Rescoped):
         idx = auth_url.index(PATTERN) if PATTERN in auth_url else len(auth_url)
         return auth_url[:idx]
 
-    def _ecp_assertion_request(self, session):
-        token_id = self._local_cloud_plugin.get_access(session).auth_token
+    def _get_ecp_assertion(self, session):
         body = {
             'auth': {
                 'identity': {
                     'methods': ['token'],
                     'token': {
-                        'id': token_id
+                        'id': self._local_cloud_plugin.get_token(session)
                     }
                 },
                 'scope': {
@@ -92,14 +91,17 @@ class Keystone2Keystone(federation._Rescoped):
             }
         }
 
-        return body
+        endpoint_filter = {'version': (3, 0),
+                           'interface': plugin.AUTH_INTERFACE}
 
-    def _get_ecp_assertion(self, session):
-        url = self._local_cloud_plugin.get_endpoint(
-            session, interface=plugin.AUTH_INTERFACE, version=(3, 0))
-        body = self._ecp_assertion_request(session)
+        headers = {'Accept': 'application/json'}
 
-        resp = session.post(url=url + self.REQUEST_ECP_URL, json=body,
+        resp = session.post(self.REQUEST_ECP_URL,
+                            json=body,
+                            auth=self._local_cloud_plugin,
+                            endpoint_filter=endpoint_filter,
+                            headers=headers,
+                            authenticated=False,
                             raise_exc=False)
 
         # NOTE(marek-denis): I am not sure whether disabling exceptions in the
