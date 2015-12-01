@@ -96,7 +96,7 @@ class Keystone2Keystone(federation._Rescoped):
 
     def _get_ecp_assertion(self, session):
         url = self._local_cloud_plugin.get_endpoint(
-            session, interface=plugin.AUTH_INTERFACE)
+            session, interface=plugin.AUTH_INTERFACE, version=(3, 0))
         body = self._ecp_assertion_request(session)
 
         resp = session.post(url=url + self.REQUEST_ECP_URL, json=body,

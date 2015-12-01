@@ -18,6 +18,7 @@ import six
 from keystoneauth1 import access
 from keystoneauth1 import exceptions
 from keystoneauth1 import fixture
+from keystoneauth1 import identity
 from keystoneauth1.identity import v3
 from keystoneauth1 import session
 from keystoneauth1.tests.unit import k2k_fixtures
@@ -133,6 +134,12 @@ class K2KAuthPluginTest(utils.TestCase):
                            password=self.TEST_PASS)
 
     def _mock_k2k_flow_urls(self):
+        # List versions available for auth
+        self.requests_mock.get(
+            self.TEST_URL,
+            json={'version': fixture.V3Discovery(self.TEST_URL)},
+            headers={'Content-Type': 'application/json'})
+
         # The IdP should return a ECP wrapped assertion when requested
         self.requests_mock.register_uri(
             'POST',
@@ -166,6 +173,10 @@ class K2KAuthPluginTest(utils.TestCase):
         self.assertEqual(self.SP_ROOT_URL, remote_auth_url)
 
     def test_fail_getting_ecp_assertion(self):
+        self.requests_mock.get(
+            self.TEST_URL,
+            json={'version': fixture.V3Discovery(self.TEST_URL)},
+            headers={'Content-Type': 'application/json'})
 
         self.requests_mock.register_uri(
             'POST', self.REQUEST_ECP_URL,
@@ -176,6 +187,10 @@ class K2KAuthPluginTest(utils.TestCase):
                           self.session)
 
     def test_get_ecp_assertion_empty_response(self):
+        self.requests_mock.get(
+            self.TEST_URL,
+            json={'version': fixture.V3Discovery(self.TEST_URL)},
+            headers={'Content-Type': 'application/json'})
 
         self.requests_mock.register_uri(
             'POST', self.REQUEST_ECP_URL,
@@ -187,6 +202,10 @@ class K2KAuthPluginTest(utils.TestCase):
                           self.session)
 
     def test_get_ecp_assertion_wrong_headers(self):
+        self.requests_mock.get(
+            self.TEST_URL,
+            json={'version': fixture.V3Discovery(self.TEST_URL)},
+            headers={'Content-Type': 'application/json'})
 
         self.requests_mock.register_uri(
             'POST', self.REQUEST_ECP_URL,
@@ -212,3 +231,46 @@ class K2KAuthPluginTest(utils.TestCase):
         auth_ref = self.k2kplugin.get_auth_ref(self.session)
         self.assertEqual(k2k_fixtures.UNSCOPED_TOKEN_HEADER,
                          auth_ref.auth_token)
+
+    def test_end_to_end_with_generic_password(self):
+        # List versions available for auth
+        self.requests_mock.get(
+            self.TEST_ROOT_URL,
+            json=fixture.DiscoveryList(self.TEST_ROOT_URL),
+            headers={'Content-Type': 'application/json'})
+
+        # The IdP should return a ECP wrapped assertion when requested
+        self.requests_mock.register_uri(
+            'POST',
+            self.REQUEST_ECP_URL,
+            content=six.b(k2k_fixtures.ECP_ENVELOPE),
+            headers={'Content-Type': 'application/vnd.paos+xml'},
+            status_code=200)
+
+        # The SP should respond with a 302
+        self.requests_mock.register_uri(
+            'POST',
+            self.SP_URL,
+            content=six.b(k2k_fixtures.TOKEN_BASED_ECP),
+            headers={'Content-Type': 'application/vnd.paos+xml'},
+            status_code=302)
+
+        # Should not follow the redirect URL, but use the auth_url attribute
+        self.requests_mock.register_uri(
+            'GET',
+            self.SP_AUTH_URL,
+            json=k2k_fixtures.UNSCOPED_TOKEN,
+            headers={'X-Subject-Token': k2k_fixtures.UNSCOPED_TOKEN_HEADER})
+
+        self.stub_url('POST', ['auth', 'tokens'],
+                      headers={'X-Subject-Token': uuid.uuid4().hex},
+                      json=self.token_v3)
+
+        plugin = identity.Password(self.TEST_ROOT_URL,
+                                   username=self.TEST_USER,
+                                   password=self.TEST_PASS,
+                                   user_domain_id='default')
+
+        k2kplugin = self.get_plugin(base_plugin=plugin)
+        self.assertEqual(k2k_fixtures.UNSCOPED_TOKEN_HEADER,
+                         k2kplugin.get_token(self.session))
