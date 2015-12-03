@@ -260,7 +260,7 @@ class Adapter(object):
             metavar='<name>',
             default=os.environ.get(
                 'OS_{service_type}_SERVICE_TYPE'.format(
-                    service_type=service_env), service_type),
+                    service_type=service_env), None),
             help=('Service type to request from the catalog for the'
                   ' {service_type} service'.format(
                       service_type=service_type)))
