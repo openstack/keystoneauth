@@ -2,12 +2,12 @@
 keystoneauth
 ============
 
-.. image:: https://img.shields.io/pypi/v/keystoneauth.svg
-    :target: https://pypi.python.org/pypi/keystoneauth/
+.. image:: https://img.shields.io/pypi/v/keystoneauth1.svg
+    :target: https://pypi.python.org/pypi/keystoneauth1/
     :alt: Latest Version
 
-.. image:: https://img.shields.io/pypi/dm/keystoneauth.svg
-    :target: https://pypi.python.org/pypi/keystoneauth/
+.. image:: https://img.shields.io/pypi/dm/keystoneauth1.svg
+    :target: https://pypi.python.org/pypi/keystoneauth1/
     :alt: Downloads
 
 This package contains tools for authenticating to an OpenStack-based cloud.
