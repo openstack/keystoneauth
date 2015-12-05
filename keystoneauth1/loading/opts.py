@@ -88,6 +88,11 @@ class Opt(object):
         self.deprecated = [] if deprecated is None else deprecated
         self.default = default
         self.metavar = metavar
+        # These are for oslo.config compat
+        self.deprecated_opts = self.deprecated
+        self.deprecated_for_removal = []
+        self.sample_default = None
+        self.group = None
 
     def __repr__(self):
         return '<Opt: %s>' % self.name
