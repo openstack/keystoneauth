@@ -15,14 +15,13 @@ import six
 
 from keystoneauth1 import access
 from keystoneauth1 import exceptions
-from keystoneauth1.identity.v3 import base
-from keystoneauth1.identity.v3 import token
+from keystoneauth1.identity.v3 import federation
 from keystoneauth1 import plugin
 
 __all__ = ('Keystone2Keystone',)
 
 
-class Keystone2Keystone(base.BaseAuth):
+class Keystone2Keystone(federation._Rescoped):
     """Plugin to execute the Keystone to Keyestone authentication flow.
 
     In this plugin, an ECP wrapped SAML assertion provided by a keystone
@@ -42,9 +41,6 @@ class Keystone2Keystone(base.BaseAuth):
     # Path where the ECP wrapped SAML assertion should be presented to
     # the Keystone Service Provider.
     REQUEST_ECP_URL = '/auth/OS-FEDERATION/saml2/ecp'
-
-    # Auth plugin class to use when scoping a new token
-    rescoping_plugin = token.Token
 
     def __init__(self, base_plugin, service_provider, **kwargs):
         super(Keystone2Keystone, self).__init__(auth_url=None, **kwargs)
@@ -77,15 +73,6 @@ class Keystone2Keystone(base.BaseAuth):
         PATTERN = '/OS-FEDERATION/'
         idx = auth_url.index(PATTERN) if PATTERN in auth_url else len(auth_url)
         return auth_url[:idx]
-
-    def _get_scoping_data(self):
-        return {'trust_id': self.trust_id,
-                'domain_id': self.domain_id,
-                'domain_name': self.domain_name,
-                'project_id': self.project_id,
-                'project_name': self.project_name,
-                'project_domain_id': self.project_domain_id,
-                'project_domain_name': self.project_domain_name}
 
     def _ecp_assertion_request(self, session):
         token_id = self._local_cloud_plugin.get_access(session).auth_token
@@ -180,14 +167,3 @@ class Keystone2Keystone(base.BaseAuth):
         response = self._send_service_provider_ecp_authn_response(
             session, sp_url, sp_auth_url)
         return access.create(resp=response)
-
-    def get_auth_ref(self, session, **kwargs):
-
-        auth_ref = self.get_unscoped_auth_ref(session, **kwargs)
-        scoping = self._get_scoping_data()
-        if any(scoping.values()):
-            token_plugin = self.rescoping_plugin(self.auth_url,
-                                                 token=auth_ref.auth_token,
-                                                 **scoping)
-            auth_ref = token_plugin.get_auth_ref(session)
-        return auth_ref
