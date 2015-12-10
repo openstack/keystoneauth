@@ -64,7 +64,8 @@ passed to the :py:class:`~keystoneauth1.identity.v3.Auth` plugin::
     >>> from keystoneauth1 import session
     >>> from keystoneauth1.identity import v3
     >>> password = v3.PasswordMethod(username='user',
-    ...                              password='password')
+    ...                              password='password',
+    ...                              user_domain_name='default')
     >>> auth = v3.Auth(auth_url='http://my.keystone.com:5000/v3',
     ...                auth_methods=[password],
     ...                project_id='projectid')
@@ -88,7 +89,8 @@ like the V2 plugins:
     >>> auth = v3.Password(auth_url='http://my.keystone.com:5000/v3',
     ...                    username='username',
     ...                    password='password',
-    ...                    project_id='projectid')
+    ...                    project_id='projectid',
+    ...                    user_domain_name='default')
     >>> sess = session.Session(auth=auth)
 
 This will have exactly the same effect as using the single
