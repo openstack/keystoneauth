@@ -53,7 +53,7 @@ asked for a valid token. If a valid token is available it will be used
 otherwise the authentication plugin may attempt to contact the authentication
 service and fetch a new one.
 
-An example from keystoneauth::
+An example from keystoneclient::
 
     >>> from keystoneauth1.identity import v3
     >>> from keystoneauth1 import session
@@ -72,31 +72,6 @@ An example from keystoneauth::
 
 As clients adopt this means of operating they will be created in a similar
 fashion by passing the Session object to the client's constructor.
-
-
-Migrating keystoneauth1 to use a Session
------------------------------------------
-
-By using a session with a keystoneauth1 Client we presume that you have opted
-in to new behavior defined by the session. For example authentication is now
-on-demand rather than on creation. To allow this change in behavior there are
-a number of functions that have changed behavior or are no longer available.
-
-For example the
-:py:meth:`keystoneauth1.httpclient.HTTPClient.authenticate` method used
-to be able to always re-authenticate the current client and fetch a new token.
-As this is now controlled by the Session and not the client this has changed,
-however the function will still exist to provide compatibility with older
-clients.
-
-Likewise certain parameters such as ``user_id`` and ``auth_token`` that used to
-be available on the client object post authentication will remain
-uninitialized.
-
-When converting an application to use a session object with keystoneauth1 you
-should be aware of the possibility of changes to authentication and
-authentication parameters and make sure to test your code thoroughly. It should
-have no impact on the typical CRUD interaction with the client.
 
 
 Sharing Authentication Plugins
