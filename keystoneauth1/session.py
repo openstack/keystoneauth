@@ -15,6 +15,7 @@ import functools
 import hashlib
 import json
 import logging
+import platform
 import socket
 import time
 import uuid
@@ -23,6 +24,7 @@ import requests
 import six
 from six.moves import urllib
 
+import keystoneauth1
 from keystoneauth1 import _utils as utils
 from keystoneauth1 import exceptions
 
@@ -36,7 +38,9 @@ try:
 except ImportError:
     osprofiler_web = None
 
-USER_AGENT = 'keystoneauth1'
+DEFAULT_USER_AGENT = 'keystoneauth1/%s %s %s/%s' % (
+    keystoneauth1.__version__, requests.utils.default_user_agent(),
+    platform.python_implementation(), platform.python_version())
 
 _logger = utils.get_logger(__name__)
 
@@ -95,8 +99,12 @@ class Session(object):
                           of seconds or 0 for no timeout. (optional, defaults
                           to 0)
     :param string user_agent: A User-Agent header string to use for the
-                              request. If not provided a default is used.
-                              (optional, defaults to 'keystoneauth1')
+                              request. If not provided, a default of
+                              :attr:`~keystoneauth1.session.DEFAULT_USER_AGENT`
+                              is used, which contains the keystoneauth1 version
+                              as well as those of the requests library and
+                              which Python is being used. When a non-None value
+                              is passed, it will be prepended to the default.
     :param int/bool redirect: Controls the maximum number of redirections that
                               can be followed by a request. Either an integer
                               for a specific count or True/False for
@@ -127,7 +135,11 @@ class Session(object):
 
         # don't override the class variable if none provided
         if user_agent is not None:
-            self.user_agent = user_agent
+            # Per RFC 7231 Section 5.5.3, identifiers in a user-agent
+            # should be ordered by decreasing significance.
+            # If a user sets their product, we prepend it to the KSA
+            # version, requests version, and then the Python version.
+            self.user_agent = "%s %s" % (user_agent, DEFAULT_USER_AGENT)
 
         self._json = _JSONEncoder()
 
@@ -367,7 +379,7 @@ class Session(object):
         elif self.user_agent:
             user_agent = headers.setdefault('User-Agent', self.user_agent)
         else:
-            user_agent = headers.setdefault('User-Agent', USER_AGENT)
+            user_agent = headers.setdefault('User-Agent', DEFAULT_USER_AGENT)
 
         if self.original_ip:
             headers.setdefault('Forwarded',
