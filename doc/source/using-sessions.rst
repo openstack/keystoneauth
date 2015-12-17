@@ -165,11 +165,11 @@ While authentication plugins will endeavour to maintain a consistent set of
 arguments for an ``endpoint_filter`` the concept of an authentication plugin is
 purposefully generic and a specific mechanism may not know how to interpret
 certain arguments and ignore them. For example the
-:py:class:`keystoneauth1.auth.token_endpoint.Token` plugin (which is used when
-you want to always use a specific endpoint and token combination) will always
-return the same endpoint regardless of the parameters to ``endpoint_filter`` or
-a custom OpenStack authentication mechanism may not have the concept of
-multiple ``interface`` options and choose to ignore that parameter.
+:class:`keystoneauth1.token_endpoint.Token` plugin (which is used when you want
+to always use a specific endpoint and token combination) will always return the
+same endpoint regardless of the parameters to ``endpoint_filter`` or a custom
+OpenStack authentication mechanism may not have the concept of multiple
+``interface`` options and choose to ignore that parameter.
 
 There is some expectation on the user that they understand the limitations of
 the authentication system they are using.

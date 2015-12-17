@@ -25,7 +25,7 @@ class Adapter(object):
     of client local data around the global session object.
 
     :param session: The session object to wrap.
-    :type session: keystonauth.session.Session
+    :type session: keystoneauth1.session.Session
     :param str service_type: The default service_type for URL discovery.
     :param str service_name: The default service_name for URL discovery.
     :param str interface: The default interface for URL discovery.
@@ -34,7 +34,7 @@ class Adapter(object):
                                   for this client.
     :param tuple version: The version that this API targets.
     :param auth: An auth plugin to use instead of the session one.
-    :type auth: keystonauth.auth.base.BaseAuthPlugin
+    :type auth: keystoneauth1.plugin.BaseAuthPlugin
     :param str user_agent: The User-Agent string to set.
     :param int connect_retries: the maximum number of retries that should
                                 be attempted for connection errors.
@@ -102,13 +102,13 @@ class Adapter(object):
 
         :param auth: The auth plugin to use for token. Overrides the plugin
                      on the session. (optional)
-        :type auth: :class:`keystonauth.auth.base.BaseAuthPlugin`
+        :type auth: keystoneauth1.plugin.BaseAuthPlugin
 
-        :raises keystonauth.exceptions.AuthorizationFailure: if a new token
-            fetch fails.
+        :raises keystoneauth1.exceptions.auth.AuthorizationFailure: if a new
+            token fetch fails.
 
         :returns: A valid token.
-        :rtype: string
+        :rtype: :class:`str`
         """
         return self.session.get_token(auth or self.auth)
 
@@ -117,13 +117,13 @@ class Adapter(object):
 
         :param auth: The auth plugin to use for token. Overrides the plugin on
                      the session. (optional)
-        :type auth: :class:`keystonauth.auth.base.BaseAuthPlugin`
+        :type auth: keystoneauth1.plugin.BaseAuthPlugin
 
-        :raises keystonauth.exceptions.MissingAuthPlugin: if a plugin is not
-                                                             available.
+        :raises keystoneauth1.exceptions.auth_plugins.MissingAuthPlugin: if a
+            plugin is not available.
 
         :returns: An endpoint if available or None.
-        :rtype: string
+        :rtype: :class:`str`
         """
         if self.endpoint_override:
             return self.endpoint_override
@@ -140,15 +140,15 @@ class Adapter(object):
 
         :param auth: The auth plugin to use for token. Overrides the plugin
                      on the session. (optional)
-        :type auth: keystonauth.auth.base.BaseAuthPlugin
+        :type auth: keystoneauth1.plugin.BaseAuthPlugin
 
-        :raises keystonauth.exceptions.AuthorizationFailure:
+        :raises keystoneauth1.exceptions.auth.AuthorizationFailure:
             if a new token fetch fails.
-        :raises keystonauth.exceptions.MissingAuthPlugin:
+        :raises keystoneauth1.exceptions.auth_plugins.MissingAuthPlugin:
             if a plugin is not available.
 
         :returns: Current `user_id` or None if not supported by plugin.
-        :rtype: string
+        :rtype: :class:`str`
         """
         return self.session.get_user_id(auth or self.auth)
 
@@ -157,15 +157,15 @@ class Adapter(object):
 
         :param auth: The auth plugin to use for token. Overrides the plugin
                      on the session. (optional)
-        :type auth: keystonauth.auth.base.BaseAuthPlugin
+        :type auth: keystoneauth1.plugin.BaseAuthPlugin
 
-        :raises keystonauth.exceptions.AuthorizationFailure:
+        :raises keystoneauth1.exceptions.auth.AuthorizationFailure:
             if a new token fetch fails.
-        :raises keystonauth.exceptions.MissingAuthPlugin:
+        :raises keystoneauth1.exceptions.auth_plugins.MissingAuthPlugin:
             if a plugin is not available.
 
         :returns: Current `project_id` or None if not supported by plugin.
-        :rtype: string
+        :rtype: :class:`str`
         """
         return self.session.get_project_id(auth or self.auth)
 

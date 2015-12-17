@@ -43,7 +43,7 @@ class BaseAuthPlugin(object):
         the `get_headers` method instead.
 
         :param session: A session object so the plugin can make HTTP calls.
-        :type session: keystonauth.session.Session
+        :type session: keystoneauth1.session.Session
 
         :return: A token to use.
         :rtype: string
@@ -74,7 +74,7 @@ class BaseAuthPlugin(object):
         achieved by returning an empty dictionary.
 
         :param session: The session object that the auth_plugin belongs to.
-        :type session: keystonauth.session.Session
+        :type session: keystoneauth1.session.Session
 
         :returns: Headers that are set to authenticate a message or None for
                   failure. Note that when checking this value that the empty
@@ -102,7 +102,7 @@ class BaseAuthPlugin(object):
         - ``region_name``: the region the endpoint exists in.
 
         :param session: The session object that the auth_plugin belongs to.
-        :type session: keystonauth.session.Session
+        :type session: keystoneauth1.session.Session
 
         :returns: The base URL that will be used to talk to the required
                   service or None if not available.
@@ -147,7 +147,7 @@ class BaseAuthPlugin(object):
         currently authenticated user id.
 
         :param session: A session object so the plugin can make HTTP calls.
-        :type session: keystonauth.session.Session
+        :type session: keystoneauth1.session.Session
 
         :returns: A user identifier or None if one is not available.
         :rtype: str
@@ -162,7 +162,7 @@ class BaseAuthPlugin(object):
         the currently authenticated project id.
 
         :param session: A session object so the plugin can make HTTP calls.
-        :type session: keystonauth.session.Session
+        :type session: keystoneauth1.session.Session
 
         :returns: A project identifier or None if one is not available.
         :rtype: str
@@ -224,15 +224,15 @@ class BaseAuthPlugin(object):
 
         This should not fetch any new data if it is not present.
 
-        :raises: keystoneclient.exceptions.NotImplementedError:
-            if the plugin does not support this feature.
+        :raises NotImplementedError: if the plugin does not support this
+            feature.
 
         :returns: raw python data (which can be JSON serialized) that can be
                   moved into another plugin (of the same type) to have the
                   same authenticated state.
         :rtype: object or None if unauthenticated.
         """
-        return NotImplementedError()
+        raise NotImplementedError()
 
     def set_auth_state(self, data):
         """Install existing authentication state for a plugin.
@@ -240,7 +240,7 @@ class BaseAuthPlugin(object):
         Take the output of get_auth_state and install that authentication state
         into the current authentication plugin.
 
-        :raises: keystoneclient.exceptions.NotImplementedError:
-            if the plugin does not support this feature.
+        :raises NotImplementedError: if the plugin does not support this
+            feature.
         """
-        return NotImplementedError()
+        raise NotImplementedError()

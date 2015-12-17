@@ -30,17 +30,17 @@ class Keystone2Keystone(federation._Rescoped):
 
     :param base_plugin: Auth plugin already authenticated against the keystone
                         IdP.
-    :type base_plugin: ``keystoneauth1.v3.base.BaseAuth``
+    :type base_plugin: keystoneauth1.identity.v3.base.BaseAuth
 
     :param service_provider: The Service Provider ID as returned by
                              ServiceProviderManager.list()
-    :type service_provider: string
+    :type service_provider: str
 
     """
 
-    # Path where the ECP wrapped SAML assertion should be presented to
-    # the Keystone Service Provider.
     REQUEST_ECP_URL = '/auth/OS-FEDERATION/saml2/ecp'
+    """Path where the ECP wrapped SAML assertion should be presented to the
+       Keystone Service Provider."""
 
     def __init__(self, base_plugin, service_provider, **kwargs):
         super(Keystone2Keystone, self).__init__(auth_url=None, **kwargs)
@@ -63,11 +63,11 @@ class Keystone2Keystone(federation._Rescoped):
         function will simply return whole string.
 
         :param auth_url: auth_url of the remote cloud
-        :type auth_url: string
+        :type auth_url: str
 
         :returns: auth_url of remote cloud where a token can be validated or
                   scoped.
-        :rtype: string
+        :rtype: str
 
         """
         PATTERN = '/OS-FEDERATION/'
@@ -131,13 +131,13 @@ class Keystone2Keystone(federation._Rescoped):
         :param sp_url: URL where the ECP wrapped SAML assertion will be
                        presented to the keystone SP. Usually, something like:
                        https://sp.com/Shibboleth.sso/SAML2/ECP
-        :type sp_url: string
+        :type sp_url: str
 
         :param sp_auth_url: Federated authentication URL of the keystone SP.
                             It is specified by IdP, for example:
                             https://sp.com/v3/OS-FEDERATION/identity_providers/
                             idp_id/protocols/protocol_id/auth
-        :type sp_auth_url: string
+        :type sp_auth_url: str
 
         """
 
