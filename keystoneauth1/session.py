@@ -52,7 +52,7 @@ def _construct_session(session_obj=None):
     if not session_obj:
         session_obj = requests.Session()
         # Use TCPKeepAliveAdapter to fix bug 1323862
-        for scheme in session_obj.adapters.keys():
+        for scheme in list(session_obj.adapters):
             session_obj.mount(scheme, TCPKeepAliveAdapter())
     return session_obj
 
