@@ -15,6 +15,7 @@ Contents:
    authentication-plugins
 
    extras
+   migrating
 
    api/modules
 
