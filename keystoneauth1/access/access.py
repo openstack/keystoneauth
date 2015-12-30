@@ -358,7 +358,7 @@ class AccessInfo(object):
 
     @property
     def service_providers(self):
-        """Return a object representing the list of trusted service providers.
+        """Return an object representing the list of trusted service providers.
 
         Used for Keystone2Keystone federating-out.
 

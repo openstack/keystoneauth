@@ -387,7 +387,7 @@ class Password(base.BaseSAMLPlugin):
         This is a multistep process:
 
         * Prepare ADFS Request Securty Token -
-          build a etree.XML object filling certain attributes with proper user
+          build an etree.XML object filling certain attributes with proper user
           credentials, created/expires dates (ticket is be valid for 120
           seconds as currently we don't handle reusing ADFS issued security
           tokens).
