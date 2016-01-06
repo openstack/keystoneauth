@@ -198,9 +198,9 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
 
         else:
             if not service_type:
-                LOG.warn(('Plugin cannot return an endpoint without '
-                          'knowing the service type that is required. Add '
-                          'service_type to endpoint filtering data.'))
+                LOG.warning('Plugin cannot return an endpoint without '
+                            'knowing the service type that is required. Add '
+                            'service_type to endpoint filtering data.')
                 return None
 
             if not interface:
