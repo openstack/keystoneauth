@@ -266,7 +266,7 @@ class V3TokenTests(utils.TestCase):
 
     def test_empty_default_service_providers(self):
         token = fixture.V3Token()
-        self.assertEqual(None, token.service_providers)
+        self.assertIsNone(token.service_providers)
 
     def test_service_providers(self):
         def new_sp():
