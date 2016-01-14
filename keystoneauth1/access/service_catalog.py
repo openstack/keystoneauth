@@ -18,9 +18,9 @@
 
 import abc
 
+from positional import positional
 import six
 
-from keystoneauth1 import _utils as utils
 from keystoneauth1 import exceptions
 
 
@@ -65,7 +65,7 @@ class ServiceCatalog(object):
         """
         return interface
 
-    @utils.positional()
+    @positional()
     def get_endpoints(self, service_type=None, interface=None,
                       region_name=None, service_name=None,
                       service_id=None, endpoint_id=None):
@@ -141,7 +141,7 @@ class ServiceCatalog(object):
         return endpoints
 
     @abc.abstractmethod
-    @utils.positional()
+    @positional()
     def get_urls(self, service_type=None, interface='public',
                  region_name=None, service_name=None,
                  service_id=None, endpoint_id=None):
@@ -165,7 +165,7 @@ class ServiceCatalog(object):
         """
         raise NotImplementedError()
 
-    @utils.positional()
+    @positional()
     def url_for(self, service_type=None, interface='public',
                 region_name=None, service_name=None,
                 service_id=None, endpoint_id=None):
@@ -251,7 +251,7 @@ class ServiceCatalogV2(ServiceCatalog):
     def is_interface_match(self, endpoint, interface):
         return interface in endpoint
 
-    @utils.positional()
+    @positional()
     def get_urls(self, service_type=None, interface='publicURL',
                  region_name=None, service_name=None,
                  service_id=None, endpoint_id=None):
@@ -293,7 +293,7 @@ class ServiceCatalogV3(ServiceCatalog):
         except KeyError:
             return False
 
-    @utils.positional()
+    @positional()
     def get_urls(self, service_type=None, interface='publicURL',
                  region_name=None, service_name=None,
                  service_id=None, endpoint_id=None):

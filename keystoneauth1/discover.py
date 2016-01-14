@@ -23,6 +23,8 @@ raw data specified in version discovery responses.
 
 import re
 
+from positional import positional
+
 from keystoneauth1 import _utils as utils
 from keystoneauth1 import exceptions
 
@@ -30,7 +32,7 @@ from keystoneauth1 import exceptions
 _LOGGER = utils.get_logger(__name__)
 
 
-@utils.positional()
+@positional()
 def get_version_data(session, url, authenticated=None):
     """Retrieve raw version data from a url."""
     headers = {'Accept': 'application/json'}
@@ -133,7 +135,7 @@ class Discover(object):
     DEPRECATED_STATUSES = ('deprecated',)
     EXPERIMENTAL_STATUSES = ('experimental',)
 
-    @utils.positional()
+    @positional()
     def __init__(self, session, url, authenticated=None):
         self._data = get_version_data(session, url,
                                       authenticated=authenticated)
@@ -178,7 +180,7 @@ class Discover(object):
 
         return versions
 
-    @utils.positional()
+    @positional()
     def version_data(self, reverse=False, **kwargs):
         """Get normalized version data.
 

@@ -10,7 +10,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from keystoneauth1 import _utils
+from positional import positional
+
 from keystoneauth1 import access
 from keystoneauth1.identity.v3 import federation
 
@@ -131,7 +132,7 @@ class _OidcBase(federation.FederationBaseAuth):
 class OidcPassword(_OidcBase):
     """Implementation for OpenID Connect Resource Owner Password Credential"""
 
-    @_utils.positional(4)
+    @positional(4)
     def __init__(self, auth_url, identity_provider, protocol,
                  client_id, client_secret, access_token_endpoint,
                  grant_type='password', access_token_type='access_token',
@@ -203,7 +204,7 @@ class OidcPassword(_OidcBase):
 class OidcAuthorizationCode(_OidcBase):
     """Implementation for OpenID Connect Authorization Code"""
 
-    @_utils.positional(4)
+    @positional(4)
     def __init__(self, auth_url, identity_provider, protocol,
                  client_id, client_secret, access_token_endpoint,
                  grant_type='authorization_code',

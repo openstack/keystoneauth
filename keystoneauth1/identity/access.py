@@ -10,7 +10,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from keystoneauth1 import _utils as utils
+from positional import positional
+
 from keystoneauth1.identity import base
 
 
@@ -31,7 +32,7 @@ class AccessInfoPlugin(base.BaseIdentityPlugin):
                      if using the AUTH_INTERFACE with get_endpoint. (optional)
     """
 
-    @utils.positional()
+    @positional()
     def __init__(self, auth_ref, auth_url=None):
         super(AccessInfoPlugin, self).__init__(auth_url=auth_url,
                                                reauthenticate=False)

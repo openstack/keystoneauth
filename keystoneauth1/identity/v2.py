@@ -12,6 +12,7 @@
 
 import abc
 
+from positional import positional
 import six
 
 from keystoneauth1 import _utils as utils
@@ -34,7 +35,7 @@ class Auth(base.BaseIdentityPlugin):
                                 is going to expire. (optional) default True
     """
 
-    @utils.positional()
+    @positional()
     def __init__(self, auth_url,
                  trust_id=None,
                  tenant_id=None,
@@ -110,7 +111,7 @@ class Password(Auth):
     :raises TypeError: if a user_id or username is not provided.
     """
 
-    @utils.positional(4)
+    @positional(4)
     def __init__(self, auth_url, username=_NOT_PASSED, password=None,
                  user_id=_NOT_PASSED, **kwargs):
         super(Password, self).__init__(auth_url, **kwargs)

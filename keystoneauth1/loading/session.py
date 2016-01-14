@@ -13,12 +13,13 @@
 import argparse
 import os
 
+from positional import positional
+
 try:
     from oslo_config import cfg
 except ImportError:
     cfg = None
 
-from keystoneauth1 import _utils as utils
 from keystoneauth1.loading import base
 from keystoneauth1 import session
 
@@ -53,7 +54,7 @@ class Session(base.BaseLoader):
     def get_options(self):
         return []
 
-    @utils.positional(1)
+    @positional(1)
     def load_from_options(self,
                           insecure=False,
                           verify=None,

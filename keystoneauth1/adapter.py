@@ -12,7 +12,7 @@
 
 import os
 
-from keystoneauth1 import _utils as utils
+from positional import positional
 
 
 class Adapter(object):
@@ -45,7 +45,7 @@ class Adapter(object):
     :type logger: logging.Logger
     """
 
-    @utils.positional()
+    @positional()
     def __init__(self, session, service_type=None, service_name=None,
                  interface=None, region_name=None, endpoint_override=None,
                  version=None, auth=None, user_agent=None,

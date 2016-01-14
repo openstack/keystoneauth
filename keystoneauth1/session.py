@@ -20,6 +20,7 @@ import socket
 import time
 import uuid
 
+from positional import positional
 import requests
 import six
 from six.moves import urllib
@@ -117,7 +118,7 @@ class Session(object):
 
     _DEFAULT_REDIRECT_LIMIT = 30
 
-    @utils.positional(2)
+    @positional(2)
     def __init__(self, auth=None, session=None, original_ip=None, verify=True,
                  cert=None, timeout=None, user_agent=None,
                  redirect=_DEFAULT_REDIRECT_LIMIT):
@@ -185,7 +186,7 @@ class Session(object):
             return (header[0], '{SHA1}%s' % token_hash)
         return header
 
-    @utils.positional()
+    @positional()
     def _http_log_request(self, url, method=None, data=None,
                           json=None, headers=None, logger=_logger):
         if not logger.isEnabledFor(logging.DEBUG):
@@ -224,7 +225,7 @@ class Session(object):
 
         logger.debug(' '.join(string_parts))
 
-    @utils.positional()
+    @positional()
     def _http_log_response(self, response=None, json=None,
                            status_code=None, headers=None, text=None,
                            logger=_logger):
@@ -253,7 +254,7 @@ class Session(object):
 
         logger.debug(' '.join(string_parts))
 
-    @utils.positional()
+    @positional()
     def request(self, url, method, json=None, original_ip=None,
                 user_agent=None, redirect=None, authenticated=None,
                 endpoint_filter=None, auth=None, requests_auth=None,

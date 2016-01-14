@@ -13,7 +13,8 @@
 import argparse
 import os
 
-from keystoneauth1 import _utils as utils
+from positional import positional
+
 from keystoneauth1.loading import base
 
 
@@ -30,7 +31,7 @@ def _register_plugin_argparse_arguments(parser, plugin):
                             dest='os_%s' % opt.dest)
 
 
-@utils.positional()
+@positional()
 def register_argparse_arguments(parser, argv, default=None):
     """Register CLI options needed to create a plugin.
 

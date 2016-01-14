@@ -13,12 +13,12 @@
 import itertools
 import os
 
+from positional import positional
+
 try:
     from oslo_config import cfg
 except ImportError:
     cfg = None
-
-from keystoneauth1 import _utils as utils
 
 
 __all__ = ('Opt',)
@@ -62,7 +62,7 @@ class Opt(object):
         required option is not present loading should fail.
     """
 
-    @utils.positional()
+    @positional()
     def __init__(self,
                  name,
                  type=str,

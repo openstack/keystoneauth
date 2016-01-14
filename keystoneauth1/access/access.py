@@ -16,6 +16,8 @@
 
 import functools
 
+from positional import positional
+
 from keystoneauth1 import _utils as utils
 from keystoneauth1.access import service_catalog
 from keystoneauth1.access import service_providers
@@ -31,7 +33,7 @@ __all__ = ('AccessInfo',
            'create')
 
 
-@utils.positional()
+@positional()
 def create(resp=None, body=None, auth_token=None):
     if resp and not body:
         body = resp.json()
