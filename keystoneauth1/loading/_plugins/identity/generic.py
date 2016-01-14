@@ -24,7 +24,8 @@ class Token(loading.BaseGenericLoader):
         options = super(Token, self).get_options()
 
         options.extend([
-            loading.Opt('token', help='Token to authenticate with'),
+            loading.Opt('token', secret=True,
+                        help='Token to authenticate with'),
         ])
 
         return options
@@ -46,6 +47,6 @@ class Password(loading.BaseGenericLoader):
                         deprecated=[loading.Opt('username')]),
             loading.Opt('user-domain-id', help="User's domain id"),
             loading.Opt('user-domain-name', help="User's domain name"),
-            loading.Opt('password', help="User's password"),
+            loading.Opt('password', secret=True, help="User's password"),
         ])
         return options
