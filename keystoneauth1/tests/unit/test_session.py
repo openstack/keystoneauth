@@ -25,6 +25,7 @@ from keystoneauth1 import exceptions
 from keystoneauth1 import plugin
 from keystoneauth1 import session as client_session
 from keystoneauth1.tests.unit import utils
+from keystoneauth1 import token_endpoint
 
 
 class SessionTests(utils.TestCase):
@@ -366,12 +367,16 @@ class AuthPlugin(plugin.BaseAuthPlugin):
 class CalledAuthPlugin(plugin.BaseAuthPlugin):
 
     ENDPOINT = 'http://fakeendpoint/'
+    USER_ID = uuid.uuid4().hex
+    PROJECT_ID = uuid.uuid4().hex
 
     def __init__(self, invalidate=True):
         self.get_token_called = False
         self.get_endpoint_called = False
         self.endpoint_arguments = {}
         self.invalidate_called = False
+        self.get_project_id_called = False
+        self.get_user_id_called = False
         self._invalidate = invalidate
 
     def get_token(self, session):
@@ -386,6 +391,14 @@ class CalledAuthPlugin(plugin.BaseAuthPlugin):
     def invalidate(self):
         self.invalidate_called = True
         return self._invalidate
+
+    def get_project_id(self, session, **kwargs):
+        self.get_project_id_called = True
+        return self.PROJECT_ID
+
+    def get_user_id(self, session, **kwargs):
+        self.get_user_id_called = True
+        return self.USER_ID
 
 
 class SessionAuthTests(utils.TestCase):
@@ -574,6 +587,9 @@ class SessionAuthTests(utils.TestCase):
         self.assertTrue(auth.get_token_called)
         self.assertFalse(auth.get_endpoint_called)
 
+        self.assertFalse(auth.get_user_id_called)
+        self.assertFalse(auth.get_project_id_called)
+
     def test_endpoint_override_ignore_full_url(self):
         auth = CalledAuthPlugin()
         sess = client_session.Session(auth=auth)
@@ -593,6 +609,70 @@ class SessionAuthTests(utils.TestCase):
 
         self.assertTrue(auth.get_token_called)
         self.assertFalse(auth.get_endpoint_called)
+
+        self.assertFalse(auth.get_user_id_called)
+        self.assertFalse(auth.get_project_id_called)
+
+    def test_endpoint_override_does_id_replacement(self):
+        auth = CalledAuthPlugin()
+        sess = client_session.Session(auth=auth)
+
+        override_base = 'http://mytest/%(project_id)s/%(user_id)s'
+        path = 'path'
+        replacements = {'user_id': CalledAuthPlugin.USER_ID,
+                        'project_id': CalledAuthPlugin.PROJECT_ID}
+        override_url = override_base % replacements + '/' + path
+        resp_text = uuid.uuid4().hex
+
+        self.requests_mock.get(override_url, text=resp_text)
+
+        resp = sess.get(path,
+                        endpoint_override=override_base,
+                        endpoint_filter={'service_type': 'identity'})
+
+        self.assertEqual(resp_text, resp.text)
+        self.assertEqual(override_url, self.requests_mock.last_request.url)
+
+        self.assertTrue(auth.get_token_called)
+        self.assertTrue(auth.get_user_id_called)
+        self.assertTrue(auth.get_project_id_called)
+        self.assertFalse(auth.get_endpoint_called)
+
+    def test_endpoint_override_fails_to_replace_if_none(self):
+        # The token_endpoint plugin doesn't know user_id or project_id
+        auth = token_endpoint.Token(uuid.uuid4().hex, uuid.uuid4().hex)
+        sess = client_session.Session(auth=auth)
+
+        override_base = 'http://mytest/%(project_id)s'
+
+        e = self.assertRaises(ValueError,
+                              sess.get,
+                              '/path',
+                              endpoint_override=override_base,
+                              endpoint_filter={'service_type': 'identity'})
+
+        self.assertIn('project_id', str(e))
+        override_base = 'http://mytest/%(user_id)s'
+
+        e = self.assertRaises(ValueError,
+                              sess.get,
+                              '/path',
+                              endpoint_override=override_base,
+                              endpoint_filter={'service_type': 'identity'})
+        self.assertIn('user_id', str(e))
+
+    def test_endpoint_override_fails_to_do_unknown_replacement(self):
+        auth = CalledAuthPlugin()
+        sess = client_session.Session(auth=auth)
+
+        override_base = 'http://mytest/%(unknown_id)s'
+
+        e = self.assertRaises(AttributeError,
+                              sess.get,
+                              '/path',
+                              endpoint_override=override_base,
+                              endpoint_filter={'service_type': 'identity'})
+        self.assertIn('unknown_id', str(e))
 
     def test_user_and_project_id(self):
         auth = AuthPlugin()
