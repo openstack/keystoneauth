@@ -69,7 +69,8 @@ class HttpError(base.ClientException):
 
     def __init__(self, message=None, details=None,
                  response=None, request_id=None,
-                 url=None, method=None, http_status=None):
+                 url=None, method=None, http_status=None,
+                 retry_after=0):
         self.http_status = http_status or self.http_status
         self.message = message or self.message
         self.details = details
@@ -78,6 +79,7 @@ class HttpError(base.ClientException):
         self.url = url
         self.method = method
         formatted_string = "%s (HTTP %s)" % (self.message, self.http_status)
+        self.retry_after = retry_after
         if request_id:
             formatted_string += " (Request-ID: %s)" % request_id
         super(HttpError, self).__init__(formatted_string)
