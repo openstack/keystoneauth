@@ -71,6 +71,28 @@ class _JSONEncoder(json.JSONEncoder):
         return super(_JSONEncoder, self).default(o)
 
 
+class _StringFormatter(object):
+    """A String formatter that fetches values on demand"""
+
+    def __init__(self, session, auth):
+        self.session = session
+        self.auth = auth
+
+    def __getitem__(self, item):
+        if item == 'project_id':
+            value = self.session.get_project_id(self.auth)
+        elif item == 'user_id':
+            value = self.session.get_user_id(self.auth)
+        else:
+            raise AttributeError(item)
+
+        if not value:
+            raise ValueError("This type of authentication does not provide a "
+                             "%s that can be substituted" % item)
+
+        return value
+
+
 class Session(object):
     """Maintains client communication state and common functionality.
 
@@ -302,7 +324,11 @@ class Session(object):
                                       endpoint in the auth plugin. This will be
                                       ignored if a fully qualified URL is
                                       provided but take priority over an
-                                      endpoint_filter. (optional)
+                                      endpoint_filter. This string may contain
+                                      the values %(project_id)s and %(user_id)s
+                                      to have those values replaced by the
+                                      project_id/user_id of the current
+                                      authentication. (optional)
         :param auth: The auth plugin to use when authenticating this request.
                      This will override the plugin that is attached to the
                      session (if any). (optional)
@@ -360,7 +386,7 @@ class Session(object):
             base_url = None
 
             if endpoint_override:
-                base_url = endpoint_override
+                base_url = endpoint_override % _StringFormatter(self, auth)
             elif endpoint_filter:
                 base_url = self.get_endpoint(auth, **endpoint_filter)
 
