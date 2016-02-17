@@ -13,9 +13,10 @@
 from keystoneauth1.identity.v3.base import *  # noqa
 from keystoneauth1.identity.v3.federation import *  # noqa
 from keystoneauth1.identity.v3.k2k import *  # noqa
+from keystoneauth1.identity.v3.oidc import *  # noqa
 from keystoneauth1.identity.v3.password import *  # noqa
 from keystoneauth1.identity.v3.token import *  # noqa
-from keystoneauth1.identity.v3.oidc import *  # noqa
+from keystoneauth1.identity.v3.totp import *  # noqa
 
 
 __all__ = ('Auth',
@@ -34,4 +35,7 @@ __all__ = ('Auth',
            'TokenMethod',
 
            'OidcAuthorizationCode',
-           'OidcPassword',)
+           'OidcPassword',
+
+           'TOTPMethod',
+           'TOTP')

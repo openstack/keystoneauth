@@ -15,6 +15,27 @@ from keystoneauth1 import identity
 from keystoneauth1 import loading
 
 
+def _add_common_identity_options(options):
+    options.extend([
+        loading.Opt('user-id', help='User ID'),
+        loading.Opt('username',
+                    help='Username',
+                    deprecated=[loading.Opt('user-name')]),
+        loading.Opt('user-domain-id', help="User's domain id"),
+        loading.Opt('user-domain-name', help="User's domain name"),
+    ])
+
+
+def _assert_identity_options(options):
+    if (options.get('username') and
+            not (options.get('user_domain_name') or
+                 options.get('user_domain_id'))):
+        m = "You have provided a username. In the V3 identity API a " \
+            "username is only unique within a domain so you must " \
+            "also provide either a user_domain_id or user_domain_name."
+        raise exceptions.OptionError(m)
+
+
 class Password(loading.BaseV3Loader):
 
     @property
@@ -23,27 +44,16 @@ class Password(loading.BaseV3Loader):
 
     def get_options(self):
         options = super(Password, self).get_options()
+        _add_common_identity_options(options)
 
         options.extend([
-            loading.Opt('user-id', help='User ID'),
-            loading.Opt('username',
-                        help='Username',
-                        deprecated=[loading.Opt('user-name')]),
-            loading.Opt('user-domain-id', help="User's domain id"),
-            loading.Opt('user-domain-name', help="User's domain name"),
             loading.Opt('password', secret=True, help="User's password"),
         ])
 
         return options
 
     def load_from_options(self, **kwargs):
-        if (kwargs.get('username') and
-                not (kwargs.get('user_domain_name') or
-                     kwargs.get('user_domain_id'))):
-            m = "You have provided a username. In the V3 identity API a " \
-                "username is only unique within a domain so you must " \
-                "also provide either a user_domain_id or user_domain_name."
-            raise exceptions.OptionError(m)
+        _assert_identity_options(kwargs)
 
         return super(Password, self).load_from_options(**kwargs)
 
@@ -139,3 +149,25 @@ class OpenIDConnectAccessToken(loading.BaseFederationLoader):
                         help='OAuth 2.0 Access Token'),
         ])
         return options
+
+
+class TOTP(loading.BaseV3Loader):
+
+    @property
+    def plugin_class(self):
+        return identity.V3TOTP
+
+    def get_options(self):
+        options = super(TOTP, self).get_options()
+        _add_common_identity_options(options)
+
+        options.extend([
+            loading.Opt('passcode', secret=True, help="User's TOTP passcode"),
+        ])
+
+        return options
+
+    def load_from_options(self, **kwargs):
+        _assert_identity_options(kwargs)
+
+        return super(TOTP, self).load_from_options(**kwargs)

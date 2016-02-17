@@ -55,6 +55,8 @@ this V3 defines a number of different
   against a V3 identity service using a username and password.
 - :py:class:`~keystoneauth1.identity.v3.TokenMethod`: Authenticate against
   a V3 identity service using an existing token.
+- :py:class:`~keystoneauth1.identity.v3.TOTPMethod`: Authenticate against
+  a V3 identity service using Time-Based One-Time Password (TOTP).
 - :py:class:`~keystoneauth1.extras.kerberos.KerberosMethod`: Authenticate
   against a V3 identity service using Kerberos.
 
@@ -81,6 +83,8 @@ like the V2 plugins:
   only a :py:class:`~keystoneauth1.identity.v3.PasswordMethod`.
 - :py:class:`~keystoneauth1.identity.v3.Token`: Authenticate using only a
   :py:class:`~keystoneauth1.identity.v3.TokenMethod`.
+- :py:class:`~keystoneauth1.identity.v3.TOTP`: Authenticate using
+  only a :py:class:`~keystoneauth1.identity.v3.TOTPMethod`.
 - :py:class:`~keystoneauth1.extras.kerberos.Kerberos`: Authenticate using
   only a :py:class:`~keystoneauth1.extras.kerberos.KerberosMethod`.
 
@@ -175,6 +179,7 @@ authentication plugins that are available in `keystoneauth` are:
 - v2token: :py:class:`keystoneauth1.identity.v2.Token`
 - v3password: :py:class:`keystoneauth1.identity.v3.Password`
 - v3token: :py:class:`keystoneauth1.identity.v3.Token`
+- v3totp: :py:class:`keystoneauth1.identity.v3.TOTP`
 
 
 Creating Authentication Plugins
