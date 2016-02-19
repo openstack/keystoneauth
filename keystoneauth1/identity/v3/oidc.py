@@ -117,11 +117,11 @@ class _OidcBase(federation.FederationBaseAuth):
         :param headers: an Authorization header containing the access token.
         :type headers_: dict
 
-        :param federated_auth_url: Protected URL for federated authentication,
-                                   for example: https://localhost:5000/v3/\
-                                   OS-FEDERATION/identity_providers/bluepages/\
-                                   protocols/oidc/auth
-        :type federated_auth_url: string
+        :param federated_token_url: Protected URL for federated authentication,
+                                    for example: https://localhost:5000/v3/\
+                                    OS-FEDERATION/identity_providers/bluepages/\
+                                    protocols/oidc/auth
+        :type federated_token_url: string
         """
         auth_response = session.post(self.federated_token_url,
                                      headers=headers,
