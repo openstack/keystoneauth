@@ -235,7 +235,7 @@ class AuthMethod(object):
         """Return the authentication section of an auth plugin.
 
         :param session: The communication session.
-        :type session: keystonauth.session.Session
+        :type session: keystoneauth1.session.Session
         :param Auth auth: The auth plugin calling the method.
         :param dict headers: The headers that will be sent with the auth
                              request if a plugin needs to add to them.

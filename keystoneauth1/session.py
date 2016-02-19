@@ -97,16 +97,16 @@ class Session(object):
     """Maintains client communication state and common functionality.
 
     As much as possible the parameters to this class reflect and are passed
-    directly to the requests library.
+    directly to the :mod:`requests` library.
 
     :param auth: An authentication plugin to authenticate the session with.
                  (optional, defaults to None)
-    :type auth: :py:class:`keystonauth.auth.base.BaseAuthPlugin`
+    :type auth: keystoneauth1.plugin.BaseAuthPlugin
     :param requests.Session session: A requests session object that can be used
                                      for issuing requests. (optional)
-    :param string original_ip: The original IP of the requesting user which
-                               will be sent to identity service in a
-                               'Forwarded' header. (optional)
+    :param str original_ip: The original IP of the requesting user which will
+                            be sent to identity service in a 'Forwarded'
+                            header. (optional)
     :param verify: The verification arguments to pass to requests. These are of
                    the same form as requests expects, so True or False to
                    verify (or not) against system certificates or a path to a
@@ -121,13 +121,13 @@ class Session(object):
                           numerical value indicating some amount (or fraction)
                           of seconds or 0 for no timeout. (optional, defaults
                           to 0)
-    :param string user_agent: A User-Agent header string to use for the
-                              request. If not provided, a default of
-                              :attr:`~keystoneauth1.session.DEFAULT_USER_AGENT`
-                              is used, which contains the keystoneauth1 version
-                              as well as those of the requests library and
-                              which Python is being used. When a non-None value
-                              is passed, it will be prepended to the default.
+    :param str user_agent: A User-Agent header string to use for the request.
+                           If not provided, a default of
+                           :attr:`~keystoneauth1.session.DEFAULT_USER_AGENT` is
+                           used, which contains the keystoneauth1 version as
+                           well as those of the requests library and which
+                           Python is being used. When a non-None value is
+                           passed, it will be prepended to the default.
     :param int/bool redirect: Controls the maximum number of redirections that
                               can be followed by a request. Either an integer
                               for a specific count or True/False for
@@ -291,19 +291,18 @@ class Session(object):
         Arguments that are not handled are passed through to the requests
         library.
 
-        :param string url: Path or fully qualified URL of HTTP request. If only
-                           a path is provided then endpoint_filter must also be
-                           provided such that the base URL can be determined.
-                           If a fully qualified URL is provided then
-                           endpoint_filter will be ignored.
-        :param string method: The http method to use. (e.g. 'GET', 'POST')
-        :param string original_ip: Mark this request as forwarded for this ip.
-                                   (optional)
+        :param str url: Path or fully qualified URL of HTTP request. If only a
+                        path is provided then endpoint_filter must also be
+                        provided such that the base URL can be determined. If a
+                        fully qualified URL is provided then endpoint_filter
+                        will be ignored.
+        :param str method: The http method to use. (e.g. 'GET', 'POST')
+        :param str original_ip: Mark this request as forwarded for this ip.
+                                (optional)
         :param dict headers: Headers to be included in the request. (optional)
         :param json: Some data to be represented as JSON. (optional)
-        :param string user_agent: A user_agent to use for the request. If
-                                  present will override one present in headers.
-                                  (optional)
+        :param str user_agent: A user_agent to use for the request. If present
+                               will override one present in headers. (optional)
         :param int/bool redirect: the maximum number of redirections that
                                   can be followed by a request. Either an
                                   integer for a specific count or True/False
@@ -325,14 +324,14 @@ class Session(object):
                                       ignored if a fully qualified URL is
                                       provided but take priority over an
                                       endpoint_filter. This string may contain
-                                      the values %(project_id)s and %(user_id)s
-                                      to have those values replaced by the
-                                      project_id/user_id of the current
-                                      authentication. (optional)
+                                      the values ``%(project_id)s`` and
+                                      ``%(user_id)s`` to have those values
+                                      replaced by the project_id/user_id of the
+                                      current authentication. (optional)
         :param auth: The auth plugin to use when authenticating this request.
                      This will override the plugin that is attached to the
                      session (if any). (optional)
-        :type auth: :py:class:`keystonauth.auth.base.BaseAuthPlugin`
+        :type auth: keystoneauth1.plugin.BaseAuthPlugin
         :param requests_auth: A requests library auth plugin that cannot be
                               passed via kwarg because the `auth` kwarg
                               collides with our own auth plugins. (optional)
@@ -346,16 +345,19 @@ class Session(object):
         :param bool log: If True then log the request and response data to the
                          debug log. (optional, default True)
         :param logger: The logger object to use to log request and responses.
-                       If not provided the keystonauth.session default
+                       If not provided the keystoneauth1.session default
                        logger will be used.
         :type logger: logging.Logger
         :param kwargs: any other parameter that can be passed to
-                       requests.Session.request (such as `headers`). Except:
-                       'data' will be overwritten by the data in 'json' param.
-                       'allow_redirects' is ignored as redirects are handled
-                       by the session.
+                       :meth:`requests.Session.request` (such as `headers`).
+                       Except:
 
-        :raises keystonauth.exceptions.ClientException: For connection
+                       - `data` will be overwritten by the data in the `json`
+                         param.
+                       - `allow_redirects` is ignored as redirects are handled
+                         by the session.
+
+        :raises keystoneauth1.exceptions.base.ClientException: For connection
             failure, or to indicate an error response code.
 
         :returns: The response to the request.
@@ -610,15 +612,15 @@ class Session(object):
 
         :param auth: The auth plugin to use for token. Overrides the plugin
                      on the session. (optional)
-        :type auth: :py:class:`keystonauth.auth.base.BaseAuthPlugin`
+        :type auth: keystoneauth1.plugin.BaseAuthPlugin
 
-        :raises keystonauth.exceptions.AuthorizationFailure: if a new token
-                                                                fetch fails.
-        :raises keystonauth.exceptions.MissingAuthPlugin: if a plugin is not
-                                                             available.
+        :raises keystoneauth1.exceptions.auth.AuthorizationFailure:
+            if a new token fetch fails.
+        :raises keystoneauth1.exceptions.auth_plugins.MissingAuthPlugin:
+            if a plugin is not available.
 
         :returns: Authentication headers or None for failure.
-        :rtype: dict
+        :rtype: :class:`dict`
         """
         auth = self._auth_required(auth, 'fetch a token')
         return auth.get_headers(self, **kwargs)
@@ -628,16 +630,17 @@ class Session(object):
 
         :param auth: The auth plugin to use for token. Overrides the plugin
                      on the session. (optional)
-        :type auth: :py:class:`keystonauth.auth.base.BaseAuthPlugin`
+        :type auth: keystoneauth1.plugin.BaseAuthPlugin
 
-        :raises keystonauth.exceptions.AuthorizationFailure: if a new token
-                                                                fetch fails.
-        :raises keystonauth.exceptions.MissingAuthPlugin: if a plugin is not
-                                                             available.
+        :raises keystoneauth1.exceptions.auth.AuthorizationFailure:
+             if a new token fetch fails.
+        :raises keystoneauth1.exceptions.auth_plugins.MissingAuthPlugin:
+            if a plugin is not available.
 
-        *DEPRECATED*: This assumes that the only header that is used to
-                      authenticate a message is 'X-Auth-Token'. This may not be
-                      correct. Use get_auth_headers instead.
+        .. warning::
+            **DEPRECATED**: This assumes that the only header that is used to
+            authenticate a message is ``X-Auth-Token``. This may not be
+            correct. Use :meth:`get_auth_headers` instead.
 
         :returns: A valid token.
         :rtype: string
@@ -649,10 +652,10 @@ class Session(object):
 
         :param auth: The auth plugin to use for token. Overrides the plugin on
                      the session. (optional)
-        :type auth: :py:class:`keystonauth.auth.base.BaseAuthPlugin`
+        :type auth: keystoneauth1.plugin.BaseAuthPlugin
 
-        :raises keystonauth.exceptions.MissingAuthPlugin: if a plugin is not
-                                                             available.
+        :raises keystoneauth1.exceptions.auth_plugins.MissingAuthPlugin:
+            if a plugin is not available.
 
         :returns: An endpoint if available or None.
         :rtype: string
@@ -680,17 +683,18 @@ class Session(object):
 
         :param auth: The auth plugin to use for tokens. Overrides the plugin
                      on the session. (optional)
-        :type auth: keystoneclient.auth.base.BaseAuthPlugin
+        :type auth: keystoneauth1.plugin.BaseAuthPlugin
 
-        :raises keystoneclient.exceptions.AuthorizationFailure: if a new token
-                                                                fetch fails.
-        :raises keystoneclient.exceptions.MissingAuthPlugin: if a plugin is not
-                                                             available.
-        :raises keystoneclient.exceptions.UnsupportedParameters: if the plugin
-            returns a parameter that is not supported by this session.
+        :raises keystoneauth1.exceptions.auth.AuthorizationFailure:
+            if a new token fetch fails.
+        :raises keystoneauth1.exceptions.auth_plugins.MissingAuthPlugin:
+            if a plugin is not available.
+        :raises keystoneauth1.exceptions.auth_plugins.UnsupportedParameters:
+            if the plugin returns a parameter that is not supported by this
+            session.
 
         :returns: Authentication headers or None for failure.
-        :rtype: dict
+        :rtype: :class:`dict`
         """
         msg = 'An auth plugin is required to fetch connection params'
         auth = self._auth_required(auth, msg)
@@ -718,7 +722,7 @@ class Session(object):
 
         :param auth: The auth plugin to invalidate. Overrides the plugin on the
                      session. (optional)
-        :type auth: :py:class:`keystonauth.auth.base.BaseAuthPlugin`
+        :type auth: keystoneauth1.plugin.BaseAuthPlugin
 
         """
         auth = self._auth_required(auth, 'validate')
@@ -729,14 +733,15 @@ class Session(object):
 
         :param auth: The auth plugin to use for token. Overrides the plugin
                      on the session. (optional)
-        :type auth: keystonauth.auth.base.BaseAuthPlugin
+        :type auth: keystoneauth1.plugin.BaseAuthPlugin
 
-        :raises keystonauth.exceptions.AuthorizationFailure:
+        :raises keystoneauth1.exceptions.auth.AuthorizationFailure:
             if a new token fetch fails.
-        :raises keystonauth.exceptions.MissingAuthPlugin:
+        :raises keystoneauth1.exceptions.auth_plugins.MissingAuthPlugin:
             if a plugin is not available.
 
-        :returns string: Current user_id or None if not supported by plugin.
+        :returns: Current user_id or None if not supported by plugin.
+        :rtype: :class:`str`
         """
         auth = self._auth_required(auth, 'get user_id')
         return auth.get_user_id(self)
@@ -746,14 +751,15 @@ class Session(object):
 
         :param auth: The auth plugin to use for token. Overrides the plugin
                      on the session. (optional)
-        :type auth: keystonauth.auth.base.BaseAuthPlugin
+        :type auth: keystoneauth1.plugin.BaseAuthPlugin
 
-        :raises keystonauth.exceptions.AuthorizationFailure:
+        :raises keystoneauth1.exceptions.auth.AuthorizationFailure:
             if a new token fetch fails.
-        :raises keystonauth.exceptions.MissingAuthPlugin:
+        :raises keystoneauth1.exceptions.auth_plugins.MissingAuthPlugin:
             if a plugin is not available.
 
-        :returns string: Current project_id or None if not supported by plugin.
+        :returns: Current project_id or None if not supported by plugin.
+        :rtype: :class:`str`
         """
         auth = self._auth_required(auth, 'get project_id')
         return auth.get_project_id(self)

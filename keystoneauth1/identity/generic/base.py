@@ -60,7 +60,7 @@ class BaseGenericPlugin(base.BaseIdentityPlugin):
 
     @abc.abstractmethod
     def create_plugin(self, session, version, url, raw_status=None):
-        """Create a plugin from the given paramters.
+        """Create a plugin from the given parameters.
 
         This function will be called multiple times with the version and url
         of a potential endpoint. If a plugin can be constructed that fits the
@@ -68,10 +68,10 @@ class BaseGenericPlugin(base.BaseIdentityPlugin):
         call will be made with other available URLs.
 
         :param session: A session object.
-        :type session: keystonauth.session.Session
+        :type session: keystoneauth1.session.Session
         :param tuple version: A tuple of the API version at the URL.
-        :param string url: The base URL for this version.
-        :param string raw_status: The status that was in the discovery field.
+        :param str url: The base URL for this version.
+        :param str raw_status: The status that was in the discovery field.
 
         :returns: A plugin that can match the parameters or None if nothing.
         """

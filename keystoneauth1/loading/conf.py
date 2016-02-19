@@ -105,13 +105,13 @@ def load_from_conf_options(conf, group, **kwargs):
 
     :param conf: A conf object.
     :type conf: oslo_config.cfg.ConfigOpts
-    :param string group: The group name that options should be read from.
+    :param str group: The group name that options should be read from.
 
     :returns: An authentication Plugin or None if a name is not provided
-    :rtype: :py:class:`keystonauth.auth.BaseAuthPlugin`
+    :rtype: :class:`keystoneauth1.plugin.BaseAuthPlugin`
 
-    :raises keystonauth.exceptions.NoMatchingPlugin: if a plugin cannot be
-                                                        created.
+    :raises keystoneauth1.exceptions.auth_plugins.NoMatchingPlugin:
+        if a plugin cannot be created.
     """
     # NOTE(jamielennox): plugins are allowed to specify a 'section' which is
     # the group that auth options should be taken from. If not present they

@@ -63,8 +63,8 @@ def get_plugin_loader(name):
     :returns: An auth plugin class.
     :rtype: :py:class:`keystoneauth1.loading.BaseLoader`
 
-    :raises keystonauth.exceptions.NoMatchingPlugin: if a plugin cannot be
-                                                        created.
+    :raises keystoneauth1.exceptions.auth_plugins.NoMatchingPlugin:
+        if a plugin cannot be created.
     """
     try:
         mgr = stevedore.DriverManager(namespace=PLUGIN_NAMESPACE,
@@ -84,8 +84,8 @@ def get_plugin_options(name):
 
     :returns: A list of :py:class:`keystoneauth1.loading.Opt` options.
 
-    :raises keystonauth.exceptions.NoMatchingPlugin: if a plugin cannot be
-                                                     created.
+    :raises keystoneauth1.exceptions.auth_plugins.NoMatchingPlugin:
+        if a plugin cannot be created.
     """
     return get_plugin_loader(name).get_options()
 

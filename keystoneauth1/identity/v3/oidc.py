@@ -79,7 +79,7 @@ class _OidcBase(federation.FederationBaseAuth):
         """Exchange a variety of user supplied values for an access token.
 
         :param session: a session object to send out HTTP requests.
-        :type session: keystoneauth.session.Session
+        :type session: keystoneauth1.session.Session
 
         :param client_auth: a tuple representing client id and secret
         :type client_auth: tuple
@@ -112,7 +112,7 @@ class _OidcBase(federation.FederationBaseAuth):
         succeed, a Keystone token will be presented to the user.
 
         :param session: a session object to send out HTTP requests.
-        :type session: keystoneauth.session.Session
+        :type session: keystoneauth1.session.Session
 
         :param headers: an Authorization header containing the access token.
         :type headers_: dict

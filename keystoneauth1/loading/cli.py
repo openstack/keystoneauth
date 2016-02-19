@@ -38,16 +38,17 @@ def register_argparse_arguments(parser, argv, default=None):
     The function inspects the provided arguments so that it can also register
     the options required for that specific plugin if available.
 
-    :param argparse.ArgumentParser: the parser to attach argparse options to.
+    :param parser: the parser to attach argparse options to.
+    :type parser: argparse.ArgumentParser
     :param list argv: the arguments provided to the appliation.
     :param str/class default: a default plugin name or a plugin object to use
                               if one isn't specified by the CLI. default: None.
 
     :returns: The plugin class that will be loaded or None if not provided.
-    :rtype: :py:class:`keystonauth.auth.BaseAuthPlugin`
+    :rtype: :class:`keystoneauth1.plugin.BaseAuthPlugin`
 
-    :raises keystonauth.exceptions.NoMatchingPlugin: if a plugin cannot be
-                                                        created.
+    :raises keystoneauth1.exceptions.auth_plugins.NoMatchingPlugin:
+        if a plugin cannot be created.
     """
     in_parser = argparse.ArgumentParser(add_help=False)
     env_plugin = os.environ.get('OS_AUTH_TYPE',
@@ -85,10 +86,10 @@ def load_from_argparse_arguments(namespace, **kwargs):
     :param Namespace namespace: The result from CLI parsing.
 
     :returns: An auth plugin, or None if a name is not provided.
-    :rtype: :py:class:`keystonauth.auth.BaseAuthPlugin`
+    :rtype: :class:`keystoneauth1.plugin.BaseAuthPlugin`
 
-    :raises keystonauth.exceptions.NoMatchingPlugin: if a plugin cannot be
-                                                        created.
+    :raises keystoneauth1.exceptions.auth_plugins.NoMatchingPlugin:
+        if a plugin cannot be created.
     """
     if not namespace.os_auth_type:
         return None

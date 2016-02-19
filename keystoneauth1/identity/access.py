@@ -27,7 +27,7 @@ class AccessInfoPlugin(base.BaseIdentityPlugin):
     authorizing information.
 
     :param auth_ref: the existing AccessInfo object.
-    :type auth_ref: keystonauth.access.AccessInfo
+    :type auth_ref: keystoneauth1.access.AccessInfo
     :param auth_url: the url where this AccessInfo was retrieved from. Required
                      if using the AUTH_INTERFACE with get_endpoint. (optional)
     """

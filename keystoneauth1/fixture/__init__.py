@@ -14,11 +14,10 @@
 The generators in this directory produce keystone compliant structures for use
 in testing.
 
-They should be considered part of the public API because they may be relied
-upon to generate test tokens for other clients. However they should never be
-imported into the main client (keystonauth or other). Because of this there
-may be dependencies from this module on libraries that are only available in
-testing.
+They are part of the public API because they may be relied upon to generate
+test tokens for other clients. However they should never be imported into the
+main client (keystoneauth or other). Because of this there may be dependencies
+from this module on libraries that are only available in testing.
 """
 
 from keystoneauth1.fixture.discovery import *  # noqa

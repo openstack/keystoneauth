@@ -56,10 +56,10 @@ class _Rescoped(base.BaseAuth):
         is present then the token is rescoped to that target.
 
         :param session: a session object to send out HTTP requests.
-        :type session: keystonauth.session.Session
+        :type session: keystoneauth1.session.Session
 
         :returns: a token data representation
-        :rtype: :py:class:`keystonauth.access.AccessInfo`
+        :rtype: :py:class:`keystoneauth1.access.AccessInfo`
 
         """
         auth_ref = self.get_unscoped_auth_ref(session)
