@@ -397,6 +397,14 @@ class AccessInfo(object):
         """
         raise NotImplementedError()
 
+    @property
+    def project_is_domain(self):
+        """Return if a project act as a domain.
+
+        :returns: bool
+        """
+        raise NotImplementedError()
+
 
 class AccessInfoV2(AccessInfo):
     """An object for encapsulating raw v2 auth token from identity service."""
@@ -529,6 +537,10 @@ class AccessInfoV2(AccessInfo):
             pass
 
     @property
+    def project_is_domain(self):
+        return False
+
+    @property
     def project_domain_id(self):
         return None
 
@@ -657,6 +669,10 @@ class AccessInfoV3(AccessInfo):
     @_missingproperty
     def project_id(self):
         return self._project['id']
+
+    @_missingproperty
+    def project_is_domain(self):
+        return self._data['token']['is_domain']
 
     @_missingproperty
     def project_domain_id(self):

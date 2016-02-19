@@ -63,7 +63,7 @@ class Token(dict):
                  trust_id=None, trust_impersonation=None, trustee_user_id=None,
                  trustor_user_id=None, oauth_access_token_id=None,
                  oauth_consumer_id=None, audit_id=None, audit_chain_id=None,
-                 is_admin_project=None):
+                 is_admin_project=None, project_is_domain=None):
         super(Token, self).__init__()
 
         self.user_id = user_id or uuid.uuid4().hex
@@ -99,7 +99,8 @@ class Token(dict):
             self.set_project_scope(id=project_id,
                                    name=project_name,
                                    domain_id=project_domain_id,
-                                   domain_name=project_domain_name)
+                                   domain_name=project_domain_name,
+                                   is_domain=project_is_domain)
 
         if domain_id or domain_name:
             self.set_domain_scope(id=domain_id, name=domain_name)
@@ -212,6 +213,14 @@ class Token(dict):
     @project_id.setter
     def project_id(self, value):
         self.root.setdefault('project', {})['id'] = value
+
+    @property
+    def project_is_domain(self):
+        return self.root.get('is_domain')
+
+    @project_is_domain.setter
+    def project_is_domain(self, value):
+        self.root['is_domain'] = value
 
     @property
     def project_name(self):
@@ -390,11 +399,14 @@ class Token(dict):
         return service
 
     def set_project_scope(self, id=None, name=None, domain_id=None,
-                          domain_name=None):
+                          domain_name=None, is_domain=None):
         self.project_id = id or uuid.uuid4().hex
         self.project_name = name or uuid.uuid4().hex
         self.project_domain_id = domain_id or uuid.uuid4().hex
         self.project_domain_name = domain_name or uuid.uuid4().hex
+
+        if is_domain is not None:
+            self.project_is_domain = is_domain
 
     def set_domain_scope(self, id=None, name=None):
         self.domain_id = id or uuid.uuid4().hex
