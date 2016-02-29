@@ -20,15 +20,16 @@ In keystoneclient auth plugin loading is managed by the class itself. This
 method proved useful in allowing the plugin to control the way it was loaded
 however it linked the authentication logic with the config and CLI loading.
 
-In keystoneauth this has been severed and the auth plugin is handle seperately
+In keystoneauth this has been severed and the auth plugin is handled separately
 from the mechanism that loads it.
 
 Authentication plugins still implement the base authentication class
 :py:class:`~keystoneauth1.plugin.BaseAuthPlugin`. To make the plugins capable
-of being loaded from CLI or CONF file you implement a
-:py:class:`~keystoneauth1.loading.BaseLoader` object that is loaded when a user
-does '--os-auth-type', handles the options that are presented, and then
-constructs the authentication plugin for use by the application.
+of being loaded from CLI or CONF file you should implement the base
+:py:class:`~keystoneauth1.loading.BaseLoader` class which is loaded when
+:option:`--os-auth-type` is used. This class handles the options that are
+presented, and then constructs the authentication plugin for use by the
+application.
 
 Largely the options that are returned will be the same as what was used in
 keystoneclient however in keystoneclient the options used
@@ -37,7 +38,7 @@ dependencies there is no direct dependency from keystoneauth on oslo.config and
 instead options should be specified as :py:class:`~keystoneauth1.loading.Opt`
 objects.
 
-To ensure distinction between the plugins the setuptools entypoints that
+To ensure distinction between the plugins, the setuptools entypoints that
 plugins register at has been updated to reflect keystoneauth1 and should now
 be: keystoneauth1.plugin
 
