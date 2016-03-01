@@ -53,7 +53,7 @@ asked for a valid token. If a valid token is available it will be used
 otherwise the authentication plugin may attempt to contact the authentication
 service and fetch a new one.
 
-An example from keystoneclient::
+An example using keystoneclient to wrap a session::
 
     >>> from keystoneauth1.identity import v3
     >>> from keystoneauth1 import session
@@ -70,8 +70,9 @@ An example from keystoneclient::
     >>> ks = client.Client(session=sess)
     >>> users = ks.users.list()
 
-As clients adopt this means of operating they will be created in a similar
-fashion by passing the Session object to the client's constructor.
+As other OpenStack client libraries adopt this means of operating they will be
+created in a similar fashion by passing the Session object to the client's
+constructor.
 
 
 Sharing Authentication Plugins
@@ -139,19 +140,19 @@ the request needs to be specified::
                                             'interface': 'public',
                                             'region_name': 'myregion'})
 
-``endpoint_filter`` accepts a number of arguments with which it can determine
-an endpoint url:
+`endpoint_filter` accepts a number of arguments with which it can determine an
+endpoint url:
 
-- ``service_type``: the type of service. For example ``identity``, ``compute``,
+- `service_type`: the type of service. For example ``identity``, ``compute``,
   ``volume`` or many other predefined identifiers.
 
-- ``interface``: the network exposure the interface has. This will be one of:
+- `interface`: the network exposure the interface has. This will be one of:
 
   - ``public``: An endpoint that is available to the wider internet or network.
   - ``internal``: An endpoint that is only accessible within the private network.
   - ``admin``: An endpoint to be used for administrative tasks.
 
-- ``region_name``: the name of the region where the endpoint resides.
+- `region_name`: the name of the region where the endpoint resides.
 
 The endpoint filter is a simple key-value filter and can be provided with any
 number of arguments. It is then up to the auth plugin to correctly use the

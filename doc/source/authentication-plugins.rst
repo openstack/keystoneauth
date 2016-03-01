@@ -38,7 +38,7 @@ They include:
   V2 identity service using an existing token.
 
 V2 identity plugins must use an `auth_url` that points to the root of a V2
-identity server URL, i.e.: `http://hostname:5000/v2.0`.
+identity server URL, i.e.: ``http://hostname:5000/v2.0``.
 
 V3 Identity Plugins
 -------------------
@@ -97,7 +97,7 @@ This will have exactly the same effect as using the single
 :py:class:`~keystoneauth1.identity.v3.PasswordMethod` above.
 
 V3 identity plugins must use an `auth_url` that points to the root of a V3
-identity server URL, i.e.: `http://hostname:5000/v3`.
+identity server URL, i.e.: ``http://hostname:5000/v3``.
 
 Version Independent Identity Plugins
 ------------------------------------
@@ -127,8 +127,8 @@ Simple Plugins
 
 In addition to the Identity plugins a simple plugin that will always use the
 same provided token and endpoint is available. This is useful in situations
-where you have an ``ADMIN_TOKEN`` or in testing when you specifically know the
-endpoint you want to communicate with.
+where you have an token or in testing when you specifically know the endpoint
+you want to communicate with.
 
 It can be found at :py:class:`keystoneauth1.token_endpoint.Token`.
 
