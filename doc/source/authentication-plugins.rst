@@ -99,6 +99,15 @@ This will have exactly the same effect as using the single
 V3 identity plugins must use an `auth_url` that points to the root of a V3
 identity server URL, i.e.: `http://hostname:5000/v3`.
 
+Federation
+==========
+
+V3 plugins are provided to support federation:
+
+- :class:`~keystoneauth1.identity.v3.FederationBaseAuth`
+- :class:`~keystoneauth1.identity.v3.Keystone2Keystone`
+
+
 Version Independent Identity Plugins
 ------------------------------------
 
