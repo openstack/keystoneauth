@@ -80,22 +80,22 @@ class _Rescoped(base.BaseAuth):
 
 
 class FederationBaseAuth(_Rescoped):
+    """Federation authentication plugin.
+
+    :param auth_url: URL of the Identity Service
+    :type auth_url: string
+    :param identity_provider: name of the Identity Provider the client
+                              will authenticate against. This parameter
+                              will be used to build a dynamic URL used to
+                              obtain unscoped OpenStack token.
+    :type identity_provider: string
+    :param protocol: name of the protocol the client will authenticate
+                     against.
+    :type protocol: string
+
+    """
 
     def __init__(self, auth_url, identity_provider, protocol, **kwargs):
-        """Class constructor accepting following parameters:
-
-        :param auth_url: URL of the Identity Service
-        :type auth_url: string
-        :param identity_provider: name of the Identity Provider the client
-                                  will authenticate against. This parameter
-                                  will be used to build a dynamic URL used to
-                                  obtain unscoped OpenStack token.
-        :type identity_provider: string
-        :param protocol: name of the protocol the client will authenticate
-                         against.
-        :type protocol: string
-
-        """
         super(FederationBaseAuth, self).__init__(auth_url=auth_url, **kwargs)
         self.identity_provider = identity_provider
         self.protocol = protocol
