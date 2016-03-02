@@ -31,7 +31,7 @@ __all__ = ('Auth',
            'PasswordMethod',
 
            'Token',
-           'TokenMethod'
+           'TokenMethod',
 
            'OidcAuthorizationCode',
-           'OidcPassword')
+           'OidcPassword',)
