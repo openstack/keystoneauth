@@ -19,7 +19,13 @@ IDENTITY_AUTH_HEADER_NAME = 'X-Auth-Token'
 
 
 class BaseAuthPlugin(object):
-    """The basic structure of an authentication plugin."""
+    """The basic structure of an authentication plugin.
+
+    .. note::
+        See :doc:`/authentication-plugins` for a description of plugins
+        provided by this library.
+
+    """
 
     def get_token(self, session, **kwargs):
         """Obtain a token.

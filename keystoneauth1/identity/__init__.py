@@ -20,16 +20,28 @@ from keystoneauth1.identity.v3 import oidc
 BaseIdentityPlugin = base.BaseIdentityPlugin
 
 V2Password = v2.Password
+"""See :class:`keystoneauth1.identity.v2.Password`"""
+
 V2Token = v2.Token
+"""See :class:`keystoneauth1.identity.v2.Token`"""
 
 V3Password = v3.Password
+"""See :class:`keystoneauth1.identity.v3.Password`"""
+
 V3Token = v3.Token
+"""See :class:`keystoneauth1.identity.v3.Token`"""
 
 Password = generic.Password
+"""See :class:`keystoneauth1.identity.generic.Password`"""
+
 Token = generic.Token
+"""See :class:`keystoneauth1.identity.generic.Token`"""
 
 V3OidcPassword = oidc.OidcPassword
+"""See :class:`keystoneauth1.identity.v3.oidc.OidcPassword`"""
+
 V3OidcAuthorizationCode = oidc.OidcAuthorizationCode
+"""See :class:`keystoneauth1.identity.v3.oidc.OidcAuthorizationCode`"""
 
 __all__ = ('BaseIdentityPlugin',
            'Password',
