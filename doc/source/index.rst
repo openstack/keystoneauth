@@ -38,7 +38,7 @@ using `Gerrit`_.
 .. _Launchpad: https://launchpad.net/keystoneauth
 .. _Gerrit: http://docs.openstack.org/infra/manual/developers.html#development-workflow
 
-Run tests with ``python setup.py test``.
+Run tests with ``tox``.
 
 Indices and tables
 ==================
