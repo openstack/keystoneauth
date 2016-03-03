@@ -24,7 +24,7 @@ class PasswordTests(utils.TestCase):
     def test_options(self):
         opts = [o.name for o in generic.Password().get_options()]
 
-        allowed_opts = ['user-name',
+        allowed_opts = ['username',
                         'user-domain-id',
                         'user-domain-name',
                         'user-id',

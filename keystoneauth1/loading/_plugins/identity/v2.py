@@ -40,11 +40,10 @@ class Password(loading.BaseV2Loader):
         options = super(Password, self).get_options()
 
         options.extend([
-            loading.Opt('user-name',
-                       dest='username',
-                       deprecated=[loading.Opt('username')],
+            loading.Opt('username',
+                       deprecated=[loading.Opt('user-name')],
                        help='Username to login with'),
-            loading.Opt('user-id', help='User ID to longin with'),
+            loading.Opt('user-id', help='User ID to login with'),
             loading.Opt('password', secret=True, help='Password to use'),
         ])
 
