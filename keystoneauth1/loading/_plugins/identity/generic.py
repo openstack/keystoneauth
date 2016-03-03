@@ -64,10 +64,9 @@ class Password(GenericBaseLoader):
         options = super(Password, cls).get_options()
         options.extend([
             loading.Opt('user-id', help='User id'),
-            loading.Opt('user-name',
-                        dest='username',
+            loading.Opt('username',
                         help='Username',
-                        deprecated=[loading.Opt('username')]),
+                        deprecated=[loading.Opt('user-name')]),
             loading.Opt('user-domain-id', help="User's domain id"),
             loading.Opt('user-domain-name', help="User's domain name"),
             loading.Opt('password', secret=True, help="User's password"),
