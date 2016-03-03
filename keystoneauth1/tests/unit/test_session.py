@@ -90,6 +90,15 @@ class SessionTests(utils.TestCase):
         self.assertRequestBodyIs(json={'hello': 'world'})
 
     def test_user_agent(self):
+        session = client_session.Session()
+        self.stub_url('GET', text='response')
+        resp = session.get(self.TEST_URL)
+
+        self.assertTrue(resp.ok)
+        self.assertRequestHeaderEqual(
+            'User-Agent',
+            '%s %s' % ("run.py", client_session.DEFAULT_USER_AGENT))
+
         custom_agent = 'custom-agent/1.0'
         session = client_session.Session(user_agent=custom_agent)
         self.stub_url('GET', text='response')
