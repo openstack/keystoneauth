@@ -36,3 +36,13 @@ class Token(plugin.BaseAuthPlugin):
         parameters passed to the plugin.
         """
         return self.endpoint
+
+    def get_auth_ref(self, session, **kwargs):
+        """Return the authentication reference of an auth plugin.
+
+        :param session: A session object to be used for communication
+        :type session: keystoneauth1.session.session
+        """
+        # token plugin does not have an auth ref, because it's a
+        # "static" authentication using a pre-existing token.
+        return None
