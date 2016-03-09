@@ -26,10 +26,9 @@ class Password(loading.BaseV3Loader):
 
         options.extend([
             loading.Opt('user-id', help='User ID'),
-            loading.Opt('user-name',
-                        dest='username',
+            loading.Opt('username',
                         help='Username',
-                        deprecated=[loading.Opt('username')]),
+                        deprecated=[loading.Opt('user-name')]),
             loading.Opt('user-domain-id', help="User's domain id"),
             loading.Opt('user-domain-name', help="User's domain name"),
             loading.Opt('password', secret=True, help="User's password"),
