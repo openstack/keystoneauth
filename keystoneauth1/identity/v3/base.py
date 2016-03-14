@@ -11,6 +11,7 @@
 # under the License.
 
 import abc
+import json
 
 from positional import positional
 import six
@@ -166,6 +167,7 @@ class Auth(BaseAuth):
                             authenticated=False, log=False, **rkwargs)
 
         try:
+            _logger.debug(json.dumps(resp.json()))
             resp_data = resp.json()
         except ValueError:
             raise exceptions.InvalidResponse(response=resp)
