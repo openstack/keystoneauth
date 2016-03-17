@@ -21,7 +21,7 @@ Identity server (such as Keystone) are called Identity Plugins.
 Available Plugins
 =================
 
-Keystoneclient ships with a number of plugins and particularly Identity
+Keystoneauth ships with a number of plugins and particularly Identity
 Plugins.
 
 V2 Identity Plugins
