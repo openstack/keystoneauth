@@ -175,9 +175,9 @@ class ServiceCatalog(object):
         a particular endpoint attribute. If no attribute is given, return
         the first endpoint of the specified type.
 
-        Valid endpoint types: `public` or `publicURL`,
-                              `internal` or `internalURL`,
-                              `admin` or 'adminURL`
+        Valid interface types: `public` or `publicURL`,
+                               `internal` or `internalURL`,
+                               `admin` or 'adminURL`
 
         :param string service_type: Service type of the endpoint.
         :param string interface: Type of endpoint.
