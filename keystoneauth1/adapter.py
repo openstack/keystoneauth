@@ -195,7 +195,6 @@ class Adapter(object):
         :type parser: argparse.ArgumentParser
         :param str service_type: Default service_type value. (optional)
         """
-
         adapter_group = parser.add_argument_group(
             'Service Options',
             'Options controlling the specialization of the API'

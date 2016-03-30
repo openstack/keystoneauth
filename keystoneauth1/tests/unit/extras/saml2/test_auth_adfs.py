@@ -82,7 +82,6 @@ class AuthenticateviaADFSTests(utils.TestCase):
 
     def test_get_adfs_security_token(self):
         """Test ADFSPassword._get_adfs_security_token()."""
-
         self.requests_mock.post(
             self.IDENTITY_PROVIDER_URL,
             content=utils.make_oneline(self.ADFS_SECURITY_TOKEN_RESPONSE),

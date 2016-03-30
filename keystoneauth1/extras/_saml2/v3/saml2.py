@@ -199,7 +199,6 @@ class Password(base.BaseSAMLPlugin):
 
     def _send_idp_saml2_authn_request(self, session):
         """Present modified SAML2 authn assertion from the Service Provider."""
-
         self._prepare_idp_saml2_request(self.saml2_authn_request)
         idp_saml2_authn_request = self.saml2_authn_request
 

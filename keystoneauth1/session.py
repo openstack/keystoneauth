@@ -362,7 +362,6 @@ class Session(object):
 
         :returns: The response to the request.
         """
-
         headers = kwargs.setdefault('headers', dict())
 
         if authenticated is None:

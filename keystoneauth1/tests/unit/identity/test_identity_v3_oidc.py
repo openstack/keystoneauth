@@ -68,7 +68,6 @@ class OIDCPasswordTests(AuthenticateOIDCTests):
 
     def test_initial_call_to_get_access_token(self):
         """Test initial call, expect JSON access token."""
-
         # Mock the output that creates the access token
         self.requests_mock.post(
             self.ACCESS_TOKEN_ENDPOINT,
@@ -93,7 +92,6 @@ class OIDCPasswordTests(AuthenticateOIDCTests):
 
     def test_second_call_to_protected_url(self):
         """Test subsequent call, expect Keystone token."""
-
         # Mock the output that creates the keystone token
         self.requests_mock.post(
             self.FEDERATION_AUTH_URL,
@@ -115,7 +113,6 @@ class OIDCPasswordTests(AuthenticateOIDCTests):
 
     def test_end_to_end_workflow(self):
         """Test full OpenID Connect workflow."""
-
         # Mock the output that creates the access token
         self.requests_mock.post(
             self.ACCESS_TOKEN_ENDPOINT,
@@ -135,7 +132,6 @@ class OIDCAuthorizationGrantTests(AuthenticateOIDCTests):
 
     def test_initial_call_to_get_access_token(self):
         """Test initial call, expect JSON access token."""
-
         # Mock the output that creates the access token
         self.requests_mock.post(
             self.ACCESS_TOKEN_ENDPOINT,

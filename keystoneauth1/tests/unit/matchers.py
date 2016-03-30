@@ -41,7 +41,6 @@ class XMLEquals(object):
             different children.
 
             """
-
             if expected_doc.tag != observed_doc.tag:
                 return False
 

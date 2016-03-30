@@ -176,7 +176,6 @@ class SessionTests(utils.TestCase):
 
     def test_logs_failed_output(self):
         """Test that output is logged even for failed requests"""
-
         session = client_session.Session()
         body = uuid.uuid4().hex
 

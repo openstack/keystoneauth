@@ -140,7 +140,6 @@ class Keystone2Keystone(federation._Rescoped):
         :type sp_auth_url: str
 
         """
-
         response = session.post(
             sp_url,
             headers={'Content-Type': 'application/vnd.paos+xml'},

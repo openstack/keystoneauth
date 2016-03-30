@@ -183,7 +183,6 @@ class OidcPassword(_OidcBase):
         :returns: a token data representation
         :rtype: :py:class:`keystoneauth1.access.AccessInfoV3`
         """
-
         # get an access token
         client_auth = (self.client_id, self.client_secret)
         payload = {'grant_type': self.grant_type, 'username': self.username,
@@ -250,7 +249,6 @@ class OidcAuthorizationCode(_OidcBase):
         :returns: a token data representation
         :rtype: :py:class:`keystoneauth1.access.AccessInfoV3`
         """
-
         # get an access token
         client_auth = (self.client_id, self.client_secret)
         payload = {'grant_type': self.grant_type,

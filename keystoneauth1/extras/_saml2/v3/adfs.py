@@ -73,7 +73,6 @@ class Password(base.BaseSAMLPlugin):
         :type password: string
 
         """
-
         super(Password, self).__init__(
             auth_url=auth_url, identity_provider=identity_provider,
             identity_provider_url=identity_provider_url,
@@ -117,7 +116,6 @@ class Password(base.BaseSAMLPlugin):
         :type fmt: string
 
         """
-
         date_created = datetime.datetime.utcnow()
         date_expires = date_created + datetime.timedelta(
             seconds=self.DEFAULT_ADFS_TOKEN_EXPIRATION)
@@ -129,7 +127,6 @@ class Password(base.BaseSAMLPlugin):
         Some values like username or password are inserted in the request.
 
         """
-
         WSS_SECURITY_NAMESPACE = {
             'o': ('http://docs.oasis-open.org/wss/2004/01/oasis-200401-'
                   'wss-wssecurity-secext-1.0.xsd')
