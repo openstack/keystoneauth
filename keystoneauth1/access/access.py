@@ -85,7 +85,7 @@ class AccessInfo(object):
         return self._service_catalog
 
     def will_expire_soon(self, stale_duration=STALE_TOKEN_DURATION):
-        """Determines if expiration is about to occur.
+        """Determine if expiration is about to occur.
 
         :returns: true if expiration is within the given duration
         :rtype: boolean
@@ -98,7 +98,7 @@ class AccessInfo(object):
         return norm_expires < soon
 
     def has_service_catalog(self):
-        """Returns true if the auth token has a service catalog.
+        """Return true if the auth token has a service catalog.
 
         :returns: boolean
         """
@@ -106,7 +106,7 @@ class AccessInfo(object):
 
     @property
     def auth_token(self):
-        """Returns the token_id associated with the auth request.
+        """Return the token_id associated with the auth request.
 
         To be used in headers for authenticating OpenStack API requests.
 
@@ -116,7 +116,7 @@ class AccessInfo(object):
 
     @property
     def expires(self):
-        """Returns the token expiration (as datetime object)
+        """Return the token expiration (as datetime object)
 
         :returns: datetime
         """
@@ -124,7 +124,7 @@ class AccessInfo(object):
 
     @property
     def issued(self):
-        """Returns the token issue time (as datetime object)
+        """Return the token issue time (as datetime object)
 
         :returns: datetime
         """
@@ -132,7 +132,7 @@ class AccessInfo(object):
 
     @property
     def username(self):
-        """Returns the username associated with the auth request.
+        """Return the username associated with the auth request.
 
         Follows the pattern defined in the V2 API of first looking for 'name',
         returning that if available, and falling back to 'username' if name
@@ -144,7 +144,7 @@ class AccessInfo(object):
 
     @property
     def user_id(self):
-        """Returns the user id associated with the auth request.
+        """Return the user id associated with the auth request.
 
         :returns: str
         """
@@ -152,7 +152,7 @@ class AccessInfo(object):
 
     @property
     def user_domain_id(self):
-        """Returns the user's domain id associated with the auth request.
+        """Return the user's domain id associated with the auth request.
 
         :returns: str
         """
@@ -160,7 +160,7 @@ class AccessInfo(object):
 
     @property
     def user_domain_name(self):
-        """Returns the user's  domain name associated with the auth request.
+        """Return the user's domain name associated with the auth request.
 
         :returns: str
         """
@@ -168,7 +168,7 @@ class AccessInfo(object):
 
     @property
     def role_ids(self):
-        """Returns a list of user's role ids associated with the auth request.
+        """Return a list of user's role ids associated with the auth request.
 
         :returns: a list of strings of role ids
         """
@@ -176,7 +176,7 @@ class AccessInfo(object):
 
     @property
     def role_names(self):
-        """Returns a list of user's role names associated with the auth request.
+        """Return a list of user's role names associated with the auth request.
 
         :returns: a list of strings of role names
         """
@@ -184,7 +184,7 @@ class AccessInfo(object):
 
     @property
     def domain_name(self):
-        """Returns the domain name associated with the auth request.
+        """Return the domain name associated with the auth request.
 
         :returns: str or None (if no domain associated with the token)
         """
@@ -192,7 +192,7 @@ class AccessInfo(object):
 
     @property
     def domain_id(self):
-        """Returns the domain id associated with the auth request.
+        """Return the domain id associated with the auth request.
 
         :returns: str or None (if no domain associated with the token)
         """
@@ -200,7 +200,7 @@ class AccessInfo(object):
 
     @property
     def project_name(self):
-        """Returns the project name associated with the auth request.
+        """Return the project name associated with the auth request.
 
         :returns: str or None (if no project associated with the token)
         """
@@ -213,7 +213,7 @@ class AccessInfo(object):
 
     @property
     def scoped(self):
-        """Returns true if the auth token was scoped.
+        """Return true if the auth token was scoped.
 
         Returns true if scoped to a tenant(project) or domain,
         and contains a populated service catalog.
@@ -226,7 +226,7 @@ class AccessInfo(object):
 
     @property
     def project_scoped(self):
-        """Returns true if the auth token was scoped to a tenant(project).
+        """Return true if the auth token was scoped to a tenant (project).
 
         :returns: bool
         """
@@ -234,7 +234,7 @@ class AccessInfo(object):
 
     @property
     def domain_scoped(self):
-        """Returns true if the auth token was scoped to a domain.
+        """Return true if the auth token was scoped to a domain.
 
         :returns: bool
         """
@@ -242,7 +242,7 @@ class AccessInfo(object):
 
     @property
     def trust_id(self):
-        """Returns the trust id associated with the auth request.
+        """Return the trust id associated with the auth request.
 
         :returns: str or None (if no trust associated with the token)
         """
@@ -250,7 +250,7 @@ class AccessInfo(object):
 
     @property
     def trust_scoped(self):
-        """Returns true if the auth token was scoped from a delegated trust.
+        """Return true if the auth token was scoped from a delegated trust.
 
         The trust delegation is via the OS-TRUST v3 extension.
 
@@ -260,7 +260,7 @@ class AccessInfo(object):
 
     @property
     def trustee_user_id(self):
-        """Returns the trustee user id associated with a trust.
+        """Return the trustee user id associated with a trust.
 
         :returns: str or None (if no trust associated with the token)
         """
@@ -268,7 +268,7 @@ class AccessInfo(object):
 
     @property
     def trustor_user_id(self):
-        """Returns the trustor user id associated with a trust.
+        """Return the trustor user id associated with a trust.
 
         :returns: str or None (if no trust associated with the token)
         """
@@ -276,7 +276,7 @@ class AccessInfo(object):
 
     @property
     def project_id(self):
-        """Returns the project ID associated with the auth request.
+        """Return the project ID associated with the auth request.
 
         This returns None if the auth token wasn't scoped to a project.
 
@@ -291,7 +291,7 @@ class AccessInfo(object):
 
     @property
     def project_domain_id(self):
-        """Returns the project's domain id associated with the auth request.
+        """Return the project's domain id associated with the auth request.
 
         :returns: str
         """
@@ -299,7 +299,7 @@ class AccessInfo(object):
 
     @property
     def project_domain_name(self):
-        """Returns the project's domain name associated with the auth request.
+        """Return the project's domain name associated with the auth request.
 
         :returns: str
         """
@@ -323,7 +323,7 @@ class AccessInfo(object):
 
     @property
     def is_federated(self):
-        """Returns true if federation was used to get the token.
+        """Return true if federation was used to get the token.
 
         :returns: boolean
         """

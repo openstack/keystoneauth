@@ -360,7 +360,7 @@ _code_map = dict(
 
 
 def from_response(response, method, url):
-    """Returns an instance of :class:`HttpError` or subclass based on response.
+    """Return an instance of :class:`HttpError` or subclass based on response.
 
     :param response: instance of `requests.Response` class
     :param method: HTTP method used for request

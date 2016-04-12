@@ -327,7 +327,7 @@ def _get_catalog_discover_hack(service_type, url):
 
 
 def add_catalog_discover_hack(service_type, old, new):
-    """Adds a version removal rule for a particular service.
+    """Add a version removal rule for a particular service.
 
     Originally deployments of OpenStack would contain a versioned endpoint in
     the catalog for different services. E.g. an identity service might look

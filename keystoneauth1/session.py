@@ -198,7 +198,7 @@ class Session(object):
 
     @staticmethod
     def _process_header(header):
-        """Redacts the secure headers to be logged."""
+        """Redact the secure headers to be logged."""
         secure_headers = ('authorization', 'x-auth-token',
                           'x-subject-token',)
         if header[0].lower() in secure_headers:

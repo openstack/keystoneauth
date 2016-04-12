@@ -77,7 +77,7 @@ class BaseAuth(base.BaseIdentityPlugin):
 
     @property
     def has_scope_parameters(self):
-        """Does the plugin have parameters that will create a scoped token"""
+        """Return true if parameters can be used to create a scoped token"""
         return (self.domain_id or self.domain_name or
                 self.project_id or self.project_name or
                 self.trust_id)

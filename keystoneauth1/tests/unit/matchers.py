@@ -29,7 +29,7 @@ class XMLEquals(object):
 
     def match(self, other):
         def xml_element_equals(expected_doc, observed_doc):
-            """Tests whether two XML documents are equivalent.
+            """Test whether two XML documents are equivalent.
 
             This is a recursive algorithm that operates on each element in
             the hierarchy. Siblings are sorted before being checked to
