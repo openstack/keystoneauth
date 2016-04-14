@@ -210,7 +210,8 @@ class Session(object):
 
     @positional()
     def _http_log_request(self, url, method=None, data=None,
-                          json=None, headers=None, logger=_logger):
+                          json=None, headers=None, query_params=None,
+                          logger=_logger):
         if not logger.isEnabledFor(logging.DEBUG):
             # NOTE(morganfainberg): This whole debug section is expensive,
             # there is no need to do the work if we're not going to emit a
@@ -229,7 +230,15 @@ class Session(object):
         if method:
             string_parts.extend(['-X', method])
 
-        string_parts.append(url)
+        if query_params:
+            # Don't check against `is not None` as this can be
+            # an empty dictionary, which we shouldn't bother logging.
+            url = url + '?' + urllib.parse.urlencode(query_params)
+            # URLs with query strings need to be wrapped in quotes in order
+            # for the CURL command to run properly.
+            string_parts.append('"%s"' % url)
+        else:
+            string_parts.append(url)
 
         if headers:
             for header in six.iteritems(headers):
@@ -422,10 +431,17 @@ class Session(object):
         if requests_auth:
             kwargs['auth'] = requests_auth
 
+        # Query parameters that are included in the url string will
+        # be logged properly, but those sent in the `params` parameter
+        # (which the requests library handles) need to be explicitly
+        # picked out so they can be included in the URL that gets loggged.
+        query_params = kwargs.get('params', dict())
+
         if log:
             self._http_log_request(url, method=method,
                                    data=kwargs.get('data'),
                                    headers=headers,
+                                   query_params=query_params,
                                    logger=logger)
 
         # Force disable requests redirect handling. We will manage this below.
