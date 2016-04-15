@@ -135,9 +135,9 @@ contains all the information an authentication plugin requires to determine the
 correct URL to which to send a request. When using this mode only the path for
 the request needs to be specified::
 
-    >>> resp = session.get('https://my.keystone.com:5000/v3/users',
+    >>> resp = session.get('/users',
                            endpoint_filter={'service_type': 'identity',
-                                            'interface': 'public',
+                                            'interface': 'admin',
                                             'region_name': 'myregion'})
 
 `endpoint_filter` accepts a number of arguments with which it can determine an
