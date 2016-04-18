@@ -20,7 +20,7 @@ __all__ = ('OidcAuthorizationCode',
 
 
 class _OidcBase(federation.FederationBaseAuth):
-    """Base class for different OpenID Connect based flows
+    """Base class for different OpenID Connect based flows.
 
     The OpenID Connect specification can be found at::
     ``http://openid.net/specs/openid-connect-core-1_0.html``
@@ -29,7 +29,7 @@ class _OidcBase(federation.FederationBaseAuth):
     def __init__(self, auth_url, identity_provider, protocol,
                  client_id, client_secret, access_token_endpoint,
                  grant_type, access_token_type, **kwargs):
-        """The OpenID Connect plugin expects the following:
+        """The OpenID Connect plugin expects the following.
 
         :param auth_url: URL of the Identity Service
         :type auth_url: string
@@ -130,14 +130,15 @@ class _OidcBase(federation.FederationBaseAuth):
 
 
 class OidcPassword(_OidcBase):
-    """Implementation for OpenID Connect Resource Owner Password Credential"""
+    """Implementation for OpenID Connect Resource Owner Password Credential.
+    """
 
     @positional(4)
     def __init__(self, auth_url, identity_provider, protocol,
                  client_id, client_secret, access_token_endpoint,
                  grant_type='password', access_token_type='access_token',
                  username=None, password=None, scope='profile'):
-        """The OpenID Password plugin expects the following:
+        """The OpenID Password plugin expects the following.
 
         :param username: Username used to authenticate
         :type username: string
@@ -201,7 +202,7 @@ class OidcPassword(_OidcBase):
 
 
 class OidcAuthorizationCode(_OidcBase):
-    """Implementation for OpenID Connect Authorization Code"""
+    """Implementation for OpenID Connect Authorization Code."""
 
     @positional(4)
     def __init__(self, auth_url, identity_provider, protocol,
@@ -209,7 +210,7 @@ class OidcAuthorizationCode(_OidcBase):
                  grant_type='authorization_code',
                  access_token_type='access_token',
                  redirect_uri=None, code=None):
-        """The OpenID Authorization Code plugin expects the following:
+        """The OpenID Authorization Code plugin expects the following.
 
         :param redirect_uri: OpenID Connect Client Redirect URL
         :type redirect_uri: string

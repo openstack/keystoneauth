@@ -189,7 +189,7 @@ class Adapter(object):
 
     @classmethod
     def register_argparse_arguments(cls, parser, service_type=None):
-        """Attach arguments to a given argparse Parser for Adapters
+        """Attach arguments to a given argparse Parser for Adapters.
 
         :param parser: The argparse parser to attach options to.
         :type parser: argparse.ArgumentParser
@@ -238,7 +238,7 @@ class Adapter(object):
 
     @classmethod
     def register_service_argparse_arguments(cls, parser, service_type):
-        """Attach arguments to a given argparse Parser for Adapters
+        """Attach arguments to a given argparse Parser for Adapters.
 
         :param parser: The argparse parser to attach options to.
         :type parser: argparse.ArgumentParser

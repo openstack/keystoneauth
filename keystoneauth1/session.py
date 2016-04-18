@@ -72,7 +72,7 @@ class _JSONEncoder(json.JSONEncoder):
 
 
 class _StringFormatter(object):
-    """A String formatter that fetches values on demand"""
+    """A String formatter that fetches values on demand."""
 
     def __init__(self, session, auth):
         self.session = session

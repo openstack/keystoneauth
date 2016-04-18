@@ -11,8 +11,7 @@
 # under the License.
 
 """
-The generators in this directory produce keystone compliant structures for use
-in testing.
+Produce keystone compliant structures for use in testing.
 
 They are part of the public API because they may be relied upon to generate
 test tokens for other clients. However they should never be imported into the

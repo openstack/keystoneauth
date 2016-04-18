@@ -125,7 +125,7 @@ class BaseLoader(object):
         return self.plugin_class(**kwargs)
 
     def load_from_options_getter(self, getter, **kwargs):
-        """Load a plugin from a getter function that returns appropriate values
+        """Load a plugin from getter function that returns appropriate values.
 
         To handle cases other than the provided CONF and CLI loading you can
         specify a custom loader function that will be queried for the option

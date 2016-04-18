@@ -17,7 +17,7 @@
 #    under the License.
 
 """
-HTTP Exceptions used by keystoneauth1
+HTTP Exceptions used by keystoneauth1.
 """
 
 import inspect

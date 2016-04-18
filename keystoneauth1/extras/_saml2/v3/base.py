@@ -35,7 +35,7 @@ class BaseSAMLPlugin(v3.FederationBaseAuth):
                  identity_provider, identity_provider_url,
                  username, password, protocol,
                  **kwargs):
-        """Class constructor accepting following parameters:
+        """Class constructor accepting following parameters.
 
         :param auth_url: URL of the Identity Service
         :type auth_url: string
@@ -46,8 +46,9 @@ class BaseSAMLPlugin(v3.FederationBaseAuth):
                                   obtain unscoped OpenStack token.
         :type identity_provider: string
 
-        :param identity_provider_url: An Identity Provider URL, where the SAML2
-                                      authn request will be sent.
+        :param identity_provider_url: An Identity Provider URL, where the
+                                      SAML2 auhentication request will be
+                                      sent.
         :type identity_provider_url: string
 
         :param username: User's login

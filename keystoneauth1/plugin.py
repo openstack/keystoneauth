@@ -176,7 +176,7 @@ class BaseAuthPlugin(object):
         return None
 
     def get_sp_auth_url(self, session, sp_id, **kwargs):
-        """Return auth_url from the Service Provider object
+        """Return auth_url from the Service Provider object.
 
         This url is used for obtaining unscoped federated token from remote
         cloud.
@@ -191,7 +191,7 @@ class BaseAuthPlugin(object):
         return None
 
     def get_sp_url(self, session, sp_id, **kwargs):
-        """Return sp_url from the Service Provider object
+        """Return sp_url from the Service Provider object.
 
         This url is used for passing SAML2 assertion to the remote cloud.
 

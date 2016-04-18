@@ -10,7 +10,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-"""A fixture to wrap the session constructor for use with Betamax"""
+"""A fixture to wrap the session constructor for use with Betamax."""
 
 from functools import partial
 

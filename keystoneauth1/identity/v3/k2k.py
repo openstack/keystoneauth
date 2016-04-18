@@ -50,7 +50,7 @@ class Keystone2Keystone(federation._Rescoped):
 
     @classmethod
     def _remote_auth_url(cls, auth_url):
-        """Return auth_url of the remote Keystone Service Provider
+        """Return auth_url of the remote Keystone Service Provider.
 
         Remote cloud's auth_url is an endpoint for getting federated unscoped
         token, typically that would be
