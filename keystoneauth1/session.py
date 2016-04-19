@@ -790,6 +790,7 @@ class TCPKeepAliveAdapter(requests.adapters.HTTPAdapter):
     disables Nagle's Algorithm. See also:
     http://blogs.msdn.com/b/windowsazurestorage/archive/2010/06/25/nagle-s-algorithm-is-not-friendly-towards-small-requests.aspx
     """
+
     def init_poolmanager(self, *args, **kwargs):
         if 'socket_options' not in kwargs and REQUESTS_VERSION >= (2, 4, 1):
             socket_options = [

@@ -16,6 +16,7 @@ __all__ = ('ClientException',)
 
 class ClientException(Exception):
     """The base exception for everything to do with clients."""
+
     message = None
 
     def __init__(self, message=None):

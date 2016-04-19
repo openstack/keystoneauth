@@ -24,7 +24,6 @@ REQUEST = {'auth': {'identity': {'methods': ['kerberos'],
 
 
 class TestCase(test_utils.TestCase):
-
     """Test case base class for Kerberos unit tests."""
 
     TEST_V3_URL = test_utils.TestCase.TEST_ROOT_URL + 'v3'

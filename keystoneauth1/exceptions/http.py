@@ -64,6 +64,7 @@ __all__ = ('HttpError',
 
 class HttpError(base.ClientException):
     """The base exception class for all HTTP exceptions."""
+
     http_status = 0
     message = "HTTP Error"
 
@@ -90,6 +91,7 @@ class HTTPClientError(HttpError):
 
     Exception for cases in which the client seems to have erred.
     """
+
     message = "HTTP Client Error"
 
 
@@ -99,6 +101,7 @@ class HttpServerError(HttpError):
     Exception for cases in which the server is aware that it has
     erred or is incapable of performing the request.
     """
+
     message = "HTTP Server Error"
 
 
@@ -107,6 +110,7 @@ class BadRequest(HTTPClientError):
 
     The request cannot be fulfilled due to bad syntax.
     """
+
     http_status = 400
     message = "Bad Request"
 
@@ -117,6 +121,7 @@ class Unauthorized(HTTPClientError):
     Similar to 403 Forbidden, but specifically for use when authentication
     is required and has failed or has not yet been provided.
     """
+
     http_status = 401
     message = "Unauthorized"
 
@@ -126,6 +131,7 @@ class PaymentRequired(HTTPClientError):
 
     Reserved for future use.
     """
+
     http_status = 402
     message = "Payment Required"
 
@@ -136,6 +142,7 @@ class Forbidden(HTTPClientError):
     The request was a valid request, but the server is refusing to respond
     to it.
     """
+
     http_status = 403
     message = "Forbidden"
 
@@ -146,6 +153,7 @@ class NotFound(HTTPClientError):
     The requested resource could not be found but may be available again
     in the future.
     """
+
     http_status = 404
     message = "Not Found"
 
@@ -156,6 +164,7 @@ class MethodNotAllowed(HTTPClientError):
     A request was made of a resource using a request method not supported
     by that resource.
     """
+
     http_status = 405
     message = "Method Not Allowed"
 
@@ -166,6 +175,7 @@ class NotAcceptable(HTTPClientError):
     The requested resource is only capable of generating content not
     acceptable according to the Accept headers sent in the request.
     """
+
     http_status = 406
     message = "Not Acceptable"
 
@@ -175,6 +185,7 @@ class ProxyAuthenticationRequired(HTTPClientError):
 
     The client must first authenticate itself with the proxy.
     """
+
     http_status = 407
     message = "Proxy Authentication Required"
 
@@ -184,6 +195,7 @@ class RequestTimeout(HTTPClientError):
 
     The server timed out waiting for the request.
     """
+
     http_status = 408
     message = "Request Timeout"
 
@@ -194,6 +206,7 @@ class Conflict(HTTPClientError):
     Indicates that the request could not be processed because of conflict
     in the request, such as an edit conflict.
     """
+
     http_status = 409
     message = "Conflict"
 
@@ -204,6 +217,7 @@ class Gone(HTTPClientError):
     Indicates that the resource requested is no longer available and will
     not be available again.
     """
+
     http_status = 410
     message = "Gone"
 
@@ -214,6 +228,7 @@ class LengthRequired(HTTPClientError):
     The request did not specify the length of its content, which is
     required by the requested resource.
     """
+
     http_status = 411
     message = "Length Required"
 
@@ -224,6 +239,7 @@ class PreconditionFailed(HTTPClientError):
     The server does not meet one of the preconditions that the requester
     put on the request.
     """
+
     http_status = 412
     message = "Precondition Failed"
 
@@ -233,6 +249,7 @@ class RequestEntityTooLarge(HTTPClientError):
 
     The request is larger than the server is willing or able to process.
     """
+
     http_status = 413
     message = "Request Entity Too Large"
 
@@ -250,6 +267,7 @@ class RequestUriTooLong(HTTPClientError):
 
     The URI provided was too long for the server to process.
     """
+
     http_status = 414
     message = "Request-URI Too Long"
 
@@ -260,6 +278,7 @@ class UnsupportedMediaType(HTTPClientError):
     The request entity has a media type which the server or resource does
     not support.
     """
+
     http_status = 415
     message = "Unsupported Media Type"
 
@@ -270,6 +289,7 @@ class RequestedRangeNotSatisfiable(HTTPClientError):
     The client has asked for a portion of the file, but the server cannot
     supply that portion.
     """
+
     http_status = 416
     message = "Requested Range Not Satisfiable"
 
@@ -279,6 +299,7 @@ class ExpectationFailed(HTTPClientError):
 
     The server cannot meet the requirements of the Expect request-header field.
     """
+
     http_status = 417
     message = "Expectation Failed"
 
@@ -289,6 +310,7 @@ class UnprocessableEntity(HTTPClientError):
     The request was well-formed but was unable to be followed due to semantic
     errors.
     """
+
     http_status = 422
     message = "Unprocessable Entity"
 
@@ -298,6 +320,7 @@ class InternalServerError(HttpServerError):
 
     A generic error message, given when no more specific message is suitable.
     """
+
     http_status = 500
     message = "Internal Server Error"
 
@@ -309,6 +332,7 @@ class HttpNotImplemented(HttpServerError):
     The server either does not recognize the request method, or it lacks
     the ability to fulfill the request.
     """
+
     http_status = 501
     message = "Not Implemented"
 
@@ -319,6 +343,7 @@ class BadGateway(HttpServerError):
     The server was acting as a gateway or proxy and received an invalid
     response from the upstream server.
     """
+
     http_status = 502
     message = "Bad Gateway"
 
@@ -328,6 +353,7 @@ class ServiceUnavailable(HttpServerError):
 
     The server is currently unavailable.
     """
+
     http_status = 503
     message = "Service Unavailable"
 
@@ -338,6 +364,7 @@ class GatewayTimeout(HttpServerError):
     The server was acting as a gateway or proxy and did not receive a timely
     response from the upstream server.
     """
+
     http_status = 504
     message = "Gateway Timeout"
 
@@ -347,6 +374,7 @@ class HttpVersionNotSupported(HttpServerError):
 
     The server does not support the HTTP protocol version used in the request.
     """
+
     http_status = 505
     message = "HTTP Version Not Supported"
 

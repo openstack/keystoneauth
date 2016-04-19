@@ -23,6 +23,7 @@ __all__ = ('ConnectionError',
 
 class RetriableConnectionFailure(Exception):
     """A mixin class that implies you can retry the most recent request."""
+
     pass
 
 
