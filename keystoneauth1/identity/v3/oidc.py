@@ -130,8 +130,7 @@ class _OidcBase(federation.FederationBaseAuth):
 
 
 class OidcPassword(_OidcBase):
-    """Implementation for OpenID Connect Resource Owner Password Credential.
-    """
+    """Implementation for OpenID Connect Resource Owner Password Credential."""
 
     @positional(4)
     def __init__(self, auth_url, identity_provider, protocol,
