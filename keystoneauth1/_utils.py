@@ -44,7 +44,7 @@ def parse_isotime(timestr):
 
 
 def from_utcnow(**timedelta_kwargs):
-    """Calculate the time in the future from utcnow.
+    r"""Calculate the time in the future from utcnow.
 
     :param \*\*timedelta_kwargs:
         Passed directly to :class:`datetime.timedelta` to add to the current
@@ -60,7 +60,7 @@ def from_utcnow(**timedelta_kwargs):
 
 
 def before_utcnow(**timedelta_kwargs):
-    """Calculate the time in the past from utcnow.
+    r"""Calculate the time in the past from utcnow.
 
     :param \*\*timedelta_kwargs:
         Passed directly to :class:`datetime.timedelta` to subtract from the
