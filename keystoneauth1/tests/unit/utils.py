@@ -128,6 +128,7 @@ class TestResponse(requests.Response):
             self.status_code = data
 
     def __eq__(self, other):
+        """Define equiality behavior of request and response."""
         return self.__dict__ == other.__dict__
 
     @property

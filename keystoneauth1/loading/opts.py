@@ -95,6 +95,7 @@ class Opt(object):
         self.group = None
 
     def __repr__(self):
+        """Return string representation of option name."""
         return '<Opt: %s>' % self.name
 
     def _to_oslo_opt(self):
@@ -116,6 +117,7 @@ class Opt(object):
                        metavar=self.metavar)
 
     def __eq__(self, other):
+        """Define equality operator on option parameters."""
         return (type(self) == type(other) and
                 self.name == other.name and
                 self.type == other.type and

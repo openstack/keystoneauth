@@ -17,14 +17,13 @@ from testtools import matchers
 
 
 class XMLEquals(object):
-    """Parses two XML documents from strings and compares the results.
-
-    """
+    """Parses two XML documents from strings and compares the results."""
 
     def __init__(self, expected):
         self.expected = expected
 
     def __str__(self):
+        """Return string representation of xml document info."""
         return "%s(%r)" % (self.__class__.__name__, self.expected)
 
     def match(self, other):

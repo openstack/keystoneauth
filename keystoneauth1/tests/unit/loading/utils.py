@@ -72,7 +72,8 @@ def create_plugin(opts=[], token=None, endpoint=None):
 class BoolType(object):
 
     def __eq__(self, other):
-        # hack around oslo.config type comparison
+        """Define equiality for many bool types."""
+        # hack around oslo.config equality comparison
         return type(self) == type(other)
 
     def __call__(self, value):
