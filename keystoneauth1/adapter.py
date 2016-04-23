@@ -43,13 +43,15 @@ class Adapter(object):
     :param logger: A logging object to use for requests that pass through this
                    adapter.
     :type logger: logging.Logger
+    :param dict allow: Extra filters to pass when discovering API versions.
+                       (optional)
     """
 
     @positional()
     def __init__(self, session, service_type=None, service_name=None,
                  interface=None, region_name=None, endpoint_override=None,
                  version=None, auth=None, user_agent=None,
-                 connect_retries=None, logger=None):
+                 connect_retries=None, logger=None, allow={}):
         # NOTE(jamielennox): when adding new parameters to adapter please also
         # add them to the adapter call in httpclient.HTTPClient.__init__ as
         # well as to load_adapter_from_argparse below if the argument is
@@ -66,6 +68,7 @@ class Adapter(object):
         self.auth = auth
         self.connect_retries = connect_retries
         self.logger = logger
+        self.allow = allow
 
     def _set_endpoint_filter_kwargs(self, kwargs):
         if self.service_type:
@@ -94,6 +97,8 @@ class Adapter(object):
             kwargs.setdefault('connect_retries', self.connect_retries)
         if self.logger:
             kwargs.setdefault('logger', self.logger)
+        if self.allow:
+            kwargs.setdefault('allow', self.allow)
 
         return self.session.request(url, method, **kwargs)
 

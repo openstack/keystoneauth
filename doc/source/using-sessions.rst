@@ -158,7 +158,24 @@ The endpoint filter is a simple key-value filter and can be provided with any
 number of arguments. It is then up to the auth plugin to correctly use the
 parameters it understands.
 
-The session object determines the URL matching the filter and append to it the
+If you want to further limit your service discovery by allowing experimental
+APIs or disallowing deprecated APIs, you can use the ``allow`` parameter::
+
+    >>> resp = session.get('/<project-id>/volumes',
+                           endpoint_filter={'service_type': 'volume',
+                                            'interface': 'public',
+                                            'version': 1},
+                           allow={'allow_deprecated': False})
+
+The discoverable types of endpoints that `allow` can recognize are:
+
+- `allow_deprecated`: Allow experimental version endpoints.
+
+- `allow_experimental`: Allow deprecated version endpoints.
+
+- `allow_unknown`: Allow endpoints with an unrecognised status.
+
+The session object determines the URL matching the filters and append to it the
 provided path and so create a valid request. If multiple URL matches are found
 then any one may be chosen.
 

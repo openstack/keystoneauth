@@ -717,6 +717,9 @@ class AdapterTest(utils.TestCase):
     REGION_NAME = uuid.uuid4().hex
     USER_AGENT = uuid.uuid4().hex
     VERSION = uuid.uuid4().hex
+    ALLOW = {'allow_deprecated': False,
+             'allow_experimental': True,
+             'allow_unknown': True}
 
     TEST_URL = CalledAuthPlugin.ENDPOINT
 
@@ -730,7 +733,8 @@ class AdapterTest(utils.TestCase):
                                interface=self.INTERFACE,
                                region_name=self.REGION_NAME,
                                user_agent=self.USER_AGENT,
-                               version=self.VERSION)
+                               version=self.VERSION,
+                               allow=self.ALLOW)
 
     def _verify_endpoint_called(self, adpt):
         self.assertEqual(self.SERVICE_TYPE,
@@ -752,6 +756,8 @@ class AdapterTest(utils.TestCase):
         self.assertEqual(resp.text, response)
 
         self._verify_endpoint_called(adpt)
+        self.assertEqual(self.ALLOW,
+                         adpt.auth.endpoint_arguments['allow'])
         self.assertTrue(adpt.auth.get_token_called)
         self.assertRequestHeaderEqual('User-Agent', self.USER_AGENT)
 

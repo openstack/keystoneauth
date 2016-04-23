@@ -158,7 +158,7 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
 
     def get_endpoint(self, session, service_type=None, interface=None,
                      region_name=None, service_name=None, version=None,
-                     **kwargs):
+                     allow={}, **kwargs):
         """Return a valid endpoint for a service.
 
         If a valid token is not present then a new one will be fetched using
@@ -180,6 +180,8 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
                                    (optional)
         :param tuple version: The minimum version number required for this
                               endpoint. (optional)
+        :param dict allow: Extra filters to pass when discovering API
+                           versions. (optional)
 
         :raises keystoneauth1.exceptions.http.HttpError: An error from an
                                                          invalid HTTP response.
@@ -237,7 +239,7 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
                         'Fallback to using that endpoint as the base url.',
                         url)
         else:
-            url = disc.url_for(version)
+            url = disc.url_for(version, **allow)
 
         return url
 

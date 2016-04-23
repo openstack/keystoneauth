@@ -291,7 +291,7 @@ class Session(object):
                 endpoint_filter=None, auth=None, requests_auth=None,
                 raise_exc=True, allow_reauth=True, log=True,
                 endpoint_override=None, connect_retries=0, logger=_logger,
-                **kwargs):
+                allow={}, **kwargs):
         """Send an HTTP request with the specified characteristics.
 
         Wrapper around `requests.Session.request` to handle tasks such as
@@ -357,6 +357,8 @@ class Session(object):
                        If not provided the keystoneauth1.session default
                        logger will be used.
         :type logger: logging.Logger
+        :param dict allow: Extra filters to pass when discovering API
+                           versions. (optional)
         :param kwargs: any other parameter that can be passed to
                        :meth:`requests.Session.request` (such as `headers`).
                        Except:
@@ -398,7 +400,8 @@ class Session(object):
             if endpoint_override:
                 base_url = endpoint_override % _StringFormatter(self, auth)
             elif endpoint_filter:
-                base_url = self.get_endpoint(auth, **endpoint_filter)
+                base_url = self.get_endpoint(auth, allow=allow,
+                                             **endpoint_filter)
 
             if not base_url:
                 raise exceptions.EndpointNotFound()
