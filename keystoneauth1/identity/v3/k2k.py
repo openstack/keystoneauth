@@ -10,7 +10,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import requests
 import six
 
 from keystoneauth1 import access
@@ -41,6 +40,9 @@ class Keystone2Keystone(federation._Rescoped):
     REQUEST_ECP_URL = '/auth/OS-FEDERATION/saml2/ecp'
     """Path where the ECP wrapped SAML assertion should be presented to the
        Keystone Service Provider."""
+
+    HTTP_MOVED_TEMPORARILY = 302
+    HTTP_SEE_OTHER = 303
 
     def __init__(self, base_plugin, service_provider, **kwargs):
         super(Keystone2Keystone, self).__init__(auth_url=None, **kwargs)
@@ -147,11 +149,12 @@ class Keystone2Keystone(federation._Rescoped):
             authenticated=False,
             redirect=False)
 
-        # Don't follow HTTP specs - after the HTTP 302 response don't repeat
-        # the call directed to the Location URL. In this case, this is an
-        # indication that SAML2 session is now active and protected resource
+        # Don't follow HTTP specs - after the HTTP 302/303 response don't
+        # repeat the call directed to the Location URL. In this case, this is
+        # an indication that SAML2 session is now active and protected resource
         # can be accessed.
-        if response.status_code == requests.codes['found']:
+        if response.status_code in (self.HTTP_MOVED_TEMPORARILY,
+                                    self.HTTP_SEE_OTHER):
             response = session.get(
                 sp_auth_url,
                 headers={'Content-Type': 'application/vnd.paos+xml'},

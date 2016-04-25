@@ -133,7 +133,7 @@ class K2KAuthPluginTest(utils.TestCase):
                            username=self.TEST_USER,
                            password=self.TEST_PASS)
 
-    def _mock_k2k_flow_urls(self):
+    def _mock_k2k_flow_urls(self, redirect_code=302):
         # List versions available for auth
         self.requests_mock.get(
             self.TEST_URL,
@@ -148,13 +148,13 @@ class K2KAuthPluginTest(utils.TestCase):
             headers={'Content-Type': 'application/vnd.paos+xml'},
             status_code=200)
 
-        # The SP should respond with a 302
+        # The SP should respond with a redirect (302 or 303)
         self.requests_mock.register_uri(
             'POST',
             self.SP_URL,
             content=six.b(k2k_fixtures.TOKEN_BASED_ECP),
             headers={'Content-Type': 'application/vnd.paos+xml'},
-            status_code=302)
+            status_code=redirect_code)
 
         # Should not follow the redirect URL, but use the auth_url attribute
         self.requests_mock.register_uri(
@@ -226,8 +226,24 @@ class K2KAuthPluginTest(utils.TestCase):
         self.assertEqual(k2k_fixtures.UNSCOPED_TOKEN_HEADER,
                          response.headers['X-Subject-Token'])
 
+    def test_send_ecp_authn_response_303_redirect(self):
+        self._mock_k2k_flow_urls(redirect_code=303)
+        # Perform the request
+        response = self.k2kplugin._send_service_provider_ecp_authn_response(
+            self.session, self.SP_URL, self.SP_AUTH_URL)
+
+        # Check the response
+        self.assertEqual(k2k_fixtures.UNSCOPED_TOKEN_HEADER,
+                         response.headers['X-Subject-Token'])
+
     def test_end_to_end_workflow(self):
         self._mock_k2k_flow_urls()
+        auth_ref = self.k2kplugin.get_auth_ref(self.session)
+        self.assertEqual(k2k_fixtures.UNSCOPED_TOKEN_HEADER,
+                         auth_ref.auth_token)
+
+    def test_end_to_end_workflow_303_redirect(self):
+        self._mock_k2k_flow_urls(redirect_code=303)
         auth_ref = self.k2kplugin.get_auth_ref(self.session)
         self.assertEqual(k2k_fixtures.UNSCOPED_TOKEN_HEADER,
                          auth_ref.auth_token)
@@ -247,7 +263,7 @@ class K2KAuthPluginTest(utils.TestCase):
             headers={'Content-Type': 'application/vnd.paos+xml'},
             status_code=200)
 
-        # The SP should respond with a 302
+        # The SP should respond with a redirect (302 or 303)
         self.requests_mock.register_uri(
             'POST',
             self.SP_URL,
