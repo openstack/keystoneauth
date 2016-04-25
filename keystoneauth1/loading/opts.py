@@ -15,10 +15,7 @@ import os
 
 from positional import positional
 
-try:
-    from oslo_config import cfg
-except ImportError:
-    cfg = None
+from keystoneauth1.loading import _utils
 
 
 __all__ = ('Opt',)
@@ -99,12 +96,7 @@ class Opt(object):
         return '<Opt: %s>' % self.name
 
     def _to_oslo_opt(self):
-        if not cfg:
-            raise ImportError("oslo.config is not an automatic dependency of "
-                              "keystoneauth. If you wish to use oslo.config "
-                              "you need to import it into your application's "
-                              "requirements file. ")
-
+        cfg = _utils.get_oslo_config()
         deprecated_opts = [cfg.DeprecatedOpt(o.name) for o in self.deprecated]
 
         return cfg.Opt(name=self.name,

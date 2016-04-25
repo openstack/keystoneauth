@@ -15,11 +15,7 @@ import os
 
 from positional import positional
 
-try:
-    from oslo_config import cfg
-except ImportError:
-    cfg = None
-
+from keystoneauth1.loading import _utils
 from keystoneauth1.loading import base
 from keystoneauth1 import session
 
@@ -160,11 +156,7 @@ class Session(base.BaseLoader):
 
         :returns: A list of oslo_config options.
         """
-        if not cfg:
-            raise ImportError("oslo.config is not an automatic dependency of "
-                              "keystoneauth. If you wish to use oslo.config "
-                              "you need to import it into your application's "
-                              "requirements file. ")
+        cfg = _utils.get_oslo_config()
 
         if deprecated_opts is None:
             deprecated_opts = {}
@@ -214,7 +206,7 @@ class Session(base.BaseLoader):
         :returns: The list of options that was registered.
         """
         opts = self.get_conf_options(deprecated_opts=deprecated_opts)
-        conf.register_group(cfg.OptGroup(group))
+        conf.register_group(_utils.get_oslo_config().OptGroup(group))
         conf.register_opts(opts, group=group)
         return opts
 
