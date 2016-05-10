@@ -195,3 +195,21 @@ class AccessV3Test(utils.TestCase):
         self.assertIsInstance(auth_ref, access.AccessInfoV3)
 
         self.assertEqual({'kerberos': principal}, auth_ref.bind)
+
+    def test_is_admin_project_unset(self):
+        token = fixture.V3Token()
+        auth_ref = access.create(body=token)
+        self.assertIsInstance(auth_ref, access.AccessInfoV3)
+        self.assertIs(True, auth_ref.is_admin_project)
+
+    def test_is_admin_project_true(self):
+        token = fixture.V3Token(is_admin_project=True)
+        auth_ref = access.create(body=token)
+        self.assertIsInstance(auth_ref, access.AccessInfoV3)
+        self.assertIs(True, auth_ref.is_admin_project)
+
+    def test_is_admin_project_false(self):
+        token = fixture.V3Token(is_admin_project=False)
+        auth_ref = access.create(body=token)
+        self.assertIsInstance(auth_ref, access.AccessInfoV3)
+        self.assertIs(False, auth_ref.is_admin_project)
