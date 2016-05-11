@@ -147,18 +147,17 @@ V3 OAuth 1.0a Plugins
 
 There also exists a plugin for OAuth 1.0a authentication. We provide a helper
 authentication plugin at:
-:py:class:`~keystoneauth1.v3.contrib.oauth1.auth.OAuth`.
+:py:class:`~keystoneauth1.extras.oauth1.V3OAuth1`.
 The plugin requires the OAuth consumer's key and secret, as well as the OAuth
 access token's key and secret. For example::
 
-    >>> from keystoneauth1.v3.contrib.oauth1 import auth
+    >>> from keystoneauth1.extras import oauth1
     >>> from keystoneauth1 import session
-    >>> from keystoneauth1.v3 import client
-    >>> a = auth.OAuth('http://my.keystone.com:5000/v3',
-    ...                consumer_key=consumer_id,
-    ...                consumer_secret=consumer_secret,
-    ...                access_key=access_token_key,
-    ...                access_secret=access_token_secret)
+    >>> a = auth.V3OAuth1('http://my.keystone.com:5000/v3',
+    ...                   consumer_key=consumer_id,
+    ...                   consumer_secret=consumer_secret,
+    ...                   access_key=access_token_key,
+    ...                   access_secret=access_token_secret)
     >>> s = session.Session(auth=a)
 
 
