@@ -297,3 +297,20 @@ class V3TokenTests(utils.TestCase):
 
         self.assertEqual({name1: data1, name2: data2},
                          token['token']['bind'])
+
+    def test_is_admin_project(self):
+        token = fixture.V3Token()
+        self.assertIsNone(token.is_admin_project)
+        self.assertNotIn('is_admin_project', token['token'])
+
+        token.is_admin_project = True
+        self.assertIs(True, token.is_admin_project)
+        self.assertIs(True, token['token']['is_admin_project'])
+
+        token.is_admin_project = False
+        self.assertIs(False, token.is_admin_project)
+        self.assertIs(False, token['token']['is_admin_project'])
+
+        del token.is_admin_project
+        self.assertIsNone(token.is_admin_project)
+        self.assertNotIn('is_admin_project', token['token'])

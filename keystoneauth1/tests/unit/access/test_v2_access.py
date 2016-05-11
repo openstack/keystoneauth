@@ -210,3 +210,9 @@ class AccessV2Test(utils.TestCase):
         self.assertIsInstance(auth_ref, access.AccessInfoV2)
 
         self.assertEqual({'kerberos': principal}, auth_ref.bind)
+
+    def test_is_admin_project(self):
+        token = fixture.V2Token()
+        auth_ref = access.create(body=token)
+        self.assertIsInstance(auth_ref, access.AccessInfoV2)
+        self.assertIs(True, auth_ref.is_admin_project)

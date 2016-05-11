@@ -62,7 +62,8 @@ class Token(dict):
                  project_domain_name=None, domain_id=None, domain_name=None,
                  trust_id=None, trust_impersonation=None, trustee_user_id=None,
                  trustor_user_id=None, oauth_access_token_id=None,
-                 oauth_consumer_id=None, audit_id=None, audit_chain_id=None):
+                 oauth_consumer_id=None, audit_id=None, audit_chain_id=None,
+                 is_admin_project=None):
         super(Token, self).__init__()
 
         self.user_id = user_id or uuid.uuid4().hex
@@ -116,6 +117,9 @@ class Token(dict):
 
         if audit_chain_id:
             self.audit_chain_id = audit_chain_id
+
+        if is_admin_project is not None:
+            self.is_admin_project = is_admin_project
 
     @property
     def root(self):
@@ -334,6 +338,18 @@ class Token(dict):
     @property
     def role_names(self):
         return [r['name'] for r in self.root.get('roles', [])]
+
+    @property
+    def is_admin_project(self):
+        return self.root.get('is_admin_project')
+
+    @is_admin_project.setter
+    def is_admin_project(self, value):
+        self.root['is_admin_project'] = value
+
+    @is_admin_project.deleter
+    def is_admin_project(self):
+        self.root.pop('is_admin_project', None)
 
     def validate(self):
         project = self.root.get('project')

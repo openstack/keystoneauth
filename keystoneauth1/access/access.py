@@ -330,6 +330,18 @@ class AccessInfo(object):
         raise NotImplementedError()
 
     @property
+    def is_admin_project(self):
+        """Return true if the current project scope is the admin project.
+
+        For backwards compatibility purposes if there is nothing specified in
+        the token we always assume we are in the admin project, so this will
+        default to True.
+
+        :returns boolean
+        """
+        raise NotImplementedError()
+
+    @property
     def audit_id(self):
         """Return the audit ID if present.
 
@@ -537,6 +549,10 @@ class AccessInfoV2(AccessInfo):
         return False
 
     @property
+    def is_admin_project(self):
+        return True
+
+    @property
     def audit_id(self):
         try:
             return self._token.get('audit_ids', [])[0]
@@ -575,6 +591,10 @@ class AccessInfoV3(AccessInfo):
     @property
     def is_federated(self):
         return 'OS-FEDERATION' in self._user
+
+    @property
+    def is_admin_project(self):
+        return self._data.get('token', {}).get('is_admin_project', True)
 
     @_missingproperty
     def expires(self):
