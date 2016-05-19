@@ -36,6 +36,7 @@ class AuthenticateOIDCTests(utils.TestCase):
         self.PASSWORD = uuid.uuid4().hex
         self.CLIENT_ID = uuid.uuid4().hex
         self.CLIENT_SECRET = uuid.uuid4().hex
+        self.ACCESS_TOKEN = uuid.uuid4().hex
         self.ACCESS_TOKEN_ENDPOINT = 'https://localhost:8020/oidc/token'
         self.FEDERATION_AUTH_URL = '%s/%s' % (
             self.AUTH_URL,
@@ -62,6 +63,12 @@ class AuthenticateOIDCTests(utils.TestCase):
             access_token_endpoint=self.ACCESS_TOKEN_ENDPOINT,
             redirect_uri=self.REDIRECT_URL,
             code=self.CODE)
+
+        self.oidc_token = oidc.OidcAccessToken(
+            self.AUTH_URL,
+            self.IDENTITY_PROVIDER,
+            self.PROTOCOL,
+            access_token=self.ACCESS_TOKEN)
 
 
 class OIDCPasswordTests(AuthenticateOIDCTests):
@@ -95,16 +102,14 @@ class OIDCPasswordTests(AuthenticateOIDCTests):
             json=oidc_fixtures.UNSCOPED_TOKEN,
             headers={'X-Subject-Token': KEYSTONE_TOKEN_VALUE})
 
-        # Prep all the values and send the request
-        access_token = uuid.uuid4().hex
         res = self.oidc_password._get_keystone_token(self.session,
-                                                     access_token)
+                                                     self.ACCESS_TOKEN)
 
         # Verify the request matches the expected structure
         self.assertEqual(self.FEDERATION_AUTH_URL, res.request.url)
         self.assertEqual('POST', res.request.method)
 
-        headers = {'Authorization': 'Bearer ' + access_token}
+        headers = {'Authorization': 'Bearer ' + self.ACCESS_TOKEN}
         self.assertEqual(headers['Authorization'],
                          res.request.headers['Authorization'])
 
@@ -147,3 +152,17 @@ class OIDCAuthorizationGrantTests(AuthenticateOIDCTests):
         self.assertEqual('POST', last_req.method)
         encoded_payload = urllib.parse.urlencode(payload)
         self.assertEqual(encoded_payload, last_req.body)
+
+
+class AuthenticateOIDCTokenTests(AuthenticateOIDCTests):
+
+    def test_end_to_end_workflow(self):
+        """Test full OpenID Connect workflow."""
+        # Mock the output that creates the keystone token
+        self.requests_mock.post(
+            self.FEDERATION_AUTH_URL,
+            json=oidc_fixtures.UNSCOPED_TOKEN,
+            headers={'X-Subject-Token': KEYSTONE_TOKEN_VALUE})
+
+        response = self.oidc_token.get_unscoped_auth_ref(self.session)
+        self.assertEqual(KEYSTONE_TOKEN_VALUE, response.auth_token)

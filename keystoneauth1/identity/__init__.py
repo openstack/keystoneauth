@@ -43,6 +43,9 @@ V3OidcPassword = oidc.OidcPassword
 V3OidcAuthorizationCode = oidc.OidcAuthorizationCode
 """See :class:`keystoneauth1.identity.v3.oidc.OidcAuthorizationCode`"""
 
+V3OidcAccessToken = oidc.OidcAccessToken
+"""See :class:`keystoneauth1.identity.v3.oidc.OidcAccessToken`"""
+
 __all__ = ('BaseIdentityPlugin',
            'Password',
            'Token',
@@ -51,4 +54,5 @@ __all__ = ('BaseIdentityPlugin',
            'V3Password',
            'V3Token',
            'V3OidcPassword',
-           'V3OidcAuthorizationCode')
+           'V3OidcAuthorizationCode',
+           'V3OidcAccessToken')
