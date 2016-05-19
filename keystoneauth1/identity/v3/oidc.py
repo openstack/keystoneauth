@@ -74,14 +74,11 @@ class _OidcBase(federation.FederationBaseAuth):
         self.grant_type = grant_type
         self.access_token_type = access_token_type
 
-    def _get_access_token(self, session, client_auth, payload):
+    def _get_access_token(self, session, payload):
         """Exchange a variety of user supplied values for an access token.
 
         :param session: a session object to send out HTTP requests.
         :type session: keystoneauth1.session.Session
-
-        :param client_auth: a tuple representing client id and secret
-        :type client_auth: tuple
 
         :param payload: a dict containing various OpenID Connect values, for
                         example::
@@ -89,11 +86,13 @@ class _OidcBase(federation.FederationBaseAuth):
                            'password': self.password, 'scope': self.scope}
         :type payload: dict
         """
+        client_auth = (self.client_id, self.client_secret)
         op_response = session.post(self.access_token_endpoint,
                                    requests_auth=client_auth,
                                    data=payload,
                                    authenticated=False)
-        return op_response
+        access_token = op_response.json()[self.access_token_type]
+        return access_token
 
     def _get_keystone_token(self, session, access_token):
         r"""Exchange an acess token for a keystone token.
@@ -175,11 +174,9 @@ class OidcPassword(_OidcBase):
         :rtype: :py:class:`keystoneauth1.access.AccessInfoV3`
         """
         # get an access token
-        client_auth = (self.client_id, self.client_secret)
         payload = {'grant_type': self.grant_type, 'username': self.username,
                    'password': self.password, 'scope': self.scope}
-        response = self._get_access_token(session, client_auth, payload)
-        access_token = response.json()[self.access_token_type]
+        access_token = self._get_access_token(session, payload)
 
         response = self._get_keystone_token(session, access_token)
 
@@ -237,12 +234,10 @@ class OidcAuthorizationCode(_OidcBase):
         :rtype: :py:class:`keystoneauth1.access.AccessInfoV3`
         """
         # get an access token
-        client_auth = (self.client_id, self.client_secret)
         payload = {'grant_type': self.grant_type,
                    'redirect_uri': self.redirect_uri,
                    'code': self.code}
-        response = self._get_access_token(session, client_auth, payload)
-        access_token = response.json()[self.access_token_type]
+        access_token = self._get_access_token(session, payload)
 
         response = self._get_keystone_token(session, access_token)
 

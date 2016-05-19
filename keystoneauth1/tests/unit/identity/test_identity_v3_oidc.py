@@ -76,18 +76,16 @@ class OIDCPasswordTests(AuthenticateOIDCTests):
         # Prep all the values and send the request
         grant_type = 'password'
         scope = 'profile email'
-        client_auth = (self.CLIENT_ID, self.CLIENT_SECRET)
         payload = {'grant_type': grant_type, 'username': self.USER_NAME,
                    'password': self.PASSWORD, 'scope': scope}
-        res = self.oidc_password._get_access_token(self.session,
-                                                   client_auth,
-                                                   payload)
+        self.oidc_password._get_access_token(self.session, payload)
 
         # Verify the request matches the expected structure
-        self.assertEqual(self.ACCESS_TOKEN_ENDPOINT, res.request.url)
-        self.assertEqual('POST', res.request.method)
+        last_req = self.requests_mock.last_request
+        self.assertEqual(self.ACCESS_TOKEN_ENDPOINT, last_req.url)
+        self.assertEqual('POST', last_req.method)
         encoded_payload = urllib.parse.urlencode(payload)
-        self.assertEqual(encoded_payload, res.request.body)
+        self.assertEqual(encoded_payload, last_req.body)
 
     def test_second_call_to_protected_url(self):
         """Test subsequent call, expect Keystone token."""
@@ -138,16 +136,14 @@ class OIDCAuthorizationGrantTests(AuthenticateOIDCTests):
 
         # Prep all the values and send the request
         grant_type = 'authorization_code'
-        client_auth = (self.CLIENT_ID, self.CLIENT_SECRET)
         payload = {'grant_type': grant_type,
                    'redirect_uri': self.REDIRECT_URL,
                    'code': self.CODE}
-        res = self.oidc_grant._get_access_token(self.session,
-                                                client_auth,
-                                                payload)
+        self.oidc_grant._get_access_token(self.session, payload)
 
         # Verify the request matches the expected structure
-        self.assertEqual(self.ACCESS_TOKEN_ENDPOINT, res.request.url)
-        self.assertEqual('POST', res.request.method)
+        last_req = self.requests_mock.last_request
+        self.assertEqual(self.ACCESS_TOKEN_ENDPOINT, last_req.url)
+        self.assertEqual('POST', last_req.method)
         encoded_payload = urllib.parse.urlencode(payload)
-        self.assertEqual(encoded_payload, res.request.body)
+        self.assertEqual(encoded_payload, last_req.body)
