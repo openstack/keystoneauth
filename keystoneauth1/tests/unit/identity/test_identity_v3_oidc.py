@@ -81,8 +81,7 @@ class OIDCPasswordTests(AuthenticateOIDCTests):
                    'password': self.PASSWORD, 'scope': scope}
         res = self.oidc_password._get_access_token(self.session,
                                                    client_auth,
-                                                   payload,
-                                                   self.ACCESS_TOKEN_ENDPOINT)
+                                                   payload)
 
         # Verify the request matches the expected structure
         self.assertEqual(self.ACCESS_TOKEN_ENDPOINT, res.request.url)
@@ -102,8 +101,7 @@ class OIDCPasswordTests(AuthenticateOIDCTests):
         access_token = uuid.uuid4().hex
         headers = {'Authorization': 'Bearer ' + access_token}
         res = self.oidc_password._get_keystone_token(self.session,
-                                                     headers,
-                                                     self.FEDERATION_AUTH_URL)
+                                                     headers)
 
         # Verify the request matches the expected structure
         self.assertEqual(self.FEDERATION_AUTH_URL, res.request.url)
@@ -145,8 +143,7 @@ class OIDCAuthorizationGrantTests(AuthenticateOIDCTests):
                    'code': self.CODE}
         res = self.oidc_grant._get_access_token(self.session,
                                                 client_auth,
-                                                payload,
-                                                self.ACCESS_TOKEN_ENDPOINT)
+                                                payload)
 
         # Verify the request matches the expected structure
         self.assertEqual(self.ACCESS_TOKEN_ENDPOINT, res.request.url)

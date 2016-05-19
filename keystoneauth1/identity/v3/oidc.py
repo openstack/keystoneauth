@@ -74,8 +74,7 @@ class _OidcBase(federation.FederationBaseAuth):
         self.grant_type = grant_type
         self.access_token_type = access_token_type
 
-    def _get_access_token(self, session, client_auth, payload,
-                          access_token_endpoint):
+    def _get_access_token(self, session, client_auth, payload):
         """Exchange a variety of user supplied values for an access token.
 
         :param session: a session object to send out HTTP requests.
@@ -89,10 +88,6 @@ class _OidcBase(federation.FederationBaseAuth):
                           {'grant_type': 'password', 'username': self.username,
                            'password': self.password, 'scope': self.scope}
         :type payload: dict
-
-        :param access_token_endpoint: URL to use to get an access token, for
-                                      example: https://localhost/oidc/token
-        :type access_token_endpoint: string
         """
         op_response = session.post(self.access_token_endpoint,
                                    requests_auth=client_auth,
@@ -100,7 +95,7 @@ class _OidcBase(federation.FederationBaseAuth):
                                    authenticated=False)
         return op_response
 
-    def _get_keystone_token(self, session, headers, federated_token_url):
+    def _get_keystone_token(self, session, headers):
         r"""Exchange an acess token for a keystone token.
 
         By Sending the access token in an `Authorization: Bearer` header, to
@@ -116,12 +111,6 @@ class _OidcBase(federation.FederationBaseAuth):
 
         :param headers: an Authorization header containing the access token.
         :type headers_: dict
-
-        :param federated_token_url: Protected URL for federated authentication,
-                                    for example: https://localhost:5000/v3/\
-                                    OS-FEDERATION/identity_providers/bluepages/\
-                                    protocols/oidc/auth
-        :type federated_token_url: string
         """
         auth_response = session.post(self.federated_token_url,
                                      headers=headers,
@@ -187,14 +176,12 @@ class OidcPassword(_OidcBase):
         client_auth = (self.client_id, self.client_secret)
         payload = {'grant_type': self.grant_type, 'username': self.username,
                    'password': self.password, 'scope': self.scope}
-        response = self._get_access_token(session, client_auth, payload,
-                                          self.access_token_endpoint)
+        response = self._get_access_token(session, client_auth, payload)
         access_token = response.json()[self.access_token_type]
 
         # use access token against protected URL
         headers = {'Authorization': 'Bearer ' + access_token}
-        response = self._get_keystone_token(session, headers,
-                                            self.federated_token_url)
+        response = self._get_keystone_token(session, headers)
 
         # grab the unscoped token
         return access.create(resp=response)
@@ -254,14 +241,12 @@ class OidcAuthorizationCode(_OidcBase):
         payload = {'grant_type': self.grant_type,
                    'redirect_uri': self.redirect_uri,
                    'code': self.code}
-        response = self._get_access_token(session, client_auth, payload,
-                                          self.access_token_endpoint)
+        response = self._get_access_token(session, client_auth, payload)
         access_token = response.json()[self.access_token_type]
 
         # use access token against protected URL
         headers = {'Authorization': 'Bearer ' + access_token}
-        response = self._get_keystone_token(session, headers,
-                                            self.federated_token_url)
+        response = self._get_keystone_token(session, headers)
 
         # grab the unscoped token
         return access.create(resp=response)
