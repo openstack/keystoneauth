@@ -95,7 +95,7 @@ class _OidcBase(federation.FederationBaseAuth):
                                    authenticated=False)
         return op_response
 
-    def _get_keystone_token(self, session, headers):
+    def _get_keystone_token(self, session, access_token):
         r"""Exchange an acess token for a keystone token.
 
         By Sending the access token in an `Authorization: Bearer` header, to
@@ -109,9 +109,11 @@ class _OidcBase(federation.FederationBaseAuth):
         :param session: a session object to send out HTTP requests.
         :type session: keystoneauth1.session.Session
 
-        :param headers: an Authorization header containing the access token.
-        :type headers_: dict
+        :param access_token: The OpenID Connect access token.
+        :type access_token: str
         """
+        # use access token against protected URL
+        headers = {'Authorization': 'Bearer ' + access_token}
         auth_response = session.post(self.federated_token_url,
                                      headers=headers,
                                      authenticated=False)
@@ -179,9 +181,7 @@ class OidcPassword(_OidcBase):
         response = self._get_access_token(session, client_auth, payload)
         access_token = response.json()[self.access_token_type]
 
-        # use access token against protected URL
-        headers = {'Authorization': 'Bearer ' + access_token}
-        response = self._get_keystone_token(session, headers)
+        response = self._get_keystone_token(session, access_token)
 
         # grab the unscoped token
         return access.create(resp=response)
@@ -244,9 +244,7 @@ class OidcAuthorizationCode(_OidcBase):
         response = self._get_access_token(session, client_auth, payload)
         access_token = response.json()[self.access_token_type]
 
-        # use access token against protected URL
-        headers = {'Authorization': 'Bearer ' + access_token}
-        response = self._get_keystone_token(session, headers)
+        response = self._get_keystone_token(session, access_token)
 
         # grab the unscoped token
         return access.create(resp=response)

@@ -99,13 +99,14 @@ class OIDCPasswordTests(AuthenticateOIDCTests):
 
         # Prep all the values and send the request
         access_token = uuid.uuid4().hex
-        headers = {'Authorization': 'Bearer ' + access_token}
         res = self.oidc_password._get_keystone_token(self.session,
-                                                     headers)
+                                                     access_token)
 
         # Verify the request matches the expected structure
         self.assertEqual(self.FEDERATION_AUTH_URL, res.request.url)
         self.assertEqual('POST', res.request.method)
+
+        headers = {'Authorization': 'Bearer ' + access_token}
         self.assertEqual(headers['Authorization'],
                          res.request.headers['Authorization'])
 
