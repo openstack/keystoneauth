@@ -95,7 +95,7 @@ class _OidcBase(federation.FederationBaseAuth):
         return access_token
 
     def _get_keystone_token(self, session, access_token):
-        r"""Exchange an acess token for a keystone token.
+        r"""Exchange an access token for a keystone token.
 
         By Sending the access token in an `Authorization: Bearer` header, to
         an OpenID Connect protected endpoint (Federated Token URL). The
