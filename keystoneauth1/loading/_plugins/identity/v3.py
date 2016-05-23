@@ -131,12 +131,11 @@ class OpenIDConnectAcessToken(loading.BaseFederationLoader):
     def plugin_class(self):
         return identity.V3OidcAccessToken
 
-    @classmethod
-    def get_options(cls):
-        options = super(OpenIDConnectAcessToken, cls).get_options()
+    def get_options(self):
+        options = super(OpenIDConnectAcessToken, self).get_options()
 
         options.extend([
-            loading.StrOpt('access-token', secret=True,
-                           help='OAuth 2.0 Access Token'),
+            loading.Opt('access-token', secret=True,
+                        help='OAuth 2.0 Access Token'),
         ])
         return options
