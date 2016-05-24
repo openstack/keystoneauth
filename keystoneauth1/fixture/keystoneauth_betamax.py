@@ -19,19 +19,22 @@ import fixtures
 import mock
 import requests
 
+from keystoneauth1.fixture import hooks
 from keystoneauth1 import session
 
 
 class BetamaxFixture(fixtures.Fixture):
 
     def __init__(self, cassette_name, cassette_library_dir=None,
-                 serializer=None, record=False):
+                 serializer=None, record=False,
+                 pre_record_hook=hooks.pre_record_hook):
         self.cassette_library_dir = cassette_library_dir
         self.serializer = serializer
         self.record = record
         self.cassette_name = cassette_name
         if serializer:
             betamax.Betamax.register_serializer(serializer)
+        self.pre_record_hook = pre_record_hook
 
     def setUp(self):
         super(BetamaxFixture, self).setUp()
@@ -53,6 +56,9 @@ def _construct_session_with_betamax(fixture, session_obj=None):
         # Use TCPKeepAliveAdapter to fix bug 1323862
         for scheme in list(session_obj.adapters.keys()):
             session_obj.mount(scheme, session.TCPKeepAliveAdapter())
+
+    with betamax.Betamax.configure() as config:
+        config.before_record(callback=fixture.pre_record_hook)
     fixture.recorder = betamax.Betamax(
         session_obj, cassette_library_dir=fixture.cassette_library_dir)
 
