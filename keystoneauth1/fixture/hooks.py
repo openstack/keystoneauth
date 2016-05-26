@@ -19,25 +19,24 @@
 :author: Yolanda Robla
 """
 
-import re
+import json
 
 
-def mask_credentials(content):
-    """it will mask all credentials for a given content."""
-    content = re.sub(r'"tenantName": "(.*?)"',
-                     '"tenantName": "dummy"', content)
-    content = re.sub(r'"username": "(.*?)"',
-                     '"username": "dummy"', content)
-    content = re.sub(r'"password": "(.*?)"',
-                     '"password": "********"', content)
-    return content
-
-
-def update_expiration(content):
-    """it will set token expiration in the long future."""
-    content = re.sub(r'"expires": "(.*?)"',
-                     '"expires": "9999-12-31T23:59:59Z"', content)
-    return content
+def mask_fixture_values(nested, prev_key):
+    for key, value in nested.items():
+        if isinstance(value, dict):
+            mask_fixture_values(value, key)
+        else:
+            if key in ('tenantName', 'username'):
+                nested[key] = 'dummy'
+            elif prev_key in ('user', 'project', 'tenant') and key == 'name':
+                nested[key] = 'dummy'
+            elif prev_key == 'domain' and key == 'id':
+                nested[key] = 'dummy'
+            elif key == 'password':
+                nested[key] = '********'
+            elif prev_key == 'token' and key in ('expires', 'expires_at'):
+                nested[key] = '9999-12-31T23:59:59Z'
 
 
 def pre_record_hook(interaction, cassette):
@@ -49,8 +48,11 @@ def pre_record_hook(interaction, cassette):
     - set token expiration time to an inifinite time.
     """
     request_body = interaction.data['request']['body']
-    request_body['string'] = mask_credentials(
-        request_body['string'])
+    parsed_content = json.loads(request_body['string'])
+    mask_fixture_values(parsed_content, None)
+    request_body['string'] = json.dumps(parsed_content)
+
     response_body = interaction.data['response']['body']
-    response_body['string'] = update_expiration(mask_credentials(
-        response_body['string']))
+    parsed_content = json.loads(response_body['string'])
+    mask_fixture_values(parsed_content, None)
+    response_body['string'] = json.dumps(parsed_content)
