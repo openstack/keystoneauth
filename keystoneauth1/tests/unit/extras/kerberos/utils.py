@@ -36,6 +36,9 @@ class KerberosMock(fixtures.Fixture):
     def setUp(self):
         super(KerberosMock, self).setUp()
 
+        if requests_kerberos is None:
+            return
+
         m = mockpatch.PatchObject(requests_kerberos.HTTPKerberosAuth,
                                   'generate_request_header',
                                   self._generate_request_header)

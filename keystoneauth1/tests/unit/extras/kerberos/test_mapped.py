@@ -12,29 +12,16 @@
 
 import uuid
 
-import six
-
+from keystoneauth1.extras import kerberos
 from keystoneauth1 import fixture as ks_fixture
 from keystoneauth1 import session
 from keystoneauth1.tests.unit.extras.kerberos import base
-
-try:
-    # Until requests_kerberos gets py3 support, this is going to fail to import
-    from keystoneauth1.extras import kerberos
-
-except ImportError:
-    if six.PY2:
-        # requests_kerberos is expected to be there on py2, so don't ignore.
-        raise
-
-    # requests_kerberos isn't available
-    kerberos = False
 
 
 class TestMappedAuth(base.TestCase):
 
     def setUp(self):
-        if not kerberos:
+        if kerberos.requests_kerberos is None:
             self.skipTest("Kerberos support isn't available.")
 
         super(TestMappedAuth, self).setUp()

@@ -18,11 +18,13 @@
     not installed by default. Without the extra package an import error will
     occur. The extra package can be installed using::
 
-      $ pip install keystoneauth['kerberos']
-
+      $ pip install keystoneauth1[kerberos]
 """
 
-import requests_kerberos
+try:
+    import requests_kerberos
+except ImportError:
+    requests_kerberos = None
 
 from keystoneauth1 import access
 from keystoneauth1.identity import v3
@@ -37,9 +39,23 @@ def _requests_auth():
         mutual_authentication=requests_kerberos.OPTIONAL)
 
 
+def _dependency_check():
+    if requests_kerberos is None:
+        raise ImportError("""
+Using the kerberos authentication plugin requires installation of additional
+packages. These can be installed with::
+
+    $ pip install keystoneauth1[kerberos]
+""")
+
+
 class KerberosMethod(v3.AuthMethod):
 
     _method_parameters = []
+
+    def __init__(self, *args, **kwargs):
+        _dependency_check()
+        super(KerberosMethod, self).__init__(*args, **kwargs)
 
     def get_auth_data(self, session, auth, headers, request_kwargs, **kwargs):
         # NOTE(jamielennox): request_kwargs is passed as a kwarg however it is
@@ -58,6 +74,10 @@ class MappedKerberos(federation.FederationBaseAuth):
     This uses the OS-FEDERATION extension to gain an unscoped token and then
     use the standard keystone auth process to scope that to any given project.
     """
+
+    def __init__(self, *args, **kwargs):
+        _dependency_check()
+        super(MappedKerberos, self).__init__(*args, **kwargs)
 
     def get_unscoped_auth_ref(self, session, **kwargs):
         resp = session.get(self.federated_token_url,
