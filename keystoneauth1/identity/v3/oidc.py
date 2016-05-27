@@ -127,7 +127,7 @@ class OidcPassword(_OidcBase):
     def __init__(self, auth_url, identity_provider, protocol,
                  client_id, client_secret, access_token_endpoint,
                  grant_type='password', access_token_type='access_token',
-                 username=None, password=None, scope='profile'):
+                 username=None, password=None, scope='profile', **kwargs):
         """The OpenID Password plugin expects the following.
 
         :param username: Username used to authenticate
@@ -149,7 +149,8 @@ class OidcPassword(_OidcBase):
             client_secret=client_secret,
             access_token_endpoint=access_token_endpoint,
             grant_type=grant_type,
-            access_token_type=access_token_type)
+            access_token_type=access_token_type,
+            **kwargs)
         self.username = username
         self.password = password
         self.scope = scope
@@ -193,7 +194,7 @@ class OidcAuthorizationCode(_OidcBase):
                  client_id, client_secret, access_token_endpoint,
                  grant_type='authorization_code',
                  access_token_type='access_token',
-                 redirect_uri=None, code=None):
+                 redirect_uri=None, code=None, **kwargs):
         """The OpenID Authorization Code plugin expects the following.
 
         :param redirect_uri: OpenID Connect Client Redirect URL
@@ -211,7 +212,8 @@ class OidcAuthorizationCode(_OidcBase):
             client_secret=client_secret,
             access_token_endpoint=access_token_endpoint,
             grant_type=grant_type,
-            access_token_type=access_token_type)
+            access_token_type=access_token_type,
+            **kwargs)
         self.redirect_uri = redirect_uri
         self.code = code
 
