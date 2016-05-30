@@ -33,6 +33,7 @@ class AuthenticateOIDCTests(utils.TestCase):
         self.IDENTITY_PROVIDER = 'bluepages'
         self.PROTOCOL = 'oidc'
         self.USER_NAME = 'oidc_user@example.com'
+        self.PROJECT_NAME = 'foo project'
         self.PASSWORD = uuid.uuid4().hex
         self.CLIENT_ID = uuid.uuid4().hex
         self.CLIENT_SECRET = uuid.uuid4().hex
@@ -51,6 +52,7 @@ class AuthenticateOIDCTests(utils.TestCase):
             client_id=self.CLIENT_ID,
             client_secret=self.CLIENT_SECRET,
             access_token_endpoint=self.ACCESS_TOKEN_ENDPOINT,
+            project_name=self.PROJECT_NAME,
             username=self.USER_NAME,
             password=self.PASSWORD)
 
@@ -62,13 +64,15 @@ class AuthenticateOIDCTests(utils.TestCase):
             client_secret=self.CLIENT_SECRET,
             access_token_endpoint=self.ACCESS_TOKEN_ENDPOINT,
             redirect_uri=self.REDIRECT_URL,
+            project_name=self.PROJECT_NAME,
             code=self.CODE)
 
         self.oidc_token = oidc.OidcAccessToken(
             self.AUTH_URL,
             self.IDENTITY_PROVIDER,
             self.PROTOCOL,
-            access_token=self.ACCESS_TOKEN)
+            access_token=self.ACCESS_TOKEN,
+            project_name=self.PROJECT_NAME)
 
 
 class OIDCPasswordTests(AuthenticateOIDCTests):
