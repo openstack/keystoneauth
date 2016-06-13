@@ -180,6 +180,7 @@ authentication plugins that are available in `keystoneauth` are:
 - v3password: :py:class:`keystoneauth1.identity.v3.Password`
 - v3token: :py:class:`keystoneauth1.identity.v3.Token`
 - v3totp: :py:class:`keystoneauth1.identity.v3.TOTP`
+- v3kerberos: :py:class:`keystoneauth1.extras.kerberos.Kerberos`
 
 
 Creating Authentication Plugins
