@@ -22,4 +22,4 @@ class Kerberos(loading.BaseV3Loader):
 
     @property
     def available(self):
-        return kerberos.kerberos_requests is not None
+        return kerberos.requests_kerberos is not None
