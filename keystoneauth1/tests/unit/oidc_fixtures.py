@@ -49,3 +49,50 @@ ACCESS_TOKEN_VIA_AUTH_GRANT_RESP = {
     "refresh_token": "1/ySXNO9XISBMIgOrJDtdun6zK6XiATCKT",
     "id_token": "eyJhbGciOiJSUzI1Ni8hOYHuZT8dt_yynmJVhcU"
 }
+
+DISCOVERY_DOCUMENT = {
+    "authorization_endpoint": "https://localhost:8020/oidc/authorize",
+    "claims_supported": [
+        "sub",
+        "name",
+        "preferred_username",
+        "given_name",
+        "family_name",
+        "middle_name",
+        "nickname",
+        "profile",
+        "picture",
+        "website",
+        "gender",
+        "zoneinfo",
+        "locale",
+        "updated_at",
+        "birthdate",
+        "email",
+        "email_verified",
+        "phone_number",
+        "phone_number_verified",
+        "address"
+    ],
+    "grant_types_supported": [
+        "authorization_code",
+        "password",
+    ],
+    "introspection_endpoint": "https://localhost:8020/oidc/introspect",
+    "issuer": "https://localhost:8020/oidc/",
+    "jwks_uri": "https://localhost:8020/oidc/jwk",
+    "op_policy_uri": "https://localhost:8020/oidc/about",
+    "op_tos_uri": "https://localhost:8020/oidc/about",
+    "registration_endpoint": "https://localhost:8020/oidc/register",
+    "revocation_endpoint": "https://localhost:8020/oidc/revoke",
+    "service_documentation": "https://localhost:8020/oidc/about",
+    "token_endpoint": "https://localhost:8020/oidc/token",
+    "userinfo_endpoint": "https://localhost:8020/oidc/userinfo",
+    "token_endpoint_auth_methods_supported": [
+        "client_secret_post",
+        "client_secret_basic",
+        "client_secret_jwt",
+        "private_key_jwt",
+        "none"
+    ],
+}

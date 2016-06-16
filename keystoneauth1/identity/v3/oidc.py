@@ -12,8 +12,12 @@
 
 from positional import positional
 
+from keystoneauth1 import _utils as utils
 from keystoneauth1 import access
+from keystoneauth1 import exceptions
 from keystoneauth1.identity.v3 import federation
+
+_logger = utils.get_logger(__name__)
 
 __all__ = ('OidcAuthorizationCode',
            'OidcPassword',
@@ -28,9 +32,11 @@ class _OidcBase(federation.FederationBaseAuth):
     """
 
     def __init__(self, auth_url, identity_provider, protocol,
-                 client_id, client_secret, access_token_endpoint,
-                 grant_type, access_token_type,
-                 scope="openid profile", **kwargs):
+                 client_id, client_secret, grant_type,
+                 access_token_type,
+                 scope="openid profile",
+                 access_token_endpoint=None,
+                 discovery_endpoint=None, **kwargs):
         """The OpenID Connect plugin expects the following.
 
         :param auth_url: URL of the Identity Service
@@ -49,15 +55,12 @@ class _OidcBase(federation.FederationBaseAuth):
         :param client_secret: OAuth 2.0 Client Secret
         :type client_secret: string
 
-        :param access_token_endpoint: OpenID Connect Provider Token Endpoint,
-                                      for example:
-                                      https://localhost:8020/oidc/OP/token
-        :type access_token_endpoint: string
-
         :param grant_type: OpenID Connect grant type, it represents the flow
                            that is used to talk to the OP. Valid values are:
                            "authorization_code", "refresh_token", or
-                           "password".
+                           "password". If a discovery document is being used,
+                           this class will check if the provided value is
+                           supported by the provider.
         :type grant_type: string
 
         :param access_token_type: OAuth 2.0 Authorization Server Introspection
@@ -66,6 +69,19 @@ class _OidcBase(federation.FederationBaseAuth):
                                   introspection. Valid values are:
                                   "access_token" or "id_token"
         :type access_token_type: string
+
+        :param access_token_endpoint: OpenID Connect Provider Token Endpoint,
+                                      for example:
+                                      https://localhost:8020/oidc/OP/token
+                                      Note that if a discovery document is
+                                      provided this value will override
+                                      the discovered one.
+        :type access_token_endpoint: string
+
+        :param discovery_endpoint: OpenID Connect Discovery Document URL,
+                                   for example:
+                  https://localhost:8020/oidc/.well-known/openid-configuration
+        :type access_token_endpoint: string
 
         :param scope: OpenID Connect scope that is requested from OP,
                       for example: "openid profile email", defaults to
@@ -77,10 +93,93 @@ class _OidcBase(federation.FederationBaseAuth):
                                         **kwargs)
         self.client_id = client_id
         self.client_secret = client_secret
+
+        self.discovery_endpoint = discovery_endpoint
+        self._discovery_document = {}
         self.access_token_endpoint = access_token_endpoint
-        self.grant_type = grant_type
+
         self.access_token_type = access_token_type
         self.scope = scope
+
+        self.grant_type = grant_type
+
+    def _get_discovery_document(self, session):
+        """Get the contents of the OpenID Connect Discovery Document.
+
+        This method grabs the contents of the OpenID Connect Discovery Document
+        if a discovery_endpoint was passed to the constructor and returns it as
+        a dict, otherwise returns an empty dict. Note that it will fetch the
+        discovery document only once, so subsequent calls to this method will
+        return the cached result, if any.
+
+        :param session: a session object to send out HTTP requests.
+        :type session: keystoneauth1.session.Session
+
+        :returns: a python dictionary containing the discovery document if any,
+                  otherwise it will return an empty dict.
+        :rtype: dict
+        """
+        if (self.discovery_endpoint is not None and
+                not self._discovery_document):
+            try:
+                resp = session.get(self.discovery_endpoint,
+                                   authenticated=False)
+            except exceptions.HttpError:
+                _logger.error("Cannot fetch discovery document %(discovery)s" %
+                              {"discovery": self.discovery_endpoint})
+                raise
+
+            try:
+                self._discovery_document = resp.json()
+            except Exception:
+                pass
+
+            if not self._discovery_document:
+                raise exceptions.InvalidOidcDiscoveryDocument()
+
+        return self._discovery_document
+
+    def _check_grant_type(self, session):
+        """Check if the grant_type requested is supported by the server.
+
+        If a discovery_endpoint is provided and the discoverty document
+        advertises the supported grant types, this method will check if the
+        requested grant_type is supported by the server, raising an exception
+        otherwise.
+
+        :param session: a session object to send out HTTP requests.
+        :type session: keystoneauth1.session.Session
+        """
+        discovery = self._get_discovery_document(session)
+        grant_types = discovery.get("grant_types_supported")
+        if (grant_types and
+                self.grant_type is not None and
+                self.grant_type not in grant_types):
+            raise exceptions.OidcPluginNotSupported()
+
+    def _get_access_token_endpoint(self, session):
+        """Get the "token_endpoint" for the OpenID Connect flow.
+
+        This method will return the correct access token endpoint to be used.
+        If the user has explicitly passed an access_token_endpoint to the
+        constructor that will be returned. If there is no explicit endpoint and
+        a discovery url is provided, it will try to get it from the discovery
+        document. If nothing is found, an exception will be raised.
+
+        :param session: a session object to send out HTTP requests.
+        :type session: keystoneauth1.session.Session
+
+        :return: the endpoint to use
+        :rtype: string or None if no endpoint is found
+        """
+        if self.access_token_endpoint is not None:
+            return self.access_token_endpoint
+
+        discovery = self._get_discovery_document(session)
+        endpoint = discovery.get("token_endpoint")
+        if endpoint is None:
+            raise exceptions.OidcAccessTokenEndpointNotFound()
+        return endpoint
 
     def _get_access_token(self, session, payload):
         """Exchange a variety of user supplied values for an access token.
@@ -95,7 +194,9 @@ class _OidcBase(federation.FederationBaseAuth):
         :type payload: dict
         """
         client_auth = (self.client_id, self.client_secret)
-        op_response = session.post(self.access_token_endpoint,
+        access_token_endpoint = self._get_access_token_endpoint(session)
+
+        op_response = session.post(access_token_endpoint,
                                    requests_auth=client_auth,
                                    data=payload,
                                    authenticated=False)
@@ -132,7 +233,9 @@ class OidcPassword(_OidcBase):
 
     @positional(4)
     def __init__(self, auth_url, identity_provider, protocol,
-                 client_id, client_secret, access_token_endpoint,
+                 client_id, client_secret,
+                 access_token_endpoint=None,
+                 discovery_endpoint=None,
                  grant_type='password', access_token_type='access_token',
                  username=None, password=None, **kwargs):
         """The OpenID Password plugin expects the following.
@@ -150,6 +253,7 @@ class OidcPassword(_OidcBase):
             client_id=client_id,
             client_secret=client_secret,
             access_token_endpoint=access_token_endpoint,
+            discovery_endpoint=discovery_endpoint,
             grant_type=grant_type,
             access_token_type=access_token_type,
             **kwargs)
@@ -176,6 +280,9 @@ class OidcPassword(_OidcBase):
         :returns: a token data representation
         :rtype: :py:class:`keystoneauth1.access.AccessInfoV3`
         """
+        # First of all, check if the grant type is supported
+        self._check_grant_type(session)
+
         # get an access token
         payload = {'grant_type': self.grant_type, 'username': self.username,
                    'password': self.password, 'scope': self.scope}
@@ -192,7 +299,9 @@ class OidcAuthorizationCode(_OidcBase):
 
     @positional(4)
     def __init__(self, auth_url, identity_provider, protocol,
-                 client_id, client_secret, access_token_endpoint,
+                 client_id, client_secret,
+                 access_token_endpoint=None,
+                 discovery_endpoint=None,
                  grant_type='authorization_code',
                  access_token_type='access_token',
                  redirect_uri=None, code=None, **kwargs):
@@ -212,6 +321,7 @@ class OidcAuthorizationCode(_OidcBase):
             client_id=client_id,
             client_secret=client_secret,
             access_token_endpoint=access_token_endpoint,
+            discovery_endpoint=discovery_endpoint,
             grant_type=grant_type,
             access_token_type=access_token_type,
             **kwargs)
@@ -237,6 +347,9 @@ class OidcAuthorizationCode(_OidcBase):
         :returns: a token data representation
         :rtype: :py:class:`keystoneauth1.access.AccessInfoV3`
         """
+        # First of all, check if the grant type is supported
+        self._check_grant_type(session)
+
         # get an access token
         payload = {'grant_type': self.grant_type,
                    'redirect_uri': self.redirect_uri,

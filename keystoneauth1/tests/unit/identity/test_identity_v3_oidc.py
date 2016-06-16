@@ -14,6 +14,7 @@ import uuid
 
 from six.moves import urllib
 
+from keystoneauth1 import exceptions
 from keystoneauth1.identity.v3 import oidc
 from keystoneauth1 import session
 from keystoneauth1.tests.unit import oidc_fixtures
@@ -23,7 +24,7 @@ from keystoneauth1.tests.unit import utils
 KEYSTONE_TOKEN_VALUE = uuid.uuid4().hex
 
 
-class BaseOIDCTests(utils.TestCase):
+class BaseOIDCTests(object):
 
     def setUp(self):
         super(BaseOIDCTests, self).setUp()
@@ -45,8 +46,113 @@ class BaseOIDCTests(utils.TestCase):
         self.REDIRECT_URL = 'urn:ietf:wg:oauth:2.0:oob'
         self.CODE = '4/M9TNz2G9WVwYxSjx0w9AgA1bOmryJltQvOhQMq0czJs.cnLNVAfqwG'
 
+        self.DISCOVERY_URL = ('https://localhost:8020/oidc/.well-known/'
+                              'openid-configuration')
 
-class OIDCPasswordTests(BaseOIDCTests):
+    def test_discovery_not_found(self):
+        self.requests_mock.get("http://not.found",
+                               status_code=404)
+
+        plugin = self.plugin.__class__(
+            self.AUTH_URL,
+            self.IDENTITY_PROVIDER,
+            self.PROTOCOL,
+            client_id=self.CLIENT_ID,
+            client_secret=self.CLIENT_SECRET,
+            discovery_endpoint="http://not.found")
+
+        self.assertRaises(exceptions.http.NotFound,
+                          plugin._get_discovery_document,
+                          self.session)
+
+    def test_no_discovery(self):
+
+        plugin = self.plugin.__class__(
+            self.AUTH_URL,
+            self.IDENTITY_PROVIDER,
+            self.PROTOCOL,
+            client_id=self.CLIENT_ID,
+            client_secret=self.CLIENT_SECRET,
+            access_token_endpoint=self.ACCESS_TOKEN_ENDPOINT,
+        )
+        self.assertEqual(self.ACCESS_TOKEN_ENDPOINT,
+                         plugin.access_token_endpoint)
+
+    def test_load_discovery(self):
+        self.requests_mock.get(self.DISCOVERY_URL,
+                               json=oidc_fixtures.DISCOVERY_DOCUMENT)
+
+        plugin = self.plugin.__class__(self.AUTH_URL,
+                                       self.IDENTITY_PROVIDER,
+                                       self.PROTOCOL,
+                                       client_id=self.CLIENT_ID,
+                                       client_secret=self.CLIENT_SECRET,
+                                       discovery_endpoint=self.DISCOVERY_URL)
+        self.assertEqual(
+            oidc_fixtures.DISCOVERY_DOCUMENT["token_endpoint"],
+            plugin._get_access_token_endpoint(self.session)
+        )
+
+    def test_no_access_token_endpoint(self):
+        plugin = self.plugin.__class__(self.AUTH_URL,
+                                       self.IDENTITY_PROVIDER,
+                                       self.PROTOCOL,
+                                       client_id=self.CLIENT_ID,
+                                       client_secret=self.CLIENT_SECRET)
+
+        self.assertRaises(exceptions.OidcAccessTokenEndpointNotFound,
+                          plugin._get_access_token_endpoint,
+                          self.session)
+
+    def test_invalid_discovery_document(self):
+        self.requests_mock.get(self.DISCOVERY_URL,
+                               json={})
+
+        plugin = self.plugin.__class__(self.AUTH_URL,
+                                       self.IDENTITY_PROVIDER,
+                                       self.PROTOCOL,
+                                       client_id=self.CLIENT_ID,
+                                       client_secret=self.CLIENT_SECRET,
+                                       discovery_endpoint=self.DISCOVERY_URL)
+
+        self.assertRaises(exceptions.InvalidOidcDiscoveryDocument,
+                          plugin._get_discovery_document,
+                          self.session)
+
+    def test_load_discovery_override_by_endpoints(self):
+        self.requests_mock.get(self.DISCOVERY_URL,
+                               json=oidc_fixtures.DISCOVERY_DOCUMENT)
+
+        access_token_endpoint = uuid.uuid4().hex
+        plugin = self.plugin.__class__(
+            self.AUTH_URL,
+            self.IDENTITY_PROVIDER,
+            self.PROTOCOL,
+            client_id=self.CLIENT_ID,
+            client_secret=self.CLIENT_SECRET,
+            discovery_endpoint=self.DISCOVERY_URL,
+            access_token_endpoint=access_token_endpoint
+        )
+        self.assertEqual(access_token_endpoint,
+                         plugin._get_access_token_endpoint(self.session))
+
+    def test_wrong_grant_type(self):
+        self.requests_mock.get(self.DISCOVERY_URL,
+                               json={"grant_types_supported": ["foo", "bar"]})
+
+        plugin = self.plugin.__class__(self.AUTH_URL,
+                                       self.IDENTITY_PROVIDER,
+                                       self.PROTOCOL,
+                                       client_id=self.CLIENT_ID,
+                                       client_secret=self.CLIENT_SECRET,
+                                       discovery_endpoint=self.DISCOVERY_URL)
+
+        self.assertRaises(exceptions.OidcPluginNotSupported,
+                          plugin._check_grant_type,
+                          self.session)
+
+
+class OIDCPasswordTests(BaseOIDCTests, utils.TestCase):
     def setUp(self):
         super(OIDCPasswordTests, self).setUp()
 
@@ -118,7 +224,7 @@ class OIDCPasswordTests(BaseOIDCTests):
         self.assertEqual(KEYSTONE_TOKEN_VALUE, response.auth_token)
 
 
-class OIDCAuthorizationGrantTests(BaseOIDCTests):
+class OIDCAuthorizationGrantTests(BaseOIDCTests, utils.TestCase):
     def setUp(self):
         super(OIDCAuthorizationGrantTests, self).setUp()
 

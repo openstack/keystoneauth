@@ -135,7 +135,8 @@ class OpenIDConnectBaseTests(object):
         options = loading.get_plugin_loader(self.plugin_name).get_options()
         self.assertTrue(
             set(['client-id', 'client-secret', 'access-token-endpoint',
-                 'access-token-type', 'openid-scope']).issubset(
+                 'access-token-type', 'openid-scope',
+                 'discovery-endpoint']).issubset(
                      set([o.name for o in options]))
         )
         # openid-scope gets renamed into "scope"
