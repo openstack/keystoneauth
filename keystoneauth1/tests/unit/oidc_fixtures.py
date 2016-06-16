@@ -38,7 +38,7 @@ ACCESS_TOKEN_VIA_PASSWORD_RESP = {
     "access_token": "z5H1ITZLlJVDHQXqJun",
     "token_type": "bearer",
     "expires_in": 3599,
-    "scope": "profile",
+    "scope": "openid profile",
     "refresh_token": "DCERsh83IAhu9bhavrp"
 }
 
