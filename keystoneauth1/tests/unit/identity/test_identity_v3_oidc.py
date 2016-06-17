@@ -23,10 +23,10 @@ from keystoneauth1.tests.unit import utils
 KEYSTONE_TOKEN_VALUE = uuid.uuid4().hex
 
 
-class AuthenticateOIDCTests(utils.TestCase):
+class BaseOIDCTests(utils.TestCase):
 
     def setUp(self):
-        super(AuthenticateOIDCTests, self).setUp()
+        super(BaseOIDCTests, self).setUp()
         self.session = session.Session()
 
         self.AUTH_URL = 'http://keystone:5000/v3'
@@ -45,7 +45,12 @@ class AuthenticateOIDCTests(utils.TestCase):
         self.REDIRECT_URL = 'urn:ietf:wg:oauth:2.0:oob'
         self.CODE = '4/M9TNz2G9WVwYxSjx0w9AgA1bOmryJltQvOhQMq0czJs.cnLNVAfqwG'
 
-        self.oidc_password = oidc.OidcPassword(
+
+class OIDCPasswordTests(BaseOIDCTests):
+    def setUp(self):
+        super(OIDCPasswordTests, self).setUp()
+
+        self.plugin = oidc.OidcPassword(
             self.AUTH_URL,
             self.IDENTITY_PROVIDER,
             self.PROTOCOL,
@@ -55,27 +60,6 @@ class AuthenticateOIDCTests(utils.TestCase):
             project_name=self.PROJECT_NAME,
             username=self.USER_NAME,
             password=self.PASSWORD)
-
-        self.oidc_grant = oidc.OidcAuthorizationCode(
-            self.AUTH_URL,
-            self.IDENTITY_PROVIDER,
-            self.PROTOCOL,
-            client_id=self.CLIENT_ID,
-            client_secret=self.CLIENT_SECRET,
-            access_token_endpoint=self.ACCESS_TOKEN_ENDPOINT,
-            redirect_uri=self.REDIRECT_URL,
-            project_name=self.PROJECT_NAME,
-            code=self.CODE)
-
-        self.oidc_token = oidc.OidcAccessToken(
-            self.AUTH_URL,
-            self.IDENTITY_PROVIDER,
-            self.PROTOCOL,
-            access_token=self.ACCESS_TOKEN,
-            project_name=self.PROJECT_NAME)
-
-
-class OIDCPasswordTests(AuthenticateOIDCTests):
 
     def test_initial_call_to_get_access_token(self):
         """Test initial call, expect JSON access token."""
@@ -89,7 +73,7 @@ class OIDCPasswordTests(AuthenticateOIDCTests):
         scope = 'profile email'
         payload = {'grant_type': grant_type, 'username': self.USER_NAME,
                    'password': self.PASSWORD, 'scope': scope}
-        self.oidc_password._get_access_token(self.session, payload)
+        self.plugin._get_access_token(self.session, payload)
 
         # Verify the request matches the expected structure
         last_req = self.requests_mock.last_request
@@ -106,8 +90,8 @@ class OIDCPasswordTests(AuthenticateOIDCTests):
             json=oidc_fixtures.UNSCOPED_TOKEN,
             headers={'X-Subject-Token': KEYSTONE_TOKEN_VALUE})
 
-        res = self.oidc_password._get_keystone_token(self.session,
-                                                     self.ACCESS_TOKEN)
+        res = self.plugin._get_keystone_token(self.session,
+                                              self.ACCESS_TOKEN)
 
         # Verify the request matches the expected structure
         self.assertEqual(self.FEDERATION_AUTH_URL, res.request.url)
@@ -130,11 +114,24 @@ class OIDCPasswordTests(AuthenticateOIDCTests):
             json=oidc_fixtures.UNSCOPED_TOKEN,
             headers={'X-Subject-Token': KEYSTONE_TOKEN_VALUE})
 
-        response = self.oidc_password.get_unscoped_auth_ref(self.session)
+        response = self.plugin.get_unscoped_auth_ref(self.session)
         self.assertEqual(KEYSTONE_TOKEN_VALUE, response.auth_token)
 
 
-class OIDCAuthorizationGrantTests(AuthenticateOIDCTests):
+class OIDCAuthorizationGrantTests(BaseOIDCTests):
+    def setUp(self):
+        super(OIDCAuthorizationGrantTests, self).setUp()
+
+        self.plugin = oidc.OidcAuthorizationCode(
+            self.AUTH_URL,
+            self.IDENTITY_PROVIDER,
+            self.PROTOCOL,
+            client_id=self.CLIENT_ID,
+            client_secret=self.CLIENT_SECRET,
+            access_token_endpoint=self.ACCESS_TOKEN_ENDPOINT,
+            redirect_uri=self.REDIRECT_URL,
+            project_name=self.PROJECT_NAME,
+            code=self.CODE)
 
     def test_initial_call_to_get_access_token(self):
         """Test initial call, expect JSON access token."""
@@ -148,7 +145,7 @@ class OIDCAuthorizationGrantTests(AuthenticateOIDCTests):
         payload = {'grant_type': grant_type,
                    'redirect_uri': self.REDIRECT_URL,
                    'code': self.CODE}
-        self.oidc_grant._get_access_token(self.session, payload)
+        self.plugin._get_access_token(self.session, payload)
 
         # Verify the request matches the expected structure
         last_req = self.requests_mock.last_request
@@ -158,7 +155,32 @@ class OIDCAuthorizationGrantTests(AuthenticateOIDCTests):
         self.assertEqual(encoded_payload, last_req.body)
 
 
-class AuthenticateOIDCTokenTests(AuthenticateOIDCTests):
+# NOTE(aloga): This is a special case, as we do not need all the other openid
+# parameters, like client_id, client_secret, access_token_endpoint and so on,
+# therefore we do not inherit from the base oidc test class, but from the base
+# TestCase
+class OIDCTokenTests(utils.TestCase):
+    def setUp(self):
+        super(OIDCTokenTests, self).setUp()
+
+        self.session = session.Session()
+
+        self.AUTH_URL = 'http://keystone:5000/v3'
+        self.IDENTITY_PROVIDER = 'bluepages'
+        self.PROTOCOL = 'oidc'
+        self.PROJECT_NAME = 'foo project'
+        self.ACCESS_TOKEN = uuid.uuid4().hex
+
+        self.FEDERATION_AUTH_URL = '%s/%s' % (
+            self.AUTH_URL,
+            'OS-FEDERATION/identity_providers/bluepages/protocols/oidc/auth')
+
+        self.plugin = oidc.OidcAccessToken(
+            self.AUTH_URL,
+            self.IDENTITY_PROVIDER,
+            self.PROTOCOL,
+            access_token=self.ACCESS_TOKEN,
+            project_name=self.PROJECT_NAME)
 
     def test_end_to_end_workflow(self):
         """Test full OpenID Connect workflow."""
@@ -168,5 +190,5 @@ class AuthenticateOIDCTokenTests(AuthenticateOIDCTests):
             json=oidc_fixtures.UNSCOPED_TOKEN,
             headers={'X-Subject-Token': KEYSTONE_TOKEN_VALUE})
 
-        response = self.oidc_token.get_unscoped_auth_ref(self.session)
+        response = self.plugin.get_unscoped_auth_ref(self.session)
         self.assertEqual(KEYSTONE_TOKEN_VALUE, response.auth_token)
