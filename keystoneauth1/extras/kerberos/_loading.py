@@ -23,3 +23,14 @@ class Kerberos(loading.BaseV3Loader):
     @property
     def available(self):
         return kerberos.requests_kerberos is not None
+
+
+class MappedKerberos(loading.BaseV3Loader):
+
+    @property
+    def plugin_class(self):
+        return kerberos.MappedKerberos
+
+    @property
+    def available(self):
+        return kerberos.requests_kerberos is not None
