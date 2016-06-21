@@ -157,11 +157,11 @@ access token's key and secret. For example::
 
     >>> from keystoneauth1.extras import oauth1
     >>> from keystoneauth1 import session
-    >>> a = auth.V3OAuth1('http://my.keystone.com:5000/v3',
-    ...                   consumer_key=consumer_id,
-    ...                   consumer_secret=consumer_secret,
-    ...                   access_key=access_token_key,
-    ...                   access_secret=access_token_secret)
+    >>> a = oauth1.V3OAuth1('http://my.keystone.com:5000/v3',
+    ...                     consumer_key=consumer_id,
+    ...                     consumer_secret=consumer_secret,
+    ...                     access_key=access_token_key,
+    ...                     access_secret=access_token_secret)
     >>> s = session.Session(auth=a)
 
 
