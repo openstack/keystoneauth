@@ -605,6 +605,30 @@ class Session(object):
 
         resp = send(**kwargs)
 
+        # log callee and caller request-id for each api call
+        if log:
+            # service_name should be fetched from endpoint_filter if it is not
+            # present then use service_type as service_name.
+            service_name = None
+            if endpoint_filter:
+                service_name = endpoint_filter.get('service_name')
+                if not service_name:
+                    service_name = endpoint_filter.get('service_type')
+
+            # Nova uses 'x-compute-request-id' and other services like
+            # Glance, Cinder etc are using 'x-openstack-request-id' to store
+            # request-id in the header
+            request_id = (resp.headers.get('x-openstack-request-id') or
+                          resp.headers.get('x-compute-request-id'))
+            if request_id:
+                logger.debug('%(method)s call to %(service_name)s for '
+                             '%(url)s used request id '
+                             '%(response_request_id)s',
+                             {'method': resp.request.method,
+                              'service_name': service_name,
+                              'url': resp.url,
+                              'response_request_id': request_id})
+
         # handle getting a 401 Unauthorized response by invalidating the plugin
         # and then retrying the request. This is only tried once.
         if resp.status_code == 401 and authenticated and allow_reauth:
