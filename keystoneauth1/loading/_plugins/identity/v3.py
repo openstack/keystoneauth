@@ -111,6 +111,7 @@ class OpenIDConnectPassword(_OpenIDConnectBase):
             loading.Opt('username', help='Username'),
             loading.Opt('password', secret=True, help='Password'),
             loading.Opt('openid-scope', default="profile",
+                        dest='scope',
                         help='OpenID Connect scope that is requested from OP')
         ])
 
