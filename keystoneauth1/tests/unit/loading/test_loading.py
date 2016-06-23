@@ -19,6 +19,34 @@ from keystoneauth1 import loading
 from keystoneauth1.tests.unit.loading import utils
 
 
+class PluginA(object):
+
+    def __init__(self, a):
+        self.val = a
+
+
+class PluginB(object):
+
+    def __init__(self, b):
+        self.val = b
+
+
+class TestSplitLoader(loading.BaseLoader):
+
+    def get_options(self):
+        opts = super(TestSplitLoader, self).get_options()
+        opts += [loading.Opt('a'), loading.Opt('b')]
+        return opts
+
+    def create_plugin(self, a=None, b=None, **kwargs):
+        if a:
+            return PluginA(a)
+        if b:
+            return PluginB(b)
+
+        raise AssertionError('Expected A or B')
+
+
 class LoadingTests(utils.TestCase):
 
     def test_required_values(self):
@@ -100,3 +128,18 @@ class LoadingTests(utils.TestCase):
         self.assertEqual(99.99, p['a_float'])
         self.assertEqual('another', p['a_str'])
         self.assertEqual(66, p['a_int'])
+
+    def test_create_plugin_loader(self):
+        val_a = uuid.uuid4().hex
+        val_b = uuid.uuid4().hex
+
+        loader = TestSplitLoader()
+
+        plugin_a = loader.load_from_options(a=val_a)
+        plugin_b = loader.load_from_options(b=val_b)
+
+        self.assertIsInstance(plugin_a, PluginA)
+        self.assertIsInstance(plugin_b, PluginB)
+
+        self.assertEqual(val_a, plugin_a.val)
+        self.assertEqual(val_b, plugin_b.val)
