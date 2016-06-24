@@ -13,7 +13,6 @@
 import abc
 import uuid
 
-import mock
 import six
 
 from keystoneauth1 import _utils
@@ -532,24 +531,17 @@ class GenericAuthPluginTests(utils.TestCase):
 
     def test_setting_connection_params(self):
         text = uuid.uuid4().hex
+        self.stub_url('GET', base_url=self.auth.url('prefix'), text=text)
 
-        with mock.patch.object(self.session.session, 'request') as mocked:
-            mocked.return_value = utils.TestResponse({'status_code': 200,
-                                                      'text': text})
-            resp = self.session.get('prefix',
-                                    endpoint_filter=self.ENDPOINT_FILTER)
+        resp = self.session.get('prefix',
+                                endpoint_filter=self.ENDPOINT_FILTER)
 
-            self.assertEqual(text, resp.text)
+        self.assertEqual(text, resp.text)
 
-            # the cert and verify values passed to request are those that were
-            # returned from the auth plugin as connection params.
-
-            mocked.assert_called_once_with('GET',
-                                           self.auth.url('prefix'),
-                                           headers=mock.ANY,
-                                           allow_redirects=False,
-                                           cert=self.auth.cert,
-                                           verify=False)
+        # the cert and verify values passed to request are those that were
+        # returned from the auth plugin as connection params.
+        self.assertEqual(self.auth.cert, self.requests_mock.last_request.cert)
+        self.assertFalse(self.requests_mock.last_request.verify)
 
     def test_setting_bad_connection_params(self):
         # The uuid name parameter here is unknown and not in the allowed params

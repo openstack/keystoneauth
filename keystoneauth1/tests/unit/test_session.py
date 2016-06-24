@@ -17,6 +17,7 @@ import uuid
 
 import mock
 import requests
+import requests.auth
 import six
 from testtools import matchers
 
@@ -26,6 +27,20 @@ from keystoneauth1 import plugin
 from keystoneauth1 import session as client_session
 from keystoneauth1.tests.unit import utils
 from keystoneauth1 import token_endpoint
+
+
+class RequestsAuth(requests.auth.AuthBase):
+
+    def __init__(self, *args, **kwargs):
+        super(RequestsAuth, self).__init__(*args, **kwargs)
+        self.header_name = uuid.uuid4().hex
+        self.header_val = uuid.uuid4().hex
+        self.called = False
+
+    def __call__(self, request):
+        request.headers[self.header_name] = self.header_val
+        self.called = True
+        return request
 
 
 class SessionTests(utils.TestCase):
@@ -532,20 +547,16 @@ class SessionAuthTests(utils.TestCase):
 
     def test_requests_auth_plugin(self):
         sess = client_session.Session()
+        requests_auth = RequestsAuth()
 
-        requests_auth = object()
+        self.requests_mock.get(self.TEST_URL, text='resp')
 
-        FAKE_RESP = utils.TestResponse({'status_code': 200, 'text': 'resp'})
-        RESP = mock.Mock(return_value=FAKE_RESP)
+        sess.get(self.TEST_URL, requests_auth=requests_auth)
+        last = self.requests_mock.last_request
 
-        with mock.patch.object(sess.session, 'request', RESP) as mocked:
-            sess.get(self.TEST_URL, requests_auth=requests_auth)
-
-            mocked.assert_called_once_with('GET', self.TEST_URL,
-                                           headers=mock.ANY,
-                                           allow_redirects=mock.ANY,
-                                           auth=requests_auth,
-                                           verify=mock.ANY)
+        self.assertEqual(requests_auth.header_val,
+                         last.headers[requests_auth.header_name])
+        self.assertTrue(requests_auth.called)
 
     def test_reauth_called(self):
         auth = CalledAuthPlugin(invalidate=True)
