@@ -150,6 +150,8 @@ class OpenIDConnectPasswordTests(OpenIDConnectBaseTests, utils.TestCase):
             set(['username', 'password', 'openid-scope']).issubset(
                 set([o.name for o in options]))
         )
+        # openid-scope gets renamed into "scope"
+        self.assertIn('scope', [o.dest for o in options])
 
     def test_basic(self):
         access_token_endpoint = uuid.uuid4().hex
