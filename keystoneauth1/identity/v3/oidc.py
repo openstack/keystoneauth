@@ -29,7 +29,8 @@ class _OidcBase(federation.FederationBaseAuth):
 
     def __init__(self, auth_url, identity_provider, protocol,
                  client_id, client_secret, access_token_endpoint,
-                 grant_type, access_token_type, **kwargs):
+                 grant_type, access_token_type,
+                 scope="openid profile", **kwargs):
         """The OpenID Connect plugin expects the following.
 
         :param auth_url: URL of the Identity Service
@@ -66,6 +67,11 @@ class _OidcBase(federation.FederationBaseAuth):
                                   "access_token" or "id_token"
         :type access_token_type: string
 
+        :param scope: OpenID Connect scope that is requested from OP,
+                      for example: "openid profile email", defaults to
+                      "openid profile". Note that OpenID Connect specification
+                      states that "openid" must be always specified.
+        :type scope: string
         """
         super(_OidcBase, self).__init__(auth_url, identity_provider, protocol,
                                         **kwargs)
@@ -74,6 +80,7 @@ class _OidcBase(federation.FederationBaseAuth):
         self.access_token_endpoint = access_token_endpoint
         self.grant_type = grant_type
         self.access_token_type = access_token_type
+        self.scope = scope
 
     def _get_access_token(self, session, payload):
         """Exchange a variety of user supplied values for an access token.
@@ -127,7 +134,7 @@ class OidcPassword(_OidcBase):
     def __init__(self, auth_url, identity_provider, protocol,
                  client_id, client_secret, access_token_endpoint,
                  grant_type='password', access_token_type='access_token',
-                 username=None, password=None, scope='profile', **kwargs):
+                 username=None, password=None, **kwargs):
         """The OpenID Password plugin expects the following.
 
         :param username: Username used to authenticate
@@ -135,11 +142,6 @@ class OidcPassword(_OidcBase):
 
         :param password: Password used to authenticate
         :type password: string
-
-        :param scope: OpenID Connect scope that is requested from OP,
-                      defaults to "profile", for example: "profile email"
-        :type scope: string
-
         """
         super(OidcPassword, self).__init__(
             auth_url=auth_url,
@@ -153,7 +155,6 @@ class OidcPassword(_OidcBase):
             **kwargs)
         self.username = username
         self.password = password
-        self.scope = scope
 
     def get_unscoped_auth_ref(self, session):
         """Authenticate with OpenID Connect and get back claims.

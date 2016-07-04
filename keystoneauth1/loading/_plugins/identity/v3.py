@@ -85,6 +85,12 @@ class _OpenIDConnectBase(loading.BaseFederationLoader):
             loading.Opt('client-id', help='OAuth 2.0 Client ID'),
             loading.Opt('client-secret', secret=True,
                         help='OAuth 2.0 Client Secret'),
+            loading.Opt('openid-scope', default="openid profile",
+                        dest="scope",
+                        help='OpenID Connect scope that is requested from '
+                             'authorization server. Note that the OpenID '
+                             'Connect specification states that "openid" '
+                             'must be always specified.'),
             loading.Opt('access-token-endpoint',
                         help='OpenID Connect Provider Token Endpoint'),
             loading.Opt('access-token-type',
@@ -110,9 +116,6 @@ class OpenIDConnectPassword(_OpenIDConnectBase):
         options.extend([
             loading.Opt('username', help='Username'),
             loading.Opt('password', secret=True, help='Password'),
-            loading.Opt('openid-scope', default="profile",
-                        dest='scope',
-                        help='OpenID Connect scope that is requested from OP')
         ])
 
         return options

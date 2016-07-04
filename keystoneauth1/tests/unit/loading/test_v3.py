@@ -135,9 +135,11 @@ class OpenIDConnectBaseTests(object):
         options = loading.get_plugin_loader(self.plugin_name).get_options()
         self.assertTrue(
             set(['client-id', 'client-secret', 'access-token-endpoint',
-                 'access-token-type']).issubset(
+                 'access-token-type', 'openid-scope']).issubset(
                      set([o.name for o in options]))
         )
+        # openid-scope gets renamed into "scope"
+        self.assertIn('scope', [o.dest for o in options])
 
 
 class OpenIDConnectPasswordTests(OpenIDConnectBaseTests, utils.TestCase):
@@ -150,8 +152,6 @@ class OpenIDConnectPasswordTests(OpenIDConnectBaseTests, utils.TestCase):
             set(['username', 'password', 'openid-scope']).issubset(
                 set([o.name for o in options]))
         )
-        # openid-scope gets renamed into "scope"
-        self.assertIn('scope', [o.dest for o in options])
 
     def test_basic(self):
         access_token_endpoint = uuid.uuid4().hex
@@ -160,6 +160,7 @@ class OpenIDConnectPasswordTests(OpenIDConnectBaseTests, utils.TestCase):
         scope = uuid.uuid4().hex
         identity_provider = uuid.uuid4().hex
         protocol = uuid.uuid4().hex
+        scope = uuid.uuid4().hex
         client_id = uuid.uuid4().hex
         client_secret = uuid.uuid4().hex
 
@@ -174,6 +175,7 @@ class OpenIDConnectPasswordTests(OpenIDConnectBaseTests, utils.TestCase):
 
         self.assertEqual(username, oidc.username)
         self.assertEqual(password, oidc.password)
+        self.assertEqual(scope, oidc.scope)
         self.assertEqual(identity_provider, oidc.identity_provider)
         self.assertEqual(protocol, oidc.protocol)
         self.assertEqual(access_token_endpoint, oidc.access_token_endpoint)
@@ -196,6 +198,7 @@ class OpenIDConnectAuthCodeTests(OpenIDConnectBaseTests, utils.TestCase):
         access_token_endpoint = uuid.uuid4().hex
         redirect_uri = uuid.uuid4().hex
         authorization_code = uuid.uuid4().hex
+        scope = uuid.uuid4().hex
         identity_provider = uuid.uuid4().hex
         protocol = uuid.uuid4().hex
         client_id = uuid.uuid4().hex
@@ -207,10 +210,12 @@ class OpenIDConnectAuthCodeTests(OpenIDConnectBaseTests, utils.TestCase):
                            protocol=protocol,
                            access_token_endpoint=access_token_endpoint,
                            client_id=client_id,
-                           client_secret=client_secret)
+                           client_secret=client_secret,
+                           scope=scope)
 
         self.assertEqual(redirect_uri, oidc.redirect_uri)
         self.assertEqual(authorization_code, oidc.code)
+        self.assertEqual(scope, oidc.scope)
         self.assertEqual(identity_provider, oidc.identity_provider)
         self.assertEqual(protocol, oidc.protocol)
         self.assertEqual(access_token_endpoint, oidc.access_token_endpoint)
