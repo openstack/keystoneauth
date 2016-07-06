@@ -57,6 +57,8 @@ this V3 defines a number of different
   a V3 identity service using an existing token.
 - :py:class:`~keystoneauth1.identity.v3.TOTPMethod`: Authenticate against
   a V3 identity service using Time-Based One-Time Password (TOTP).
+- :py:class:`~keystoneauth1.identity.v3.TokenlessAuth`: Authenticate against
+  a V3 identity service using tokenless authentication.
 - :py:class:`~keystoneauth1.extras.kerberos.KerberosMethod`: Authenticate
   against a V3 identity service using Kerberos.
 
@@ -165,6 +167,30 @@ access token's key and secret. For example::
     >>> s = session.Session(auth=a)
 
 
+Tokenless Auth
+==============
+
+A plugin for tokenless authentication also exists. It provides a means to
+authorize client operations within the Identity server by using an X.509
+TLS client certificate without having to issue a token. We provide a
+tokenless authentication plugin at:
+
+- :class:`~keystoneauth1.identity.v3.TokenlessAuth`
+
+It is mostly used by service clients for token validation and here is
+an example of how this plugin would be used in practice::
+
+    >>> keystoneauth1 import session
+    >>> keystoneauth1.identity import v3
+    >>> auth = v3.TokenlessAuth(auth_url='https://keystone:5000/v3',
+    ...                         domain_name='my_service_domain')
+    >>> sess = session.Session(
+    ...                 auth=auth,
+    ...                 cert=('/opt/service_client.crt',
+    ...                       '/opt/service_client.key'),
+    ...                 verify='/opt/ca.crt')
+
+
 Loading Plugins by Name
 =======================
 
@@ -181,7 +207,7 @@ authentication plugins that are available in `keystoneauth` are:
 - v3token: :py:class:`keystoneauth1.identity.v3.Token`
 - v3totp: :py:class:`keystoneauth1.identity.v3.TOTP`
 - v3kerberos: :py:class:`keystoneauth1.extras.kerberos.Kerberos`
-
+- v3tokenlessauth: :py:class:`keystoneauth1.identity.v3.TokenlessAuth`
 
 Creating Authentication Plugins
 ===============================

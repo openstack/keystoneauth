@@ -17,6 +17,7 @@ from keystoneauth1.identity.v3.oidc import *  # noqa
 from keystoneauth1.identity.v3.password import *  # noqa
 from keystoneauth1.identity.v3.token import *  # noqa
 from keystoneauth1.identity.v3.totp import *  # noqa
+from keystoneauth1.identity.v3.tokenless_auth import *  # noqa
 
 
 __all__ = ('Auth',
@@ -38,4 +39,6 @@ __all__ = ('Auth',
            'OidcPassword',
 
            'TOTPMethod',
-           'TOTP')
+           'TOTP',
+
+           'TokenlessAuth')

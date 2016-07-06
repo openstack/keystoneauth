@@ -175,3 +175,46 @@ class TOTP(loading.BaseV3Loader):
         _assert_identity_options(kwargs)
 
         return super(TOTP, self).load_from_options(**kwargs)
+
+
+class TokenlessAuth(loading.BaseLoader):
+
+    @property
+    def plugin_class(self):
+        return identity.V3TokenlessAuth
+
+    def get_options(self):
+        options = super(TokenlessAuth, self).get_options()
+
+        options.extend([
+            loading.Opt('auth-url', required=True,
+                        help='Authentication URL'),
+            loading.Opt('domain-id', help='Domain ID to scope to'),
+            loading.Opt('domain-name', help='Domain name to scope to'),
+            loading.Opt('project-id', help='Project ID to scope to'),
+            loading.Opt('project-name', help='Project name to scope to'),
+            loading.Opt('project-domain-id',
+                        help='Domain ID containing project'),
+            loading.Opt('project-domain-name',
+                        help='Domain name containing project'),
+        ])
+
+        return options
+
+    def load_from_options(self, **kwargs):
+        if (not kwargs.get('domain_id') and
+                not kwargs.get('domain_name') and
+                not kwargs.get('project_id') and
+                not kwargs.get('project_name') or
+                (kwargs.get('project_name') and
+                    not (kwargs.get('project_domain_name') or
+                         kwargs.get('project_domain_id')))):
+            m = ('You need to provide either a domain_name, domain_id, '
+                 'project_id or project_name. '
+                 'If you have provided a project_name, in the V3 identity '
+                 'API a project_name is only unique within a domain so '
+                 'you must also provide either a project_domain_id or '
+                 'project_domain_name.')
+            raise exceptions.OptionError(m)
+
+        return super(TokenlessAuth, self).load_from_options(**kwargs)
