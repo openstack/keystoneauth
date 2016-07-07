@@ -46,6 +46,9 @@ class Password(loading.BaseGenericLoader):
                         deprecated=[loading.Opt('user-name')]),
             loading.Opt('user-domain-id', help="User's domain id"),
             loading.Opt('user-domain-name', help="User's domain name"),
-            loading.Opt('password', secret=True, help="User's password"),
+            loading.Opt('password',
+                        secret=True,
+                        prompt='Password: ',
+                        help="User's password"),
         ])
         return options
