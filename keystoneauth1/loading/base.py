@@ -102,9 +102,27 @@ def get_plugin_options(name):
 @six.add_metaclass(abc.ABCMeta)
 class BaseLoader(object):
 
-    @abc.abstractproperty
+    @property
     def plugin_class(self):
         raise NotImplemented()
+
+    def create_plugin(self, **kwargs):
+        """Create a plugin from the options available for the loader.
+
+        Given the options that were specified by the loader create an
+        appropriate plugin. You can override this function in your loader.
+
+        This used to be specified by providing the plugin_class property and
+        this is still supported, however specifying a property didn't let you
+        choose a plugin type based upon the options that were presented.
+
+        Override this function if you wish to return different plugins based on
+        the options presented, otherwise you can simply provide the
+        plugin_class property.
+
+        Added 2.9
+        """
+        return self.plugin_class(**kwargs)
 
     @abc.abstractmethod
     def get_options(self):
@@ -143,7 +161,7 @@ class BaseLoader(object):
         if missing_required:
             raise exceptions.MissingRequiredOptions(missing_required)
 
-        return self.plugin_class(**kwargs)
+        return self.create_plugin(**kwargs)
 
     def load_from_options_getter(self, getter, **kwargs):
         """Load a plugin from getter function that returns appropriate values.
