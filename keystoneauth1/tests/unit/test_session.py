@@ -930,6 +930,56 @@ class AdapterTest(utils.TestCase):
                           self.TEST_URL,
                           'GET')
 
+    def test_additional_headers(self):
+        session_key = uuid.uuid4().hex
+        session_val = uuid.uuid4().hex
+        adapter_key = uuid.uuid4().hex
+        adapter_val = uuid.uuid4().hex
+        request_key = uuid.uuid4().hex
+        request_val = uuid.uuid4().hex
+        text = uuid.uuid4().hex
+
+        url = 'http://keystone.test.com'
+        self.requests_mock.get(url, text=text)
+
+        sess = client_session.Session(
+            additional_headers={session_key: session_val})
+        adap = adapter.Adapter(session=sess,
+                               additional_headers={adapter_key: adapter_val})
+        resp = adap.get(url, headers={request_key: request_val})
+
+        request = self.requests_mock.last_request
+
+        self.assertEqual(resp.text, text)
+        self.assertEqual(session_val, request.headers[session_key])
+        self.assertEqual(adapter_val, request.headers[adapter_key])
+        self.assertEqual(request_val, request.headers[request_key])
+
+    def test_additional_headers_overrides(self):
+        header = uuid.uuid4().hex
+        session_val = uuid.uuid4().hex
+        adapter_val = uuid.uuid4().hex
+        request_val = uuid.uuid4().hex
+
+        url = 'http://keystone.test.com'
+        self.requests_mock.get(url)
+
+        sess = client_session.Session(additional_headers={header: session_val})
+        adap = adapter.Adapter(session=sess)
+
+        adap.get(url)
+        self.assertEqual(session_val,
+                         self.requests_mock.last_request.headers[header])
+
+        adap.additional_headers[header] = adapter_val
+        adap.get(url)
+        self.assertEqual(adapter_val,
+                         self.requests_mock.last_request.headers[header])
+
+        adap.get(url, headers={header: request_val})
+        self.assertEqual(request_val,
+                         self.requests_mock.last_request.headers[header])
+
 
 class TCPKeepAliveAdapterTest(utils.TestCase):
 

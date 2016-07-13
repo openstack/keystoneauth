@@ -200,6 +200,10 @@ class Session(object):
                               can be followed by a request. Either an integer
                               for a specific count or True/False for
                               forever/never. (optional, default to 30)
+    :param dict additional_headers: Additional headers that should be attached
+                                    to every request passing through the
+                                    session. Headers of the same name specified
+                                    per request will take priority.
     """
 
     user_agent = None
@@ -211,7 +215,7 @@ class Session(object):
     @positional(2)
     def __init__(self, auth=None, session=None, original_ip=None, verify=True,
                  cert=None, timeout=None, user_agent=None,
-                 redirect=_DEFAULT_REDIRECT_LIMIT):
+                 redirect=_DEFAULT_REDIRECT_LIMIT, additional_headers=None):
 
         self.auth = auth
         self.session = _construct_session(session)
@@ -220,6 +224,7 @@ class Session(object):
         self.cert = cert
         self.timeout = None
         self.redirect = redirect
+        self.additional_headers = additional_headers or {}
 
         if timeout is not None:
             self.timeout = float(timeout)
@@ -500,6 +505,9 @@ class Session(object):
         if json is not None:
             headers['Content-Type'] = 'application/json'
             kwargs['data'] = self._json.encode(json)
+
+        for k, v in self.additional_headers.items():
+            headers.setdefault(k, v)
 
         kwargs.setdefault('verify', self.verify)
 
