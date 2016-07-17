@@ -26,7 +26,7 @@ http_interactions:
       Content-Type:
       - application/json
     method: POST
-    uri: http://keystonauth.betamax_test/v2.0/tokens
+    uri: http://keystoneauth.betamax_test/v2.0/tokens
   response:
     body:
       string: |-
@@ -86,7 +86,7 @@ http_interactions:
     status:
       message: OK
       code: 200
-    url: http://keystonauth.betamax_test/v2.0/tokens
+    url: http://keystoneauth.betamax_test/v2.0/tokens
   recorded_at: '2015-11-27T15:17:19'
 recorded_with: betamax/0.5.1
 

@@ -16,6 +16,7 @@ import json
 import os
 
 import betamax.serializers.base
+import six
 import yaml
 
 
@@ -47,10 +48,11 @@ def _unicode_representer(dumper, uni):
 def _indent_json(val):
     if not val:
         return ''
+
     return json.dumps(
         json.loads(val), indent=2,
         separators=(',', ': '), sort_keys=False,
-        default=unicode)
+        default=six.text_type)
 
 
 def _is_json_body(interaction):
@@ -79,14 +81,14 @@ class YamlJsonSerializer(betamax.serializers.base.BaseSerializer):
             """Specialized Dumper which does nice blocks and unicode."""
 
         yaml.representer.BaseRepresenter.represent_scalar = _represent_scalar
-        MyDumper.add_representer(unicode, _unicode_representer)
+
+        MyDumper.add_representer(six.text_type, _unicode_representer)
 
         return yaml.dump(
             cassette_data, Dumper=MyDumper, default_flow_style=False)
 
     def deserialize(self, cassette_data):
         try:
-            # There should be only one document
-            return list(yaml.load_all(cassette_data))[0]
+            return yaml.safe_load(cassette_data)
         except yaml.error.YAMLError:
             return {}
