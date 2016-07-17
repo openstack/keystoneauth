@@ -20,6 +20,7 @@ import mock
 import requests
 
 from keystoneauth1.fixture import hooks
+from keystoneauth1.fixture import serializer as yaml_serializer
 from keystoneauth1 import session
 
 
@@ -29,11 +30,12 @@ class BetamaxFixture(fixtures.Fixture):
                  serializer=None, record=False,
                  pre_record_hook=hooks.pre_record_hook):
         self.cassette_library_dir = cassette_library_dir
-        self.serializer = serializer
         self.record = record
         self.cassette_name = cassette_name
-        if serializer:
-            betamax.Betamax.register_serializer(serializer)
+        if not serializer:
+            serializer = yaml_serializer.YamlJsonSerializer
+        self.serializer = serializer
+        betamax.Betamax.register_serializer(serializer)
         self.pre_record_hook = pre_record_hook
 
     def setUp(self):
