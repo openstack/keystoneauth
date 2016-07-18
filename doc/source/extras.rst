@@ -8,7 +8,7 @@ upstream packages. There are however a number of plugins that upstream supports
 that involve additional dependencies that the keystoneauth package cannot
 depend upon directly.
 
-To get around this we utilize setuptools `extras dependencies <https://pythonhosted.org/setuptools/setuptools.html#declaring-extras-optional-features-with-their-own-dependencies>`_ for additional
+To get around this we utilize setuptools `extras dependencies <http://setuptools.readthedocs.io/en/latest/setuptools.html#declaring-extras-optional-features-with-their-own-dependencies>`_ for additional
 plugins. To use a plugin like the kerberos plugin that has additional
 dependencies you must install the additional dependencies like::
 
