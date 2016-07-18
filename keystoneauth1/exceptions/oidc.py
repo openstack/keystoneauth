@@ -16,7 +16,7 @@ from keystoneauth1.exceptions import auth_plugins
 __all__ = (
     'InvalidDiscoveryEndpoint', 'InvalidOidcDiscoveryDocument',
     'OidcAccessTokenEndpointNotFound', 'OidcAuthorizationEndpointNotFound',
-    'OidcPluginNotSupported',
+    'OidcGrantTypeMissmatch', 'OidcPluginNotSupported',
 )
 
 
@@ -34,6 +34,10 @@ class OidcAccessTokenEndpointNotFound(auth_plugins.AuthPluginException):
 
 class OidcAuthorizationEndpointNotFound(auth_plugins.AuthPluginException):
     message = "OpenID Connect authorization endpoint not provided."
+
+
+class OidcGrantTypeMissmatch(auth_plugins.AuthPluginException):
+    message = "Missmatch between OpenID Connect plugin and grant_type argument"
 
 
 class OidcPluginNotSupported(auth_plugins.AuthPluginException):

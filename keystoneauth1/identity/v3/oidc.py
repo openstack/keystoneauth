@@ -10,6 +10,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import warnings
+
 from positional import positional
 
 from keystoneauth1 import _utils as utils
@@ -31,12 +33,16 @@ class _OidcBase(federation.FederationBaseAuth):
     ``http://openid.net/specs/openid-connect-core-1_0.html``
     """
 
+    grant_type = None
+
     def __init__(self, auth_url, identity_provider, protocol,
-                 client_id, client_secret, grant_type,
+                 client_id, client_secret,
                  access_token_type,
                  scope="openid profile",
                  access_token_endpoint=None,
-                 discovery_endpoint=None, **kwargs):
+                 discovery_endpoint=None,
+                 grant_type=None,
+                 **kwargs):
         """The OpenID Connect plugin expects the following.
 
         :param auth_url: URL of the Identity Service
@@ -54,14 +60,6 @@ class _OidcBase(federation.FederationBaseAuth):
 
         :param client_secret: OAuth 2.0 Client Secret
         :type client_secret: string
-
-        :param grant_type: OpenID Connect grant type, it represents the flow
-                           that is used to talk to the OP. Valid values are:
-                           "authorization_code", "refresh_token", or
-                           "password". If a discovery document is being used,
-                           this class will check if the provided value is
-                           supported by the provider.
-        :type grant_type: string
 
         :param access_token_type: OAuth 2.0 Authorization Server Introspection
                                   token type, it is used to decide which type
@@ -101,7 +99,18 @@ class _OidcBase(federation.FederationBaseAuth):
         self.access_token_type = access_token_type
         self.scope = scope
 
-        self.grant_type = grant_type
+        if grant_type is not None:
+            if grant_type != self.grant_type:
+                raise exceptions.OidcGrantTypeMissmatch()
+            warnings.warn("Passing grant_type as an argument has been "
+                          "deprecated as it is now defined in the plugin "
+                          "itself. You should stop passing this argument "
+                          "to the plugin, as it will be ignored, since you "
+                          "cannot pass a free text string as a grant_type. "
+                          "This argument will be dropped from the plugin in "
+                          "July 2017 or with the next major release of "
+                          "keystoneauth (3.0.0)",
+                          DeprecationWarning)
 
     def _get_discovery_document(self, session):
         """Get the contents of the OpenID Connect Discovery Document.
@@ -231,13 +240,16 @@ class _OidcBase(federation.FederationBaseAuth):
 class OidcPassword(_OidcBase):
     """Implementation for OpenID Connect Resource Owner Password Credential."""
 
+    grant_type = "password"
+
     @positional(4)
     def __init__(self, auth_url, identity_provider, protocol,
                  client_id, client_secret,
                  access_token_endpoint=None,
                  discovery_endpoint=None,
-                 grant_type='password', access_token_type='access_token',
-                 username=None, password=None, **kwargs):
+                 access_token_type='access_token',
+                 username=None, password=None,
+                 **kwargs):
         """The OpenID Password plugin expects the following.
 
         :param username: Username used to authenticate
@@ -254,7 +266,6 @@ class OidcPassword(_OidcBase):
             client_secret=client_secret,
             access_token_endpoint=access_token_endpoint,
             discovery_endpoint=discovery_endpoint,
-            grant_type=grant_type,
             access_token_type=access_token_type,
             **kwargs)
         self.username = username
@@ -297,12 +308,13 @@ class OidcPassword(_OidcBase):
 class OidcAuthorizationCode(_OidcBase):
     """Implementation for OpenID Connect Authorization Code."""
 
+    grant_type = 'authorization_code'
+
     @positional(4)
     def __init__(self, auth_url, identity_provider, protocol,
                  client_id, client_secret,
                  access_token_endpoint=None,
                  discovery_endpoint=None,
-                 grant_type='authorization_code',
                  access_token_type='access_token',
                  redirect_uri=None, code=None, **kwargs):
         """The OpenID Authorization Code plugin expects the following.
@@ -322,7 +334,6 @@ class OidcAuthorizationCode(_OidcBase):
             client_secret=client_secret,
             access_token_endpoint=access_token_endpoint,
             discovery_endpoint=discovery_endpoint,
-            grant_type=grant_type,
             access_token_type=access_token_type,
             **kwargs)
         self.redirect_uri = redirect_uri
@@ -390,7 +401,6 @@ class OidcAccessToken(_OidcBase):
                                               client_id=None,
                                               client_secret=None,
                                               access_token_endpoint=None,
-                                              grant_type=None,
                                               access_token_type=None,
                                               **kwargs)
         self.access_token = access_token
