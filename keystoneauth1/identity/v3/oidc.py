@@ -10,9 +10,11 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import abc
 import warnings
 
 from positional import positional
+import six
 
 from keystoneauth1 import _utils as utils
 from keystoneauth1 import access
@@ -26,6 +28,7 @@ __all__ = ('OidcAuthorizationCode',
            'OidcAccessToken')
 
 
+@six.add_metaclass(abc.ABCMeta)
 class _OidcBase(federation.FederationBaseAuth):
     """Base class for different OpenID Connect based flows.
 
@@ -148,24 +151,6 @@ class _OidcBase(federation.FederationBaseAuth):
 
         return self._discovery_document
 
-    def _check_grant_type(self, session):
-        """Check if the grant_type requested is supported by the server.
-
-        If a discovery_endpoint is provided and the discoverty document
-        advertises the supported grant types, this method will check if the
-        requested grant_type is supported by the server, raising an exception
-        otherwise.
-
-        :param session: a session object to send out HTTP requests.
-        :type session: keystoneauth1.session.Session
-        """
-        discovery = self._get_discovery_document(session)
-        grant_types = discovery.get("grant_types_supported")
-        if (grant_types and
-                self.grant_type is not None and
-                self.grant_type not in grant_types):
-            raise exceptions.OidcPluginNotSupported()
-
     def _get_access_token_endpoint(self, session):
         """Get the "token_endpoint" for the OpenID Connect flow.
 
@@ -236,6 +221,66 @@ class _OidcBase(federation.FederationBaseAuth):
                                      authenticated=False)
         return auth_response
 
+    def get_unscoped_auth_ref(self, session):
+        """Authenticate with OpenID Connect and get back claims.
+
+        This is a multi-step process:
+
+        1.- An access token must be retrieved from the server. In order to do
+            so, we need to exchange an authorization grant or refresh token
+            with the token endpoint in order to obtain an access token. The
+            authorization grant varies from plugin to plugin.
+
+        2.- We then exchange the access token upon accessing the protected
+            Keystone endpoint (federated auth URL). This will trigger the
+            OpenID Connect Provider to perform a user introspection and
+            retrieve information (specified in the scope) about the user in the
+            form of an OpenID Connect Claim. These claims will be sent to
+            Keystone in the form of environment variables.
+
+        :param session: a session object to send out HTTP requests.
+        :type session: keystoneauth1.session.Session
+
+        :returns: a token data representation
+        :rtype: :py:class:`keystoneauth1.access.AccessInfoV3`
+        """
+        # First of all, check if the grant type is supported
+        discovery = self._get_discovery_document(session)
+        grant_types = discovery.get("grant_types_supported")
+        if (grant_types and
+                self.grant_type is not None and
+                self.grant_type not in grant_types):
+            raise exceptions.OidcPluginNotSupported()
+
+        # Get the payload
+        payload = self.get_payload(session)
+        payload.setdefault('grant_type', self.grant_type)
+
+        # get an access token
+        access_token = self._get_access_token(session, payload)
+
+        response = self._get_keystone_token(session, access_token)
+
+        # grab the unscoped token
+        return access.create(resp=response)
+
+    @abc.abstractmethod
+    def get_payload(self, session):
+        """Get the plugin specific payload for obtainin an access token.
+
+        OpenID Connect supports different grant types. This method should
+        prepare the payload that needs to be exchanged with the server in
+        order to get an access token for the particular grant type that the
+        plugin is implementing.
+
+        :param session: a session object to send out HTTP requests.
+        :type session: keystoneauth1.session.Session
+
+        :returns: a python dictionary containing the payload to be exchanged
+        :rtype: dict
+        """
+        raise NotImplemented()
+
 
 class OidcPassword(_OidcBase):
     """Implementation for OpenID Connect Resource Owner Password Credential."""
@@ -271,38 +316,19 @@ class OidcPassword(_OidcBase):
         self.username = username
         self.password = password
 
-    def get_unscoped_auth_ref(self, session):
-        """Authenticate with OpenID Connect and get back claims.
-
-        This is a multi-step process. First an access token must be retrieved,
-        to do this, the username and password, the OpenID Connect client ID
-        and secret, and the access token endpoint must be known.
-
-        Secondly, we then exchange the access token upon accessing the
-        protected Keystone endpoint (federated auth URL). This will trigger
-        the OpenID Connect Provider to perform a user introspection and
-        retrieve information (specified in the scope) about the user in
-        the form of an OpenID Connect Claim. These claims will be sent
-        to Keystone in the form of environment variables.
+    def get_payload(self, session):
+        """Get an authorization grant for the "password" grant type.
 
         :param session: a session object to send out HTTP requests.
         :type session: keystoneauth1.session.Session
 
-        :returns: a token data representation
-        :rtype: :py:class:`keystoneauth1.access.AccessInfoV3`
+        :returns: a python dictionary containing the payload to be exchanged
+        :rtype: dict
         """
-        # First of all, check if the grant type is supported
-        self._check_grant_type(session)
-
-        # get an access token
-        payload = {'grant_type': self.grant_type, 'username': self.username,
-                   'password': self.password, 'scope': self.scope}
-        access_token = self._get_access_token(session, payload)
-
-        response = self._get_keystone_token(session, access_token)
-
-        # grab the unscoped token
-        return access.create(resp=response)
+        payload = {'username': self.username,
+                   'password': self.password,
+                   'scope': self.scope}
+        return payload
 
 
 class OidcAuthorizationCode(_OidcBase):
@@ -339,38 +365,18 @@ class OidcAuthorizationCode(_OidcBase):
         self.redirect_uri = redirect_uri
         self.code = code
 
-    def get_unscoped_auth_ref(self, session):
-        """Authenticate with OpenID Connect and get back claims.
-
-        This is a multi-step process. First an access token must be retrieved,
-        to do this, an authorization code and redirect URL must be given.
-
-        Secondly, we then exchange the access token upon accessing the
-        protected Keystone endpoint (federated auth URL). This will trigger
-        the OpenID Connect Provider to perform a user introspection and
-        retrieve information (specified in the scope) about the user in
-        the form of an OpenID Connect Claim. These claims will be sent
-        to Keystone in the form of environment variables.
+    def get_payload(self, session):
+        """Get an authorization grant for the "authorization_code" grant type.
 
         :param session: a session object to send out HTTP requests.
         :type session: keystoneauth1.session.Session
 
-        :returns: a token data representation
-        :rtype: :py:class:`keystoneauth1.access.AccessInfoV3`
+        :returns: a python dictionary containing the payload to be exchanged
+        :rtype: dict
         """
-        # First of all, check if the grant type is supported
-        self._check_grant_type(session)
+        payload = {'redirect_uri': self.redirect_uri, 'code': self.code}
 
-        # get an access token
-        payload = {'grant_type': self.grant_type,
-                   'redirect_uri': self.redirect_uri,
-                   'code': self.code}
-        access_token = self._get_access_token(session, payload)
-
-        response = self._get_keystone_token(session, access_token)
-
-        # grab the unscoped token
-        return access.create(resp=response)
+        return payload
 
 
 class OidcAccessToken(_OidcBase):
@@ -404,6 +410,10 @@ class OidcAccessToken(_OidcBase):
                                               access_token_type=None,
                                               **kwargs)
         self.access_token = access_token
+
+    def get_payload(self, session):
+        """OidcAccessToken does not require a payload."""
+        return {}
 
     def get_unscoped_auth_ref(self, session):
         """Authenticate with OpenID Connect and get back claims.

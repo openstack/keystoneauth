@@ -176,7 +176,7 @@ class BaseOIDCTests(object):
                                        discovery_endpoint=self.DISCOVERY_URL)
 
         self.assertRaises(exceptions.OidcPluginNotSupported,
-                          plugin._check_grant_type,
+                          plugin.get_unscoped_auth_ref,
                           self.session)
 
 
