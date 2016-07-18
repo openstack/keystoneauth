@@ -20,6 +20,10 @@ class Saml2Password(loading.BaseFederationLoader):
     def plugin_class(self):
         return _saml2.V3Saml2Password
 
+    @property
+    def available(self):
+        return _saml2._V3_SAML2_AVAILABLE
+
     def get_options(self):
         options = super(Saml2Password, self).get_options()
 
