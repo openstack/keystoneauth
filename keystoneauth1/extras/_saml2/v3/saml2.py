@@ -251,7 +251,7 @@ class Password(_FederatedSaml):
     HTTP protocol and XML SOAP messages.
 
     `Read for more information
-    <https://wiki.shibboleth.net/confluence/display/SHIB2/ECP>`_ on ECP.
+    <https://wiki.shibboleth.net/confluence/display/CONCEPT/ECP>`_ on ECP.
 
     Reference the `SAML2 ECP specification <https://www.oasis-open.org/\
     committees/download.php/49979/saml-ecp-v2.0-wd09.pdf>`_.
