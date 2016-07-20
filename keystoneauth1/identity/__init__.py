@@ -37,6 +37,9 @@ Password = generic.Password
 Token = generic.Token
 """See :class:`keystoneauth1.identity.generic.Token`"""
 
+V3OidcClientCredentials = oidc.OidcClientCredentials
+"""See :class:`keystoneauth1.identity.v3.oidc.OidcClientCredentials`"""
+
 V3OidcPassword = oidc.OidcPassword
 """See :class:`keystoneauth1.identity.v3.oidc.OidcPassword`"""
 
