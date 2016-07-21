@@ -23,7 +23,10 @@
 
 import logging
 
-from oauthlib import oauth1
+try:
+    from oauthlib import oauth1
+except ImportError:
+    oauth1 = None
 
 from keystoneauth1.identity import v3
 
