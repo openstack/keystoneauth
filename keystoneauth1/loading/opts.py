@@ -57,6 +57,8 @@ class Opt(object):
     :param str metavar: The <metavar> that should be printed in CLI help text.
     :param bool required: If the option is required to load the plugin. If a
         required option is not present loading should fail.
+    :param str prompt: If the option can be requested via a prompt (where
+        appropriate) set the string that should be used to prompt with.
     """
 
     @positional()
@@ -69,7 +71,8 @@ class Opt(object):
                  deprecated=None,
                  default=None,
                  metavar=None,
-                 required=False):
+                 required=False,
+                 prompt=None):
         if not callable(type):
             raise TypeError('type must be callable')
 
@@ -85,6 +88,7 @@ class Opt(object):
         self.deprecated = [] if deprecated is None else deprecated
         self.default = default
         self.metavar = metavar
+        self.prompt = prompt
         # These are for oslo.config compat
         self.deprecated_opts = self.deprecated
         self.deprecated_for_removal = []

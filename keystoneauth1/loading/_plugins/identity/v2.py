@@ -44,7 +44,10 @@ class Password(loading.BaseV2Loader):
                        deprecated=[loading.Opt('user-name')],
                        help='Username to login with'),
             loading.Opt('user-id', help='User ID to login with'),
-            loading.Opt('password', secret=True, help='Password to use'),
+            loading.Opt('password',
+                        secret=True,
+                        prompt='Password: ',
+                        help='Password to use'),
         ])
 
         return options
