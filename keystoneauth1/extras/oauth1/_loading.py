@@ -22,6 +22,10 @@ class V3OAuth1(loading.BaseIdentityLoader):
     def plugin_class(self):
         return v3.OAuth1
 
+    @property
+    def available(self):
+        return v3.oauth1 is not None
+
     def get_options(self):
         options = super(V3OAuth1, self).get_options()
 
