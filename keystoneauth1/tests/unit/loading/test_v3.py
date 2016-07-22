@@ -143,6 +143,42 @@ class OpenIDConnectBaseTests(object):
         self.assertIn('scope', [o.dest for o in options])
 
 
+class OpenIDConnectClientCredentialsTests(OpenIDConnectBaseTests,
+                                          utils.TestCase):
+
+    plugin_name = "v3oidcclientcredentials"
+
+    def test_options(self):
+        options = loading.get_plugin_loader(self.plugin_name).get_options()
+        self.assertTrue(
+            set(['openid-scope']).issubset(
+                set([o.name for o in options]))
+        )
+
+    def test_basic(self):
+        access_token_endpoint = uuid.uuid4().hex
+        scope = uuid.uuid4().hex
+        identity_provider = uuid.uuid4().hex
+        protocol = uuid.uuid4().hex
+        scope = uuid.uuid4().hex
+        client_id = uuid.uuid4().hex
+        client_secret = uuid.uuid4().hex
+
+        oidc = self.create(identity_provider=identity_provider,
+                           protocol=protocol,
+                           access_token_endpoint=access_token_endpoint,
+                           client_id=client_id,
+                           client_secret=client_secret,
+                           scope=scope)
+
+        self.assertEqual(scope, oidc.scope)
+        self.assertEqual(identity_provider, oidc.identity_provider)
+        self.assertEqual(protocol, oidc.protocol)
+        self.assertEqual(access_token_endpoint, oidc.access_token_endpoint)
+        self.assertEqual(client_id, oidc.client_id)
+        self.assertEqual(client_secret, oidc.client_secret)
+
+
 class OpenIDConnectPasswordTests(OpenIDConnectBaseTests, utils.TestCase):
 
     plugin_name = "v3oidcpassword"

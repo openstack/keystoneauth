@@ -37,6 +37,7 @@ __all__ = ('Auth',
 
            'OidcAccessToken',
            'OidcAuthorizationCode',
+           'OidcClientCredentials',
            'OidcPassword',
 
            'TOTPMethod',
