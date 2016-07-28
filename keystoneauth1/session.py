@@ -794,8 +794,7 @@ class Session(object):
         :returns: Authentication headers or None for failure.
         :rtype: :class:`dict`
         """
-        msg = 'An auth plugin is required to fetch connection params'
-        auth = self._auth_required(auth, msg)
+        auth = self._auth_required(auth, 'fetch connection params')
         params = auth.get_connection_params(self, **kwargs)
 
         # NOTE(jamielennox): There needs to be some consensus on what
