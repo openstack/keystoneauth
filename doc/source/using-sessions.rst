@@ -169,9 +169,9 @@ APIs or disallowing deprecated APIs, you can use the ``allow`` parameter::
 
 The discoverable types of endpoints that `allow` can recognize are:
 
-- `allow_deprecated`: Allow experimental version endpoints.
+- `allow_deprecated`: Allow deprecated version endpoints.
 
-- `allow_experimental`: Allow deprecated version endpoints.
+- `allow_experimental`: Allow experimental version endpoints.
 
 - `allow_unknown`: Allow endpoints with an unrecognised status.
 
