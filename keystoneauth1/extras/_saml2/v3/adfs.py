@@ -13,7 +13,11 @@
 import datetime
 import uuid
 
-from lxml import etree
+try:
+    from lxml import etree
+except ImportError:
+    etree = None
+
 from six.moves import urllib
 
 from keystoneauth1 import access

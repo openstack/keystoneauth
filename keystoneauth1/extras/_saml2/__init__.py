@@ -13,6 +13,7 @@
 from keystoneauth1.extras._saml2 import v3
 
 _V3_SAML2_AVAILABLE = v3._SAML2_AVAILABLE
+_V3_ADFS_AVAILABLE = v3._ADFS_AVAILABLE
 
 V3Saml2Password = v3.Saml2Password
 V3ADFSPassword = v3.ADFSPassword

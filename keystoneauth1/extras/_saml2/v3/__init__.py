@@ -11,9 +11,11 @@
 # under the License.
 
 from keystoneauth1.extras._saml2.v3 import adfs
+from keystoneauth1.extras._saml2.v3 import base
 from keystoneauth1.extras._saml2.v3 import saml2
 
-_SAML2_AVAILABLE = saml2.etree is not None
+_SAML2_AVAILABLE = base.etree is not None and saml2.etree is not None
+_ADFS_AVAILABLE = base.etree is not None and adfs.etree is not None
 
 Saml2Password = saml2.Password
 ADFSPassword = adfs.Password
