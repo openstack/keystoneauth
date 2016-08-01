@@ -108,10 +108,22 @@ identity server URL, i.e.: ``http://hostname:5000/v3``.
 Federation
 ==========
 
-V3 plugins are provided to support federation:
+The following V3 plugins are provided to support federation:
 
-- :class:`~keystoneauth1.identity.v3.FederationBaseAuth`
-- :class:`~keystoneauth1.identity.v3.Keystone2Keystone`
+- :py:class:`~keystoneauth1.extras.kerberos.MappedKerberos`: Federated (mapped)
+  Kerberos.
+- :py:class:`~keystoneauth1.extras._saml2.v3.Password`: SAML2 password
+  authentication.
+- :py:class:`~keystoneauth1.identity.v3.Keystone2Keystone`: Keystone to
+  Keystone Federation.
+- :py:class:`~keystoneauth1.identity.v3:OpenIDConnectAccessToken`: Plugin to
+  reuse an existing OpenID Connect access token.
+- :py:class:`~keystoneauth1.identity.v3:OpenIDConnectAuthorizationCode`: OpenID
+  Connect Authorization Code grant type.
+- :py:class:`~keystoneauth1.identity.v3:OpenIDConnectClientCredentials`: OpenID
+  Connect Client Credentials grant type.
+- :py:class:`~keystoneauth1.identity.v3:OpenIDConnectPassword`: OpenID Connect
+  Resource Owner Password Credentials grant type.
 
 
 Version Independent Identity Plugins
@@ -180,8 +192,8 @@ tokenless authentication plugin at:
 It is mostly used by service clients for token validation and here is
 an example of how this plugin would be used in practice::
 
-    >>> keystoneauth1 import session
-    >>> keystoneauth1.identity import v3
+    >>> from keystoneauth1 import session
+    >>> from keystoneauth1.identity import v3
     >>> auth = v3.TokenlessAuth(auth_url='https://keystone:5000/v3',
     ...                         domain_name='my_service_domain')
     >>> sess = session.Session(
@@ -205,9 +217,17 @@ authentication plugins that are available in `keystoneauth` are:
 - v2token: :py:class:`keystoneauth1.identity.v2.Token`
 - v3password: :py:class:`keystoneauth1.identity.v3.Password`
 - v3token: :py:class:`keystoneauth1.identity.v3.Token`
-- v3totp: :py:class:`keystoneauth1.identity.v3.TOTP`
+- v3fedkerb: :py:class:`keystoneauth1.extras.kerberos.MappedKerberos`
 - v3kerberos: :py:class:`keystoneauth1.extras.kerberos.Kerberos`
+- v3oauth1: :py:class:`keystoneauth1.extras.oauth1.v3.OAuth1`
+- v3oidcaccesstoken: :py:class:`keystoneauth1.identity.v3:OpenIDConnectAccessToken`
+- v3oidcauthcode: :py:class:`keystoneauth1.identity.v3:OpenIDConnectAuthorizationCode`
+- v3oidcclientcredentials: :py:class:`keystoneauth1.identity.v3:OpenIDConnectClientCredentials`
+- v3oidcpassword: :py:class:`keystoneauth1.identity.v3:OpenIDConnectPassword`
+- v3samlpassword: :py:class:`keystoneauth1.extras._saml2.v3.Password`
 - v3tokenlessauth: :py:class:`keystoneauth1.identity.v3.TokenlessAuth`
+- v3totp: :py:class:`keystoneauth1.identity.v3.TOTP`
+
 
 Creating Authentication Plugins
 ===============================
