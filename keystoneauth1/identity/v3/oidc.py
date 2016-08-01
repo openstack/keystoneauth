@@ -24,6 +24,7 @@ from keystoneauth1.identity.v3 import federation
 _logger = utils.get_logger(__name__)
 
 __all__ = ('OidcAuthorizationCode',
+           'OidcClientCredentials',
            'OidcPassword',
            'OidcAccessToken')
 
