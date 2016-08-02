@@ -10,7 +10,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from lxml import etree
+try:
+    from lxml import etree
+except ImportError:
+    etree = None
 
 from keystoneauth1 import exceptions
 from keystoneauth1.identity import v3

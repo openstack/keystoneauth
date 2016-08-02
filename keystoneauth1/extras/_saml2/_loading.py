@@ -44,6 +44,10 @@ class ADFSPassword(loading.BaseFederationLoader):
     def plugin_class(self):
         return _saml2.V3ADFSPassword
 
+    @property
+    def available(self):
+        return _saml2._V3_ADFS_AVAILABLE
+
     def get_options(self):
         options = super(ADFSPassword, self).get_options()
 
