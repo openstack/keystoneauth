@@ -25,7 +25,7 @@ class TestBetamaxFixture(testtools.TestCase):
     TEST_USERNAME = 'test_user_name'
     TEST_PASSWORD = 'test_password'
     TEST_TENANT_NAME = 'test_tenant_name'
-    TEST_AUTH_URL = 'http://keystonauth.betamax_test/v2.0/'
+    TEST_AUTH_URL = 'http://keystoneauth.betamax_test/v2.0/'
 
     V2_TOKEN = v2Fixtures.Token(tenant_name=TEST_TENANT_NAME,
                                 user_name=TEST_USERNAME)
