@@ -211,7 +211,7 @@ class Session(object):
 
     user_agent = None
 
-    _REDIRECT_STATUSES = (301, 302, 303, 305, 307)
+    _REDIRECT_STATUSES = (301, 302, 303, 305, 307, 308)
 
     _DEFAULT_REDIRECT_LIMIT = 30
 

@@ -362,6 +362,12 @@ class RedirectTests(utils.TestCase):
             self.assertEqual(r.url, s.url)
             self.assertEqual(r.status_code, s.status_code)
 
+    def test_permanent_redirect_308(self):
+        session = client_session.Session()
+        self.setup_redirects(status_code=308)
+        resp = session.get(self.REDIRECT_CHAIN[-2])
+        self.assertResponse(resp)
+
 
 class AuthPlugin(plugin.BaseAuthPlugin):
     """Very simple debug authentication plugin.
