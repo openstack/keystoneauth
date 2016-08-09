@@ -13,6 +13,7 @@
 import itertools
 import json
 import logging
+import sys
 import uuid
 
 import mock
@@ -132,6 +133,22 @@ class SessionTests(utils.TestCase):
                            user_agent='overrides-agent')
         self.assertTrue(resp.ok)
         self.assertRequestHeaderEqual('User-Agent', 'overrides-agent')
+
+        # If sys.argv is an empty list, then doesn't fail.
+        with mock.patch.object(sys, 'argv', []):
+            session = client_session.Session()
+            resp = session.get(self.TEST_URL)
+            self.assertTrue(resp.ok)
+            self.assertRequestHeaderEqual(
+                'User-Agent',
+                client_session.DEFAULT_USER_AGENT)
+
+        # If sys.argv[0] is an empty string, then doesn't fail.
+        with mock.patch.object(sys, 'argv', ['']):
+            session = client_session.Session()
+            # NOTE(blk-u): This isn't working right, see bug 1611426
+            self.assertRaises(exceptions.UnknownConnectionError, session.get,
+                              self.TEST_URL)
 
     def test_http_session_opts(self):
         session = client_session.Session(cert='cert.pem', timeout=5,
