@@ -155,6 +155,9 @@ def _determine_user_agent():
         # sys.argv is empty, usually the Python interpreter prevents this.
         return None
 
+    if not name:
+        return None
+
     name = os.path.basename(name)
     if name in ignored:
         name = _determine_calling_package()

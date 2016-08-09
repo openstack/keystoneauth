@@ -146,9 +146,11 @@ class SessionTests(utils.TestCase):
         # If sys.argv[0] is an empty string, then doesn't fail.
         with mock.patch.object(sys, 'argv', ['']):
             session = client_session.Session()
-            # NOTE(blk-u): This isn't working right, see bug 1611426
-            self.assertRaises(exceptions.UnknownConnectionError, session.get,
-                              self.TEST_URL)
+            resp = session.get(self.TEST_URL)
+            self.assertTrue(resp.ok)
+            self.assertRequestHeaderEqual(
+                'User-Agent',
+                client_session.DEFAULT_USER_AGENT)
 
     def test_http_session_opts(self):
         session = client_session.Session(cert='cert.pem', timeout=5,
