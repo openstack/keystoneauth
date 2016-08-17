@@ -18,6 +18,7 @@ import threading
 
 from positional import positional
 import six
+from six.moves import urllib
 
 from keystoneauth1 import _utils as utils
 from keystoneauth1 import access
@@ -239,7 +240,14 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
                         'Fallback to using that endpoint as the base url.',
                         url)
         else:
-            url = disc.url_for(version, **allow)
+            # NOTE(jamielennox): urljoin allows the url to be relative or even
+            # protocol-less. The additional trailing '/' make urljoin respect
+            # the current path as canonical even if the url doesn't include it.
+            # for example a "v2" path from http://host/admin should resolve as
+            # http://host/admin/v2 where it would otherwise be host/v2.
+            # This has no effect on absolute urls returned from url_for.
+            url_for = disc.url_for(version, **allow)
+            url = urllib.parse.urljoin(hacked_url.rstrip('/') + '/', url_for)
 
         return url
 
