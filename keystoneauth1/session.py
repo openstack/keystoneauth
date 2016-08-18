@@ -893,7 +893,9 @@ class TCPKeepAliveAdapter(requests.adapters.HTTPAdapter):
                     (socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 60)
                 ]
 
-            if hasattr(socket, 'TCP_KEEPCNT'):
+            # Windows subsystem for Linux does not support this feature
+            if (hasattr(socket, 'TCP_KEEPCNT') and
+                    not utils.is_windows_linux_subsystem):
                 socket_options += [
                     # Set the maximum number of keep-alive probes
                     (socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 4),
