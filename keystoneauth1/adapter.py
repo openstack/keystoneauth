@@ -49,6 +49,11 @@ class Adapter(object):
                                     to every request passing through the
                                     adapter. Headers of the same name specified
                                     per request will take priority.
+    :param str client_name: The name of the client that created the adapter.
+                            This will be used to create the user_agent.
+    :param str client_version: The version of the client that created the
+                               adapter. This will be used to create the
+                               user_agent.
     """
 
     @positional()
@@ -56,7 +61,8 @@ class Adapter(object):
                  interface=None, region_name=None, endpoint_override=None,
                  version=None, auth=None, user_agent=None,
                  connect_retries=None, logger=None, allow={},
-                 additional_headers=None):
+                 additional_headers=None, client_name=None,
+                 client_version=None):
         # NOTE(jamielennox): when adding new parameters to adapter please also
         # add them to the adapter call in httpclient.HTTPClient.__init__ as
         # well as to load_adapter_from_argparse below if the argument is
@@ -74,6 +80,8 @@ class Adapter(object):
         self.connect_retries = connect_retries
         self.logger = logger
         self.allow = allow
+        self.client_name = client_name
+        self.client_version = client_version
         self.additional_headers = additional_headers or {}
 
     def _set_endpoint_filter_kwargs(self, kwargs):
@@ -105,6 +113,10 @@ class Adapter(object):
             kwargs.setdefault('logger', self.logger)
         if self.allow:
             kwargs.setdefault('allow', self.allow)
+        if self.client_name:
+            kwargs.setdefault('client_name', self.client_name)
+        if self.client_version:
+            kwargs.setdefault('client_version', self.client_version)
 
         for k, v in self.additional_headers.items():
             kwargs.setdefault('headers', {}).setdefault(k, v)

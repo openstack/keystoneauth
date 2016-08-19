@@ -134,7 +134,7 @@ def _determine_calling_package():
             # hit the bottom of the frame stack
             break
 
-    return None
+    return ''
 
 
 def _determine_user_agent():
@@ -153,10 +153,10 @@ def _determine_user_agent():
         name = sys.argv[0]
     except IndexError:
         # sys.argv is empty, usually the Python interpreter prevents this.
-        return None
+        return ''
 
     if not name:
-        return None
+        return ''
 
     name = os.path.basename(name)
     if name in ignored:
@@ -207,6 +207,15 @@ class Session(object):
                                     to every request passing through the
                                     session. Headers of the same name specified
                                     per request will take priority.
+    :param str app_name: The name of the application that is creating the
+                         session. This will be used to create the user_agent.
+    :param str app_version: The version of the application creating the
+                            session. This will be used to create the
+                            user_agent.
+    :param list additional_user_agent: A list of tuple of name, version that
+                                       will be added to the user agent. This
+                                       can be used by libraries that are part
+                                       of the communication process.
     """
 
     user_agent = None
@@ -218,7 +227,8 @@ class Session(object):
     @positional(2)
     def __init__(self, auth=None, session=None, original_ip=None, verify=True,
                  cert=None, timeout=None, user_agent=None,
-                 redirect=_DEFAULT_REDIRECT_LIMIT, additional_headers=None):
+                 redirect=_DEFAULT_REDIRECT_LIMIT, additional_headers=None,
+                 app_name=None, app_version=None, additional_user_agent=None):
 
         self.auth = auth
         self.session = _construct_session(session)
@@ -228,18 +238,13 @@ class Session(object):
         self.timeout = None
         self.redirect = redirect
         self.additional_headers = additional_headers or {}
+        self.app_name = app_name
+        self.app_version = app_version
+        self.additional_user_agent = additional_user_agent or []
+        self._determined_user_agent = None
 
         if timeout is not None:
             self.timeout = float(timeout)
-
-        # Per RFC 7231 Section 5.5.3, identifiers in a user-agent should be
-        # ordered by decreasing significance.  If a user sets their product
-        # that value will be used. Otherwise we attempt to derive a useful
-        # product value. The value will be prepended it to the KSA version,
-        # requests version, and then the Python version.
-
-        if user_agent is None:
-            user_agent = _determine_user_agent()
 
         if user_agent is not None:
             self.user_agent = "%s %s" % (user_agent, DEFAULT_USER_AGENT)
@@ -371,7 +376,7 @@ class Session(object):
                 endpoint_filter=None, auth=None, requests_auth=None,
                 raise_exc=True, allow_reauth=True, log=True,
                 endpoint_override=None, connect_retries=0, logger=_logger,
-                allow={}, **kwargs):
+                allow={}, client_name=None, client_version=None, **kwargs):
         """Send an HTTP request with the specified characteristics.
 
         Wrapper around `requests.Session.request` to handle tasks such as
@@ -499,7 +504,39 @@ class Session(object):
         elif self.user_agent:
             user_agent = headers.setdefault('User-Agent', self.user_agent)
         else:
-            user_agent = headers.setdefault('User-Agent', DEFAULT_USER_AGENT)
+            # Per RFC 7231 Section 5.5.3, identifiers in a user-agent should be
+            # ordered by decreasing significance.  If a user sets their product
+            # that value will be used. Otherwise we attempt to derive a useful
+            # product value. The value will be prepended it to the KSA version,
+            # requests version, and then the Python version.
+
+            agent = []
+
+            if self.app_name and self.app_version:
+                agent.append('%s/%s' % (self.app_name, self.app_version))
+            elif self.app_name:
+                agent.append(self.app_name)
+
+            for additional in self.additional_user_agent:
+                agent.append('%s/%s' % additional)
+
+            if client_name and client_version:
+                agent.append('%s/%s' % (client_name, client_version))
+            elif client_name:
+                agent.append(client_name)
+
+            if not agent:
+                # NOTE(jamielennox): determine_user_agent will return an empty
+                # string on failure so checking for None will ensure it is only
+                # called once even on failure.
+                if self._determined_user_agent is None:
+                    self._determined_user_agent = _determine_user_agent()
+
+                if self._determined_user_agent:
+                    agent.append(self._determined_user_agent)
+
+            agent.append(DEFAULT_USER_AGENT)
+            user_agent = headers.setdefault('User-Agent', ' '.join(agent))
 
         if self.original_ip:
             headers.setdefault('Forwarded',

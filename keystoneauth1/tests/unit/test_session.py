@@ -1005,6 +1005,113 @@ class AdapterTest(utils.TestCase):
         self.assertEqual(request_val,
                          self.requests_mock.last_request.headers[header])
 
+    def test_adapter_user_agent_session_adapter(self):
+        sess = client_session.Session(app_name='ksatest', app_version='1.2.3')
+        adap = adapter.Adapter(client_name='testclient',
+                               client_version='4.5.6',
+                               session=sess)
+
+        url = 'http://keystone.test.com'
+        self.requests_mock.get(url)
+
+        adap.get(url)
+
+        agent = 'ksatest/1.2.3 testclient/4.5.6'
+        self.assertEqual(agent + ' ' + client_session.DEFAULT_USER_AGENT,
+                         self.requests_mock.last_request.headers['User-Agent'])
+
+    def test_adapter_user_agent_session_adapter_no_app_version(self):
+        sess = client_session.Session(app_name='ksatest')
+        adap = adapter.Adapter(client_name='testclient',
+                               client_version='4.5.6',
+                               session=sess)
+
+        url = 'http://keystone.test.com'
+        self.requests_mock.get(url)
+
+        adap.get(url)
+
+        agent = 'ksatest testclient/4.5.6'
+        self.assertEqual(agent + ' ' + client_session.DEFAULT_USER_AGENT,
+                         self.requests_mock.last_request.headers['User-Agent'])
+
+    def test_adapter_user_agent_session_adapter_no_client_version(self):
+        sess = client_session.Session(app_name='ksatest', app_version='1.2.3')
+        adap = adapter.Adapter(client_name='testclient', session=sess)
+
+        url = 'http://keystone.test.com'
+        self.requests_mock.get(url)
+
+        adap.get(url)
+
+        agent = 'ksatest/1.2.3 testclient'
+        self.assertEqual(agent + ' ' + client_session.DEFAULT_USER_AGENT,
+                         self.requests_mock.last_request.headers['User-Agent'])
+
+    def test_adapter_user_agent_session_adapter_additional(self):
+        sess = client_session.Session(app_name='ksatest',
+                                      app_version='1.2.3',
+                                      additional_user_agent=[('one', '1.1.1'),
+                                                             ('two', '2.2.2')])
+        adap = adapter.Adapter(client_name='testclient',
+                               client_version='4.5.6',
+                               session=sess)
+
+        url = 'http://keystone.test.com'
+        self.requests_mock.get(url)
+
+        adap.get(url)
+
+        agent = 'ksatest/1.2.3 one/1.1.1 two/2.2.2 testclient/4.5.6'
+        self.assertEqual(agent + ' ' + client_session.DEFAULT_USER_AGENT,
+                         self.requests_mock.last_request.headers['User-Agent'])
+
+    def test_adapter_user_agent_session(self):
+        sess = client_session.Session(app_name='ksatest', app_version='1.2.3')
+        adap = adapter.Adapter(session=sess)
+
+        url = 'http://keystone.test.com'
+        self.requests_mock.get(url)
+
+        adap.get(url)
+
+        agent = 'ksatest/1.2.3'
+        self.assertEqual(agent + ' ' + client_session.DEFAULT_USER_AGENT,
+                         self.requests_mock.last_request.headers['User-Agent'])
+
+    def test_adapter_user_agent_adapter(self):
+        sess = client_session.Session()
+        adap = adapter.Adapter(client_name='testclient',
+                               client_version='4.5.6',
+                               session=sess)
+
+        url = 'http://keystone.test.com'
+        self.requests_mock.get(url)
+
+        adap.get(url)
+
+        agent = 'testclient/4.5.6'
+        self.assertEqual(agent + ' ' + client_session.DEFAULT_USER_AGENT,
+                         self.requests_mock.last_request.headers['User-Agent'])
+
+    def test_adapter_user_agent_session_override(self):
+        sess = client_session.Session(app_name='ksatest',
+                                      app_version='1.2.3',
+                                      additional_user_agent=[('one', '1.1.1'),
+                                                             ('two', '2.2.2')])
+        adap = adapter.Adapter(client_name='testclient',
+                               client_version='4.5.6',
+                               session=sess)
+
+        url = 'http://keystone.test.com'
+        self.requests_mock.get(url)
+
+        override_user_agent = '%s/%s' % (uuid.uuid4().hex, uuid.uuid4().hex)
+        adap.get(url, user_agent=override_user_agent)
+
+        self.assertEqual(override_user_agent,
+                         self.requests_mock.last_request.headers['User-Agent'])
+
 
 class TCPKeepAliveAdapterTest(utils.TestCase):
 
