@@ -31,9 +31,10 @@ class CommonIdentityTests(object):
     TEST_ROOT_URL = 'http://127.0.0.1:5000/'
     TEST_ROOT_ADMIN_URL = 'http://127.0.0.1:35357/'
 
-    TEST_COMPUTE_PUBLIC = 'http://nova/novapi/public'
-    TEST_COMPUTE_INTERNAL = 'http://nova/novapi/internal'
-    TEST_COMPUTE_ADMIN = 'http://nova/novapi/admin'
+    TEST_COMPUTE_BASE = 'http://nova'
+    TEST_COMPUTE_PUBLIC = TEST_COMPUTE_BASE + '/novapi/public'
+    TEST_COMPUTE_INTERNAL = TEST_COMPUTE_BASE + '/novapi/internal'
+    TEST_COMPUTE_ADMIN = TEST_COMPUTE_BASE + '/novapi/admin'
 
     TEST_PASS = uuid.uuid4().hex
 
@@ -180,6 +181,77 @@ class CommonIdentityTests(object):
 
         self.assertEqual(200, resp.status_code)
         self.assertEqual(body, resp.text)
+
+    def test_discovering_with_relative_link(self):
+        # need to construct list this way for relative
+        disc = fixture.DiscoveryList(v2=False, v3=False)
+        disc.add_v2('v2.0')
+        disc.add_v3('v3')
+
+        self.stub_url('GET', [], base_url=self.TEST_COMPUTE_ADMIN, json=disc)
+
+        a = self.create_auth_plugin()
+        s = session.Session(auth=a)
+
+        endpoint_v2 = s.get_endpoint(service_type='compute',
+                                     interface='admin',
+                                     version=(2, 0))
+
+        endpoint_v3 = s.get_endpoint(service_type='compute',
+                                     interface='admin',
+                                     version=(3, 0))
+
+        self.assertEqual(self.TEST_COMPUTE_ADMIN + '/v2.0', endpoint_v2)
+        self.assertEqual(self.TEST_COMPUTE_ADMIN + '/v3', endpoint_v3)
+
+    def test_discovering_with_relative_anchored_link(self):
+        # need to construct list this way for relative
+        disc = fixture.DiscoveryList(v2=False, v3=False)
+        disc.add_v2('/v2.0')
+        disc.add_v3('/v3')
+
+        self.stub_url('GET', [], base_url=self.TEST_COMPUTE_ADMIN, json=disc)
+
+        a = self.create_auth_plugin()
+        s = session.Session(auth=a)
+
+        endpoint_v2 = s.get_endpoint(service_type='compute',
+                                     interface='admin',
+                                     version=(2, 0))
+
+        endpoint_v3 = s.get_endpoint(service_type='compute',
+                                     interface='admin',
+                                     version=(3, 0))
+
+        # by the nature of urljoin a relative link with a /path gets joined
+        # back to the root.
+        self.assertEqual(self.TEST_COMPUTE_BASE + '/v2.0', endpoint_v2)
+        self.assertEqual(self.TEST_COMPUTE_BASE + '/v3', endpoint_v3)
+
+    def test_discovering_with_protocol_relative(self):
+        # strip up to and including the : leaving //host/path
+        path = self.TEST_COMPUTE_ADMIN[self.TEST_COMPUTE_ADMIN.find(':') + 1:]
+
+        disc = fixture.DiscoveryList(v2=False, v3=False)
+        disc.add_v2(path + '/v2.0')
+        disc.add_v3(path + '/v3')
+
+        self.stub_url('GET', [], base_url=self.TEST_COMPUTE_ADMIN, json=disc)
+
+        a = self.create_auth_plugin()
+        s = session.Session(auth=a)
+
+        endpoint_v2 = s.get_endpoint(service_type='compute',
+                                     interface='admin',
+                                     version=(2, 0))
+
+        endpoint_v3 = s.get_endpoint(service_type='compute',
+                                     interface='admin',
+                                     version=(3, 0))
+
+        # ensures that the http is carried over from the lookup url
+        self.assertEqual(self.TEST_COMPUTE_ADMIN + '/v2.0', endpoint_v2)
+        self.assertEqual(self.TEST_COMPUTE_ADMIN + '/v3', endpoint_v3)
 
     def test_asking_for_auth_endpoint_ignores_checks(self):
         a = self.create_auth_plugin()
