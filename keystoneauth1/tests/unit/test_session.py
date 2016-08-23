@@ -1060,6 +1060,7 @@ class TCPKeepAliveAdapterTest(utils.TestCase):
 
     def test_init_poolmanager_with_tcp_keepcnt(self):
         self.patch(client_session, 'REQUESTS_VERSION', (2, 4, 1))
+        self.patch(client_session.utils, 'is_windows_linux_subsystem', False)
         socket = self.patch_socket_with_options(
             ['IPPROTO_TCP', 'TCP_NODELAY', 'SOL_SOCKET', 'SO_KEEPALIVE',
              'TCP_KEEPCNT'])
@@ -1074,6 +1075,23 @@ class TCPKeepAliveAdapterTest(utils.TestCase):
                 (socket.IPPROTO_TCP, socket.TCP_NODELAY, 1),
                 (socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1),
                 (socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 4)])
+
+    def test_init_poolmanager_with_tcp_keepcnt_on_windows(self):
+        self.patch(client_session, 'REQUESTS_VERSION', (2, 4, 1))
+        self.patch(client_session.utils, 'is_windows_linux_subsystem', True)
+        socket = self.patch_socket_with_options(
+            ['IPPROTO_TCP', 'TCP_NODELAY', 'SOL_SOCKET', 'SO_KEEPALIVE',
+             'TCP_KEEPCNT'])
+        given_adapter = client_session.TCPKeepAliveAdapter()
+
+        # when pool manager is initialized
+        given_adapter.init_poolmanager(1, 2, 3)
+
+        # then socket_options are given
+        self.init_poolmanager.assert_called_once_with(
+            1, 2, 3, socket_options=[
+                (socket.IPPROTO_TCP, socket.TCP_NODELAY, 1),
+                (socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)])
 
     def test_init_poolmanager_with_tcp_keepintvl(self):
         self.patch(client_session, 'REQUESTS_VERSION', (2, 4, 1))

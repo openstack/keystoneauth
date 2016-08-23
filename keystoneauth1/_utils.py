@@ -73,3 +73,11 @@ def before_utcnow(**timedelta_kwargs):
     now = datetime.datetime.utcnow()
     delta = datetime.timedelta(**timedelta_kwargs)
     return now - delta
+
+
+# Detect if running on the Windows Subsystem for Linux
+try:
+    with open('/proc/version', 'r') as f:
+        is_windows_linux_subsystem = 'microsoft' in f.read().lower()
+except IOError:
+    is_windows_linux_subsystem = False
