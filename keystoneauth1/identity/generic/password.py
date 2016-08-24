@@ -62,3 +62,29 @@ class Password(base.BaseGenericPlugin):
                                user_domain_name=u_domain_name,
                                password=self._password,
                                **self._v3_params)
+
+    @property
+    def user_domain_id(self):
+        return self._user_domain_id or self._default_domain_id
+
+    @user_domain_id.setter
+    def user_domain_id(self, value):
+        self._user_domain_id = value
+
+    @property
+    def user_domain_name(self):
+        return self._user_domain_name or self._default_domain_name
+
+    @user_domain_name.setter
+    def user_domain_name(self, value):
+        self._user_domain_name = value
+
+    def get_cache_id_elements(self):
+        elements = super(Password, self).get_cache_id_elements(
+            _implemented=True)
+        elements['username'] = self._username
+        elements['user_id'] = self._user_id
+        elements['password'] = self._password
+        elements['user_domain_id'] = self.user_domain_id
+        elements['user_domain_name'] = self.user_domain_name
+        return elements

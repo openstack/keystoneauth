@@ -71,3 +71,36 @@ class PasswordTests(utils.GenericPluginTestCase):
 
         self.assertEqual(default_domain_name,
                          p._plugin.auth_methods[0].user_domain_name)
+
+    def test_password_cache_id(self):
+        username = uuid.uuid4().hex
+        the_password = uuid.uuid4().hex
+        project_name = uuid.uuid4().hex
+        default_domain_id = uuid.uuid4().hex
+
+        a = password.Password(self.TEST_URL,
+                              username=username,
+                              password=the_password,
+                              project_name=project_name,
+                              default_domain_id=default_domain_id)
+
+        b = password.Password(self.TEST_URL,
+                              username=username,
+                              password=the_password,
+                              project_name=project_name,
+                              default_domain_id=default_domain_id)
+
+        a_id = a.get_cache_id()
+        b_id = b.get_cache_id()
+
+        self.assertEqual(a_id, b_id)
+
+        c = password.Password(self.TEST_URL,
+                              username=username,
+                              password=uuid.uuid4().hex,  # different
+                              project_name=project_name,
+                              default_domain_id=default_domain_id)
+
+        c_id = c.get_cache_id()
+
+        self.assertNotEqual(a_id, c_id)
