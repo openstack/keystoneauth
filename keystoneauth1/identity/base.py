@@ -246,8 +246,10 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
             # for example a "v2" path from http://host/admin should resolve as
             # http://host/admin/v2 where it would otherwise be host/v2.
             # This has no effect on absolute urls returned from url_for.
-            url_for = disc.url_for(version, **allow)
-            url = urllib.parse.urljoin(hacked_url.rstrip('/') + '/', url_for)
+            url = disc.url_for(version, **allow)
+
+            if url:
+                url = urllib.parse.urljoin(hacked_url.rstrip('/') + '/', url)
 
         return url
 
