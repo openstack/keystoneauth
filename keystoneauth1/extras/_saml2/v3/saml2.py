@@ -227,7 +227,7 @@ class _FederatedSaml(v3.FederationBaseAuth):
 
     @abc.abstractmethod
     def get_requests_auth(self):
-        raise NotImplemented()
+        raise NotImplementedError()
 
     def get_unscoped_auth_ref(self, session, **kwargs):
         method = self.get_requests_auth()

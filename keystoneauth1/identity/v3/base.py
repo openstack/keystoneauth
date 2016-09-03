@@ -194,7 +194,7 @@ class Auth(BaseAuth):
         for method in self.auth_methods:
             try:
                 elements = method.get_cache_id_elements()
-            except NotImplemented:
+            except NotImplementedError:
                 return None
 
             params.update(elements)
@@ -259,7 +259,7 @@ class AuthMethod(object):
         should be prefixed with the plugin identifier. For example the password
         plugin returns its username value as 'password_username'.
         """
-        raise NotImplemented()
+        raise NotImplementedError()
 
 
 @six.add_metaclass(abc.ABCMeta)
