@@ -84,7 +84,6 @@ Obtaining the session::
 
     -from keystoneclient import session
     +from keystoneauth1 import loading as ks_loading
-    +from keystoneauth1 import session
 
     -_SESSION = session.Session.load_from_conf_options(
     -auth_plugin = auth.load_from_conf_options(conf, NEUTRON_GROUP)
