@@ -75,9 +75,11 @@ class MappedKerberos(federation.FederationBaseAuth):
     use the standard keystone auth process to scope that to any given project.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, auth_url, identity_provider, protocol, **kwargs):
         _dependency_check()
-        super(MappedKerberos, self).__init__(*args, **kwargs)
+
+        super(MappedKerberos, self).__init__(auth_url, identity_provider,
+                                             protocol, **kwargs)
 
     def get_unscoped_auth_ref(self, session, **kwargs):
         resp = session.get(self.federated_token_url,

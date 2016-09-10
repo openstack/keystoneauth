@@ -10,6 +10,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from keystoneauth1 import exceptions
 from keystoneauth1 import loading
 from keystoneauth1.tests.unit import utils as test_utils
 
@@ -22,12 +23,26 @@ class FedKerbLoadingTests(test_utils.TestCase):
 
         allowed_opts = ['domain-id',
                         'domain-name',
+                        'identity-provider',
                         'project-id',
                         'project-name',
                         'project-domain-id',
                         'project-domain-name',
+                        'protocol',
                         'trust-id',
                         'auth-url',
                         ]
 
         self.assertItemsEqual(allowed_opts, opts)
+
+    def create(self, **kwargs):
+        loader = loading.get_plugin_loader('v3fedkerb')
+        return loader.load_from_options(**kwargs)
+
+    def test_load_none(self):
+        self.assertRaises(exceptions.MissingRequiredOptions, self.create)
+
+    def test_load(self):
+        self.create(auth_url='auth_url',
+                    identity_provider='idp',
+                    protocol='protocol')
