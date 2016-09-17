@@ -104,7 +104,7 @@ class BaseLoader(object):
 
     @property
     def plugin_class(self):
-        raise NotImplemented()
+        raise NotImplementedError()
 
     def create_plugin(self, **kwargs):
         """Create a plugin from the options available for the loader.

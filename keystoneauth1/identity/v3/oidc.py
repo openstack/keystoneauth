@@ -280,7 +280,7 @@ class _OidcBase(federation.FederationBaseAuth):
         :returns: a python dictionary containing the payload to be exchanged
         :rtype: dict
         """
-        raise NotImplemented()
+        raise NotImplementedError()
 
 
 class OidcPassword(_OidcBase):
