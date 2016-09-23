@@ -25,7 +25,7 @@ class Kerberos(loading.BaseV3Loader):
         return kerberos.requests_kerberos is not None
 
 
-class MappedKerberos(loading.BaseV3Loader):
+class MappedKerberos(loading.BaseFederationLoader):
 
     @property
     def plugin_class(self):
