@@ -13,7 +13,6 @@
 import uuid
 
 import fixtures
-from oslotest import mockpatch
 try:
     # requests_kerberos won't be available on py3, it doesn't work with py3.
     import requests_kerberos
@@ -39,15 +38,15 @@ class KerberosMock(fixtures.Fixture):
         if requests_kerberos is None:
             return
 
-        m = mockpatch.PatchObject(requests_kerberos.HTTPKerberosAuth,
-                                  'generate_request_header',
-                                  self._generate_request_header)
+        m = fixtures.MockPatchObject(requests_kerberos.HTTPKerberosAuth,
+                                     'generate_request_header',
+                                     self._generate_request_header)
 
         self.header_fixture = self.useFixture(m)
 
-        m = mockpatch.PatchObject(requests_kerberos.HTTPKerberosAuth,
-                                  'authenticate_server',
-                                  self._authenticate_server)
+        m = fixtures.MockPatchObject(requests_kerberos.HTTPKerberosAuth,
+                                     'authenticate_server',
+                                     self._authenticate_server)
 
         self.authenticate_fixture = self.useFixture(m)
 
