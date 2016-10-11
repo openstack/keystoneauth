@@ -98,16 +98,29 @@ class BaseGenericPlugin(base.BaseIdentityPlugin):
     @property
     def _v3_params(self):
         """Return the parameters that are common to v3 plugins."""
-        pr_domain_id = self._project_domain_id or self._default_domain_id
-        pr_domain_name = self._project_domain_name or self._default_domain_name
-
         return {'trust_id': self._trust_id,
                 'project_id': self._project_id,
                 'project_name': self._project_name,
-                'project_domain_id': pr_domain_id,
-                'project_domain_name': pr_domain_name,
+                'project_domain_id': self.project_domain_id,
+                'project_domain_name': self.project_domain_name,
                 'domain_id': self._domain_id,
                 'domain_name': self._domain_name}
+
+    @property
+    def project_domain_id(self):
+        return self._project_domain_id or self._default_domain_id
+
+    @project_domain_id.setter
+    def project_domain_id(self, value):
+        self._project_domain_id = value
+
+    @property
+    def project_domain_name(self):
+        return self._project_domain_name or self._default_domain_name
+
+    @project_domain_name.setter
+    def project_domain_name(self, value):
+        self._project_domain_name = value
 
     def _do_create_plugin(self, session):
         plugin = None
@@ -179,3 +192,20 @@ class BaseGenericPlugin(base.BaseIdentityPlugin):
             self._plugin = self._do_create_plugin(session)
 
         return self._plugin.get_auth_ref(session, **kwargs)
+
+    def get_cache_id_elements(self, _implemented=False):
+        # NOTE(jamielennox): implemented here is just a way to make sure that
+        # something overrides this method. We don't want the base
+        # implementation to respond with a dict without the subclass modifying
+        # it to add their own data in case the subclass doesn't support caching
+        if not _implemented:
+            raise NotImplemented()
+
+        return {'auth_url': self.auth_url,
+                'project_id': self._project_id,
+                'project_name': self._project_name,
+                'project_domain_id': self.project_domain_id,
+                'project_domain_name': self.project_domain_name,
+                'domain_id': self._domain_id,
+                'domain_name': self._domain_name,
+                'trust_id': self._trust_id}

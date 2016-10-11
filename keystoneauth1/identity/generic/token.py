@@ -32,3 +32,8 @@ class Token(base.BaseGenericPlugin):
 
         elif discover.version_match((3,), version):
             return v3.Token(url, self._token, **self._v3_params)
+
+    def get_cache_id_elements(self):
+        elements = super(Token, self).get_cache_id_elements(_implemented=True)
+        elements['token'] = self._token
+        return elements
