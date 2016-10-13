@@ -328,7 +328,7 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
         As part of the get_cache_id requirement we need to determine what
         aspects of this plugin and its values that make up the unique elements.
 
-        This should be overriden by plugins that wish to allow caching.
+        This should be overridden by plugins that wish to allow caching.
 
         :returns: The unique attributes and values of this plugin.
         :rtype: A flat dict with a str key and str or None value. This is
