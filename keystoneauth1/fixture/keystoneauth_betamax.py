@@ -57,7 +57,7 @@ def _construct_session_with_betamax(fixture, session_obj=None):
         session_obj, cassette_library_dir=fixture.cassette_library_dir)
 
     record = 'none'
-    serializer = None
+    serializer = 'json'
 
     if fixture.record:
         record = 'all'
