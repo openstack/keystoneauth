@@ -594,8 +594,14 @@ class Session(object):
             except requests.exceptions.Timeout:
                 msg = 'Request to %s timed out' % url
                 raise exceptions.ConnectTimeout(msg)
-            except requests.exceptions.ConnectionError:
-                msg = 'Unable to establish connection to %s' % url
+            except requests.exceptions.ConnectionError as e:
+                # NOTE(sdague): urllib3/requests connection error is a
+                # translation of SocketError. However, SocketError
+                # happens for many different reasons, and that low
+                # level message is often really important in figuring
+                # out the difference between network misconfigurations
+                # and firewall blocking.
+                msg = 'Unable to establish connection to %s: %s' % (url, e)
                 raise exceptions.ConnectFailure(msg)
             except requests.exceptions.RequestException as e:
                 msg = 'Unexpected exception for %(url)s: %(error)s' % {
