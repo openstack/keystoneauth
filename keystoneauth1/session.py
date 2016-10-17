@@ -543,7 +543,7 @@ class Session(object):
                                'for=%s;by=%s' % (self.original_ip, user_agent))
 
         if json is not None:
-            headers['Content-Type'] = 'application/json'
+            headers.setdefault('Content-Type', 'application/json')
             kwargs['data'] = self._json.encode(json)
 
         for k, v in self.additional_headers.items():

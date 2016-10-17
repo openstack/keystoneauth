@@ -53,7 +53,7 @@ class TestCase(testtools.TestCase):
         if json:
             kwargs['text'] = jsonutils.dumps(json)
             headers = kwargs.setdefault('headers', {})
-            headers['Content-Type'] = 'application/json'
+            headers.setdefault('Content-Type', 'application/json')
 
         if parts:
             url = '/'.join([p.strip('/') for p in [base_url] + parts])
@@ -70,6 +70,10 @@ class TestCase(testtools.TestCase):
             self.assertEqual(json, val)
         elif body:
             self.assertEqual(body, last_request_body)
+
+    def assertContentTypeIs(self, content_type):
+        last_request = self.requests_mock.last_request
+        self.assertEqual(last_request.headers['Content-Type'], content_type)
 
     def assertQueryStringIs(self, qs=''):
         r"""Verify the QueryString matches what is expected.
