@@ -1039,6 +1039,25 @@ class AdapterTest(utils.TestCase):
         self.assertEqual(agent + ' ' + client_session.DEFAULT_USER_AGENT,
                          self.requests_mock.last_request.headers['User-Agent'])
 
+    def test_adapter_user_agent_session_version_on_adapter(self):
+
+        class TestAdapter(adapter.Adapter):
+
+            client_name = 'testclient'
+            client_version = '4.5.6'
+
+        sess = client_session.Session(app_name='ksatest', app_version='1.2.3')
+        adap = TestAdapter(session=sess)
+
+        url = 'http://keystone.test.com'
+        self.requests_mock.get(url)
+
+        adap.get(url)
+
+        agent = 'ksatest/1.2.3 testclient/4.5.6'
+        self.assertEqual(agent + ' ' + client_session.DEFAULT_USER_AGENT,
+                         self.requests_mock.last_request.headers['User-Agent'])
+
     def test_adapter_user_agent_session_adapter_no_app_version(self):
         sess = client_session.Session(app_name='ksatest')
         adap = adapter.Adapter(client_name='testclient',

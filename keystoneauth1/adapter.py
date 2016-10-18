@@ -56,6 +56,9 @@ class Adapter(object):
                                user_agent.
     """
 
+    client_name = None
+    client_version = None
+
     @positional()
     def __init__(self, session, service_type=None, service_name=None,
                  interface=None, region_name=None, endpoint_override=None,
@@ -80,9 +83,12 @@ class Adapter(object):
         self.connect_retries = connect_retries
         self.logger = logger
         self.allow = allow
-        self.client_name = client_name
-        self.client_version = client_version
         self.additional_headers = additional_headers or {}
+
+        if client_name:
+            self.client_name = client_name
+        if client_version:
+            self.client_version = client_version
 
     def _set_endpoint_filter_kwargs(self, kwargs):
         if self.service_type:
