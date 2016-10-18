@@ -11,8 +11,11 @@
 # under the License.
 
 import os
+import warnings
 
 from positional import positional
+
+from keystoneauth1 import session
 
 
 class Adapter(object):
@@ -113,10 +116,18 @@ class Adapter(object):
             kwargs.setdefault('logger', self.logger)
         if self.allow:
             kwargs.setdefault('allow', self.allow)
-        if self.client_name:
-            kwargs.setdefault('client_name', self.client_name)
-        if self.client_version:
-            kwargs.setdefault('client_version', self.client_version)
+
+        if isinstance(self.session, session.Session):
+            # these things are unsupported by keystoneclient's session so be
+            # careful with them until everyone has transitioned to ksa.
+            if self.client_name:
+                kwargs.setdefault('client_name', self.client_name)
+            if self.client_version:
+                kwargs.setdefault('client_version', self.client_version)
+
+        else:
+            warnings.warn('Using keystoneclient sessions has been deprecated. '
+                          'Please update your software to use keystoneauth1.')
 
         for k, v in self.additional_headers.items():
             kwargs.setdefault('headers', {}).setdefault(k, v)
