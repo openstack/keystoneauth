@@ -13,12 +13,15 @@
 # under the License.
 
 import testtools
-from testtools.tests.matchers import helpers
+from testtools import matchers as tt_matchers
 
-from keystoneauth1.tests.unit import matchers
+from keystoneauth1.tests.unit import matchers as ks_matchers
+
+# NOTE(jamielennox): The tests in this file are copied form the non-public
+# testtools.tests.matchers.helpers.TestMatchersInterface.
 
 
-class TestXMLEquals(testtools.TestCase, helpers.TestMatchersInterface):
+class TestXMLEquals(testtools.TestCase):
     matches_xml = b"""<?xml version="1.0" encoding="UTF-8"?>
 <test xmlns="http://docs.openstack.org/identity/api/v2.0">
     <first z="0" y="1" x="2"/>
@@ -48,10 +51,43 @@ actual =
 </test>
 """
 
-    matches_matcher = matchers.XMLEquals(matches_xml)
+    matches_matcher = ks_matchers.XMLEquals(matches_xml)
     matches_matches = [matches_xml, equivalent_xml]
     matches_mismatches = [mismatches_xml]
     describe_examples = [
         (mismatches_description, mismatches_xml, matches_matcher),
     ]
     str_examples = [('XMLEquals(%r)' % matches_xml, matches_matcher)]
+
+    def test_matches_match(self):
+        matcher = self.matches_matcher
+        matches = self.matches_matches
+        mismatches = self.matches_mismatches
+        for candidate in matches:
+            self.assertEqual(None, matcher.match(candidate))
+        for candidate in mismatches:
+            mismatch = matcher.match(candidate)
+            self.assertNotEqual(None, mismatch)
+            self.assertNotEqual(None, getattr(mismatch, 'describe', None))
+
+    def test__str__(self):
+        # [(expected, object to __str__)].
+        examples = self.str_examples
+        for expected, matcher in examples:
+            self.assertThat(matcher, tt_matchers.DocTestMatches(expected))
+
+    def test_describe_difference(self):
+        # [(expected, matchee, matcher), ...]
+        examples = self.describe_examples
+        for difference, matchee, matcher in examples:
+            mismatch = matcher.match(matchee)
+            self.assertEqual(difference, mismatch.describe())
+
+    def test_mismatch_details(self):
+        # The mismatch object must provide get_details, which must return a
+        # dictionary mapping names to Content objects.
+        examples = self.describe_examples
+        for difference, matchee, matcher in examples:
+            mismatch = matcher.match(matchee)
+            details = mismatch.get_details()
+            self.assertEqual(dict(details), details)
