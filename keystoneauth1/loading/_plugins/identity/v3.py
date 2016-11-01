@@ -148,8 +148,9 @@ class OpenIDConnectPassword(_OpenIDConnectBase):
         options = super(OpenIDConnectPassword, self).get_options()
 
         options.extend([
-            loading.Opt('username', help='Username'),
-            loading.Opt('password', secret=True, help='Password'),
+            loading.Opt('username', help='Username', required=True),
+            loading.Opt('password', secret=True,
+                        help='Password', required=True),
         ])
 
         return options
@@ -166,7 +167,8 @@ class OpenIDConnectAuthorizationCode(_OpenIDConnectBase):
 
         options.extend([
             loading.Opt('redirect-uri', help='OpenID Connect Redirect URL'),
-            loading.Opt('authorization-code', secret=True,
+            loading.Opt('code', secret=True, required=True,
+                        deprecated=[loading.Opt('authorization-code')],
                         help='OAuth 2.0 Authorization Code'),
         ])
 
@@ -183,7 +185,7 @@ class OpenIDConnectAccessToken(loading.BaseFederationLoader):
         options = super(OpenIDConnectAccessToken, self).get_options()
 
         options.extend([
-            loading.Opt('access-token', secret=True,
+            loading.Opt('access-token', secret=True, required=True,
                         help='OAuth 2.0 Access Token'),
         ])
         return options
