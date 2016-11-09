@@ -227,7 +227,7 @@ class OpenIDConnectAuthCodeTests(OpenIDConnectBaseTests, utils.TestCase):
     def test_options(self):
         options = loading.get_plugin_loader(self.plugin_name).get_options()
         self.assertTrue(
-            set(['redirect-uri', 'authorization-code']).issubset(
+            set(['redirect-uri', 'code']).issubset(
                 set([o.name for o in options]))
         )
 
