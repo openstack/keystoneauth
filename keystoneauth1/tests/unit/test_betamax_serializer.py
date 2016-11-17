@@ -36,7 +36,7 @@ class TestBetamaxSerializer(testtools.TestCase):
         data = self.serializer.deserialize(open(self.TEST_FILE, 'r').read())
         request = data['http_interactions'][0]['request']
         self.assertEqual(
-            'http://keystoneauth.betamax_test/v2.0/tokens',
+            'http://keystoneauth-betamax.test/v2.0/tokens',
             request['uri'])
         payload = json.loads(request['body']['string'])
         self.assertEqual('test_tenant_name', payload['auth']['tenantName'])
@@ -47,7 +47,7 @@ class TestBetamaxSerializer(testtools.TestCase):
         data = yaml.load(serialized)
         request = data['http_interactions'][0]['request']
         self.assertEqual(
-            'http://keystoneauth.betamax_test/v2.0/tokens',
+            'http://keystoneauth-betamax.test/v2.0/tokens',
             request['uri'])
         payload = json.loads(request['body']['string'])
         self.assertEqual('test_tenant_name', payload['auth']['tenantName'])
