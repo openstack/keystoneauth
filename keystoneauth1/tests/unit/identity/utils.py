@@ -93,6 +93,11 @@ class GenericPluginTestCase(utils.TestCase):
         self.assertCreateV2(tenant_id=uuid.uuid4().hex)
         self.assertCreateV2(tenant_name=uuid.uuid4().hex)
 
+    def test_create_plugin_no_reauthenticate(self):
+        self.stub_discovery()
+        self.assertCreateV2(reauthenticate=False)
+        self.assertCreateV3(domain_id=uuid.uuid4().hex, reauthenticate=False)
+
     def test_v3_params_v2_url(self):
         self.stub_discovery(v3=False)
         self.assertDiscoveryFailure(domain_name=uuid.uuid4().hex)

@@ -43,8 +43,10 @@ class BaseGenericPlugin(base.BaseIdentityPlugin):
                  domain_name=None,
                  trust_id=None,
                  default_domain_id=None,
-                 default_domain_name=None):
-        super(BaseGenericPlugin, self).__init__(auth_url=auth_url)
+                 default_domain_name=None,
+                 reauthenticate=True):
+        super(BaseGenericPlugin, self).__init__(auth_url=auth_url,
+                                                reauthenticate=reauthenticate)
 
         self._project_id = project_id or tenant_id
         self._project_name = project_name or tenant_name
@@ -93,7 +95,8 @@ class BaseGenericPlugin(base.BaseIdentityPlugin):
         """Return the parameters that are common to v2 plugins."""
         return {'trust_id': self._trust_id,
                 'tenant_id': self._project_id,
-                'tenant_name': self._project_name}
+                'tenant_name': self._project_name,
+                'reauthenticate': self.reauthenticate}
 
     @property
     def _v3_params(self):
@@ -104,7 +107,8 @@ class BaseGenericPlugin(base.BaseIdentityPlugin):
                 'project_domain_id': self.project_domain_id,
                 'project_domain_name': self.project_domain_name,
                 'domain_id': self._domain_id,
-                'domain_name': self._domain_name}
+                'domain_name': self._domain_name,
+                'reauthenticate': self.reauthenticate}
 
     @property
     def project_domain_id(self):
