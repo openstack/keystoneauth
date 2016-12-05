@@ -434,6 +434,7 @@ class AuthPlugin(plugin.BaseAuthPlugin):
 class CalledAuthPlugin(plugin.BaseAuthPlugin):
 
     ENDPOINT = 'http://fakeendpoint/'
+    TOKEN = utils.TestCase.TEST_TOKEN
     USER_ID = uuid.uuid4().hex
     PROJECT_ID = uuid.uuid4().hex
 
@@ -448,7 +449,7 @@ class CalledAuthPlugin(plugin.BaseAuthPlugin):
 
     def get_token(self, session):
         self.get_token_called = True
-        return utils.TestCase.TEST_TOKEN
+        return self.TOKEN
 
     def get_endpoint(self, session, **kwargs):
         self.get_endpoint_called = True
@@ -787,11 +788,9 @@ class AdapterTest(utils.TestCase):
 
     TEST_URL = CalledAuthPlugin.ENDPOINT
 
-    def _create_loaded_adapter(self):
-        auth = CalledAuthPlugin()
-        sess = client_session.Session()
-        return adapter.Adapter(sess,
-                               auth=auth,
+    def _create_loaded_adapter(self, sess=None, auth=None):
+        return adapter.Adapter(sess or client_session.Session(),
+                               auth=auth or CalledAuthPlugin(),
                                service_type=self.SERVICE_TYPE,
                                service_name=self.SERVICE_NAME,
                                interface=self.INTERFACE,
@@ -1149,6 +1148,35 @@ class AdapterTest(utils.TestCase):
 
         self.assertEqual(override_user_agent,
                          self.requests_mock.last_request.headers['User-Agent'])
+
+    def test_nested_adapters(self):
+        text = uuid.uuid4().hex
+        token = uuid.uuid4().hex
+        url = 'http://keystone.example.com/path'
+
+        sess = client_session.Session()
+        auth = CalledAuthPlugin()
+        auth.ENDPOINT = url
+        auth.TOKEN = token
+
+        adap1 = adapter.Adapter(session=sess,
+                                interface='public')
+        adap2 = adapter.Adapter(session=adap1,
+                                service_type='identity',
+                                auth=auth)
+
+        self.requests_mock.get(url + '/test', text=text)
+
+        resp = adap2.get('/test')
+
+        self.assertEqual(text, resp.text)
+        self.assertTrue(auth.get_endpoint_called)
+
+        self.assertEqual('public', auth.endpoint_arguments['interface'])
+        self.assertEqual('identity', auth.endpoint_arguments['service_type'])
+
+        last_token = self.requests_mock.last_request.headers['X-Auth-Token']
+        self.assertEqual(token, last_token)
 
 
 class TCPKeepAliveAdapterTest(utils.TestCase):
