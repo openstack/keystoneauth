@@ -357,7 +357,7 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
 
         hasher = hashlib.sha256()
 
-        for k, v in sorted(six.iteritems(elements)):
+        for k, v in sorted(elements.items()):
             if v is not None:
                 # NOTE(jamielennox): in python3 you need to pass bytes to hash
                 if isinstance(k, six.string_types):

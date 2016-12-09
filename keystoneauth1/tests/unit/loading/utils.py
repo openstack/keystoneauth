@@ -14,7 +14,6 @@ import functools
 import uuid
 
 import mock
-import six
 
 from keystoneauth1 import loading
 from keystoneauth1.loading import base
@@ -37,7 +36,7 @@ class TestCase(utils.TestCase):
                  'a_bool': a_bool}
 
     def assertTestVals(self, plugin, vals=TEST_VALS):
-        for k, v in six.iteritems(vals):
+        for k, v in vals.items():
             self.assertEqual(v, plugin[k])
 
 
