@@ -123,9 +123,10 @@ class Adapter(object):
         if self.allow:
             kwargs.setdefault('allow', self.allow)
 
-        if isinstance(self.session, session.Session):
+        if isinstance(self.session, (session.Session, Adapter)):
             # these things are unsupported by keystoneclient's session so be
             # careful with them until everyone has transitioned to ksa.
+            # Allowing adapter allows adapter nesting that auth_token does.
             if self.client_name:
                 kwargs.setdefault('client_name', self.client_name)
             if self.client_version:
