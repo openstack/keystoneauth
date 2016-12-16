@@ -18,7 +18,6 @@ import uuid
 import fixtures
 import requests
 from requests_mock.contrib import fixture
-import six
 from six.moves.urllib import parse as urlparse
 import testtools
 
@@ -98,7 +97,7 @@ class TestCase(testtools.TestCase):
         parts = urlparse.urlparse(self.requests_mock.last_request.url)
         qs = urlparse.parse_qs(parts.query, keep_blank_values=True)
 
-        for k, v in six.iteritems(kwargs):
+        for k, v in kwargs.items():
             self.assertIn(k, qs)
             self.assertIn(v, qs[k])
 

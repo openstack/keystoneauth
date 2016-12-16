@@ -326,7 +326,7 @@ class Session(object):
             string_parts.append(url)
 
         if headers:
-            for header in six.iteritems(headers):
+            for header in headers.items():
                 string_parts.append('-H "%s: %s"'
                                     % self._process_header(header))
         if json:
@@ -363,7 +363,7 @@ class Session(object):
         if status_code:
             string_parts.append('[%s]' % status_code)
         if headers:
-            for header in six.iteritems(headers):
+            for header in headers.items():
                 string_parts.append('%s: %s' % self._process_header(header))
         if text:
             string_parts.append('\nRESP BODY: %s\n' % text)
