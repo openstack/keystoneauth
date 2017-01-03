@@ -188,7 +188,8 @@ class SessionTests(utils.TestCase):
         in order to redact secure headers while debug is true.
         """
         session = client_session.Session(verify=False)
-        headers = {'HEADERA': 'HEADERVALB'}
+        headers = {'HEADERA': 'HEADERVALB',
+                   'Content-Type': 'application/text'}
         security_headers = {'Authorization': uuid.uuid4().hex,
                             'X-Auth-Token': uuid.uuid4().hex,
                             'X-Subject-Token': uuid.uuid4().hex, }
@@ -222,11 +223,55 @@ class SessionTests(utils.TestCase):
         session = client_session.Session()
         body = uuid.uuid4().hex
 
-        self.stub_url('GET', text=body, status_code=400)
+        self.stub_url('GET', text=body, status_code=400,
+                      headers={'Content-Type': 'application/text'})
         resp = session.get(self.TEST_URL, raise_exc=False)
 
         self.assertEqual(resp.status_code, 400)
         self.assertIn(body, self.logger.output)
+
+    def test_logging_body_only_for_text_and_json_content_types(self):
+        """Verify response body is only logged in specific content types.
+
+        Response bodies are logged only when the response's Content-Type header
+        is set to application/json or application/text. This prevents us to get
+        an unexpected MemoryError when reading arbitrary responses, such as
+        streams.
+        """
+        OMITTED_BODY = ('Omitted, Content-Type is set to %s. Only '
+                        'application/json and application/text responses '
+                        'have their bodies logged.')
+        session = client_session.Session(verify=False)
+
+        # Content-Type is not set
+        body = json.dumps({'token': {'id': '...'}})
+        self.stub_url('POST', text=body)
+        session.post(self.TEST_URL)
+        self.assertNotIn(body, self.logger.output)
+        self.assertIn(OMITTED_BODY % None, self.logger.output)
+
+        # Content-Type is set to text/xml
+        body = '<token><id>...</id></token>'
+        self.stub_url('POST', text=body, headers={'Content-Type': 'text/xml'})
+        session.post(self.TEST_URL)
+        self.assertNotIn(body, self.logger.output)
+        self.assertIn(OMITTED_BODY % 'text/xml', self.logger.output)
+
+        # Content-Type is set to application/json
+        body = json.dumps({'token': {'id': '...'}})
+        self.stub_url('POST', text=body,
+                      headers={'Content-Type': 'application/json'})
+        session.post(self.TEST_URL)
+        self.assertIn(body, self.logger.output)
+        self.assertNotIn(OMITTED_BODY % 'application/json', self.logger.output)
+
+        # Content-Type is set to application/text
+        body = uuid.uuid4().hex
+        self.stub_url('POST', text=body,
+                      headers={'Content-Type': 'application/text'})
+        session.post(self.TEST_URL)
+        self.assertIn(body, self.logger.output)
+        self.assertNotIn(OMITTED_BODY % 'application/text', self.logger.output)
 
     def test_logging_cacerts(self):
         path_to_certs = '/path/to/certs'
@@ -760,7 +805,7 @@ class SessionAuthTests(utils.TestCase):
 
         self.stub_url('GET',
                       text=response,
-                      headers={'Content-Type': 'text/html'})
+                      headers={'Content-Type': 'application/text'})
 
         resp = sess.get(self.TEST_URL, logger=logger)
 
@@ -953,7 +998,7 @@ class AdapterTest(utils.TestCase):
         response = uuid.uuid4().hex
 
         self.stub_url('GET', text=response,
-                      headers={'Content-Type': 'text/html'})
+                      headers={'Content-Type': 'application/text'})
 
         resp = adpt.get(self.TEST_URL, logger=logger)
 
