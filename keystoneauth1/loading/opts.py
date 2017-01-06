@@ -125,6 +125,12 @@ class Opt(object):
                 self.default == other.default and
                 self.metavar == other.metavar)
 
+    # NOTE: This function is only needed by Python 2. If we get to point where
+    # we don't support Python 2 anymore, this function should be removed.
+    def __ne__(self, other):
+        """Define inequality operator on option parameters."""
+        return not self.__eq__(other)
+
     @property
     def _all_opts(self):
         return itertools.chain([self], self.deprecated)

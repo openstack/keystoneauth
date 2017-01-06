@@ -75,6 +75,12 @@ class BoolType(object):
         # hack around oslo.config equality comparison
         return type(self) == type(other)
 
+    # NOTE: This function is only needed by Python 2. If we get to point where
+    # we don't support Python 2 anymore, this function should be removed.
+    def __ne__(self, other):
+        """Define inequiality for many bool types."""
+        return not self.__eq__(other)
+
     def __call__(self, value):
         return str(value).lower() in ('1', 'true', 't', 'yes', 'y')
 
