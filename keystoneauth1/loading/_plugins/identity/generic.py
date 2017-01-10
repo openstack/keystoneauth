@@ -15,6 +15,18 @@ from keystoneauth1 import loading
 
 
 class Token(loading.BaseGenericLoader):
+    """Given an existing token rescope it to another target.
+
+    This plugin uses the Identity service's rescope mechanism to get a new
+    token based upon an existing token. Because an auth plugin requires a
+    service catalog and scope information it is often easier to fetch a new
+    token based on an existing one than validate and reuse the one you already
+    have.
+
+    As a generic plugin this plugin is identity version independent and will
+    discover available versions before use. This means it expects to be
+    providen an unversioned URL to operate against.
+    """
 
     @property
     def plugin_class(self):
@@ -32,6 +44,15 @@ class Token(loading.BaseGenericLoader):
 
 
 class Password(loading.BaseGenericLoader):
+    """Authenticate via a username and password.
+
+    Authenticate to the identity service using an inbuilt username and
+    password. This is the standard and most common form of authentication.
+
+    As a generic plugin this plugin is identity version independent and will
+    discover available versions before use. This means it expects to be
+    providen an unversioned URL to operate against.
+    """
 
     @property
     def plugin_class(self):

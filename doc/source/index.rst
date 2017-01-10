@@ -13,6 +13,7 @@ Contents:
 
    using-sessions
    authentication-plugins
+   plugin-options
 
    extras
    migrating
