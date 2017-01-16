@@ -44,7 +44,7 @@ class TestBetamaxSerializer(testtools.TestCase):
     def test_serialize(self):
         data = json.loads(open(self.TEST_JSON, 'r').read())
         serialized = self.serializer.serialize(data)
-        data = yaml.load(serialized)
+        data = yaml.safe_load(serialized)
         request = data['http_interactions'][0]['request']
         self.assertEqual(
             'http://keystoneauth-betamax.test/v2.0/tokens',
