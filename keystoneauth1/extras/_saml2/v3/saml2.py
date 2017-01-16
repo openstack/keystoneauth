@@ -125,7 +125,7 @@ class _SamlAuth(requests.auth.AuthBase):
         except KeyError:
             request.headers['Accept'] = _PAOS_HEADER
         else:
-            request.headers['Accept'] = ';'.join([accept, _PAOS_HEADER])
+            request.headers['Accept'] = ','.join([accept, _PAOS_HEADER])
 
         request.headers['PAOS'] = _PAOS_VER
         request.register_hook('response', self._handle_response)
