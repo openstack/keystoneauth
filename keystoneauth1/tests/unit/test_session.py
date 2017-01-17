@@ -265,6 +265,16 @@ class SessionTests(utils.TestCase):
         self.assertIn(body, self.logger.output)
         self.assertNotIn(OMITTED_BODY % 'application/json', self.logger.output)
 
+        # Content-Type is set to application/json; charset=UTF-8
+        body = json.dumps({'token': {'id': '...'}})
+        self.stub_url(
+            'POST', text=body,
+            headers={'Content-Type': 'application/json; charset=UTF-8'})
+        session.post(self.TEST_URL)
+        self.assertIn(body, self.logger.output)
+        self.assertNotIn(OMITTED_BODY % 'application/json; charset=UTF-8',
+                         self.logger.output)
+
     def test_logging_cacerts(self):
         path_to_certs = '/path/to/certs'
         session = client_session.Session(verify=path_to_certs)
