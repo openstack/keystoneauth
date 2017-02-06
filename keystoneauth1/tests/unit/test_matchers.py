@@ -23,30 +23,30 @@ from keystoneauth1.tests.unit import matchers as ks_matchers
 
 class TestXMLEquals(testtools.TestCase):
     matches_xml = b"""<?xml version="1.0" encoding="UTF-8"?>
-<test xmlns="http://docs.openstack.org/identity/api/v2.0">
+<test xmlns="https://docs.openstack.org/identity/api/v2.0">
     <first z="0" y="1" x="2"/>
     <second a="a" b="b"></second>
 </test>
 """
     equivalent_xml = b"""<?xml version="1.0" encoding="UTF-8"?>
-<test xmlns="http://docs.openstack.org/identity/api/v2.0">
+<test xmlns="https://docs.openstack.org/identity/api/v2.0">
     <second a="a" b="b"/>
     <first z="0" y="1" x="2"></first>
 </test>
 """
     mismatches_xml = b"""<?xml version="1.0" encoding="UTF-8"?>
-<test xmlns="http://docs.openstack.org/identity/api/v2.0">
+<test xmlns="https://docs.openstack.org/identity/api/v2.0">
     <nope_it_fails/>
 </test>
 """
     mismatches_description = """expected =
-<test xmlns="http://docs.openstack.org/identity/api/v2.0">
+<test xmlns="https://docs.openstack.org/identity/api/v2.0">
   <first z="0" y="1" x="2"/>
   <second a="a" b="b"/>
 </test>
 
 actual =
-<test xmlns="http://docs.openstack.org/identity/api/v2.0">
+<test xmlns="https://docs.openstack.org/identity/api/v2.0">
   <nope_it_fails/>
 </test>
 """

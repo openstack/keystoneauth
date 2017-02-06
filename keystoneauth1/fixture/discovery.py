@@ -110,7 +110,7 @@ class V2Discovery(DiscoveryBase):
 
     """
 
-    _DESC_URL = 'http://docs.openstack.org/api/openstack-identity-service/2.0/'
+    _DESC_URL = 'https://developer.openstack.org/api-ref/identity/v2/'
 
     @positional()
     def __init__(self, href, id=None, html=True, pdf=True, **kwargs):

@@ -231,10 +231,10 @@ latex_documents = [
 # If false, no module index is generated.
 #latex_use_modindex = True
 
-ksc = 'http://docs.openstack.org/developer/python-keystoneclient/'
+ksc = 'https://docs.openstack.org/developer/python-keystoneclient/'
 
 intersphinx_mapping = {
     'python': ('http://docs.python.org/', None),
-    'osloconfig': ('http://docs.openstack.org/developer/oslo.config/', None),
+    'osloconfig': ('https://docs.openstack.org/developer/oslo.config/', None),
     'keystoneclient': (ksc, None),
 }

@@ -2,8 +2,8 @@
 Team and repository tags
 ========================
 
-.. image:: http://governance.openstack.org/badges/keystoneauth.svg
-    :target: http://governance.openstack.org/reference/tags/index.html
+.. image:: https://governance.openstack.org/badges/keystoneauth.svg
+    :target: https://governance.openstack.org/reference/tags/index.html
 
 .. Change things from this point on
 
@@ -30,6 +30,6 @@ These tools include:
 Further information:
 
 * Free software: Apache license
-* Documentation: http://docs.openstack.org/developer/keystoneauth
-* Source: http://git.openstack.org/cgit/openstack/keystoneauth
-* Bugs: http://bugs.launchpad.net/keystoneauth
+* Documentation: https://docs.openstack.org/developer/keystoneauth
+* Source: https://git.openstack.org/cgit/openstack/keystoneauth
+* Bugs: https://bugs.launchpad.net/keystoneauth
