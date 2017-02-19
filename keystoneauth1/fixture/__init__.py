@@ -21,6 +21,7 @@ from this module on libraries that are only available in testing.
 
 from keystoneauth1.fixture.discovery import *  # noqa
 from keystoneauth1.fixture import exception
+from keystoneauth1.fixture.plugin import *  # noqa
 from keystoneauth1.fixture import v2
 from keystoneauth1.fixture import v3
 
@@ -32,6 +33,8 @@ V3FederationToken = v3.V3FederationToken
 
 __all__ = ('DiscoveryList',
            'FixtureValidationError',
+           'LoadingFixture',
+           'TestPlugin',
            'V2Discovery',
            'V3Discovery',
            'V2Token',
