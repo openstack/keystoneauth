@@ -17,12 +17,8 @@ __all__ = ('ClientException',)
 class ClientException(Exception):
     """The base exception for everything to do with clients."""
 
-    message = None
+    message = "ClientException"
 
     def __init__(self, message=None):
-        if not message:
-            if self.message:
-                message = self.message
-            else:
-                message = self.__class__.__name__
-        super(Exception, self).__init__(message)
+        self.message = message or self.message
+        super(ClientException, self).__init__(self.message)
