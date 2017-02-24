@@ -121,6 +121,7 @@ class GenericPluginTestCase(utils.TestCase):
     def test_disc_error_for_failure(self):
         self.stub_url('GET', [], status_code=403)
         self.assertDiscoveryFailure()
+        self.assertIn(self.TEST_URL, self.logger.output)
 
     def test_v3_plugin_from_failure(self):
         url = self.TEST_URL + 'v3'

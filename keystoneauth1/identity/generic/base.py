@@ -136,9 +136,9 @@ class BaseGenericPlugin(base.BaseIdentityPlugin):
         except (exceptions.DiscoveryFailure,
                 exceptions.HttpError,
                 exceptions.ConnectionError):
-            LOG.warning('Discovering versions from the identity service '
-                        'failed when creating the password plugin. '
-                        'Attempting to determine version from URL.')
+            LOG.warning('Failed to discover available identity versions when '
+                        'contacting %s. Attempting to parse version from URL.',
+                        self.auth_url)
 
             url_parts = urlparse.urlparse(self.auth_url)
             path = url_parts.path.lower()
