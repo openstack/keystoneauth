@@ -60,7 +60,7 @@ class TestCase(testtools.TestCase):
             url = base_url
 
         url = url.replace("/?", "?")
-        self.requests_mock.register_uri(method, url, **kwargs)
+        return self.requests_mock.register_uri(method, url, **kwargs)
 
     def assertRequestBodyIs(self, body=None, json=None):
         last_request_body = self.requests_mock.last_request.body

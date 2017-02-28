@@ -159,7 +159,7 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
 
     def get_endpoint(self, session, service_type=None, interface=None,
                      region_name=None, service_name=None, version=None,
-                     allow={}, **kwargs):
+                     allow={}, allow_version_hack=True, **kwargs):
         """Return a valid endpoint for a service.
 
         If a valid token is not present then a new one will be fetched using
@@ -183,6 +183,9 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
                               endpoint. (optional)
         :param dict allow: Extra filters to pass when discovering API
                            versions. (optional)
+        :param bool allow_version_hack: Allow keystoneauth to hack up catalog
+                                        URLS to support older schemes.
+                                        (optional, default True)
 
         :raises keystoneauth1.exceptions.http.HttpError: An error from an
                                                          invalid HTTP response.
@@ -226,19 +229,38 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
         # other endpoint versions. So we support a list of client defined
         # situations where we can strip the version component from a URL before
         # doing discovery.
-        hacked_url = discover._get_catalog_discover_hack(service_type, url)
+        if allow_version_hack:
+            vers_url = discover._get_catalog_discover_hack(service_type, url)
+        else:
+            vers_url = url
 
         try:
-            disc = self.get_discovery(session, hacked_url, authenticated=False)
+            disc = self.get_discovery(session, vers_url, authenticated=False)
         except (exceptions.DiscoveryFailure,
                 exceptions.HttpError,
                 exceptions.ConnectionError):
-            # NOTE(jamielennox): Again if we can't contact the server we fall
-            # back to just returning the URL from the catalog. This may not be
-            # the best default but we need it for now.
-            LOG.warning('Failed to contact the endpoint at %s for discovery. '
-                        'Fallback to using that endpoint as the base url.',
-                        url)
+            # NOTE(jamielennox): The logic here is required for backwards
+            # compatibility. By itself it is not ideal.
+
+            if allow_version_hack:
+                # NOTE(jamielennox): Again if we can't contact the server we
+                # fall back to just returning the URL from the catalog.  This
+                # is backwards compatible behaviour and used when there is no
+                # other choice. Realistically if you have provided a version
+                # you should be able to rely on that version being returned or
+                # the request failing.
+                LOG.warning('Failed to contact the endpoint at %s for '
+                            'discovery. Fallback to using that endpoint as '
+                            'the base url.', url)
+
+            else:
+                # NOTE(jamielennox): If you've said no to allow_version_hack
+                # and you can't determine the actual URL this is a failure
+                # because we are specifying that the deployment must be up to
+                # date enough to properly specify a version and keystoneauth
+                # can't deliver.
+                return None
+
         else:
             # NOTE(jamielennox): urljoin allows the url to be relative or even
             # protocol-less. The additional trailing '/' make urljoin respect
@@ -249,7 +271,7 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
             url = disc.url_for(version, **allow)
 
             if url:
-                url = urllib.parse.urljoin(hacked_url.rstrip('/') + '/', url)
+                url = urllib.parse.urljoin(vers_url.rstrip('/') + '/', url)
 
         return url
 
