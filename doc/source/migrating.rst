@@ -27,7 +27,7 @@ Authentication plugins still implement the base authentication class
 :py:class:`~keystoneauth1.plugin.BaseAuthPlugin`. To make the plugins capable
 of being loaded from CLI or CONF file you should implement the base
 :py:class:`~keystoneauth1.loading.BaseLoader` class which is loaded when
-:option:`--os-auth-type` is used. This class handles the options that are
+`--os-auth-type` is used. This class handles the options that are
 presented, and then constructs the authentication plugin for use by the
 application.
 

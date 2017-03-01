@@ -12,7 +12,7 @@
 
 from keystoneauth1.extras.oauth1 import v3
 
-__all__ = ('V3OAuth1Method', 'V3OAuth')
+__all__ = ('V3OAuth1Method', 'V3OAuth1')
 
 
 V3OAuth1Method = v3.OAuth1Method
