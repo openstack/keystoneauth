@@ -89,6 +89,10 @@ class YamlJsonSerializer(betamax.serializers.base.BaseSerializer):
 
     def deserialize(self, cassette_data):
         try:
-            return yaml.safe_load(cassette_data)
+            deserialized = yaml.safe_load(cassette_data)
         except yaml.error.YAMLError:
-            return {}
+            deserialized = None
+
+        if deserialized is not None:
+            return deserialized
+        return {}
