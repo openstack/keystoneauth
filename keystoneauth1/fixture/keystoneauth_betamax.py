@@ -28,15 +28,25 @@ class BetamaxFixture(fixtures.Fixture):
 
     def __init__(self, cassette_name, cassette_library_dir=None,
                  serializer=None, record=False,
-                 pre_record_hook=hooks.pre_record_hook):
+                 pre_record_hook=hooks.pre_record_hook,
+                 serializer_name=None):
         self.cassette_library_dir = cassette_library_dir
         self.record = record
         self.cassette_name = cassette_name
-        if not serializer:
+        if not (serializer or serializer_name):
             serializer = yaml_serializer.YamlJsonSerializer
+            serializer_name = serializer.name
+        if serializer:
+            betamax.Betamax.register_serializer(serializer)
         self.serializer = serializer
-        betamax.Betamax.register_serializer(serializer)
+        self._serializer_name = serializer_name
         self.pre_record_hook = pre_record_hook
+
+    @property
+    def serializer_name(self):
+        if self.serializer:
+            return self.serializer.name
+        return self._serializer_name
 
     def setUp(self):
         super(BetamaxFixture, self).setUp()
@@ -70,8 +80,7 @@ def _construct_session_with_betamax(fixture, session_obj=None):
     if fixture.record in ['once', 'all', 'new_episodes']:
         record = fixture.record
 
-    if fixture.serializer:
-        serializer = fixture.serializer.name
+    serializer = fixture.serializer_name
 
     fixture.recorder.use_cassette(fixture.cassette_name,
                                   serialize_with=serializer,
