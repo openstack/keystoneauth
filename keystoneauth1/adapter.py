@@ -57,6 +57,9 @@ class Adapter(object):
     :param str client_version: The version of the client that created the
                                adapter. This will be used to create the
                                user_agent.
+    :param bool allow_version_hack: Allow keystoneauth to hack up catalog
+                                    URLS to support older schemes.
+                                    (optional, default True)
     """
 
     client_name = None
@@ -68,7 +71,7 @@ class Adapter(object):
                  version=None, auth=None, user_agent=None,
                  connect_retries=None, logger=None, allow={},
                  additional_headers=None, client_name=None,
-                 client_version=None):
+                 client_version=None, allow_version_hack=None):
         # NOTE(jamielennox): when adding new parameters to adapter please also
         # add them to the adapter call in httpclient.HTTPClient.__init__ as
         # well as to load_adapter_from_argparse below if the argument is
@@ -87,6 +90,7 @@ class Adapter(object):
         self.logger = logger
         self.allow = allow
         self.additional_headers = additional_headers or {}
+        self.allow_version_hack = allow_version_hack
 
         if client_name:
             self.client_name = client_name
@@ -104,6 +108,8 @@ class Adapter(object):
             kwargs.setdefault('region_name', self.region_name)
         if self.version:
             kwargs.setdefault('version', self.version)
+        if self.allow_version_hack is not None:
+            kwargs.setdefault('allow_version_hack', self.allow_version_hack)
 
     def request(self, url, method, **kwargs):
         endpoint_filter = kwargs.setdefault('endpoint_filter', {})
