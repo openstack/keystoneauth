@@ -48,11 +48,13 @@ def pre_record_hook(interaction, cassette):
     - set token expiration time to an inifinite time.
     """
     request_body = interaction.data['request']['body']
-    parsed_content = json.loads(request_body['string'])
-    mask_fixture_values(parsed_content, None)
-    request_body['string'] = json.dumps(parsed_content)
+    if request_body.get('string'):
+        parsed_content = json.loads(request_body['string'])
+        mask_fixture_values(parsed_content, None)
+        request_body['string'] = json.dumps(parsed_content)
 
     response_body = interaction.data['response']['body']
-    parsed_content = json.loads(response_body['string'])
-    mask_fixture_values(parsed_content, None)
-    response_body['string'] = json.dumps(parsed_content)
+    if response_body.get('string'):
+        parsed_content = json.loads(response_body['string'])
+        mask_fixture_values(parsed_content, None)
+        response_body['string'] = json.dumps(parsed_content)

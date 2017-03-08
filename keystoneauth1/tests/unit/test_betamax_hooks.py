@@ -12,6 +12,7 @@
 
 import betamax
 import json
+import mock
 from requests import models
 import testtools
 
@@ -174,3 +175,24 @@ class TestBetamaxHooks(testtools.TestCase):
             u'dummy')
         self.assertEqual(
             request_content['auth']['tenantName'], u'dummy')
+
+    @mock.patch('keystoneauth1.fixture.hooks.mask_fixture_values')
+    def test_pre_record_hook_empty_body(self, mask_fixture_values):
+        interaction = mock.Mock()
+        interaction.data = {
+            'request': {
+                'body': {
+                    'encoding': 'utf-8',
+                    'string': '',
+                },
+            },
+            'response': {
+                'body': {
+                    'encoding': 'utf-8',
+                    'string': '',
+                },
+            },
+        }
+
+        hooks.pre_record_hook(interaction, mock.Mock())
+        self.assertFalse(mask_fixture_values.called)
