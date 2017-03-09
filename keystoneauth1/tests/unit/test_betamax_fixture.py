@@ -103,3 +103,23 @@ class TestBetamaxFixtureSerializerBehaviour(testtools.TestCase):
 
         self.assertIs(serializer.YamlJsonSerializer, fixture.serializer)
         self.assertEqual('yamljson', fixture.serializer_name)
+
+    def test_no_request_matchers_provided(self):
+        fixture = keystoneauth_betamax.BetamaxFixture(
+            cassette_name='fake',
+            cassette_library_dir='keystoneauth1/tests/unit/data',
+        )
+
+        self.assertDictEqual({}, fixture.use_cassette_kwargs)
+
+    def test_request_matchers(self):
+        fixture = keystoneauth_betamax.BetamaxFixture(
+            cassette_name='fake',
+            cassette_library_dir='keystoneauth1/tests/unit/data',
+            request_matchers=['method', 'uri', 'json-body'],
+        )
+
+        self.assertDictEqual(
+            {'match_requests_on': ['method', 'uri', 'json-body']},
+            fixture.use_cassette_kwargs,
+        )
