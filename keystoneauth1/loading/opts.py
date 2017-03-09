@@ -50,8 +50,9 @@ class Opt(object):
     :param str dest: the name of the argument that will be passed to __init__.
         This allows you to have a different name in loading than is used by the
         __init__ function. Defaults to the value of name.
-    :param opt: A list of other options that are deprecated in favour of this
-        one. This ensures the old options are still registered.
+    :param keystoneauth1.loading.Opt: A list of other options that are
+        deprecated in favour of this one. This ensures the old options are
+        still registered.
     :type opt: list(Opt)
     :param default: A default value that can be used if one is not provided.
     :param str metavar: The <metavar> that should be printed in CLI help text.
