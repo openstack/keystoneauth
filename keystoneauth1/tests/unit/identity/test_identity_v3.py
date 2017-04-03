@@ -550,7 +550,7 @@ class V3IdentityPlugin(utils.TestCase):
         self.assertEqual(token.user_id, ident['password']['user']['id'])
         self.assertEqual(password, ident['password']['user']['password'])
 
-        self.assertEqual({}, body['auth']['scope']['unscoped'])
+        self.assertEqual('unscoped', body['auth']['scope'])
 
     def test_unscoped_with_scope_data(self):
         a = v3.Password(self.TEST_URL,

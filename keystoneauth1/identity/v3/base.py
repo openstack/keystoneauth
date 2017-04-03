@@ -154,7 +154,7 @@ class Auth(BaseAuth):
         elif self.trust_id:
             body['auth']['scope'] = {'OS-TRUST:trust': {'id': self.trust_id}}
         elif self.unscoped:
-            body['auth']['scope'] = {'unscoped': {}}
+            body['auth']['scope'] = 'unscoped'
 
         # NOTE(jamielennox): we add nocatalog here rather than in token_url
         # directly as some federation plugins require the base token_url
