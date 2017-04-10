@@ -31,6 +31,7 @@ class FedKerbLoadingTests(test_utils.TestCase):
                         'protocol',
                         'trust-id',
                         'auth-url',
+                        'mutual-auth',
                         ]
 
         self.assertItemsEqual(allowed_opts, opts)
