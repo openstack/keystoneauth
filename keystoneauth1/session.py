@@ -623,13 +623,13 @@ class Session(object):
             elif self.app_name:
                 agent.append(self.app_name)
 
-            for additional in self.additional_user_agent:
-                agent.append('%s/%s' % additional)
-
             if client_name and client_version:
                 agent.append('%s/%s' % (client_name, client_version))
             elif client_name:
                 agent.append(client_name)
+
+            for additional in self.additional_user_agent:
+                agent.append('%s/%s' % additional)
 
             if not agent:
                 # NOTE(jamielennox): determine_user_agent will return an empty
