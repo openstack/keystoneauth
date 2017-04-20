@@ -13,10 +13,11 @@
 import json
 import re
 
-import six
+from testtools import matchers
 
 from keystoneauth1 import discover
 from keystoneauth1 import fixture
+from keystoneauth1 import session
 from keystoneauth1.tests.unit import utils
 
 
@@ -96,7 +97,6 @@ V3_VERSION = fixture.V3Discovery(V3_URL)
 V3_MEDIA_TYPES = V3_VERSION.media_types
 V3_VERSION.updated_str = UPDATED
 
-V3_TOKEN = six.u('3e2813b7ba0b4006840c3825860b86ed'),
 V3_AUTH_RESPONSE = json.dumps({
     "token": {
         "methods": [
@@ -209,11 +209,11 @@ GLANCE_EXAMPLES = {
 
 
 def _create_version_list(versions):
-    return json.dumps({'versions': {'values': versions}})
+    return {'versions': {'values': versions}}
 
 
 def _create_single_version(version):
-    return json.dumps({'version': version})
+    return {'version': version}
 
 
 V3_VERSION_LIST = _create_version_list([V3_VERSION, V2_VERSION])
@@ -283,3 +283,308 @@ class DiscoverUtils(utils.TestCase):
         versionRaises('hello')
         versionRaises('1.a')
         versionRaises('vacuum')
+
+
+class VersionDataTests(utils.TestCase):
+
+    def setUp(self):
+        super(VersionDataTests, self).setUp()
+        self.session = session.Session()
+
+    def test_version_data_basics(self):
+        examples = {'keystone': V3_VERSION_LIST,
+                    'cinder': CINDER_EXAMPLES,
+                    'glance': GLANCE_EXAMPLES}
+
+        for path, data in examples.items():
+            url = "%s%s" % (BASE_URL, path)
+
+            mock = self.requests_mock.get(url, status_code=300, json=data)
+
+            disc = discover.Discover(self.session, url)
+            raw_data = disc.raw_version_data()
+            clean_data = disc.version_data()
+
+            for v in raw_data:
+                for n in ('id', 'status', 'links'):
+                    msg = '%s missing from %s version data' % (n, path)
+                    self.assertThat(v, matchers.Annotate(msg,
+                                                         matchers.Contains(n)))
+
+            for v in clean_data:
+                for n in ('version', 'url', 'raw_status'):
+                    msg = '%s missing from %s version data' % (n, path)
+                    self.assertThat(v, matchers.Annotate(msg,
+                                                         matchers.Contains(n)))
+
+            self.assertTrue(mock.called_once)
+
+    def test_version_data_individual(self):
+        mock = self.requests_mock.get(V3_URL,
+                                      status_code=200,
+                                      json=V3_VERSION_ENTRY)
+
+        disc = discover.Discover(self.session, V3_URL)
+        raw_data = disc.raw_version_data()
+        clean_data = disc.version_data()
+
+        for v in raw_data:
+            self.assertEqual(v['id'], 'v3.0')
+            self.assertEqual(v['status'], 'stable')
+            self.assertIn('media-types', v)
+            self.assertIn('links', v)
+
+        for v in clean_data:
+            self.assertEqual(v['version'], (3, 0))
+            self.assertEqual(v['raw_status'], 'stable')
+            self.assertEqual(v['url'], V3_URL)
+
+        self.assertTrue(mock.called_once)
+
+    def test_keystone_version_data(self):
+        mock = self.requests_mock.get(BASE_URL,
+                                      status_code=300,
+                                      json=V3_VERSION_LIST)
+
+        disc = discover.Discover(self.session, BASE_URL)
+        raw_data = disc.raw_version_data()
+        clean_data = disc.version_data()
+
+        self.assertEqual(2, len(raw_data))
+        self.assertEqual(2, len(clean_data))
+
+        for v in raw_data:
+            self.assertIn(v['id'], ('v2.0', 'v3.0'))
+            self.assertEqual(v['updated'], UPDATED)
+            self.assertEqual(v['status'], 'stable')
+
+            if v['id'] == 'v3.0':
+                self.assertEqual(v['media-types'], V3_MEDIA_TYPES)
+
+        for v in clean_data:
+            self.assertIn(v['version'], ((2, 0), (3, 0)))
+            self.assertEqual(v['raw_status'], 'stable')
+
+        version = disc.data_for('v3.0')
+        self.assertEqual((3, 0), version['version'])
+        self.assertEqual('stable', version['raw_status'])
+        self.assertEqual(V3_URL, version['url'])
+
+        version = disc.data_for(2)
+        self.assertEqual((2, 0), version['version'])
+        self.assertEqual('stable', version['raw_status'])
+        self.assertEqual(V2_URL, version['url'])
+
+        self.assertIsNone(disc.url_for('v4'))
+        self.assertEqual(V3_URL, disc.url_for('v3'))
+        self.assertEqual(V2_URL, disc.url_for('v2'))
+
+        self.assertTrue(mock.called_once)
+
+    def test_cinder_version_data(self):
+        mock = self.requests_mock.get(BASE_URL,
+                                      status_code=300,
+                                      json=CINDER_EXAMPLES)
+
+        disc = discover.Discover(self.session, BASE_URL)
+        raw_data = disc.raw_version_data()
+        clean_data = disc.version_data()
+
+        self.assertEqual(2, len(raw_data))
+
+        for v in raw_data:
+            self.assertEqual(v['status'], 'CURRENT')
+            if v['id'] == 'v1.0':
+                self.assertEqual(v['updated'], '2012-01-04T11:33:21Z')
+            elif v['id'] == 'v2.0':
+                self.assertEqual(v['updated'], '2012-11-21T11:33:21Z')
+            else:
+                self.fail("Invalid version found")
+
+        v1_url = "%sv1/" % BASE_URL
+        v2_url = "%sv2/" % BASE_URL
+
+        self.assertEqual(clean_data, [
+            {
+                'version': (1, 0),
+                'url': v1_url,
+                'raw_status': 'CURRENT',
+            },
+            {
+                'version': (2, 0),
+                'url': v2_url,
+                'raw_status': 'CURRENT',
+            },
+        ])
+
+        version = disc.data_for('v2.0')
+        self.assertEqual((2, 0), version['version'])
+        self.assertEqual('CURRENT', version['raw_status'])
+        self.assertEqual(v2_url, version['url'])
+
+        version = disc.data_for(1)
+        self.assertEqual((1, 0), version['version'])
+        self.assertEqual('CURRENT', version['raw_status'])
+        self.assertEqual(v1_url, version['url'])
+
+        self.assertIsNone(disc.url_for('v3'))
+        self.assertEqual(v2_url, disc.url_for('v2'))
+        self.assertEqual(v1_url, disc.url_for('v1'))
+
+        self.assertTrue(mock.called_once)
+
+    def test_glance_version_data(self):
+        mock = self.requests_mock.get(BASE_URL,
+                                      status_code=200,
+                                      json=GLANCE_EXAMPLES)
+
+        disc = discover.Discover(self.session, BASE_URL)
+        raw_data = disc.raw_version_data()
+        clean_data = disc.version_data()
+
+        self.assertEqual(5, len(raw_data))
+
+        for v in raw_data:
+            if v['id'] in ('v2.2', 'v1.1'):
+                self.assertEqual(v['status'], 'CURRENT')
+            elif v['id'] in ('v2.1', 'v2.0', 'v1.0'):
+                self.assertEqual(v['status'], 'SUPPORTED')
+            else:
+                self.fail("Invalid version found")
+
+        v1_url = '%sv1/' % BASE_URL
+        v2_url = '%sv2/' % BASE_URL
+
+        self.assertEqual(clean_data, [
+            {
+                'version': (1, 0),
+                'url': v1_url,
+                'raw_status': 'SUPPORTED',
+            },
+            {
+                'version': (1, 1),
+                'url': v1_url,
+                'raw_status': 'CURRENT',
+            },
+            {
+                'version': (2, 0),
+                'url': v2_url,
+                'raw_status': 'SUPPORTED',
+            },
+            {
+                'version': (2, 1),
+                'url': v2_url,
+                'raw_status': 'SUPPORTED',
+            },
+            {
+                'version': (2, 2),
+                'url': v2_url,
+                'raw_status': 'CURRENT',
+            },
+        ])
+
+        for ver in (2, 2.1, 2.2):
+            version = disc.data_for(ver)
+            self.assertEqual((2, 2), version['version'])
+            self.assertEqual('CURRENT', version['raw_status'])
+            self.assertEqual(v2_url, version['url'])
+            self.assertEqual(v2_url, disc.url_for(ver))
+
+        for ver in (1, 1.1):
+            version = disc.data_for(ver)
+            self.assertEqual((1, 1), version['version'])
+            self.assertEqual('CURRENT', version['raw_status'])
+            self.assertEqual(v1_url, version['url'])
+            self.assertEqual(v1_url, disc.url_for(ver))
+
+        self.assertIsNone(disc.url_for('v3'))
+        self.assertIsNone(disc.url_for('v2.3'))
+
+        self.assertTrue(mock.called_once)
+
+    def test_allow_deprecated(self):
+        status = 'deprecated'
+        version_list = [{'id': 'v3.0',
+                         'links': [{'href': V3_URL, 'rel': 'self'}],
+                         'media-types': V3_MEDIA_TYPES,
+                         'status': status,
+                         'updated': UPDATED}]
+        self.requests_mock.get(BASE_URL, json={'versions': version_list})
+
+        disc = discover.Discover(self.session, BASE_URL)
+
+        # deprecated is allowed by default
+        versions = disc.version_data(allow_deprecated=False)
+        self.assertEqual(0, len(versions))
+
+        versions = disc.version_data(allow_deprecated=True)
+        self.assertEqual(1, len(versions))
+        self.assertEqual(status, versions[0]['raw_status'])
+        self.assertEqual(V3_URL, versions[0]['url'])
+        self.assertEqual((3, 0), versions[0]['version'])
+
+    def test_allow_experimental(self):
+        status = 'experimental'
+        version_list = [{'id': 'v3.0',
+                         'links': [{'href': V3_URL, 'rel': 'self'}],
+                         'media-types': V3_MEDIA_TYPES,
+                         'status': status,
+                         'updated': UPDATED}]
+        self.requests_mock.get(BASE_URL, json={'versions': version_list})
+
+        disc = discover.Discover(self.session, BASE_URL)
+
+        versions = disc.version_data()
+        self.assertEqual(0, len(versions))
+
+        versions = disc.version_data(allow_experimental=True)
+        self.assertEqual(1, len(versions))
+        self.assertEqual(status, versions[0]['raw_status'])
+        self.assertEqual(V3_URL, versions[0]['url'])
+        self.assertEqual((3, 0), versions[0]['version'])
+
+    def test_allow_unknown(self):
+        status = 'abcdef'
+        version_list = fixture.DiscoveryList(BASE_URL,
+                                             v2=False,
+                                             v3_status=status)
+        self.requests_mock.get(BASE_URL, json=version_list)
+
+        disc = discover.Discover(self.session, BASE_URL)
+
+        versions = disc.version_data()
+        self.assertEqual(0, len(versions))
+
+        versions = disc.version_data(allow_unknown=True)
+        self.assertEqual(1, len(versions))
+        self.assertEqual(status, versions[0]['raw_status'])
+        self.assertEqual(V3_URL, versions[0]['url'])
+        self.assertEqual((3, 0), versions[0]['version'])
+
+    def test_ignoring_invalid_links(self):
+        version_list = [{'id': 'v3.0',
+                         'links': [{'href': V3_URL, 'rel': 'self'}],
+                         'media-types': V3_MEDIA_TYPES,
+                         'status': 'stable',
+                         'updated': UPDATED},
+                        {'id': 'v3.1',
+                         'media-types': V3_MEDIA_TYPES,
+                         'status': 'stable',
+                         'updated': UPDATED},
+                        {'media-types': V3_MEDIA_TYPES,
+                         'status': 'stable',
+                         'updated': UPDATED,
+                         'links': [{'href': V3_URL, 'rel': 'self'}],
+                         }]
+
+        self.requests_mock.get(BASE_URL, json={'versions': version_list})
+
+        disc = discover.Discover(self.session, BASE_URL)
+
+        # raw_version_data will return all choices, even invalid ones
+        versions = disc.raw_version_data()
+        self.assertEqual(3, len(versions))
+
+        # only the version with both id and links will be actually returned
+        versions = disc.version_data()
+        self.assertEqual(1, len(versions))
