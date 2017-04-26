@@ -10,6 +10,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from keystoneauth1.loading import adapter
 from keystoneauth1.loading.base import *  # noqa
 from keystoneauth1.loading import cli
 from keystoneauth1.loading import conf
@@ -31,6 +32,13 @@ load_session_from_argparse_arguments = session.load_from_argparse_arguments
 register_session_conf_options = session.register_conf_options
 load_session_from_conf_options = session.load_from_conf_options
 get_session_conf_options = session.get_conf_options
+
+register_adapter_argparse_arguments = adapter.register_argparse_arguments
+register_service_adapter_argparse_arguments = (
+    adapter.register_service_argparse_arguments)
+register_adapter_conf_options = adapter.register_conf_options
+load_adapter_from_conf_options = adapter.load_from_conf_options
+get_adapter_conf_options = adapter.get_conf_options
 
 
 __all__ = (
@@ -64,6 +72,13 @@ __all__ = (
     'register_session_conf_options',
     'load_session_from_conf_options',
     'get_session_conf_options',
+
+    # adapter
+    'register_adapter_argparse_arguments',
+    'register_service_adapter_argparse_arguments',
+    'register_adapter_conf_options',
+    'load_adapter_from_conf_options',
+    'get_adapter_conf_options',
 
     # loading.opts
     'Opt',

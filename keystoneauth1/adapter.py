@@ -237,6 +237,7 @@ class Adapter(object):
     def delete(self, url, **kwargs):
         return self.request(url, 'DELETE', **kwargs)
 
+    # TODO(efried): Move this to loading.adapter.Adapter
     @classmethod
     def register_argparse_arguments(cls, parser, service_type=None):
         """Attach arguments to a given argparse Parser for Adapters.
@@ -286,6 +287,7 @@ class Adapter(object):
             default=os.environ.get('OS_API_VERSION', None),
             help='Which version of the service API to use')
 
+    # TODO(efried): Move this to loading.adapter.Adapter
     @classmethod
     def register_service_argparse_arguments(cls, parser, service_type):
         """Attach arguments to a given argparse Parser for Adapters.
@@ -387,9 +389,13 @@ class LegacyJsonAdapter(Adapter):
         return resp, body
 
 
+# TODO(efried): Deprecate this in favor of
+#               loading.adapter.register_argparse_arguments
 def register_adapter_argparse_arguments(*args, **kwargs):
     return Adapter.register_argparse_arguments(*args, **kwargs)
 
 
+# TODO(efried): Deprecate this in favor of
+#               loading.adapter.register_service_argparse_arguments
 def register_service_adapter_argparse_arguments(*args, **kwargs):
     return Adapter.register_service_argparse_arguments(*args, **kwargs)
