@@ -70,6 +70,7 @@ class AuthenticateviaADFSTests(utils.TestCase):
             self.TEST_URL,
             'OS-FEDERATION/identity_providers/adfs/protocols/saml2/auth')
         self.SP_ENDPOINT = 'https://openstack4.local/Shibboleth.sso/ADFS'
+        self.SP_ENTITYID = 'https://openstack4.local'
 
         self.adfsplugin = saml2.V3ADFSPassword(
             self.TEST_URL, self.IDENTITY_PROVIDER,
@@ -119,6 +120,16 @@ class AuthenticateviaADFSTests(utils.TestCase):
         address = self.adfsplugin.prepared_request.xpath(
             self.ADDRESS_XPATH, namespaces=self.NAMESPACES)[0]
         self.assertEqual(self.SP_ENDPOINT, address.text)
+
+    def test_prepare_adfs_request_custom_endpointreference(self):
+        self.adfsplugin = saml2.V3ADFSPassword(
+            self.TEST_URL, self.IDENTITY_PROVIDER,
+            self.IDENTITY_PROVIDER_URL, self.SP_ENDPOINT,
+            self.TEST_USER, self.TEST_TOKEN, self.PROTOCOL, self.SP_ENTITYID)
+        self.adfsplugin._prepare_adfs_request()
+        address = self.adfsplugin.prepared_request.xpath(
+            self.ADDRESS_XPATH, namespaces=self.NAMESPACES)[0]
+        self.assertEqual(self.SP_ENTITYID, address.text)
 
     def test_prepare_sp_request(self):
         assertion = etree.XML(self.ADFS_SECURITY_TOKEN_RESPONSE)
