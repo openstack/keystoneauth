@@ -80,7 +80,7 @@ class Password(base.BaseSAMLPlugin):
         super(Password, self).__init__(
             auth_url=auth_url, identity_provider=identity_provider,
             identity_provider_url=identity_provider_url,
-            username=username, password=password, protocol=protocol)
+            username=username, password=password, protocol=protocol, **kwargs)
 
         self.service_provider_endpoint = service_provider_endpoint
 
