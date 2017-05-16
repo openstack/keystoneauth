@@ -50,7 +50,7 @@ class Password(base.BaseSAMLPlugin):
 
     def __init__(self, auth_url, identity_provider, identity_provider_url,
                  service_provider_endpoint, username, password,
-                 protocol, **kwargs):
+                 protocol, service_provider_entity_id=None, **kwargs):
         """Constructor for ``ADFSPassword``.
 
         :param auth_url: URL of the Identity Service
@@ -69,6 +69,8 @@ class Password(base.BaseSAMLPlugin):
         :param service_provider_endpoint: Endpoint where an assertion is being
             sent, for instance: ``https://host.domain/Shibboleth.sso/ADFS``
         :type service_provider_endpoint: string
+        :param service_provider_entity_id: Service Provider SAML Entity ID
+        :type service_provider_entity_id: string
 
         :param username: User's login
         :type username: string
@@ -83,6 +85,7 @@ class Password(base.BaseSAMLPlugin):
             username=username, password=password, protocol=protocol, **kwargs)
 
         self.service_provider_endpoint = service_provider_endpoint
+        self.service_provider_entity_id = service_provider_entity_id
 
     def _cookies(self, session):
         """Check if cookie jar is not empty.
@@ -256,7 +259,8 @@ class Password(base.BaseSAMLPlugin):
         username.text = self.username
         password.text = self.password
         to.text = self.identity_provider_url
-        wsa_address.text = self.service_provider_endpoint
+        wsa_address.text = (self.service_provider_entity_id or
+                            self.service_provider_endpoint)
 
         self.prepared_request = root
 

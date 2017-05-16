@@ -52,8 +52,13 @@ class ADFSPassword(loading.BaseFederationLoader):
         options = super(ADFSPassword, self).get_options()
 
         options.extend([
+            loading.Opt('identity-provider-url',
+                        help=('An Identity Provider URL, where the SAML '
+                              'authentication request will be sent.')),
             loading.Opt('service-provider-endpoint',
                         help="Service Provider's Endpoint"),
+            loading.Opt('service-provider-entity-id',
+                        help="Service Provider's SAML Entity ID"),
             loading.Opt('username', help='Username'),
             loading.Opt('password', secret=True, help='Password')
         ])
