@@ -38,7 +38,7 @@ dependencies there is no direct dependency from keystoneauth on oslo.config and
 instead options should be specified as :py:class:`~keystoneauth1.loading.Opt`
 objects.
 
-To ensure distinction between the plugins, the setuptools entypoints that
+To ensure distinction between the plugins, the setuptools entrypoints that
 plugins register at has been updated to reflect keystoneauth1 and should now
 be: keystoneauth1.plugin
 
