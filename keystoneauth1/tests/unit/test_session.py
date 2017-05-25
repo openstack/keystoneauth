@@ -900,6 +900,29 @@ class AdapterTest(utils.TestCase):
         self.assertTrue(adpt.auth.get_token_called)
         self.assertRequestHeaderEqual('User-Agent', self.USER_AGENT)
 
+    def test_setting_global_id_on_request(self):
+        global_id = "req-%s" % uuid.uuid4()
+        response = uuid.uuid4().hex
+        self.stub_url('GET', text=response)
+        adpt = adapter.Adapter(client_session.Session(),
+                               auth=CalledAuthPlugin(),
+                               service_type=self.SERVICE_TYPE,
+                               service_name=self.SERVICE_NAME,
+                               interface=self.INTERFACE,
+                               region_name=self.REGION_NAME,
+                               user_agent=self.USER_AGENT,
+                               version=self.VERSION,
+                               allow=self.ALLOW,
+                               global_request_id=global_id)
+        resp = adpt.get('/')
+        self.assertEqual(resp.text, response)
+
+        self._verify_endpoint_called(adpt)
+        self.assertEqual(self.ALLOW,
+                         adpt.auth.endpoint_arguments['allow'])
+        self.assertTrue(adpt.auth.get_token_called)
+        self.assertRequestHeaderEqual('X-OpenStack-Request-ID', global_id)
+
     def test_setting_variables_on_get_endpoint(self):
         adpt = self._create_loaded_adapter()
         url = adpt.get_endpoint()

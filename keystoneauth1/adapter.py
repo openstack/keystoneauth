@@ -60,6 +60,10 @@ class Adapter(object):
     :param bool allow_version_hack: Allow keystoneauth to hack up catalog
                                     URLS to support older schemes.
                                     (optional, default True)
+    :param str global_request_id: A global_request_id (in the form of
+                                  ``req-$uuid``) that will be passed on all
+                                  requests. Enables cross project request id
+                                  tracking.
     """
 
     client_name = None
@@ -71,7 +75,8 @@ class Adapter(object):
                  version=None, auth=None, user_agent=None,
                  connect_retries=None, logger=None, allow={},
                  additional_headers=None, client_name=None,
-                 client_version=None, allow_version_hack=None):
+                 client_version=None, allow_version_hack=None,
+                 global_request_id=None):
         # NOTE(jamielennox): when adding new parameters to adapter please also
         # add them to the adapter call in httpclient.HTTPClient.__init__ as
         # well as to load_adapter_from_argparse below if the argument is
@@ -91,6 +96,8 @@ class Adapter(object):
         self.allow = allow
         self.additional_headers = additional_headers or {}
         self.allow_version_hack = allow_version_hack
+
+        self.global_request_id = global_request_id
 
         if client_name:
             self.client_name = client_name
@@ -144,6 +151,10 @@ class Adapter(object):
 
         for k, v in self.additional_headers.items():
             kwargs.setdefault('headers', {}).setdefault(k, v)
+
+        if self.global_request_id is not None:
+            kwargs.setdefault('headers', {}).setdefault(
+                "X-OpenStack-Request-ID", self.global_request_id)
 
         return self.session.request(url, method, **kwargs)
 
