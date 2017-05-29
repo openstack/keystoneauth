@@ -359,6 +359,32 @@ class VersionDataTests(utils.TestCase):
 
         self.assertTrue(mock.called_once)
 
+    def test_data_for_url(self):
+        mock = self.requests_mock.get(V3_URL,
+                                      status_code=200,
+                                      json=V3_VERSION_ENTRY)
+
+        disc = discover.Discover(self.session, V3_URL)
+        for url in (V3_URL, V3_URL + '/'):
+            data = disc.versioned_data_for(url=url)
+            self.assertEqual(data['version'], (3, 0))
+            self.assertEqual(data['raw_status'], 'stable')
+            self.assertEqual(data['url'], V3_URL)
+
+        self.assertTrue(mock.called_once)
+
+    def test_data_for_no_version(self):
+        mock = self.requests_mock.get(V3_URL,
+                                      status_code=200,
+                                      json=V3_VERSION_ENTRY)
+
+        disc = discover.Discover(self.session, V3_URL)
+
+        self.assertIsNone(disc.versioned_data_for(version=None))
+        self.assertRaises(TypeError, disc.data_for, version=None)
+
+        self.assertTrue(mock.called_once)
+
     def test_keystone_version_data(self):
         mock = self.requests_mock.get(BASE_URL,
                                       status_code=300,
@@ -383,19 +409,21 @@ class VersionDataTests(utils.TestCase):
             self.assertIn(v['version'], ((2, 0), (3, 0)))
             self.assertEqual(v['raw_status'], 'stable')
 
-        version = disc.data_for('v3.0')
-        self.assertEqual((3, 0), version['version'])
-        self.assertEqual('stable', version['raw_status'])
-        self.assertEqual(V3_URL, version['url'])
+        for meth in (disc.data_for, disc.versioned_data_for):
+            version = meth('v3.0')
+            self.assertEqual((3, 0), version['version'])
+            self.assertEqual('stable', version['raw_status'])
+            self.assertEqual(V3_URL, version['url'])
 
-        version = disc.data_for(2)
-        self.assertEqual((2, 0), version['version'])
-        self.assertEqual('stable', version['raw_status'])
-        self.assertEqual(V2_URL, version['url'])
+            version = meth(2)
+            self.assertEqual((2, 0), version['version'])
+            self.assertEqual('stable', version['raw_status'])
+            self.assertEqual(V2_URL, version['url'])
 
-        self.assertIsNone(disc.url_for('v4'))
-        self.assertEqual(V3_URL, disc.url_for('v3'))
-        self.assertEqual(V2_URL, disc.url_for('v2'))
+        for meth in (disc.url_for, disc.versioned_url_for):
+            self.assertIsNone(meth('v4'))
+            self.assertEqual(V3_URL, meth('v3'))
+            self.assertEqual(V2_URL, meth('v2'))
 
         self.assertTrue(mock.called_once)
 
@@ -452,20 +480,22 @@ class VersionDataTests(utils.TestCase):
             },
         ])
 
-        version = disc.data_for('v2.0')
-        self.assertEqual((2, 0), version['version'])
-        self.assertEqual('CURRENT', version['raw_status'])
-        self.assertEqual(v2_url, version['url'])
+        for meth in (disc.data_for, disc.versioned_data_for):
+            version = meth('v2.0')
+            self.assertEqual((2, 0), version['version'])
+            self.assertEqual('CURRENT', version['raw_status'])
+            self.assertEqual(v2_url, version['url'])
 
-        version = disc.data_for(1)
-        self.assertEqual((1, 0), version['version'])
-        self.assertEqual('CURRENT', version['raw_status'])
-        self.assertEqual(v1_url, version['url'])
+            version = meth(1)
+            self.assertEqual((1, 0), version['version'])
+            self.assertEqual('CURRENT', version['raw_status'])
+            self.assertEqual(v1_url, version['url'])
 
-        self.assertIsNone(disc.url_for('v4'))
-        self.assertEqual(v3_url, disc.url_for('v3'))
-        self.assertEqual(v2_url, disc.url_for('v2'))
-        self.assertEqual(v1_url, disc.url_for('v1'))
+        for meth in (disc.url_for, disc.versioned_url_for):
+            self.assertIsNone(meth('v4'))
+            self.assertEqual(v3_url, meth('v3'))
+            self.assertEqual(v2_url, meth('v2'))
+            self.assertEqual(v1_url, meth('v1'))
 
         self.assertTrue(mock.called_once)
 
@@ -534,22 +564,24 @@ class VersionDataTests(utils.TestCase):
             },
         ])
 
-        for ver in (2, 2.1, 2.2):
-            version = disc.data_for(ver)
-            self.assertEqual((2, 2), version['version'])
-            self.assertEqual('CURRENT', version['raw_status'])
-            self.assertEqual(v2_url, version['url'])
-            self.assertEqual(v2_url, disc.url_for(ver))
+        for meth in (disc.data_for, disc.versioned_data_for):
+            for ver in (2, 2.1, 2.2):
+                version = meth(ver)
+                self.assertEqual((2, 2), version['version'])
+                self.assertEqual('CURRENT', version['raw_status'])
+                self.assertEqual(v2_url, version['url'])
+                self.assertEqual(v2_url, disc.url_for(ver))
 
-        for ver in (1, 1.1):
-            version = disc.data_for(ver)
-            self.assertEqual((1, 1), version['version'])
-            self.assertEqual('CURRENT', version['raw_status'])
-            self.assertEqual(v1_url, version['url'])
-            self.assertEqual(v1_url, disc.url_for(ver))
+            for ver in (1, 1.1):
+                version = meth(ver)
+                self.assertEqual((1, 1), version['version'])
+                self.assertEqual('CURRENT', version['raw_status'])
+                self.assertEqual(v1_url, version['url'])
+                self.assertEqual(v1_url, disc.url_for(ver))
 
-        self.assertIsNone(disc.url_for('v3'))
-        self.assertIsNone(disc.url_for('v2.3'))
+        for meth in (disc.url_for, disc.versioned_url_for):
+            self.assertIsNone(meth('v3'))
+            self.assertIsNone(meth('v2.3'))
 
         self.assertTrue(mock.called_once)
 
