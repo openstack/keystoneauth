@@ -272,6 +272,51 @@ class Discover(object):
         return data['url'] if data else None
 
 
+class EndpointData(object):
+    """Normalized information about a discovered endpoint.
+
+    Contains url, version, microversion, interface and region information.
+    This is essentially the data contained in the catalog and the version
+    discovery documents about an endpoint that is used to select the endpoint
+    desired by the user. It is returned so that a user can know which qualities
+    a discovered endpoint had, in case their request allowed for a range of
+    possibilities.
+    """
+
+    @positional()
+    def __init__(self,
+                 catalog_url=None,
+                 service_url=None,
+                 service_type=None,
+                 service_name=None,
+                 service_id=None,
+                 region_name=None,
+                 interface=None,
+                 endpoint_id=None,
+                 raw_endpoint=None,
+                 api_version=None,
+                 major_version=None,
+                 min_microversion=None,
+                 max_microversion=None):
+        self.catalog_url = catalog_url
+        self.service_url = service_url
+        self.service_type = service_type
+        self.service_name = service_name
+        self.service_id = service_id
+        self.interface = interface
+        self.region_name = region_name
+        self.endpoint_id = endpoint_id
+        self.raw_endpoint = raw_endpoint
+        self.api_version = api_version
+        self.major_version = major_version
+        self.min_microversion = min_microversion
+        self.max_microversion = max_microversion
+
+    @property
+    def url(self):
+        return self.service_url or self.catalog_url
+
+
 class _VersionHacks(object):
     """A container to abstract the list of version hacks.
 
@@ -313,17 +358,21 @@ _VERSION_HACKS = _VersionHacks()
 _VERSION_HACKS.add_discover_hack('identity', re.compile('/v2.0/?$'), '/')
 
 
-def _get_catalog_discover_hack(service_type, url):
+def _get_catalog_discover_hack(endpoint_data, allow_version_hack=True):
     """Apply the catalog hacks and figure out an unversioned endpoint.
 
     This function is internal to keystoneauth1.
 
-    :param str service_type: the service_type to look up.
-    :param str url: The original url that came from a service_catalog.
+    :param str endpoint_data: the endpoint_data in question
+    :param bool allow_version_hacks: Whether or not to allow version hacks
+                                     to be applied. (defaults to True)
 
     :returns: Either the unversioned url or the one from the catalog to try.
     """
-    return _VERSION_HACKS.get_discover_hack(service_type, url)
+    if allow_version_hack:
+        return _VERSION_HACKS.get_discover_hack(endpoint_data.service_type,
+                                                endpoint_data.url)
+    return endpoint_data.url
 
 
 def add_catalog_discover_hack(service_type, old, new):
