@@ -21,9 +21,11 @@ This includes functions like url_for which allow you to retrieve URLs and the
 raw data specified in version discovery responses.
 """
 
+import copy
 import re
 
 from positional import positional
+from six.moves import urllib
 
 from keystoneauth1 import _utils as utils
 from keystoneauth1 import exceptions
@@ -102,6 +104,11 @@ def normalize_version_number(version):
     raise TypeError('Invalid version specified: %s' % version)
 
 
+def version_to_string(version):
+    """Turn a version tuple into a string."""
+    return ".".join([str(x) for x in version])
+
+
 def version_match(required, candidate):
     """Test that an available version satisfies the required version.
 
@@ -128,6 +135,19 @@ def version_match(required, candidate):
     return True
 
 
+def _combine_relative_url(discovery_url, version_url):
+    # NOTE(jamielennox): urllib.parse.urljoin allows the url to be relative
+    # or even protocol-less. The additional trailing '/' makes urljoin respect
+    # the current path as canonical even if the url doesn't include it. for
+    # example a "v2" path from http://host/admin should resolve as
+    # http://host/admin/v2 where it would otherwise be host/v2. This has no
+    # effect on absolute urls.
+    url = urllib.parse.urljoin(discovery_url.rstrip('/') + '/', version_url)
+
+    # Parse and recombine the result to squish double //'s from the above
+    return urllib.parse.urlparse(url).geturl()
+
+
 class Discover(object):
 
     CURRENT_STATUSES = ('stable', 'current', 'supported')
@@ -136,6 +156,7 @@ class Discover(object):
 
     @positional()
     def __init__(self, session, url, authenticated=None):
+        self._url = url
         self._data = get_version_data(session, url,
                                       authenticated=authenticated)
 
@@ -218,7 +239,7 @@ class Discover(object):
             for link in links:
                 try:
                     rel = link['rel']
-                    url = link['href']
+                    url = _combine_relative_url(self._url, link['href'])
                 except (KeyError, TypeError):
                     _LOGGER.info('Skipping invalid version link. '
                                  'Missing link URL or relationship.')
@@ -312,9 +333,196 @@ class EndpointData(object):
         self.min_microversion = min_microversion
         self.max_microversion = max_microversion
 
+    def __copy__(self):
+        """Return a new EndpointData based on this one."""
+        return EndpointData(
+            catalog_url=self.catalog_url,
+            service_url=self.service_url,
+            service_type=self.service_type,
+            service_name=self.service_name,
+            service_id=self.service_id,
+            region_name=self.region_name,
+            interface=self.interface,
+            endpoint_id=self.endpoint_id,
+            raw_endpoint=self.raw_endpoint,
+            api_version=self.api_version,
+            major_version=self.major_version,
+            min_microversion=self.min_microversion,
+            max_microversion=self.max_microversion)
+
     @property
     def url(self):
         return self.service_url or self.catalog_url
+
+    @positional(3)
+    def get_versioned_data(self, session, version,
+                           authenticated=False, allow=None, cache=None,
+                           allow_version_hack=True):
+        """Run version discovery for the service described.
+
+        Performs Version Discovery and returns a new EndpointData object with
+        information found.
+
+        :param session: A session object that can be used for communication.
+        :type session: keystoneauth1.session.Session
+        :param tuple version: The minimum major version required for this
+                              endpoint.
+        :param dict allow: Extra filters to pass when discovering API
+                           versions. (optional)
+        :param bool allow_version_hack: Allow keystoneauth to hack up catalog
+                                        URLS to support older schemes.
+                                        (optional, default True)
+        :param dict cache: A dict to be used for caching results in
+                           addition to caching them on the Session.
+                           (optional)
+        :param bool authenticated: Include a token in the discovery call.
+                                   (optional) Defaults to False.
+
+        :raises keystoneauth1.exceptions.http.HttpError: An error from an
+                                                         invalid HTTP response.
+        """
+        if not allow:
+            allow = {}
+
+        # This method should always return a new EndpointData
+        new_data = copy.copy(self)
+
+        if not version:
+            # NOTE(jamielennox): This may not be the best thing to default to
+            # but is here for backwards compatibility. It may be worth
+            # defaulting to the most recent version.
+            return new_data
+
+        # NOTE(jamielennox): For backwards compatibility people might have a
+        # versioned endpoint in their catalog even though they want to use
+        # other endpoint versions. So we support a list of client defined
+        # situations where we can strip the version component from a URL before
+        # doing discovery.
+        vers_url = new_data._get_catalog_discover_hack(allow_version_hack)
+
+        try:
+            disc = get_discovery(session, vers_url,
+                                 cache=cache,
+                                 authenticated=False)
+        except (exceptions.DiscoveryFailure,
+                exceptions.HttpError,
+                exceptions.ConnectionError):
+            # NOTE(jamielennox): The logic here is required for backwards
+            # compatibility. By itself it is not ideal.
+
+            if allow_version_hack:
+                # NOTE(jamielennox): Again if we can't contact the server we
+                # fall back to just returning the URL from the catalog.  This
+                # is backwards compatible behaviour and used when there is no
+                # other choice. Realistically if you have provided a version
+                # you should be able to rely on that version being returned or
+                # the request failing.
+                _LOGGER.warning(
+                    'Failed to contact the endpoint at %s for '
+                    'discovery. Fallback to using that endpoint as '
+                    'the base url.', self.url)
+
+            else:
+                # NOTE(jamielennox): If you've said no to allow_version_hack
+                # and you can't determine the actual URL this is a failure
+                # because we are specifying that the deployment must be up to
+                # date enough to properly specify a version and keystoneauth
+                # can't deliver.
+                raise
+
+        else:
+            url = disc.url_for(version, **allow)
+            if not url:
+                raise exceptions.DiscoveryFailure(
+                    "Version {version} requested, but was not found".format(
+                        version=version_to_string(version)))
+            new_data.service_url = url
+        return new_data
+
+    def _get_catalog_discover_hack(self, allow_version_hack=True):
+        """Apply the catalog hacks and figure out an unversioned endpoint.
+
+        This function is internal to keystoneauth1.
+
+        :param bool allow_version_hack: Whether or not to allow version hacks
+                                        to be applied. (defaults to True)
+
+        :returns: Either the unversioned url or the one from the catalog to try
+        """
+        if allow_version_hack:
+            return _VERSION_HACKS.get_discover_hack(self.service_type,
+                                                    self.url)
+        return self.url
+
+
+@positional()
+def get_discovery(session, url, cache=None, authenticated=False):
+    """Return the discovery object for a URL.
+
+    Check the session and the plugin cache to see if we have already
+    performed discovery on the URL and if so return it, otherwise create
+    a new discovery object, cache it and return it.
+
+    NOTE: This function is expected to be used by keystoneauth and should not
+    be needed by users part of normal usage. A normal user should use
+    get_endpoint or get_endpoint_data on `keystoneauth.session.Session` or
+    endpoint_filters on `keystoneauth.session.Session` or
+    `keystoneauth.session.Session`. However, should the user need to perform
+    direct discovery for some reason, this function should be used so that
+    the discovery caching is used.
+
+    :param session: A session object to discover with.
+    :type session: keystoneauth1.session.Session
+    :param str url: The url to lookup.
+    :param dict cache:
+        A dict to be used for caching results, in addition to caching them
+        on the Session. (optional) Defaults to None.
+    :param bool authenticated:
+        Include a token in the discovery call. (optional) Defaults to None,
+        which will use a token if an auth plugin is installed.
+
+    :raises keystoneauth1.exceptions.discovery.DiscoveryFailure:
+        if for some reason the lookup fails.
+    :raises keystoneauth1.exceptions.http.HttpError:
+        An error from an invalid HTTP response.
+
+    :returns: A discovery object with the results of looking up that URL.
+    :rtype: :py:class:`keystoneauth1.discover.Discovery`
+    """
+    # There are between one and three different caches. The user may have
+    # passed one in. There is definitely one on the session, and there is
+    # one on the auth plugin if the Session has an auth plugin.
+    caches = []
+
+    # If a cache was passed in, check it first.
+    if cache is not None:
+        caches.append(cache)
+
+    # If the session has a cache, check it second, since it could have been
+    # provided by the user at Session creation time.
+    if hasattr(session, '_discovery_cache'):
+        caches.append(session._discovery_cache)
+
+    # Finally check the auth cache associated with the Session.
+    if session.auth and hasattr(session.auth, '_discovery_cache'):
+        caches.append(session.auth._discovery_cache)
+
+    for cache in caches:
+        disc = cache.get(url)
+
+        if disc:
+            break
+    else:
+        disc = Discover(session, url, authenticated=authenticated)
+
+    # Whether we get one from fetching or from cache, set it in the
+    # caches. This assures that if we combine sessions and auth plugins
+    # that we don't make unnecesary calls.
+    if disc:
+        for cache in caches:
+            cache[url] = disc
+
+    return disc
 
 
 class _VersionHacks(object):
@@ -356,23 +564,6 @@ class _VersionHacks(object):
 
 _VERSION_HACKS = _VersionHacks()
 _VERSION_HACKS.add_discover_hack('identity', re.compile('/v2.0/?$'), '/')
-
-
-def _get_catalog_discover_hack(endpoint_data, allow_version_hack=True):
-    """Apply the catalog hacks and figure out an unversioned endpoint.
-
-    This function is internal to keystoneauth1.
-
-    :param str endpoint_data: the endpoint_data in question
-    :param bool allow_version_hacks: Whether or not to allow version hacks
-                                     to be applied. (defaults to True)
-
-    :returns: Either the unversioned url or the one from the catalog to try.
-    """
-    if allow_version_hack:
-        return _VERSION_HACKS.get_discover_hack(endpoint_data.service_type,
-                                                endpoint_data.url)
-    return endpoint_data.url
 
 
 def add_catalog_discover_hack(service_type, old, new):

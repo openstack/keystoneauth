@@ -18,7 +18,6 @@ import threading
 
 from positional import positional
 import six
-from six.moves import urllib
 
 from keystoneauth1 import _utils as utils
 from keystoneauth1 import access
@@ -223,62 +222,15 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
             if not endpoint_data:
                 return None
 
-        if not version:
-            # NOTE(jamielennox): This may not be the best thing to default to
-            # but is here for backwards compatibility. It may be worth
-            # defaulting to the most recent version.
-            return endpoint_data
-
-        # NOTE(jamielennox): For backwards compatibility people might have a
-        # versioned endpoint in their catalog even though they want to use
-        # other endpoint versions. So we support a list of client defined
-        # situations where we can strip the version component from a URL before
-        # doing discovery.
-        vers_url = discover._get_catalog_discover_hack(
-            endpoint_data, allow_version_hack=allow_version_hack)
-
         try:
-            disc = self.get_discovery(session, vers_url, authenticated=False)
+            return endpoint_data.get_versioned_data(
+                session, version, authenticated=False,
+                cache=self._discovery_cache,
+                allow_version_hack=allow_version_hack, allow=allow)
         except (exceptions.DiscoveryFailure,
                 exceptions.HttpError,
                 exceptions.ConnectionError):
-            # NOTE(jamielennox): The logic here is required for backwards
-            # compatibility. By itself it is not ideal.
-
-            if allow_version_hack:
-                # NOTE(jamielennox): Again if we can't contact the server we
-                # fall back to just returning the URL from the catalog.  This
-                # is backwards compatible behaviour and used when there is no
-                # other choice. Realistically if you have provided a version
-                # you should be able to rely on that version being returned or
-                # the request failing.
-                LOG.warning('Failed to contact the endpoint at %s for '
-                            'discovery. Fallback to using that endpoint as '
-                            'the base url.', endpoint_data.url)
-
-            else:
-                # NOTE(jamielennox): If you've said no to allow_version_hack
-                # and you can't determine the actual URL this is a failure
-                # because we are specifying that the deployment must be up to
-                # date enough to properly specify a version and keystoneauth
-                # can't deliver.
-                return None
-
-        else:
-            # NOTE(jamielennox): urljoin allows the url to be relative or even
-            # protocol-less. The additional trailing '/' make urljoin respect
-            # the current path as canonical even if the url doesn't include it.
-            # for example a "v2" path from http://host/admin should resolve as
-            # http://host/admin/v2 where it would otherwise be host/v2.
-            # This has no effect on absolute urls returned from url_for.
-            url = disc.url_for(version, **allow)
-            if not url:
-                return None
-
-            url = urllib.parse.urljoin(vers_url.rstrip('/') + '/', url)
-            endpoint_data.service_url = url
-
-        return endpoint_data
+            return None
 
     def get_endpoint(self, session, service_type=None, interface=None,
                      region_name=None, service_name=None, version=None,
@@ -368,37 +320,9 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
 
         :returns: A discovery object with the results of looking up that URL.
         """
-        # There are between one and three different caches. The user may have
-        # passed one in. There is definitely one on the session, and there is
-        # one on the auth plugin if the Session has an auth plugin.
-        caches = []
-
-        # If the session has a cache, check it first, since it could have been
-        # provided by the user at Session creation time.
-        if not hasattr(session, '_discovery_cache'):
-            session._discovery_cache = {}
-        caches.append(session._discovery_cache)
-
-        # Check the auth cache
-        caches.append(self._discovery_cache)
-
-        for cache in caches:
-            disc = cache.get(url)
-
-            if disc:
-                break
-        else:
-            disc = discover.Discover(session, url,
-                                     authenticated=authenticated)
-
-        if disc:
-            # Whether we get one from fetching or from cache, set it in the
-            # caches. This assures that if we combine sessions and auth plugins
-            # that we don't make unnecesary calls.
-            for cache in caches:
-                cache[url] = disc
-
-        return disc
+        return discover.get_discovery(session=session, url=url,
+                                      cache=self._discovery_cache,
+                                      authenticated=authenticated)
 
     def get_cache_id_elements(self):
         """Get the elements for this auth plugin that make it unique.

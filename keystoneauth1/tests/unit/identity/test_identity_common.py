@@ -14,9 +14,11 @@ import abc
 import uuid
 
 import six
+from six.moves import urllib
 
 from keystoneauth1 import _utils
 from keystoneauth1 import access
+from keystoneauth1 import discover
 from keystoneauth1 import exceptions
 from keystoneauth1 import fixture
 from keystoneauth1 import identity
@@ -175,7 +177,8 @@ class CommonIdentityTests(object):
         self.stub_url('GET', ['path'], text=body)
 
         # now either of the two sessions I use, it should not cause a second
-        # request to the discovery url.
+        # request to the discovery url. Calling discovery directly should also
+        # not cause an additional request.
         sa = session.Session()
         sb = session.Session()
         auth = self.create_auth_plugin()
@@ -214,6 +217,33 @@ class CommonIdentityTests(object):
             self.assertEqual(200, resp.status_code)
             self.assertEqual(body, resp.text)
 
+    def test_direct_discovery_provided_plugin_cache(self):
+        # register responses such that if the discovery URL is hit more than
+        # once then the response will be invalid and not point to COMPUTE_ADMIN
+        resps = [{'json': self.TEST_DISCOVERY}, {'status_code': 500}]
+        self.requests_mock.get(self.TEST_COMPUTE_ADMIN, resps)
+
+        body = 'SUCCESS'
+        self.stub_url('GET', ['path'], text=body)
+
+        # now either of the two sessions I use, it should not cause a second
+        # request to the discovery url. Calling discovery directly should also
+        # not cause an additional request.
+        sa = session.Session()
+        sb = session.Session()
+        discovery_cache = {}
+
+        expected_url = urllib.parse.urljoin(self.TEST_ROOT_URL, '/v2.0')
+        for sess in (sa, sb):
+
+            disc = discover.get_discovery(
+                sess, self.TEST_COMPUTE_ADMIN, cache=discovery_cache)
+            url = disc.url_for(('2', '0'))
+
+            self.assertEqual(expected_url, url)
+
+        self.assertIn(self.TEST_COMPUTE_ADMIN, discovery_cache.keys())
+
     def test_discovering_with_no_data(self):
         # which returns discovery information pointing to TEST_URL but there is
         # no data there.
@@ -236,6 +266,20 @@ class CommonIdentityTests(object):
         self.assertEqual(200, resp.status_code)
         self.assertEqual(body, resp.text)
 
+    def test_direct_discovering_with_no_data(self):
+        # returns discovery information pointing to TEST_URL but there is
+        # no data there.
+        self.stub_url('GET', [],
+                      base_url=self.TEST_COMPUTE_ADMIN,
+                      status_code=400)
+
+        a = self.create_auth_plugin()
+        s = session.Session(auth=a)
+
+        # A direct call for discovery should fail
+        self.assertRaises(exceptions.BadRequest,
+                          discover.get_discovery, s, self.TEST_COMPUTE_ADMIN)
+
     def test_discovering_with_relative_link(self):
         # need to construct list this way for relative
         disc = fixture.DiscoveryList(v2=False, v3=False)
@@ -257,6 +301,64 @@ class CommonIdentityTests(object):
 
         self.assertEqual(self.TEST_COMPUTE_ADMIN + '/v2.0', endpoint_v2)
         self.assertEqual(self.TEST_COMPUTE_ADMIN + '/v3', endpoint_v3)
+
+    def test_direct_discovering(self):
+        v2_compute = self.TEST_COMPUTE_ADMIN + '/v2.0'
+        v3_compute = self.TEST_COMPUTE_ADMIN + '/v3'
+
+        disc = fixture.DiscoveryList(v2=False, v3=False)
+        disc.add_v2(v2_compute)
+        disc.add_v3(v3_compute)
+
+        self.stub_url('GET', [], base_url=self.TEST_COMPUTE_ADMIN, json=disc)
+
+        a = self.create_auth_plugin()
+        s = session.Session(auth=a)
+
+        catalog_url = s.get_endpoint(
+            service_type='compute', interface='admin')
+        disc = discover.get_discovery(s, catalog_url)
+
+        url_v2 = disc.url_for(('2', '0'))
+        url_v3 = disc.url_for(('3', '0'))
+
+        self.assertEqual(v2_compute, url_v2)
+        self.assertEqual(v3_compute, url_v3)
+
+        # Verify that passing strings and not tuples works
+        url_v2 = disc.url_for('2.0')
+        url_v3 = disc.url_for('3.0')
+
+        self.assertEqual(v2_compute, url_v2)
+        self.assertEqual(v3_compute, url_v3)
+
+    def test_direct_discovering_with_relative_link(self):
+        # need to construct list this way for relative
+        disc = fixture.DiscoveryList(v2=False, v3=False)
+        disc.add_v2('v2.0')
+        disc.add_v3('v3')
+
+        self.stub_url('GET', [], base_url=self.TEST_COMPUTE_ADMIN, json=disc)
+
+        a = self.create_auth_plugin()
+        s = session.Session(auth=a)
+
+        catalog_url = s.get_endpoint(
+            service_type='compute', interface='admin')
+        disc = discover.get_discovery(s, catalog_url)
+
+        url_v2 = disc.url_for(('2', '0'))
+        url_v3 = disc.url_for(('3', '0'))
+
+        self.assertEqual(self.TEST_COMPUTE_ADMIN + '/v2.0', url_v2)
+        self.assertEqual(self.TEST_COMPUTE_ADMIN + '/v3', url_v3)
+
+        # Verify that passing strings and not tuples works
+        url_v2 = disc.url_for('2.0')
+        url_v3 = disc.url_for('3.0')
+
+        self.assertEqual(self.TEST_COMPUTE_ADMIN + '/v2.0', url_v2)
+        self.assertEqual(self.TEST_COMPUTE_ADMIN + '/v3', url_v3)
 
     def test_discovering_with_relative_anchored_link(self):
         # need to construct list this way for relative
@@ -327,6 +429,74 @@ class CommonIdentityTests(object):
 
         self.assertEqual(self.TEST_COMPUTE_ADMIN + '/v2.0', endpoint_v2)
         self.assertIsNone(endpoint_v3)
+
+    def test_endpoint_data_no_version(self):
+        a = self.create_auth_plugin()
+        s = session.Session(auth=a)
+
+        data = a.get_endpoint_data(session=s,
+                                   service_type='compute',
+                                   interface='admin')
+
+        self.assertEqual(self.TEST_COMPUTE_ADMIN, data.url)
+
+    def test_endpoint_data_relative_version(self):
+        # need to construct list this way for relative
+        disc = fixture.DiscoveryList(v2=False, v3=False)
+        disc.add_v2('v2.0')
+        disc.add_v3('v3')
+
+        self.stub_url('GET', [], base_url=self.TEST_COMPUTE_ADMIN, json=disc)
+
+        a = self.create_auth_plugin()
+        s = session.Session(auth=a)
+
+        data_v2 = a.get_endpoint_data(session=s,
+                                      service_type='compute',
+                                      interface='admin',
+                                      version=(2, 0))
+        data_v3 = a.get_endpoint_data(session=s,
+                                      service_type='compute',
+                                      interface='admin',
+                                      version=(3, 0))
+
+        self.assertEqual(self.TEST_COMPUTE_ADMIN + '/v2.0', data_v2.url)
+        self.assertEqual(self.TEST_COMPUTE_ADMIN + '/v3', data_v3.url)
+
+    def test_get_versioned_data(self):
+        v2_compute = self.TEST_COMPUTE_ADMIN + '/v2.0'
+        v3_compute = self.TEST_COMPUTE_ADMIN + '/v3'
+
+        disc = fixture.DiscoveryList(v2=False, v3=False)
+        disc.add_v2(v2_compute)
+        disc.add_v3(v3_compute)
+
+        # Make sure that we don't do more than one discovery call
+        # register responses such that if the discovery URL is hit more than
+        # once then the response will be invalid and not point to COMPUTE_ADMIN
+        resps = [{'json': disc}, {'status_code': 500}]
+        self.requests_mock.get(self.TEST_COMPUTE_ADMIN, resps)
+
+        body = 'SUCCESS'
+        self.stub_url('GET', ['path'], text=body)
+
+        a = self.create_auth_plugin()
+        s = session.Session(auth=a)
+
+        data = a.get_endpoint_data(session=s,
+                                   service_type='compute',
+                                   interface='admin')
+        self.assertEqual(self.TEST_COMPUTE_ADMIN, data.url)
+
+        v2_data = data.get_versioned_data(s, version='2.0')
+        self.assertEqual(v2_compute, v2_data.url)
+        self.assertEqual(v2_compute, v2_data.service_url)
+        self.assertEqual(self.TEST_COMPUTE_ADMIN, v2_data.catalog_url)
+
+        v3_data = data.get_versioned_data(s, version='3.0')
+        self.assertEqual(v3_compute, v3_data.url)
+        self.assertEqual(v3_compute, v3_data.service_url)
+        self.assertEqual(self.TEST_COMPUTE_ADMIN, v3_data.catalog_url)
 
     def test_asking_for_auth_endpoint_ignores_checks(self):
         a = self.create_auth_plugin()
