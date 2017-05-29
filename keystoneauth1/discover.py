@@ -339,6 +339,12 @@ class Discover(object):
                   match.
         :rtype: dict
         """
+        version_data = self.version_data(reverse=True, **kwargs)
+
+        if version == 'latest':
+            # because we reverse we can just take the first entry
+            return version_data[0]
+
         if version:
             version = normalize_version_number(version)
         if url:

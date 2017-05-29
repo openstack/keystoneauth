@@ -1040,6 +1040,45 @@ class CatalogHackTests(utils.TestCase):
         # got v2 url
         self.assertEqual(self.V2_URL, endpoint)
 
+    def test_latest_version_gets_latest_version(self):
+        common_disc = fixture.DiscoveryList(href=self.BASE_URL)
+
+        # 2.0 doesn't usually return a list. But we're testing version matching
+        # rules, so it's nice to ensure that we don't fallback to something
+        v2_m = self.stub_url('GET',
+                             base_url=self.BASE_URL,
+                             status_code=200,
+                             json=common_disc)
+
+        token = fixture.V2Token()
+        service = token.add_service(self.IDENTITY)
+        service.add_endpoint(public=self.V2_URL,
+                             admin=self.V2_URL,
+                             internal=self.V2_URL)
+
+        self.stub_url('POST',
+                      ['tokens'],
+                      base_url=self.V2_URL,
+                      json=token)
+
+        v2_auth = identity.V2Password(self.V2_URL,
+                                      username=uuid.uuid4().hex,
+                                      password=uuid.uuid4().hex)
+
+        sess = session.Session(auth=v2_auth)
+
+        # v2 auth with v2 url doesn't make any discovery calls.
+        self.assertFalse(v2_m.called)
+
+        endpoint = sess.get_endpoint(service_type=self.IDENTITY,
+                                     version='latest')
+
+        # We should make the one call
+        self.assertTrue(v2_m.called)
+
+        # And get the v3 url
+        self.assertEqual(self.V3_URL, endpoint)
+
     def test_getting_endpoints_on_auth_interface(self):
         disc = fixture.DiscoveryList(href=self.BASE_URL)
         self.stub_url('GET',
