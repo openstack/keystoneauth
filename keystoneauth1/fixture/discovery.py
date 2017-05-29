@@ -17,6 +17,7 @@ from keystoneauth1 import _utils as utils
 __all__ = ('DiscoveryList',
            'V2Discovery',
            'V3Discovery',
+           'VersionDiscovery',
            )
 
 _DEFAULT_DAYS_AGO = 30
@@ -93,6 +94,103 @@ class DiscoveryBase(dict):
         mt = {'base': base, 'type': type}
         self.media_types.append(mt)
         return mt
+
+
+class VersionDiscovery(DiscoveryBase):
+    """A Version element for non-keystone services without microversions.
+
+    Provides some default values and helper methods for creating a microversion
+    endpoint version structure. Clients should use this instead of creating
+    their own structures.
+
+    :param string href: The url that this entry should point to.
+    :param string id: The version id that should be reported.
+    """
+
+    def __init__(self, href, id, **kwargs):
+        super(VersionDiscovery, self).__init__(id, **kwargs)
+
+        self.add_link(href)
+
+
+class MicroversionDiscovery(DiscoveryBase):
+    """A Version element for that has microversions.
+
+    Provides some default values and helper methods for creating a microversion
+    endpoint version structure. Clients should use this instead of creating
+    their own structures.
+
+    :param string href: The url that this entry should point to.
+    :param string id: The version id that should be reported.
+    :param string min_version: The minimum supported microversion. (optional)
+    :param string max_version: The maximum supported microversion. (optional)
+    """
+
+    @positional()
+    def __init__(self, href, id, min_version='', max_version='', **kwargs):
+        super(MicroversionDiscovery, self).__init__(id, **kwargs)
+
+        self.add_link(href)
+
+        self.min_version = min_version
+        self.max_version = max_version
+
+    @property
+    def min_version(self):
+        return self.get('min_version')
+
+    @min_version.setter
+    def min_version(self, value):
+        self['min_version'] = value
+
+    @property
+    def max_version(self):
+        return self.get('max_version')
+
+    @max_version.setter
+    def max_version(self, value):
+        self['max_version'] = value
+
+
+class NovaMicroversionDiscovery(DiscoveryBase):
+    """A Version element with nova-style microversions.
+
+    Provides some default values and helper methods for creating a microversion
+    endpoint version structure. Clients should use this instead of creating
+    their own structures.
+
+    :param href: The url that this entry should point to.
+    :param string id: The version id that should be reported.
+    :param string min_version: The minimum microversion supported. (optional)
+    :param string version: The maximum microversion supported. (optional)
+    """
+
+    @positional()
+    def __init__(self, href, id, min_version=None, version=None, **kwargs):
+        super(NovaMicroversionDiscovery, self).__init__(id, **kwargs)
+
+        self.add_link(href)
+
+        self.min_version = min_version
+        self.version = version
+
+    @property
+    def min_version(self):
+        return self.get('min_version')
+
+    @min_version.setter
+    def min_version(self, value):
+        if value:
+            self['min_version'] = value
+
+    @property
+    def version(self):
+        return self.get('version')
+
+    @version.setter
+    def version(self, value):
+        if value:
+            self['version'] = value
 
 
 class V2Discovery(DiscoveryBase):
@@ -253,5 +351,23 @@ class DiscoveryList(dict):
         The parameters are the same as V3Discovery.
         """
         obj = V3Discovery(href, **kwargs)
+        self.add_version(obj)
+        return obj
+
+    def add_microversion(self, href, id, **kwargs):
+        """Add a microversion version to the list.
+
+        The parameters are the same as MicroversionDiscovery.
+        """
+        obj = MicroversionDiscovery(href=href, id=id, **kwargs)
+        self.add_version(obj)
+        return obj
+
+    def add_nova_microversion(self, href, id, **kwargs):
+        """Add a nova microversion version to the list.
+
+        The parameters are the same as NovaMicroversionDiscovery.
+        """
+        obj = NovaMicroversionDiscovery(href=href, id=id, **kwargs)
         self.add_version(obj)
         return obj

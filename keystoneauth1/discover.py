@@ -25,6 +25,7 @@ import copy
 import re
 
 from positional import positional
+import six
 from six.moves import urllib
 
 from keystoneauth1 import _utils as utils
@@ -74,31 +75,39 @@ def get_version_data(session, url, authenticated=None):
 
 def normalize_version_number(version):
     """Turn a version representation into a tuple."""
-    # trim the v from a 'v2.0' or similar
-    try:
-        version = version.lstrip('v')
-    except AttributeError:
-        pass
-
     # if it's an integer or a numeric as a string then normalize it
     # to a string, this ensures 1 decimal point
-    try:
-        num = float(version)
-    except Exception:
-        pass
-    else:
-        version = str(num)
+    # If it's a float as a string, don't do that, the split/map below
+    # will do what we want. (Otherwise, we wind up with 3.20 -> (3, 2)
+    if isinstance(version, six.string_types):
+        # trim the v from a 'v2.0' or similar
+        version = version.lstrip('v')
+        try:
+            # If version is a pure int, like '1' or '200' this will produce
+            # a stringified version with a .0 added. If it's any other number,
+            # such as '1.1' - int(version) raises an Exception
+            version = str(float(int(version)))
+        except ValueError:
+            pass
 
-    # if it's a string (or an integer) from above break it on .
-    try:
-        return tuple(map(int, version.split('.')))
-    except Exception:
-        pass
+    # If it's an int, turn it into a float
+    elif isinstance(version, int):
+        version = str(float(version))
 
-    # last attempt, maybe it's a list or iterable.
+    elif isinstance(version, float):
+        version = str(version)
+
+    # At this point, we should either have a string that contains a number
+    # or something decidedly else.
+
+    # if it's a string from above break it on .
+    if hasattr(version, 'split'):
+        version = version.split('.')
+
+    # It's either an interable, or something else that makes us sad.
     try:
         return tuple(map(int, version))
-    except Exception:
+    except (TypeError, ValueError):
         pass
 
     raise TypeError('Invalid version specified: %s' % version)
@@ -236,6 +245,16 @@ class Discover(object):
 
             version_number = normalize_version_number(version_str)
 
+            # collect microversion information
+            min_microversion = v.get('min_version') or None
+            if min_microversion:
+                min_microversion = normalize_version_number(min_microversion)
+            max_microversion = v.get('max_version', v.get('version')) or None
+            if max_microversion:
+                max_microversion = normalize_version_number(max_microversion)
+
+            self_url = None
+            collection_url = None
             for link in links:
                 try:
                     rel = link['rel']
@@ -246,14 +265,19 @@ class Discover(object):
                     continue
 
                 if rel.lower() == 'self':
-                    break
-            else:
+                    self_url = url
+                elif rel.lower() == 'collection':
+                    collection_url = url
+            if not self_url:
                 _LOGGER.info('Skipping invalid version data. '
                              'Missing link to endpoint.')
                 continue
 
             versions.append({'version': version_number,
-                             'url': url,
+                             'url': self_url,
+                             'collection': collection_url,
+                             'min_microversion': min_microversion,
+                             'max_microversion': max_microversion,
                              'raw_status': v['status']})
 
         versions.sort(key=lambda v: v['version'], reverse=reverse)
@@ -332,6 +356,8 @@ class EndpointData(object):
         self.major_version = major_version
         self.min_microversion = min_microversion
         self.max_microversion = max_microversion
+        self._saved_project_id = None
+        self._catalog_matches_version = False
 
     def __copy__(self):
         """Return a new EndpointData based on this one."""
@@ -357,7 +383,7 @@ class EndpointData(object):
     @positional(3)
     def get_versioned_data(self, session, version,
                            authenticated=False, allow=None, cache=None,
-                           allow_version_hack=True):
+                           allow_version_hack=True, project_id=None):
         """Run version discovery for the service described.
 
         Performs Version Discovery and returns a new EndpointData object with
@@ -367,6 +393,9 @@ class EndpointData(object):
         :type session: keystoneauth1.session.Session
         :param tuple version: The minimum major version required for this
                               endpoint.
+        :param string project_id: ID of the currently scoped project. Used for
+                                  removing project_id components of URLs from
+                                  the catalog. (optional)
         :param dict allow: Extra filters to pass when discovering API
                            versions. (optional)
         :param bool allow_version_hack: Allow keystoneauth to hack up catalog
@@ -393,25 +422,47 @@ class EndpointData(object):
             # defaulting to the most recent version.
             return new_data
 
-        # NOTE(jamielennox): For backwards compatibility people might have a
-        # versioned endpoint in their catalog even though they want to use
-        # other endpoint versions. So we support a list of client defined
-        # situations where we can strip the version component from a URL before
-        # doing discovery.
-        vers_url = new_data._get_catalog_discover_hack(allow_version_hack)
+        new_data._set_version_info(
+            session=session, version=version, authenticated=authenticated,
+            allow=allow, cache=cache, allow_version_hack=allow_version_hack,
+            project_id=project_id)
+        return new_data
 
-        try:
-            disc = get_discovery(session, vers_url,
-                                 cache=cache,
-                                 authenticated=False)
-        except (exceptions.DiscoveryFailure,
-                exceptions.HttpError,
-                exceptions.ConnectionError):
+    def _set_version_info(self, session, version,
+                          authenticated=False, allow=None, cache=None,
+                          allow_version_hack=True, project_id=None):
+        if project_id:
+            self.project_id = project_id
+
+        disc = None
+        vers_url = None
+        tried = set()
+        for vers_url in self._get_url_choices(version, project_id,
+                                              allow_version_hack):
+
+            if vers_url in tried:
+                continue
+            tried.update(vers_url)
+            try:
+                disc = get_discovery(session, vers_url,
+                                     cache=cache,
+                                     authenticated=False)
+                break
+            except (exceptions.DiscoveryFailure,
+                    exceptions.HttpError,
+                    exceptions.ConnectionError):
+                continue
+        if not disc:
+            # We couldn't find a version discovery document anywhere.
+            if self._catalog_matches_version:
+                # But - the version in the catalog is fine.
+                self.service_url = self.catalog_url
+                return
+
             # NOTE(jamielennox): The logic here is required for backwards
             # compatibility. By itself it is not ideal.
-
             if allow_version_hack:
-                # NOTE(jamielennox): Again if we can't contact the server we
+                # NOTE(jamielennox): If we can't contact the server we
                 # fall back to just returning the URL from the catalog.  This
                 # is backwards compatible behaviour and used when there is no
                 # other choice. Realistically if you have provided a version
@@ -421,25 +472,96 @@ class EndpointData(object):
                     'Failed to contact the endpoint at %s for '
                     'discovery. Fallback to using that endpoint as '
                     'the base url.', self.url)
+                return
 
             else:
                 # NOTE(jamielennox): If you've said no to allow_version_hack
-                # and you can't determine the actual URL this is a failure
+                # and we can't determine the actual URL this is a failure
                 # because we are specifying that the deployment must be up to
                 # date enough to properly specify a version and keystoneauth
                 # can't deliver.
-                raise
-
-        else:
-            url = disc.url_for(version, **allow)
-            if not url:
                 raise exceptions.DiscoveryFailure(
-                    "Version {version} requested, but was not found".format(
-                        version=version_to_string(version)))
-            new_data.service_url = url
-        return new_data
+                    "Version requested but version discovery document was not"
+                    " found and allow_version_hack was False")
 
-    def _get_catalog_discover_hack(self, allow_version_hack=True):
+        # NOTE(jamielennox): urljoin allows the url to be relative or even
+        # protocol-less. The additional trailing '/' make urljoin respect
+        # the current path as canonical even if the url doesn't include it.
+        # for example a "v2" path from http://host/admin should resolve as
+        # http://host/admin/v2 where it would otherwise be host/v2.
+        # This has no effect on absolute urls returned from url_for.
+        discovered_data = disc.data_for(version, **allow)
+        if not discovered_data:
+            raise exceptions.DiscoveryFailure(
+                "Version {version} requested, but was not found".format(
+                    version=version_to_string(version)))
+
+        self.min_microversion = discovered_data['min_microversion']
+        self.max_microversion = discovered_data['max_microversion']
+
+        discovered_url = discovered_data['url']
+
+        url = urllib.parse.urljoin(vers_url.rstrip('/') + '/', discovered_url)
+
+        # If we had to pop a project_id from the catalog_url, put it back on
+        if self._saved_project_id:
+            url = urllib.parse.urljoin(url.rstrip('/') + '/',
+                                       self._saved_project_id)
+        self.service_url = url
+
+    def _get_url_choices(self, version, project_id, allow_version_hack=True):
+        if allow_version_hack:
+            url = urllib.parse.urlparse(self.url)
+            url_parts = url.path.split('/')
+
+            # First, check to see if the catalog url ends with a project id
+            # We need to remove it and save it for later if it does
+            if project_id and url_parts[-1].endswith(project_id):
+                self._saved_project_id = url_parts.pop()
+
+            # Next, check to see if the url indicates a version and if that
+            # version matches our request. If so, we can start by trying
+            # the given url as it has a high potential for success
+            url_version = None
+            if url_parts[-1].startswith('v'):
+                try:
+                    url_version = normalize_version_number(url_parts[-1])
+                except TypeError:
+                    pass
+            if url_version:
+                if version_match(version, url_version):
+                    self._catalog_matches_version = True
+                    # This endpoint matches the version request, try it first
+                    yield urllib.parse.ParseResult(
+                        url.scheme,
+                        url.netloc,
+                        '/'.join(url_parts),
+                        url.params,
+                        url.query,
+                        url.fragment).geturl()
+                url_parts.pop()
+
+            # If there were projects or versions in the url they are now gone.
+            # That means we're left with the unversioned url
+            yield urllib.parse.ParseResult(
+                url.scheme,
+                url.netloc,
+                '/'.join(url_parts),
+                url.params,
+                url.query,
+                url.fragment).geturl()
+
+            # NOTE(mordred): For backwards compatibility people might have
+            # added version hacks using the version hack system. The logic
+            # above should handle most cases, so by the time we get here it's
+            # most likely to be a no-op
+            yield self._get_catalog_discover_hack()
+
+        # As a final fallthrough case, add the url from the catalog. If hacks
+        # are turned off, this will be the only choice.
+        yield self.catalog_url
+
+    def _get_catalog_discover_hack(self):
         """Apply the catalog hacks and figure out an unversioned endpoint.
 
         This function is internal to keystoneauth1.
@@ -447,12 +569,9 @@ class EndpointData(object):
         :param bool allow_version_hack: Whether or not to allow version hacks
                                         to be applied. (defaults to True)
 
-        :returns: Either the unversioned url or the one from the catalog to try
+        :returns: A potential unversioned url
         """
-        if allow_version_hack:
-            return _VERSION_HACKS.get_discover_hack(self.service_type,
-                                                    self.url)
-        return self.url
+        return _VERSION_HACKS.get_discover_hack(self.service_type, self.url)
 
 
 @positional()

@@ -37,4 +37,5 @@ __all__ = ('DiscoveryList',
            'V2Token',
            'V3Token',
            'V3FederationToken',
+           'VersionDiscovery',
            )

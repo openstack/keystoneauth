@@ -148,6 +148,23 @@ CINDER_EXAMPLES = {
                     "rel": "self"
                 }
             ]
+        },
+        {
+            "status": "CURRENT",
+            "updated": "2012-11-21T11:33:21Z",
+            "id": "v3.0",
+            "version": "3.27",
+            "min_version": "3.0",
+            "links": [
+                {
+                    "href": BASE_URL,
+                    "rel": "collection"
+                },
+                {
+                    "href": "%sv3/" % BASE_URL,
+                    "rel": "self"
+                }
+            ]
         }
     ]
 }
@@ -277,6 +294,7 @@ class DiscoverUtils(utils.TestCase):
         assertVersion('1', (1, 0))
         assertVersion(1, (1, 0))
         assertVersion(5.2, (5, 2))
+        assertVersion('3.20', (3, 20))
         assertVersion((6, 1), (6, 1))
         assertVersion([1, 4], (1, 4))
 
@@ -390,7 +408,7 @@ class VersionDataTests(utils.TestCase):
         raw_data = disc.raw_version_data()
         clean_data = disc.version_data()
 
-        self.assertEqual(2, len(raw_data))
+        self.assertEqual(3, len(raw_data))
 
         for v in raw_data:
             self.assertEqual(v['status'], 'CURRENT')
@@ -398,21 +416,38 @@ class VersionDataTests(utils.TestCase):
                 self.assertEqual(v['updated'], '2012-01-04T11:33:21Z')
             elif v['id'] == 'v2.0':
                 self.assertEqual(v['updated'], '2012-11-21T11:33:21Z')
+            elif v['id'] == 'v3.0':
+                self.assertEqual(v['updated'], '2012-11-21T11:33:21Z')
             else:
                 self.fail("Invalid version found")
 
         v1_url = "%sv1/" % BASE_URL
         v2_url = "%sv2/" % BASE_URL
+        v3_url = "%sv3/" % BASE_URL
 
         self.assertEqual(clean_data, [
             {
+                'collection': None,
+                'max_microversion': None,
+                'min_microversion': None,
                 'version': (1, 0),
                 'url': v1_url,
                 'raw_status': 'CURRENT',
             },
             {
+                'collection': None,
+                'max_microversion': None,
+                'min_microversion': None,
                 'version': (2, 0),
                 'url': v2_url,
+                'raw_status': 'CURRENT',
+            },
+            {
+                'collection': BASE_URL,
+                'max_microversion': (3, 27),
+                'min_microversion': (3, 0),
+                'version': (3, 0),
+                'url': v3_url,
                 'raw_status': 'CURRENT',
             },
         ])
@@ -427,7 +462,8 @@ class VersionDataTests(utils.TestCase):
         self.assertEqual('CURRENT', version['raw_status'])
         self.assertEqual(v1_url, version['url'])
 
-        self.assertIsNone(disc.url_for('v3'))
+        self.assertIsNone(disc.url_for('v4'))
+        self.assertEqual(v3_url, disc.url_for('v3'))
         self.assertEqual(v2_url, disc.url_for('v2'))
         self.assertEqual(v1_url, disc.url_for('v1'))
 
@@ -457,26 +493,41 @@ class VersionDataTests(utils.TestCase):
 
         self.assertEqual(clean_data, [
             {
+                'collection': None,
+                'max_microversion': None,
+                'min_microversion': None,
                 'version': (1, 0),
                 'url': v1_url,
                 'raw_status': 'SUPPORTED',
             },
             {
+                'collection': None,
+                'max_microversion': None,
+                'min_microversion': None,
                 'version': (1, 1),
                 'url': v1_url,
                 'raw_status': 'CURRENT',
             },
             {
+                'collection': None,
+                'max_microversion': None,
+                'min_microversion': None,
                 'version': (2, 0),
                 'url': v2_url,
                 'raw_status': 'SUPPORTED',
             },
             {
+                'collection': None,
+                'max_microversion': None,
+                'min_microversion': None,
                 'version': (2, 1),
                 'url': v2_url,
                 'raw_status': 'SUPPORTED',
             },
             {
+                'collection': None,
+                'max_microversion': None,
+                'min_microversion': None,
                 'version': (2, 2),
                 'url': v2_url,
                 'raw_status': 'CURRENT',

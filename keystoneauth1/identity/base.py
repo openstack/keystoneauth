@@ -201,6 +201,7 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
             endpoint_data = discover.EndpointData(
                 service_url=self.auth_url,
                 service_type=service_type or 'identity')
+            project_id = None
         else:
             if not service_type:
                 LOG.warning('Plugin cannot return an endpoint without '
@@ -214,6 +215,9 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
                 interface = 'public'
 
             service_catalog = self.get_access(session).service_catalog
+            project_id = self.get_project_id(session)
+            # NOTE(mordred): service_catalog.url_data_for raises if it can't
+            # find a match, so this will always be a valid object.
             endpoint_data = service_catalog.endpoint_data_for(
                 service_type=service_type,
                 interface=interface,
@@ -224,7 +228,9 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
 
         try:
             return endpoint_data.get_versioned_data(
-                session, version, authenticated=False,
+                session, version,
+                project_id=project_id,
+                authenticated=False,
                 cache=self._discovery_cache,
                 allow_version_hack=allow_version_hack, allow=allow)
         except (exceptions.DiscoveryFailure,
