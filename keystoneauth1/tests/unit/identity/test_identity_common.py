@@ -1185,6 +1185,88 @@ class CatalogHackTests(utils.TestCase):
         self.assertFalse(v2_m.called)
         self.assertFalse(common_m.called)
 
+    def test_get_endpoint_data(self):
+        common_disc = fixture.DiscoveryList(v2=False, v3=False)
+        common_disc.add_microversion(href=self.OTHER_URL, id='v2.1',
+                                     min_version='2.1', max_version='2.35')
+
+        common_m = self.stub_url('GET',
+                                 base_url=self.OTHER_URL,
+                                 status_code=200,
+                                 json=common_disc)
+
+        token = fixture.V2Token()
+        service = token.add_service('network')
+        service.add_endpoint(public=self.OTHER_URL,
+                             admin=self.OTHER_URL,
+                             internal=self.OTHER_URL)
+
+        self.stub_url('POST',
+                      ['tokens'],
+                      base_url=self.V2_URL,
+                      json=token)
+
+        v2_auth = identity.V2Password(self.V2_URL,
+                                      username=uuid.uuid4().hex,
+                                      password=uuid.uuid4().hex)
+
+        sess = session.Session(auth=v2_auth)
+
+        # v2 auth with v2 url doesn't make any discovery calls.
+        self.assertFalse(common_m.called)
+
+        data = sess.get_endpoint_data(service_type='network',
+                                      min_version='2.0', max_version='3.0')
+
+        # We should make the one call
+        self.assertTrue(common_m.called)
+
+        # And get the v3 url
+        self.assertEqual(self.OTHER_URL, data.url)
+        self.assertEqual((2, 1), data.min_microversion)
+        self.assertEqual((2, 35), data.max_microversion)
+
+    def test_get_endpoint_data_compute(self):
+        common_disc = fixture.DiscoveryList(v2=False, v3=False)
+        common_disc.add_nova_microversion(href=self.OTHER_URL, id='v2.1',
+                                          min_version='2.1', version='2.35')
+
+        common_m = self.stub_url('GET',
+                                 base_url=self.OTHER_URL,
+                                 status_code=200,
+                                 json=common_disc)
+
+        token = fixture.V2Token()
+        service = token.add_service('compute')
+        service.add_endpoint(public=self.OTHER_URL,
+                             admin=self.OTHER_URL,
+                             internal=self.OTHER_URL)
+
+        self.stub_url('POST',
+                      ['tokens'],
+                      base_url=self.V2_URL,
+                      json=token)
+
+        v2_auth = identity.V2Password(self.V2_URL,
+                                      username=uuid.uuid4().hex,
+                                      password=uuid.uuid4().hex)
+
+        sess = session.Session(auth=v2_auth)
+
+        # v2 auth with v2 url doesn't make any discovery calls.
+        self.assertFalse(common_m.called)
+
+        data = sess.get_endpoint_data(service_type='compute',
+                                      min_version='2.0', max_version='3.0')
+
+        # We should make the one call
+        self.assertTrue(common_m.called)
+
+        # And get the v3 url
+        self.assertEqual(self.OTHER_URL, data.url)
+        self.assertEqual((2, 1), data.min_microversion)
+        self.assertEqual((2, 35), data.max_microversion)
+
     def test_getting_endpoints_on_auth_interface(self):
         disc = fixture.DiscoveryList(href=self.BASE_URL)
         self.stub_url('GET',

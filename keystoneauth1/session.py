@@ -866,6 +866,23 @@ class Session(object):
         auth = self._auth_required(auth, 'determine endpoint URL')
         return auth.get_endpoint(self, **kwargs)
 
+    def get_endpoint_data(self, auth=None, **kwargs):
+        """Get endpoint data as provided by the auth plugin.
+
+        :param auth: The auth plugin to use for token. Overrides the plugin on
+                     the session. (optional)
+        :type auth: keystoneauth1.plugin.BaseAuthPlugin
+
+        :raises keystoneauth1.exceptions.auth_plugins.MissingAuthPlugin:
+            if a plugin is not available.
+        :raises TypeError: If arguments are invalid
+
+        :returns: Endpoint data if available or None.
+        :rtype: keystoneauth1.discover.EndpointData
+        """
+        auth = self._auth_required(auth, 'determine endpoint URL')
+        return auth.get_endpoint_data(self, **kwargs)
+
     def get_auth_connection_params(self, auth=None, **kwargs):
         """Return auth connection params as provided by the auth plugin.
 

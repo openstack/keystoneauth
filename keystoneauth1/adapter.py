@@ -192,6 +192,27 @@ class Adapter(object):
         self._set_endpoint_filter_kwargs(kwargs)
         return self.session.get_endpoint(auth or self.auth, **kwargs)
 
+    def get_endpoint_data(self, auth=None, **kwargs):
+        """Get the endpoint data as provided by the auth plugin.
+
+        :param auth: The auth plugin to use for token. Overrides the plugin on
+                     the session. (optional)
+        :type auth: keystoneauth1.plugin.BaseAuthPlugin
+
+        :raises keystoneauth1.exceptions.auth_plugins.MissingAuthPlugin: if a
+            plugin is not available.
+        :raises TypeError: If arguments are invalid
+
+        :returns: Endpoint data if available or None.
+        :rtype: keystoneauth1.discover.EndpointData
+        """
+        # TODO(mordred) Plumb endpoint_override through discovery
+        # if self.endpoint_override:
+        #     return self.endpoint_override
+
+        self._set_endpoint_filter_kwargs(kwargs)
+        return self.session.get_endpoint_data(auth or self.auth, **kwargs)
+
     def invalidate(self, auth=None):
         """Invalidate an authentication plugin."""
         return self.session.invalidate(auth or self.auth)
