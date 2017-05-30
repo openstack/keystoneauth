@@ -380,7 +380,10 @@ class VersionDataTests(utils.TestCase):
 
         disc = discover.Discover(self.session, V3_URL)
 
-        self.assertIsNone(disc.versioned_data_for(version=None))
+        data = disc.versioned_data_for(version=None)
+        self.assertEqual(data['version'], (3, 0))
+        self.assertEqual(data['raw_status'], 'stable')
+        self.assertEqual(data['url'], V3_URL)
         self.assertRaises(TypeError, disc.data_for, version=None)
 
         self.assertTrue(mock.called_once)
