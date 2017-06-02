@@ -1048,15 +1048,15 @@ class CatalogHackTests(utils.TestCase):
         self.assertFalse(v2_m.called)
         self.assertFalse(common_m.called)
 
-        endpoint = sess.get_endpoint(service_type=self.IDENTITY,
-                                     discover_versions=True)
+        data = sess.get_endpoint_data(service_type=self.IDENTITY,
+                                      discover_versions=True)
 
         # We should get the v2 document, but not the unversioned
         self.assertTrue(v2_m.called)
         self.assertFalse(common_m.called)
 
         # got v2 url
-        self.assertEqual(self.V2_URL, endpoint)
+        self.assertEqual(self.V2_URL, data.url)
 
     def test_forcing_discovery_list_returns_url(self):
         common_disc = fixture.DiscoveryList(href=self.BASE_URL)
@@ -1093,14 +1093,14 @@ class CatalogHackTests(utils.TestCase):
         # v2 auth with v2 url doesn't make any discovery calls.
         self.assertFalse(v2_m.called)
 
-        endpoint = sess.get_endpoint(service_type=self.IDENTITY,
-                                     discover_versions=True)
+        data = sess.get_endpoint_data(service_type=self.IDENTITY,
+                                      discover_versions=True)
 
         # We should make the one call
         self.assertTrue(v2_m.called)
 
         # got v2 url
-        self.assertEqual(self.V2_URL, endpoint)
+        self.assertEqual(self.V2_URL, data.url)
 
     def test_latest_version_gets_latest_version(self):
         common_disc = fixture.DiscoveryList(href=self.BASE_URL)
