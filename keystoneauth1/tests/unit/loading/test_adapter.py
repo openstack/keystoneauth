@@ -45,7 +45,7 @@ class ConfLoadingTests(utils.TestCase):
     def test_get_conf_options(self):
         opts = loading.get_adapter_conf_options()
         for opt in opts:
-            self.assertTrue(isinstance(opt, cfg.StrOpt))
+            self.assertIsInstance(opt, cfg.StrOpt)
         self.assertEqual({'service-type', 'service-name', 'interface',
                           'region-name', 'endpoint-override'},
                          {opt.name for opt in opts})
