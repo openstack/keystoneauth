@@ -102,4 +102,4 @@ def load_from_argparse_arguments(namespace, **kwargs):
     def _getter(opt):
         return getattr(namespace, 'os_%s' % opt.dest)
 
-    return plugin.load_from_options_getter(_getter)
+    return plugin.load_from_options_getter(_getter, **kwargs)
