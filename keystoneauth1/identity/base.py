@@ -157,6 +157,129 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
 
         return False
 
+    def get_endpoint_data(self, session, service_type=None, interface=None,
+                          region_name=None, service_name=None, version=None,
+                          allow={}, allow_version_hack=True, **kwargs):
+        """Return a valid endpoint data for a service.
+
+        If a valid token is not present then a new one will be fetched using
+        the session and kwargs.
+
+        :param session: A session object that can be used for communication.
+        :type session: keystoneauth1.session.Session
+        :param string service_type: The type of service to lookup the endpoint
+                                    for. This plugin will return None (failure)
+                                    if service_type is not provided.
+        :param string interface: The exposure of the endpoint. Should be
+                                 `public`, `internal`, `admin`, or `auth`.
+                                 `auth` is special here to use the `auth_url`
+                                 rather than a URL extracted from the service
+                                 catalog. Defaults to `public`.
+        :param string region_name: The region the endpoint should exist in.
+                                   (optional)
+        :param string service_name: The name of the service in the catalog.
+                                   (optional)
+        :param tuple version: The minimum version number required for this
+                              endpoint. (optional)
+        :param dict allow: Extra filters to pass when discovering API
+                           versions. (optional)
+        :param bool allow_version_hack: Allow keystoneauth to hack up catalog
+                                        URLS to support older schemes.
+                                        (optional, default True)
+
+        :raises keystoneauth1.exceptions.http.HttpError: An error from an
+                                                         invalid HTTP response.
+
+        :return: Valid EndpointData or None if not available.
+        :rtype: `keystoneauth1.discover.EndpointData` or None
+        """
+        # NOTE(jamielennox): if you specifically ask for requests to be sent to
+        # the auth url then we can ignore many of the checks. Typically if you
+        # are asking for the auth endpoint it means that there is no catalog to
+        # query however we still need to support asking for a specific version
+        # of the auth_url for generic plugins.
+        if interface is plugin.AUTH_INTERFACE:
+            endpoint_data = discover.EndpointData(
+                service_url=self.auth_url,
+                service_type=service_type or 'identity')
+        else:
+            if not service_type:
+                LOG.warning('Plugin cannot return an endpoint without '
+                            'knowing the service type that is required. Add '
+                            'service_type to endpoint filtering data.')
+                return None
+
+            # It's possible for things higher in the stack, because of
+            # defaults, to explicitly pass None.
+            if not interface:
+                interface = 'public'
+
+            service_catalog = self.get_access(session).service_catalog
+            endpoint_data = service_catalog.endpoint_data_for(
+                service_type=service_type,
+                interface=interface,
+                region_name=region_name,
+                service_name=service_name)
+            if not endpoint_data:
+                return None
+
+        if not version:
+            # NOTE(jamielennox): This may not be the best thing to default to
+            # but is here for backwards compatibility. It may be worth
+            # defaulting to the most recent version.
+            return endpoint_data
+
+        # NOTE(jamielennox): For backwards compatibility people might have a
+        # versioned endpoint in their catalog even though they want to use
+        # other endpoint versions. So we support a list of client defined
+        # situations where we can strip the version component from a URL before
+        # doing discovery.
+        vers_url = discover._get_catalog_discover_hack(
+            endpoint_data, allow_version_hack=allow_version_hack)
+
+        try:
+            disc = self.get_discovery(session, vers_url, authenticated=False)
+        except (exceptions.DiscoveryFailure,
+                exceptions.HttpError,
+                exceptions.ConnectionError):
+            # NOTE(jamielennox): The logic here is required for backwards
+            # compatibility. By itself it is not ideal.
+
+            if allow_version_hack:
+                # NOTE(jamielennox): Again if we can't contact the server we
+                # fall back to just returning the URL from the catalog.  This
+                # is backwards compatible behaviour and used when there is no
+                # other choice. Realistically if you have provided a version
+                # you should be able to rely on that version being returned or
+                # the request failing.
+                LOG.warning('Failed to contact the endpoint at %s for '
+                            'discovery. Fallback to using that endpoint as '
+                            'the base url.', endpoint_data.url)
+
+            else:
+                # NOTE(jamielennox): If you've said no to allow_version_hack
+                # and you can't determine the actual URL this is a failure
+                # because we are specifying that the deployment must be up to
+                # date enough to properly specify a version and keystoneauth
+                # can't deliver.
+                return None
+
+        else:
+            # NOTE(jamielennox): urljoin allows the url to be relative or even
+            # protocol-less. The additional trailing '/' make urljoin respect
+            # the current path as canonical even if the url doesn't include it.
+            # for example a "v2" path from http://host/admin should resolve as
+            # http://host/admin/v2 where it would otherwise be host/v2.
+            # This has no effect on absolute urls returned from url_for.
+            url = disc.url_for(version, **allow)
+            if not url:
+                return None
+
+            url = urllib.parse.urljoin(vers_url.rstrip('/') + '/', url)
+            endpoint_data.service_url = url
+
+        return endpoint_data
+
     def get_endpoint(self, session, service_type=None, interface=None,
                      region_name=None, service_name=None, version=None,
                      allow={}, allow_version_hack=True, **kwargs):
@@ -193,87 +316,12 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
         :return: A valid endpoint URL or None if not available.
         :rtype: string or None
         """
-        # NOTE(jamielennox): if you specifically ask for requests to be sent to
-        # the auth url then we can ignore many of the checks. Typically if you
-        # are asking for the auth endpoint it means that there is no catalog to
-        # query however we still need to support asking for a specific version
-        # of the auth_url for generic plugins.
-        if interface is plugin.AUTH_INTERFACE:
-            url = self.auth_url
-            service_type = service_type or 'identity'
-
-        else:
-            if not service_type:
-                LOG.warning('Plugin cannot return an endpoint without '
-                            'knowing the service type that is required. Add '
-                            'service_type to endpoint filtering data.')
-                return None
-
-            if not interface:
-                interface = 'public'
-
-            service_catalog = self.get_access(session).service_catalog
-            url = service_catalog.url_for(service_type=service_type,
-                                          interface=interface,
-                                          region_name=region_name,
-                                          service_name=service_name)
-
-        if not version:
-            # NOTE(jamielennox): This may not be the best thing to default to
-            # but is here for backwards compatibility. It may be worth
-            # defaulting to the most recent version.
-            return url
-
-        # NOTE(jamielennox): For backwards compatibility people might have a
-        # versioned endpoint in their catalog even though they want to use
-        # other endpoint versions. So we support a list of client defined
-        # situations where we can strip the version component from a URL before
-        # doing discovery.
-        if allow_version_hack:
-            vers_url = discover._get_catalog_discover_hack(service_type, url)
-        else:
-            vers_url = url
-
-        try:
-            disc = self.get_discovery(session, vers_url, authenticated=False)
-        except (exceptions.DiscoveryFailure,
-                exceptions.HttpError,
-                exceptions.ConnectionError):
-            # NOTE(jamielennox): The logic here is required for backwards
-            # compatibility. By itself it is not ideal.
-
-            if allow_version_hack:
-                # NOTE(jamielennox): Again if we can't contact the server we
-                # fall back to just returning the URL from the catalog.  This
-                # is backwards compatible behaviour and used when there is no
-                # other choice. Realistically if you have provided a version
-                # you should be able to rely on that version being returned or
-                # the request failing.
-                LOG.warning('Failed to contact the endpoint at %s for '
-                            'discovery. Fallback to using that endpoint as '
-                            'the base url.', url)
-
-            else:
-                # NOTE(jamielennox): If you've said no to allow_version_hack
-                # and you can't determine the actual URL this is a failure
-                # because we are specifying that the deployment must be up to
-                # date enough to properly specify a version and keystoneauth
-                # can't deliver.
-                return None
-
-        else:
-            # NOTE(jamielennox): urljoin allows the url to be relative or even
-            # protocol-less. The additional trailing '/' make urljoin respect
-            # the current path as canonical even if the url doesn't include it.
-            # for example a "v2" path from http://host/admin should resolve as
-            # http://host/admin/v2 where it would otherwise be host/v2.
-            # This has no effect on absolute urls returned from url_for.
-            url = disc.url_for(version, **allow)
-
-            if url:
-                url = urllib.parse.urljoin(vers_url.rstrip('/') + '/', url)
-
-        return url
+        endpoint_data = self.get_endpoint_data(
+            session, service_type=service_type, interface=interface,
+            region_name=region_name, service_name=service_name,
+            version=version, allow=allow,
+            allow_version_hack=allow_version_hack, **kwargs)
+        return endpoint_data.url if endpoint_data else None
 
     def get_user_id(self, session, **kwargs):
         return self.get_access(session).user_id
