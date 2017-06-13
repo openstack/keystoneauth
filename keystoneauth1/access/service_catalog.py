@@ -17,6 +17,7 @@
 # limitations under the License.
 
 import abc
+import copy
 
 from positional import positional
 import six
@@ -66,12 +67,64 @@ class ServiceCatalog(object):
         """
         return interface
 
-    @abc.abstractmethod
-    def _extract_interface_url(self, endpoint, interface):
-        """Return the url for an interface from an endpoint description.
+    def _normalize_endpoints(self, endpoints):
+        """Translate endpoint description dicts into v3 form.
 
-        NOTE: This is a transition method and is removed in the next patch.
+        Takes a the raw endpoint description from the catalog and changes
+        it to be in v3 format. It also saves a copy of the data in
+        raw_endpoint so that it can be returned by methods that expect the
+        actual original data.
+
+        :param list endpoints: List of endpoint description dicts
+
+        :returns: List of endpoint description dicts in v3 format
         """
+        new_endpoints = []
+        for endpoint in endpoints:
+            raw_endpoint = endpoint.copy()
+            new_endpoint = endpoint.copy()
+            new_endpoint['raw_endpoint'] = raw_endpoint
+            new_endpoints.append(new_endpoint)
+        return new_endpoints
+
+    def _denormalize_endpoints(self, endpoints):
+        """Return original endpoint description dicts.
+
+        Takes a list of EndpointData objects and returns the original
+        dict that was returned from the catalog.
+
+        :param list endpoints: List of `keystoneauth1.discover.EndpointData`
+
+        :returns: List of endpoint description dicts in original catalog format
+        """
+        return [endpoint.raw_endpoint for endpoint in endpoints]
+
+    def normalize_catalog(self):
+        """Return the catalog normalized into v3 format."""
+        catalog = []
+        for service in copy.deepcopy(self._catalog):
+            if 'type' not in service:
+                continue
+
+            # NOTE(jamielennox): service_name is different. It is not available
+            # in API < v3.3. If it is in the catalog then we enforce it, if it
+            # is not then we don't because the name could be correct we just
+            # don't have that information to check against. Set to None so
+            # that checks will naturally work.
+            service.setdefault('name', None)
+
+            # NOTE(jamielennox): there is no such thing as a service_id in v2
+            # similarly to service_name.
+            service.setdefault('id', None)
+
+            service['endpoints'] = self._normalize_endpoints(
+                service.get('endpoints', []))
+
+            for endpoint in service['endpoints']:
+                endpoint['region_name'] = self._get_endpoint_region(endpoint)
+                endpoint.setdefault('id', None)
+            catalog.append(service)
+        return catalog
 
     @positional()
     def get_endpoints_data(self, service_type=None, interface=None,
@@ -92,68 +145,39 @@ class ServiceCatalog(object):
 
         matching_endpoints = {}
 
-        for service in (self._catalog or []):
-            if 'type' not in service:
+        for service in self.normalize_catalog():
+
+            if service_type and service_type != service['type']:
                 continue
 
-            found_service_type = service['type']
-            if service_type and service_type != found_service_type:
+            if (service_name and service['name'] and
+                    service_name != service['name']):
                 continue
 
-            # NOTE(jamielennox): service_name is different. It is not available
-            # in API < v3.3. If it is in the catalog then we enforce it, if it
-            # is not then we don't because the name could be correct we just
-            # don't have that information to check against.
-            found_service_name = service.get('name')
-            if (service_name and found_service_name
-                    and service_name != found_service_name):
+            if (service_id and service['id'] and
+                    service_id != service['id']):
                 continue
 
-            # NOTE(jamielennox): there is no such thing as a service_id in v2
-            # similarly to service_name we'll have to skip this check if it's
-            # not available.
-            found_service_id = service.get('id')
-            if (service_id and found_service_id
-                    and service_id != found_service_id):
-                continue
-
-            matching_endpoints.setdefault(found_service_type, [])
+            matching_endpoints.setdefault(service['type'], [])
 
             for endpoint in service.get('endpoints', []):
-                if (interface and not
-                        self.is_interface_match(endpoint, interface)):
+                if interface and interface != endpoint['interface']:
                     continue
-                found_region_name = self._get_endpoint_region(endpoint)
-                if (region_name and
-                        region_name != found_region_name):
+                if region_name and region_name != endpoint['region_name']:
                     continue
-                found_endpoint_id = endpoint.get('id')
-                if (endpoint_id and endpoint_id != found_endpoint_id):
+                if endpoint_id and endpoint_id != endpoint['id']:
                     continue
 
-                # We have a matching endpoint description, grab the URL.
-                # If we're in V2 and no interface has been specified, this
-                # will be "None". That's admittedly weird - but the things
-                # that expect to be able to not request interface then later
-                # grab a publicURL out of a dict won't be using the .url
-                # attribute anyway. A better approach would be to normalize
-                # the catalog into the v3 format at the outset, then have
-                # a v2 and v3 specific versions of get_endpoints() that return
-                # the raw endpoint dicts.
-                url = self._extract_interface_url(endpoint, interface)
-
-                matching_endpoints[found_service_type].append(
+                matching_endpoints[service['type']].append(
                     discover.EndpointData(
-                        catalog_url=url,
-                        service_type=found_service_type,
-                        service_name=found_service_name,
-                        service_id=found_service_id,
-                        # EndpointData expects interface values in v3 format
-                        interface=ServiceCatalogV3.normalize_interface(
-                            interface),
-                        region_name=found_region_name,
-                        endpoint_id=found_service_id,
-                        raw_endpoint=endpoint))
+                        catalog_url=endpoint['url'],
+                        service_type=service['type'],
+                        service_name=service['name'],
+                        service_id=service['id'],
+                        interface=endpoint['interface'],
+                        region_name=endpoint['region_name'],
+                        endpoint_id=endpoint['id'],
+                        raw_endpoint=endpoint['raw_endpoint']))
 
         return matching_endpoints
 
@@ -178,7 +202,7 @@ class ServiceCatalog(object):
             service_id=service_id, endpoint_id=endpoint_id)
         endpoints = {}
         for service_type, data in endpoints_data.items():
-            endpoints[service_type] = [d.raw_endpoint for d in data]
+            endpoints[service_type] = self._denormalize_endpoints(data)
         return endpoints
 
     @positional()
@@ -355,10 +379,59 @@ class ServiceCatalogV2(ServiceCatalog):
     def is_interface_match(self, endpoint, interface):
         return interface in endpoint
 
-    def _extract_interface_url(self, endpoint, interface):
-        if not interface:
-            return None
-        return endpoint[self.normalize_interface(interface)]
+    def _normalize_endpoints(self, endpoints):
+        """Translate endpoint description dicts into v3 form.
+
+        Takes a the raw endpoint description from the catalog and changes
+        it to be in v3 format. It also saves a copy of the data in
+        raw_endpoint so that it can be returned by methods that expect the
+        actual original data.
+
+        :param list endpoints: List of endpoint description dicts
+
+        :returns: List of endpoint description dicts in v3 format
+        """
+        new_endpoints = []
+        for endpoint in endpoints:
+            raw_endpoint = endpoint.copy()
+            interface_urls = {}
+            interface_keys = [key for key in endpoint.keys()
+                              if key.endswith('URL')]
+            for key in interface_keys:
+                interface = self.normalize_interface(key)
+                interface_urls[interface] = endpoint.pop(key)
+            for interface, url in interface_urls.items():
+                new_endpoint = endpoint.copy()
+                new_endpoint['interface'] = interface
+                new_endpoint['url'] = url
+                # Save the actual endpoint for ease of later reconstruction
+                new_endpoint['raw_endpoint'] = raw_endpoint
+                new_endpoints.append(new_endpoint)
+        return new_endpoints
+
+    def _denormalize_endpoints(self, endpoints):
+        """Return original endpoint description dicts.
+
+        Takes a list of EndpointData objects and returns the original
+        dict that was returned from the catalog.
+
+        :param list endpoints: List of `keystoneauth1.discover.EndpointData`
+
+        :returns: List of endpoint description dicts in original catalog format
+        """
+        raw_endpoints = super(ServiceCatalogV2, self)._denormalize_endpoints(
+            endpoints)
+        # The same raw endpoint content will be in the list once for each
+        # v2 endpoint_type entry. We only need one of them in the resulting
+        # list. So keep a list of the string versions.
+        seen = {}
+        endpoints = []
+        for endpoint in raw_endpoints:
+            if str(endpoint) in seen:
+                continue
+            seen[str(endpoint)] = True
+            endpoints.append(endpoint)
+        return endpoints
 
 
 class ServiceCatalogV3(ServiceCatalog):
@@ -386,6 +459,3 @@ class ServiceCatalogV3(ServiceCatalog):
             return interface == endpoint['interface']
         except KeyError:
             return False
-
-    def _extract_interface_url(self, endpoint, interface):
-        return endpoint['url']
