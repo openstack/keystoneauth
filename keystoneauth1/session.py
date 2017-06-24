@@ -221,6 +221,13 @@ class Session(object):
                                        will be added to the user agent. This
                                        can be used by libraries that are part
                                        of the communication process.
+    :param dict discovery_cache: A dict to be used for caching of discovery
+                                 information. This is normally managed
+                                 transparently, but if the user wants to
+                                 share a single cache across multiple sessions
+                                 that do not share an auth plugin, it can
+                                 be provided here. (optional, defaults to
+                                 None which means automatically manage)
     """
 
     user_agent = None
@@ -233,7 +240,8 @@ class Session(object):
     def __init__(self, auth=None, session=None, original_ip=None, verify=True,
                  cert=None, timeout=None, user_agent=None,
                  redirect=_DEFAULT_REDIRECT_LIMIT, additional_headers=None,
-                 app_name=None, app_version=None, additional_user_agent=None):
+                 app_name=None, app_version=None, additional_user_agent=None,
+                 discovery_cache=None):
 
         self.auth = auth
         self.session = _construct_session(session)
@@ -247,6 +255,9 @@ class Session(object):
         self.app_version = app_version
         self.additional_user_agent = additional_user_agent or []
         self._determined_user_agent = None
+        if discovery_cache is None:
+            discovery_cache = {}
+        self._discovery_cache = discovery_cache
 
         if timeout is not None:
             self.timeout = float(timeout)

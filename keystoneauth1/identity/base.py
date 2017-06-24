@@ -44,7 +44,7 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
         self.auth_ref = None
         self.reauthenticate = reauthenticate
 
-        self._endpoint_cache = {}
+        self._discovery_cache = {}
         self._lock = threading.Lock()
 
     @abc.abstractmethod
@@ -368,18 +368,21 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
 
         :returns: A discovery object with the results of looking up that URL.
         """
-        # NOTE(jamielennox): we want to cache endpoints on the session as well
-        # so that they maintain sharing between auth plugins. Create a cache on
-        # the session if it doesn't exist already.
-        try:
-            session_endpoint_cache = session._identity_endpoint_cache
-        except AttributeError:
-            session_endpoint_cache = session._identity_endpoint_cache = {}
+        # There are between one and three different caches. The user may have
+        # passed one in. There is definitely one on the session, and there is
+        # one on the auth plugin if the Session has an auth plugin.
+        caches = []
 
-        # NOTE(jamielennox): There is a cache located on both the session
-        # object and the auth plugin object so that they can be shared and the
-        # cache is still usable
-        for cache in (self._endpoint_cache, session_endpoint_cache):
+        # If the session has a cache, check it first, since it could have been
+        # provided by the user at Session creation time.
+        if not hasattr(session, '_discovery_cache'):
+            session._discovery_cache = {}
+        caches.append(session._discovery_cache)
+
+        # Check the auth cache
+        caches.append(self._discovery_cache)
+
+        for cache in caches:
             disc = cache.get(url)
 
             if disc:
@@ -387,8 +390,13 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
         else:
             disc = discover.Discover(session, url,
                                      authenticated=authenticated)
-            self._endpoint_cache[url] = disc
-            session_endpoint_cache[url] = disc
+
+        if disc:
+            # Whether we get one from fetching or from cache, set it in the
+            # caches. This assures that if we combine sessions and auth plugins
+            # that we don't make unnecesary calls.
+            for cache in caches:
+                cache[url] = disc
 
         return disc
 

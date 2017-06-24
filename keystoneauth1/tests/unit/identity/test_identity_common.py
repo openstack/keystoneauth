@@ -110,7 +110,7 @@ class CommonIdentityTests(object):
         self.assertEqual(200, resp.status_code)
         self.assertEqual(new_body, resp.text)
 
-    def test_discovery_uses_session_cache(self):
+    def test_discovery_uses_provided_session_cache(self):
         # register responses such that if the discovery URL is hit more than
         # once then the response will be invalid and not point to COMPUTE_ADMIN
         resps = [{'json': self.TEST_DISCOVERY}, {'status_code': 500}]
@@ -119,9 +119,10 @@ class CommonIdentityTests(object):
         body = 'SUCCESS'
         self.stub_url('GET', ['path'], text=body)
 
+        cache = {}
         # now either of the two plugins I use, it should not cause a second
         # request to the discovery url.
-        s = session.Session()
+        s = session.Session(discovery_cache=cache)
         a = self.create_auth_plugin()
         b = self.create_auth_plugin()
 
@@ -132,6 +133,35 @@ class CommonIdentityTests(object):
                                           'interface': 'admin',
                                           'version': self.version})
 
+            self.assertEqual(200, resp.status_code)
+            self.assertEqual(body, resp.text)
+        self.assertIn(self.TEST_COMPUTE_ADMIN, cache.keys())
+
+    def test_discovery_uses_session_cache(self):
+        # register responses such that if the discovery URL is hit more than
+        # once then the response will be invalid and not point to COMPUTE_ADMIN
+        resps = [{'json': self.TEST_DISCOVERY}, {'status_code': 500}]
+        self.requests_mock.get(self.TEST_COMPUTE_ADMIN, resps)
+
+        body = 'SUCCESS'
+        self.stub_url('GET', ['path'], text=body)
+
+        filter = {'service_type': 'compute', 'interface': 'admin',
+                  'version': self.version}
+
+        # create a session and call the endpoint, causing its cache to be set
+        sess = session.Session()
+        sess.get('/path', auth=self.create_auth_plugin(),
+                 endpoint_filter=filter)
+        self.assertIn(self.TEST_COMPUTE_ADMIN, sess._discovery_cache.keys())
+
+        # now either of the two plugins I use, it should not cause a second
+        # request to the discovery url.
+        a = self.create_auth_plugin()
+        b = self.create_auth_plugin()
+
+        for auth in (a, b):
+            resp = sess.get('/path', auth=auth, endpoint_filter=filter)
             self.assertEqual(200, resp.status_code)
             self.assertEqual(body, resp.text)
 
@@ -157,6 +187,30 @@ class CommonIdentityTests(object):
                                              'interface': 'admin',
                                              'version': self.version})
 
+            self.assertEqual(200, resp.status_code)
+            self.assertEqual(body, resp.text)
+
+    def test_discovery_uses_session_plugin_cache(self):
+        # register responses such that if the discovery URL is hit more than
+        # once then the response will be invalid and not point to COMPUTE_ADMIN
+        resps = [{'json': self.TEST_DISCOVERY}, {'status_code': 500}]
+        self.requests_mock.get(self.TEST_COMPUTE_ADMIN, resps)
+
+        body = 'SUCCESS'
+        self.stub_url('GET', ['path'], text=body)
+
+        filter = {'service_type': 'compute', 'interface': 'admin',
+                  'version': self.version}
+
+        # create a plugin and call the endpoint, causing its cache to be set
+        plugin = self.create_auth_plugin()
+        session.Session().get('/path', auth=plugin, endpoint_filter=filter)
+        self.assertIn(self.TEST_COMPUTE_ADMIN, plugin._discovery_cache.keys())
+
+        # with the plugin in the session, no more calls to the discovery URL
+        sess = session.Session(auth=plugin)
+        for auth in (plugin, self.create_auth_plugin()):
+            resp = sess.get('/path', auth=auth, endpoint_filter=filter)
             self.assertEqual(200, resp.status_code)
             self.assertEqual(body, resp.text)
 
