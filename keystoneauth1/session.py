@@ -883,9 +883,6 @@ class Session(object):
         :returns: Endpoint data if available or None.
         :rtype: keystoneauth1.discover.EndpointData
         """
-        if 'endpoint_override' in kwargs:
-            # Default discover_versions to True, but allow override.
-            kwargs.setdefault('discover_versions', True)
         auth = self._auth_required(auth, 'determine endpoint URL')
         return auth.get_endpoint_data(self, **kwargs)
 

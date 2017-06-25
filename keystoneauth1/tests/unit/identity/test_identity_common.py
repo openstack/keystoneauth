@@ -487,6 +487,13 @@ class CommonIdentityTests(object):
         self.assertIsNone(endpoint_v3)
 
     def test_endpoint_data_no_version(self):
+        path = self.TEST_COMPUTE_ADMIN[self.TEST_COMPUTE_ADMIN.find(':') + 1:]
+
+        disc = fixture.DiscoveryList(v2=False, v3=False)
+        disc.add_v2(path + '/v2.0')
+        disc.add_v3(path + '/v3')
+
+        self.stub_url('GET', [], base_url=self.TEST_COMPUTE_ADMIN, json=disc)
         a = self.create_auth_plugin()
         s = session.Session(auth=a)
 
@@ -494,7 +501,28 @@ class CommonIdentityTests(object):
                                    service_type='compute',
                                    interface='admin')
 
+        self.assertEqual(self.TEST_COMPUTE_ADMIN + '/v3', data.url)
+
+    def test_endpoint_data_no_version_no_discovery(self):
+        a = self.create_auth_plugin()
+        s = session.Session(auth=a)
+
+        data = a.get_endpoint_data(session=s,
+                                   service_type='compute',
+                                   interface='admin',
+                                   discover_versions=False)
+
         self.assertEqual(self.TEST_COMPUTE_ADMIN, data.url)
+
+    def test_endpoint_no_version(self):
+        a = self.create_auth_plugin()
+        s = session.Session(auth=a)
+
+        data = a.get_endpoint(session=s,
+                              service_type='compute',
+                              interface='admin')
+
+        self.assertEqual(self.TEST_COMPUTE_ADMIN, data)
 
     def test_endpoint_data_relative_version(self):
         # need to construct list this way for relative
@@ -542,7 +570,7 @@ class CommonIdentityTests(object):
         data = a.get_endpoint_data(session=s,
                                    service_type='compute',
                                    interface='admin')
-        self.assertEqual(self.TEST_COMPUTE_ADMIN, data.url)
+        self.assertEqual(v3_compute, data.url)
 
         v2_data = data.get_versioned_data(s, version='2.0')
         self.assertEqual(v2_compute, v2_data.url)
@@ -592,16 +620,24 @@ class CommonIdentityTests(object):
             href=self.TEST_VOLUME.versions['v2'].discovery.public,
             id='v2.0', status='SUPPORTED')
 
-        # We should only try to fetch the versioned discovery url once
-        resps = [{'json': disc}, {'status_code': 500}]
-        self.requests_mock.get(
-            self.TEST_VOLUME.versions['v3'].discovery.public, resps)
-
         body = 'SUCCESS'
         self.stub_url('GET', ['path'], text=body)
 
         a = self.create_auth_plugin()
         s = session.Session(auth=a)
+
+        # volume endpoint ends in v3, we should not make an API call
+        endpoint = a.get_endpoint(session=s,
+                                  service_type='volumev3',
+                                  interface='public',
+                                  version='3.0')
+        self.assertEqual(self.TEST_VOLUME.catalog.public, endpoint)
+
+        resps = [{'json': disc}, {'status_code': 500}]
+
+        # We should only try to fetch the versioned discovery url once
+        self.requests_mock.get(
+            self.TEST_VOLUME.versions['v3'].discovery.public, resps)
 
         data = a.get_endpoint_data(session=s,
                                    service_type='volumev3',
@@ -615,11 +651,10 @@ class CommonIdentityTests(object):
         self.assertEqual(self.TEST_VOLUME.versions['v3'].service.public,
                          v3_data.url)
         self.assertEqual(self.TEST_VOLUME.catalog.public, v3_data.catalog_url)
-        # TODO(mordred) fix in next patch - updating mock urls exposes bug
-        # self.assertEqual((3, 0), v3_data.min_microversion)
-        # self.assertEqual((3, 20), v3_data.max_microversion)
-        # self.assertEqual(self.TEST_VOLUME.versions['v3'].service.public,
-        #                  v3_data.service_url)
+        self.assertEqual((3, 0), v3_data.min_microversion)
+        self.assertEqual((3, 20), v3_data.max_microversion)
+        self.assertEqual(self.TEST_VOLUME.versions['v3'].service.public,
+                         v3_data.service_url)
 
         # Because of the v3 optimization before, requesting v2 should now go
         # find the unversioned endpoint
@@ -637,6 +672,73 @@ class CommonIdentityTests(object):
         self.assertEqual(self.TEST_VOLUME.catalog.public, v2_data.catalog_url)
         self.assertEqual(None, v2_data.min_microversion)
         self.assertEqual(None, v2_data.max_microversion)
+
+    def test_get_versioned_data_volume_project_id_unversioned_first(self):
+
+        disc = fixture.DiscoveryList(v2=False, v3=False)
+
+        # The version discovery dict will not have a project_id
+        disc.add_nova_microversion(
+            href=self.TEST_VOLUME.versions['v3'].discovery.public,
+            id='v3.0', status='CURRENT',
+            min_version='3.0', version='3.20')
+
+        # Adding a v2 version to a service named volumev3 is not
+        # an error. The service itself is cinder and has more than
+        # one major version.
+        disc.add_nova_microversion(
+            href=self.TEST_VOLUME.versions['v2'].discovery.public,
+            id='v2.0', status='SUPPORTED')
+
+        body = 'SUCCESS'
+        self.stub_url('GET', ['path'], text=body)
+
+        a = self.create_auth_plugin()
+        s = session.Session(auth=a)
+
+        # cinder endpoint ends in v3, we should not make an API call
+        endpoint = a.get_endpoint(session=s,
+                                  service_type='volumev3',
+                                  interface='public',
+                                  version='3.0')
+        self.assertEqual(self.TEST_VOLUME.catalog.public, endpoint)
+
+        resps = [{'json': disc}, {'status_code': 500}]
+
+        # We should only try to fetch the unversioned non-project_id url once
+        self.requests_mock.get(self.TEST_VOLUME.unversioned.public, resps)
+
+        # Fetch v2.0 first - since that doesn't match endpoint optimization,
+        # it should fetch the unversioned endpoint
+        v2_data = s.get_endpoint_data(service_type='volumev3',
+                                      interface='public',
+                                      version='2.0',
+                                      project_id=self.project_id)
+
+        # Even though we never requested volumev2 from the catalog, we should
+        # wind up re-constructing it via version discovery and re-appending
+        # the project_id to the URL
+        self.assertEqual(self.TEST_VOLUME.versions['v2'].service.public,
+                         v2_data.url)
+        self.assertEqual(self.TEST_VOLUME.versions['v2'].service.public,
+                         v2_data.service_url)
+        self.assertEqual(self.TEST_VOLUME.catalog.public, v2_data.catalog_url)
+        self.assertEqual(None, v2_data.min_microversion)
+        self.assertEqual(None, v2_data.max_microversion)
+
+        # Since we fetched from the unversioned endpoint to satisfy the
+        # request for v2, we should have all the relevant data cached in the
+        # discovery object - and should not fetch anything new.
+        v3_data = v2_data.get_versioned_data(
+            s, version='3.0', project_id=self.project_id)
+
+        self.assertEqual(self.TEST_VOLUME.versions['v3'].service.public,
+                         v3_data.url)
+        self.assertEqual(self.TEST_VOLUME.catalog.public, v3_data.catalog_url)
+        self.assertEqual((3, 0), v3_data.min_microversion)
+        self.assertEqual((3, 20), v3_data.max_microversion)
+        self.assertEqual(self.TEST_VOLUME.versions['v3'].service.public,
+                         v3_data.service_url)
 
     def test_asking_for_auth_endpoint_ignores_checks(self):
         a = self.create_auth_plugin()

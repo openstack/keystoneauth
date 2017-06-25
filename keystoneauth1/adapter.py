@@ -209,8 +209,6 @@ class Adapter(object):
         self._set_endpoint_filter_kwargs(kwargs)
         if self.endpoint_override:
             kwargs['endpoint_override'] = self.endpoint_override
-            # Default discover_versions to True, but allow override.
-            kwargs.setdefault('discover_versions', True)
 
         return self.session.get_endpoint_data(auth or self.auth, **kwargs)
 
