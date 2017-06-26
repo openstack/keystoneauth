@@ -279,9 +279,6 @@ class CommonIdentityTests(object):
         resps = [{'json': self.TEST_DISCOVERY}, {'status_code': 500}]
         self.requests_mock.get(self.TEST_COMPUTE_ADMIN, resps)
 
-        body = 'SUCCESS'
-        self.stub_url('GET', ['path'], text=body)
-
         # now either of the two sessions I use, it should not cause a second
         # request to the discovery url. Calling discovery directly should also
         # not cause an additional request.
@@ -561,9 +558,6 @@ class CommonIdentityTests(object):
         resps = [{'json': disc}, {'status_code': 500}]
         self.requests_mock.get(self.TEST_COMPUTE_ADMIN, resps)
 
-        body = 'SUCCESS'
-        self.stub_url('GET', ['path'], text=body)
-
         a = self.create_auth_plugin()
         s = session.Session(auth=a)
 
@@ -619,9 +613,6 @@ class CommonIdentityTests(object):
         disc.add_nova_microversion(
             href=self.TEST_VOLUME.versions['v2'].discovery.public,
             id='v2.0', status='SUPPORTED')
-
-        body = 'SUCCESS'
-        self.stub_url('GET', ['path'], text=body)
 
         a = self.create_auth_plugin()
         s = session.Session(auth=a)
@@ -690,9 +681,6 @@ class CommonIdentityTests(object):
             href=self.TEST_VOLUME.versions['v2'].discovery.public,
             id='v2.0', status='SUPPORTED')
 
-        body = 'SUCCESS'
-        self.stub_url('GET', ['path'], text=body)
-
         a = self.create_auth_plugin()
         s = session.Session(auth=a)
 
@@ -753,10 +741,6 @@ class CommonIdentityTests(object):
         expires = _utils.before_utcnow(minutes=20)
         expired_token = self.get_auth_data(expires=expires)
         expired_auth_ref = access.create(body=expired_token)
-
-        body = 'SUCCESS'
-        self.stub_url('GET', ['path'],
-                      base_url=self.TEST_COMPUTE_ADMIN, text=body)
 
         a = self.create_auth_plugin(**kwargs)
         a.auth_ref = expired_auth_ref
@@ -1269,7 +1253,7 @@ class CatalogHackTests(utils.TestCase):
                                      max_version='latest')
         self.assertEqual(self.V3_URL, endpoint)
 
-        self.assertRaises(TypeError, sess.get_endpoint,
+        self.assertRaises(ValueError, sess.get_endpoint,
                           service_type=self.IDENTITY,
                           min_version='latest', max_version='3.0')
 
@@ -1355,7 +1339,7 @@ class CatalogHackTests(utils.TestCase):
         self.assertEqual(self.V3_URL, endpoint)
 
         v2_m, common_m = stub_urls()
-        self.assertRaises(TypeError, sess.get_endpoint,
+        self.assertRaises(ValueError, sess.get_endpoint,
                           service_type=self.IDENTITY, version=3,
                           min_version='2')
 
