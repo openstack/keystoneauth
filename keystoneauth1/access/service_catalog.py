@@ -70,7 +70,7 @@ class ServiceCatalog(object):
     def _normalize_endpoints(self, endpoints):
         """Translate endpoint description dicts into v3 form.
 
-        Takes a the raw endpoint description from the catalog and changes
+        Takes a raw endpoint description from the catalog and changes
         it to be in v3 format. It also saves a copy of the data in
         raw_endpoint so that it can be returned by methods that expect the
         actual original data.
@@ -372,7 +372,7 @@ class ServiceCatalogV2(ServiceCatalog):
     @staticmethod
     def normalize_interface(interface):
         if interface and 'URL' not in interface:
-            interface = interface + 'URL'
+            interface += 'URL'
 
         return interface
 
@@ -382,7 +382,7 @@ class ServiceCatalogV2(ServiceCatalog):
     def _normalize_endpoints(self, endpoints):
         """Translate endpoint description dicts into v3 form.
 
-        Takes a the raw endpoint description from the catalog and changes
+        Takes a raw endpoint description from the catalog and changes
         it to be in v3 format. It also saves a copy of the data in
         raw_endpoint so that it can be returned by methods that expect the
         actual original data.
