@@ -62,6 +62,9 @@ class CommonIdentityTests(object):
     TEST_VOLUME_V3_CATALOG_ADMIN = (
         TEST_VOLUME_V3_SERVICE_ADMIN + '/{project_id}')
 
+    TEST_BAREMETAL_BASE = 'http://ironic'
+    TEST_BAREMETAL_INTERNAL = TEST_BAREMETAL_BASE + '/internal'
+
     TEST_PASS = uuid.uuid4().hex
 
     def setUp(self):
@@ -522,61 +525,26 @@ class CommonIdentityTests(object):
         self.assertEqual(v3_compute, v3_data.service_url)
         self.assertEqual(self.TEST_COMPUTE_ADMIN, v3_data.catalog_url)
 
-    def test_get_versioned_data_project_id(self):
-
-        # need to construct list this way for relative
-        disc = fixture.DiscoveryList(v2=False, v3=False)
-        # The version discovery dict will not have a project_id
-        disc.add_microversion(
-            href=self.TEST_VOLUME_V3_SERVICE_PUBLIC,
-            id='v3.0', status='CURRENT',
-            min_version='3.0', max_version='3.20')
-        # Adding a v2 version to a service named volumev3 is not
-        # an error. The service itself is cinder and has more than
-        # one major version.
-        disc.add_microversion(
-            href=self.TEST_VOLUME_V2_SERVICE_PUBLIC,
-            id='v2.0', status='SUPPORTED')
-
-        # We should only try to fetch the non-project_id url and only
-        # once
-        resps = [{'json': disc}, {'status_code': 500}]
-        self.requests_mock.get(self.TEST_VOLUME_V3_SERVICE_PUBLIC, resps)
-
-        body = 'SUCCESS'
-        self.stub_url('GET', ['path'], text=body)
+    def test_interface_list(self):
 
         a = self.create_auth_plugin()
         s = session.Session(auth=a)
 
-        v2_catalog_url = self.TEST_VOLUME_V2_CATALOG_PUBLIC.format(
-            project_id=self.project_id)
-        v3_catalog_url = self.TEST_VOLUME_V3_CATALOG_PUBLIC.format(
-            project_id=self.project_id)
+        ep = s.get_endpoint(service_type='baremetal',
+                            interface=['internal', 'public'])
+        self.assertEqual(ep, self.TEST_BAREMETAL_INTERNAL)
 
-        data = a.get_endpoint_data(session=s,
-                                   service_type='volumev3',
-                                   interface='public')
-        self.assertEqual(v3_catalog_url, data.url)
+        ep = s.get_endpoint(service_type='baremetal',
+                            interface=['public', 'internal'])
+        self.assertEqual(ep, self.TEST_BAREMETAL_INTERNAL)
 
-        v3_data = data.get_versioned_data(
-            s, version='3.0', project_id=self.project_id)
-        self.assertEqual(v3_catalog_url, v3_data.url)
-        self.assertEqual(v3_catalog_url, v3_data.service_url)
-        self.assertEqual(v3_catalog_url, v3_data.catalog_url)
-        self.assertEqual((3, 0), v3_data.min_microversion)
-        self.assertEqual((3, 20), v3_data.max_microversion)
+        ep = s.get_endpoint(service_type='compute',
+                            interface=['internal', 'public'])
+        self.assertEqual(ep, self.TEST_COMPUTE_INTERNAL)
 
-        v2_data = data.get_versioned_data(
-            s, version='2.0', project_id=self.project_id)
-        # Even though we never requested volumev2 from the catalog, we should
-        # wind up re-constructing it via version discovery and re-appending
-        # the project_id to the URL
-        self.assertEqual(v2_catalog_url, v2_data.url)
-        self.assertEqual(v2_catalog_url, v2_data.service_url)
-        self.assertEqual(v3_catalog_url, v2_data.catalog_url)
-        self.assertEqual(None, v2_data.min_microversion)
-        self.assertEqual(None, v2_data.max_microversion)
+        ep = s.get_endpoint(service_type='compute',
+                            interface=['public', 'internal'])
+        self.assertEqual(ep, self.TEST_COMPUTE_PUBLIC)
 
     def test_get_versioned_data_compute_project_id(self):
 
@@ -782,6 +750,11 @@ class V3(CommonIdentityTests, utils.TestCase):
             internal=self.TEST_VOLUME_V3_CATALOG_INTERNAL.format(**kwargs),
             region=region)
 
+        svc = token.add_service('baremetal')
+        svc.add_standard_endpoints(
+            internal=self.TEST_BAREMETAL_INTERNAL,
+            region=region)
+
         return token
 
     def stub_auth(self, subject_token=None, **kwargs):
@@ -848,6 +821,12 @@ class V2(CommonIdentityTests, utils.TestCase):
             admin=self.TEST_VOLUME_V3_CATALOG_ADMIN.format(**kwargs),
             public=self.TEST_VOLUME_V3_CATALOG_PUBLIC.format(**kwargs),
             internal=self.TEST_VOLUME_V3_CATALOG_INTERNAL.format(**kwargs),
+            region=region)
+
+        svc = token.add_service('baremetal')
+        svc.add_endpoint(
+            public=None, admin=None,
+            internal=self.TEST_BAREMETAL_INTERNAL,
             region=region)
 
         return token

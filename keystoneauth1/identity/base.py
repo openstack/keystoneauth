@@ -171,16 +171,21 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
         version, min_version and max_version can all be given either as a
         string or a tuple.
 
+        Valid interface types: `public` or `publicURL`,
+                               `internal` or `internalURL`,
+                               `admin` or 'adminURL`
+
         :param session: A session object that can be used for communication.
         :type session: keystoneauth1.session.Session
         :param string service_type: The type of service to lookup the endpoint
                                     for. This plugin will return None (failure)
                                     if service_type is not provided.
-        :param string interface: The exposure of the endpoint. Should be
-                                 `public`, `internal`, `admin`, or `auth`.
-                                 `auth` is special here to use the `auth_url`
-                                 rather than a URL extracted from the service
-                                 catalog. Defaults to `public`.
+        :param interface: Type of endpoint. Can be a single value or a list
+                          of values. If it's a list of values, they will be
+                          looked for in order of preference. Can also be
+                          `keystoneauth1.plugin.AUTH_INTERFACE` to indicate
+                          that the auth_url should be used instead of the
+                          value in the catalog. (optional, defaults to public)
         :param string region_name: The region the endpoint should exist in.
                                    (optional)
         :param string service_name: The name of the service in the catalog.
@@ -310,16 +315,21 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
         version, min_version and max_version can all be given either as a
         string or a tuple.
 
+        Valid interface types: `public` or `publicURL`,
+                               `internal` or `internalURL`,
+                               `admin` or 'adminURL`
+
         :param session: A session object that can be used for communication.
         :type session: keystoneauth1.session.Session
         :param string service_type: The type of service to lookup the endpoint
                                     for. This plugin will return None (failure)
                                     if service_type is not provided.
-        :param string interface: The exposure of the endpoint. Should be
-                                 `public`, `internal`, `admin`, or `auth`.
-                                 `auth` is special here to use the `auth_url`
-                                 rather than a URL extracted from the service
-                                 catalog. Defaults to `public`.
+        :param interface: Type of endpoint. Can be a single value or a list
+                          of values. If it's a list of values, they will be
+                          looked for in order of preference. Can also be
+                          `keystoneauth1.plugin.AUTH_INTERFACE` to indicate
+                          that the auth_url should be used instead of the
+                          value in the catalog. (optional, defaults to public)
         :param string region_name: The region the endpoint should exist in.
                                    (optional)
         :param string service_name: The name of the service in the catalog.

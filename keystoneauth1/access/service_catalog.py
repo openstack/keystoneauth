@@ -126,6 +126,13 @@ class ServiceCatalog(object):
             catalog.append(service)
         return catalog
 
+    def _get_interface_list(self, interface):
+        if not interface:
+            return []
+        if not isinstance(interface, list):
+            interface = [interface]
+        return [self.normalize_interface(i) for i in interface]
+
     @positional()
     def get_endpoints_data(self, service_type=None, interface=None,
                            region_name=None, service_name=None,
@@ -139,9 +146,25 @@ class ServiceCatalog(object):
         be skipped.  This allows compatibility with services that existed
         before the name was available in the catalog.
 
+        Valid interface types: `public` or `publicURL`,
+                               `internal` or `internalURL`,
+                               `admin` or 'adminURL`
+
+        :param string service_type: Service type of the endpoint.
+        :param interface: Type of endpoint. Can be a single value or a list
+                          of values. If it's a list of values, they will be
+                          looked for in order of preference.
+        :param string region_name: Region of the endpoint.
+        :param string service_name: The assigned name of the service.
+        :param string service_id: The identifier of a service.
+        :param string endpoint_id: The identifier of an endpoint.
+
+        :returns: a list of matching EndpointData objects
+        :rtype: list(`keystoneauth1.discover.EndpointData`)
+
         :returns: a dict, keyed by service_type, of lists of EndpointData
         """
-        interface = self.normalize_interface(interface)
+        interfaces = self._get_interface_list(interface)
 
         matching_endpoints = {}
 
@@ -161,11 +184,13 @@ class ServiceCatalog(object):
             matching_endpoints.setdefault(service['type'], [])
 
             for endpoint in service.get('endpoints', []):
-                if interface and interface != endpoint['interface']:
+                if interfaces and endpoint['interface'] not in interfaces:
                     continue
                 if region_name and region_name != endpoint['region_name']:
                     continue
                 if endpoint_id and endpoint_id != endpoint['id']:
+                    continue
+                if not endpoint['url']:
                     continue
 
                 matching_endpoints[service['type']].append(
@@ -179,7 +204,23 @@ class ServiceCatalog(object):
                         endpoint_id=endpoint['id'],
                         raw_endpoint=endpoint['raw_endpoint']))
 
-        return matching_endpoints
+        if not interfaces:
+            return matching_endpoints
+
+        ret = {}
+        for service_type, endpoints in matching_endpoints.items():
+            if not endpoints:
+                ret[service_type] = []
+                continue
+            matches_by_interface = {}
+            for endpoint in endpoints:
+                matches_by_interface.setdefault(endpoint.interface, [])
+                matches_by_interface[endpoint.interface].append(endpoint)
+            best_interface = [i for i in interfaces
+                              if i in matches_by_interface.keys()][0]
+            ret[service_type] = matches_by_interface[best_interface]
+
+        return ret
 
     @positional()
     def get_endpoints(self, service_type=None, interface=None,
@@ -215,11 +256,14 @@ class ServiceCatalog(object):
         endpoint attribute. If no attribute is given, return the first
         endpoint of the specified type.
 
+        Valid interface types: `public` or `publicURL`,
+                               `internal` or `internalURL`,
+                               `admin` or 'adminURL`
+
         :param string service_type: Service type of the endpoint.
-        :param string interface: Type of endpoint.
-                                     Possible values: public or publicURL,
-                                     internal or internalURL, admin or
-                                     adminURL
+        :param interface: Type of endpoint. Can be a single value or a list
+                          of values. If it's a list of values, they will be
+                          looked for in order of preference.
         :param string region_name: Region of the endpoint.
         :param string service_name: The assigned name of the service.
         :param string service_id: The identifier of a service.
@@ -246,11 +290,14 @@ class ServiceCatalog(object):
         endpoint attribute. If no attribute is given, return the url of the
         first endpoint of the specified type.
 
+        Valid interface types: `public` or `publicURL`,
+                               `internal` or `internalURL`,
+                               `admin` or 'adminURL`
+
         :param string service_type: Service type of the endpoint.
-        :param string interface: Type of endpoint.
-                                     Possible values: public or publicURL,
-                                     internal or internalURL, admin or
-                                     adminURL
+        :param interface: Type of endpoint. Can be a single value or a list
+                          of values. If it's a list of values, they will be
+                          looked for in order of preference.
         :param string region_name: Region of the endpoint.
         :param string service_name: The assigned name of the service.
         :param string service_id: The identifier of a service.
@@ -281,7 +328,9 @@ class ServiceCatalog(object):
                                `admin` or 'adminURL`
 
         :param string service_type: Service type of the endpoint.
-        :param string interface: Type of endpoint.
+        :param interface: Type of endpoint. Can be a single value or a list
+                          of values. If it's a list of values, they will be
+                          looked for in order of preference.
         :param string region_name: Region of the endpoint.
         :param string service_name: The assigned name of the service.
         :param string service_id: The identifier of a service.
@@ -309,7 +358,9 @@ class ServiceCatalog(object):
                                `admin` or 'adminURL`
 
         :param string service_type: Service type of the endpoint.
-        :param string interface: Type of endpoint.
+        :param interface: Type of endpoint. Can be a single value or a list
+                          of values. If it's a list of values, they will be
+                          looked for in order of preference.
         :param string region_name: Region of the endpoint.
         :param string service_name: The assigned name of the service.
         :param string service_id: The identifier of a service.
