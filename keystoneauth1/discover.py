@@ -511,10 +511,12 @@ class EndpointData(object):
         self.max_microversion = max_microversion
         self._saved_project_id = None
         self._catalog_matches_version = False
+        self._catalog_matches_exactly = False
+        self._disc = None
 
     def __copy__(self):
         """Return a new EndpointData based on this one."""
-        return EndpointData(
+        new_data = EndpointData(
             catalog_url=self.catalog_url,
             service_url=self.service_url,
             service_type=self.service_type,
@@ -528,6 +530,11 @@ class EndpointData(object):
             major_version=self.major_version,
             min_microversion=self.min_microversion,
             max_microversion=self.max_microversion)
+        # Save cached discovery object - but we don't want to
+        # actually provide a constructor argument
+        new_data._disc = self._disc
+        new_data._saved_project_id = self._saved_project_id
+        return new_data
 
     @property
     def url(self):
@@ -617,29 +624,102 @@ class EndpointData(object):
 
         if project_id:
             self.project_id = project_id
+        discovered_data = None
+        # Maybe we've run discovery in the past and have a document that can
+        # satisfy the request without further work
+        if self._disc:
+            discovered_data = self._disc.versioned_data_for(
+                version, min_version=min_version, max_version=max_version,
+                url=match_url, **allow)
+        if not discovered_data:
+            self._run_discovery(
+                session=session, cache=cache,
+                version=version, min_version=min_version,
+                max_version=max_version,
+                match_url=match_url, project_id=project_id,
+                allow_version_hack=allow_version_hack, allow=allow,
+                discover_versions=discover_versions)
+            if not self._disc:
+                return
+            discovered_data = self._disc.versioned_data_for(
+                version, min_version=min_version, max_version=max_version,
+                url=match_url, **allow)
 
-        disc = None
+        if not discovered_data:
+            if version:
+                raise exceptions.DiscoveryFailure(
+                    "Version {version} requested, but was not found".format(
+                        version=version_to_string(version)))
+            elif min_version and not max_version:
+                raise exceptions.DiscoveryFailure(
+                    "Minimum version {min_version} was not found".format(
+                        min_version=version_to_string(min_version)))
+            elif max_version and not min_version:
+                raise exceptions.DiscoveryFailure(
+                    "Maximum version {max_version} was not found".format(
+                        max_version=version_to_string(max_version)))
+            elif min_version and max_version:
+                raise exceptions.DiscoveryFailure(
+                    "No version found between {min_version}"
+                    " and {max_version}".format(
+                        min_version=version_to_string(min_version),
+                        max_version=version_to_string(max_version)))
+
+        self.min_microversion = discovered_data['min_microversion']
+        self.max_microversion = discovered_data['max_microversion']
+
+        # TODO(mordred): these next two things should be done by Discover
+        # in versioned_data_for.
+        discovered_url = discovered_data['url']
+
+        # NOTE(jamielennox): urljoin allows the url to be relative or even
+        # protocol-less. The additional trailing '/' make urljoin respect
+        # the current path as canonical even if the url doesn't include it.
+        # for example a "v2" path from http://host/admin should resolve as
+        # http://host/admin/v2 where it would otherwise be host/v2.
+        # This has no effect on absolute urls returned from url_for.
+        url = urllib.parse.urljoin(self._disc._url.rstrip('/') + '/',
+                                   discovered_url)
+
+        # If we had to pop a project_id from the catalog_url, put it back on
+        if self._saved_project_id:
+            url = urllib.parse.urljoin(url.rstrip('/') + '/',
+                                       self._saved_project_id)
+        self.service_url = url
+
+    @positional(1)
+    def _run_discovery(self, session, cache, version, min_version,
+                       max_version, match_url, project_id,
+                       allow_version_hack, allow, discover_versions):
         vers_url = None
         tried = set()
+
         for vers_url in self._get_discovery_url_choices(
                 version=version, project_id=project_id,
                 allow_version_hack=allow_version_hack,
                 min_version=min_version,
                 max_version=max_version):
 
+            if self._catalog_matches_exactly and not discover_versions:
+                # The version we started with is correct, and we don't want
+                # new data
+                return
+
             if vers_url in tried:
                 continue
             tried.update(vers_url)
+
             try:
-                disc = get_discovery(session, vers_url,
-                                     cache=cache,
-                                     authenticated=False)
+                self._disc = get_discovery(
+                    session, vers_url,
+                    cache=cache,
+                    authenticated=False)
                 break
             except (exceptions.DiscoveryFailure,
                     exceptions.HttpError,
                     exceptions.ConnectionError):
                 continue
-        if not disc:
+        if not self._disc:
             # We couldn't find a version discovery document anywhere.
             if self._catalog_matches_version:
                 # But - the version in the catalog is fine.
@@ -671,48 +751,6 @@ class EndpointData(object):
                     "Version requested but version discovery document was not"
                     " found and allow_version_hack was False")
 
-        discovered_data = disc.versioned_data_for(
-            version, min_version=min_version, max_version=max_version,
-            url=match_url, **allow)
-        if not discovered_data:
-            if version:
-                raise exceptions.DiscoveryFailure(
-                    "Version {version} requested, but was not found".format(
-                        version=version_to_string(version)))
-            elif min_version and not max_version:
-                raise exceptions.DiscoveryFailure(
-                    "Minimum version {min_version} was not found".format(
-                        min_version=version_to_string(min_version)))
-            elif max_version and not min_version:
-                raise exceptions.DiscoveryFailure(
-                    "Maximum version {max_version} was not found".format(
-                        max_version=version_to_string(max_version)))
-            elif min_version and max_version:
-                raise exceptions.DiscoveryFailure(
-                    "No version found between {min_version}"
-                    " and {max_version}".format(
-                        min_version=version_to_string(min_version),
-                        max_version=version_to_string(max_version)))
-
-        self.min_microversion = discovered_data['min_microversion']
-        self.max_microversion = discovered_data['max_microversion']
-
-        discovered_url = discovered_data['url']
-
-        # NOTE(jamielennox): urljoin allows the url to be relative or even
-        # protocol-less. The additional trailing '/' make urljoin respect
-        # the current path as canonical even if the url doesn't include it.
-        # for example a "v2" path from http://host/admin should resolve as
-        # http://host/admin/v2 where it would otherwise be host/v2.
-        # This has no effect on absolute urls returned from url_for.
-        url = urllib.parse.urljoin(vers_url.rstrip('/') + '/', discovered_url)
-
-        # If we had to pop a project_id from the catalog_url, put it back on
-        if self._saved_project_id:
-            url = urllib.parse.urljoin(url.rstrip('/') + '/',
-                                       self._saved_project_id)
-        self.service_url = url
-
     def _get_discovery_url_choices(
             self, version=None, project_id=None, allow_version_hack=True,
             min_version=None, max_version=None):
@@ -721,58 +759,75 @@ class EndpointData(object):
         version, min_version and max_version are already normalized, so will
         either be None, 'latest' or a tuple.
         """
-        if allow_version_hack:
-            url = urllib.parse.urlparse(self.url)
-            url_parts = url.path.split('/')
+        url = urllib.parse.urlparse(self.url)
+        url_parts = url.path.split('/')
 
-            # First, check to see if the catalog url ends with a project id
-            # We need to remove it and save it for later if it does
-            if project_id and url_parts[-1].endswith(project_id):
-                self._saved_project_id = url_parts.pop()
-
-            catalog_discovery = None
-
-            # Next, check to see if the url indicates a version and if that
-            # version either matches our version request or is withing the
-            # range requested. If so, we can start by trying the given url
-            # as it has a high potential for success.
+        # First, check to see if the catalog url ends with a project id
+        # We need to remove it and save it for later if it does
+        if project_id and url_parts[-1].endswith(project_id):
+            self._saved_project_id = url_parts.pop()
+        elif not project_id:
+            # Peek to see if -2 is a version. If so, -1 is a project_id,
+            # even if we don't know that at this point in the call stack
             try:
-                url_version = normalize_version_number(url_parts[-1])
+                url_version = normalize_version_number(url_parts[-2])
+                self._saved_project_id = url_parts.pop()
             except TypeError:
                 pass
-            else:
-                is_between = version_between(
-                    min_version, max_version, url_version)
-                exact_match = (version and version != 'latest'
-                               and version_match(version, url_version))
-                high_match = (is_between and max_version
-                              and max_version != 'latest' and version_match(
-                                  max_version, url_version))
 
-                if exact_match or is_between:
-                    self._catalog_matches_version = True
-                    # The endpoint from the catalog matches the version request
-                    # We construct a URL minus any project_id, but we don't
-                    # return it just yet. It's a good option, but unless we
-                    # have an exact match or match the max requested, we want
-                    # to try for an unversioned endpoint first.
-                    catalog_discovery = urllib.parse.ParseResult(
-                        url.scheme,
-                        url.netloc,
-                        '/'.join(url_parts),
-                        url.params,
-                        url.query,
-                        url.fragment).geturl()
+        catalog_discovery = versioned_discovery = None
+        high_match = exact_match = None
 
-                # If we found a viable catalog endpoint and it's
-                # an exact match or matches the max, go ahead and give
-                # it a go.
-                if catalog_discovery and (high_match or exact_match):
-                    yield catalog_discovery
-                    catalog_discovery = None
+        # Next, check to see if the url indicates a version and if that
+        # version either matches our version request or is withing the
+        # range requested. If so, we can start by trying the given url
+        # as it has a high potential for success.
+        try:
+            url_version = normalize_version_number(url_parts[-1])
+            versioned_discovery = urllib.parse.ParseResult(
+                url.scheme,
+                url.netloc,
+                '/'.join(url_parts),
+                url.params,
+                url.query,
+                url.fragment).geturl()
+        except TypeError:
+            pass
+        else:
+            is_between = version_between(
+                min_version, max_version, url_version)
+            exact_match = (version and version != 'latest'
+                           and version_match(version, url_version))
+            high_match = (is_between and max_version
+                          and max_version != 'latest' and version_match(
+                              max_version, url_version))
 
-                url_parts.pop()
+            if exact_match or is_between:
+                self._catalog_matches_version = True
+                self._catalog_matches_exactly = exact_match
+                # The endpoint from the catalog matches the version request
+                # We construct a URL minus any project_id, but we don't
+                # return it just yet. It's a good option, but unless we
+                # have an exact match or match the max requested, we want
+                # to try for an unversioned endpoint first.
+                catalog_discovery = urllib.parse.ParseResult(
+                    url.scheme,
+                    url.netloc,
+                    '/'.join(url_parts),
+                    url.params,
+                    url.query,
+                    url.fragment).geturl()
 
+            # If we found a viable catalog endpoint and it's
+            # an exact match or matches the max, go ahead and give
+            # it a go.
+            if catalog_discovery and (high_match or exact_match):
+                yield catalog_discovery
+                catalog_discovery = None
+
+            url_parts.pop()
+
+        if allow_version_hack:
             # If there were projects or versions in the url they are now gone.
             # That means we're left with what should be the unversioned url.
             yield urllib.parse.ParseResult(
@@ -796,9 +851,16 @@ class EndpointData(object):
             # above should handle most cases, so by the time we get here it's
             # most likely to be a no-op
             yield self._get_catalog_discover_hack()
+        elif versioned_discovery and self._saved_project_id:
+            # We popped a project_id but are either avoiding version hacks
+            # or we didn't request a version. That means we still want to fetch
+            # the document from the "catalog url" - but the catalog url is has
+            # a project_id suffix so is likely not going to work for us. Try
+            # fetching from the project-less versioned endpoint.
+            yield versioned_discovery
 
         # As a final fallthrough case, return the actual unmodified url from
-        # the catalog. If hacks are turned off, this will be the only choice.
+        # the catalog.
         yield self.catalog_url
 
     def _get_catalog_discover_hack(self):

@@ -299,7 +299,7 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
     def get_endpoint(self, session, service_type=None, interface=None,
                      region_name=None, service_name=None, version=None,
                      allow={}, allow_version_hack=True,
-                     discover_versions=False, skip_discovery=False,
+                     skip_discovery=False,
                      min_version=None, max_version=None,
                      **kwargs):
         """Return a valid endpoint for a service.
@@ -331,10 +331,6 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
         :param bool allow_version_hack: Allow keystoneauth to hack up catalog
                                         URLS to support older schemes.
                                         (optional, default True)
-        :param bool discover_versions: Whether to perform version discovery
-                                       even if a version string wasn't
-                                       requested. This is useful for getting
-                                       microversion information.
         :param bool skip_discovery: Whether to skip version discovery even
                                     if a version has been given. This is useful
                                     if endpoint_override or similar has been
@@ -355,13 +351,18 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
         :return: A valid endpoint URL or None if not available.
         :rtype: string or None
         """
+        # Set discover_versions to False since we're only going to return
+        # a URL. Fetching the microversion data would be needlessly
+        # expensive in the common case. However, discover_versions=False
+        # will still run discovery if the version requested is not the
+        # version in the catalog.
         endpoint_data = self.get_endpoint_data(
             session, service_type=service_type, interface=interface,
             region_name=region_name, service_name=service_name,
             version=version, allow=allow,
             min_version=min_version,
             max_version=max_version,
-            discover_versions=discover_versions,
+            discover_versions=False,
             skip_discovery=skip_discovery,
             allow_version_hack=allow_version_hack, **kwargs)
         return endpoint_data.url if endpoint_data else None
