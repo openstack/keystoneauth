@@ -115,12 +115,12 @@ def normalize_version_number(version):
 
 def _normalize_version_args(version, min_version, max_version):
     if version and (min_version or max_version):
-        raise TypeError(
+        raise ValueError(
             "version is mutually exclusive with min_version and"
             " max_version")
     if min_version == 'latest' and max_version not in (
             None, 'latest'):
-        raise TypeError(
+        raise ValueError(
             "min_version is 'latest' and max_version is {max_version}"
             " but is only allowed to be 'latest' or None".format(
                 max_version=max_version))
@@ -872,7 +872,8 @@ class EndpointData(object):
         :param bool allow_version_hack: Whether or not to allow version hacks
                                         to be applied. (defaults to True)
 
-        :returns: A potential unversioned url
+        :returns: A url that has been transformed by the regex hacks that
+                  match the service_type.
         """
         return _VERSION_HACKS.get_discover_hack(self.service_type, self.url)
 
