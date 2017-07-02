@@ -161,6 +161,7 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
                           allow={}, allow_version_hack=True,
                           discover_versions=False, skip_discovery=False,
                           min_version=None, max_version=None,
+                          endpoint_override=None,
                           **kwargs):
         """Return a valid endpoint data for a service.
 
@@ -208,6 +209,11 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
                             exclusive with version. If min_version is given
                             with no max_version it is as if max version is
                             'latest'. (optional)
+        :param str endpoint_override: URL to use instead of looking in the
+                                      catalog. Catalog lookup will be skipped,
+                                      but version discovery will be run.
+                                      Sets allow_version_hack to False
+                                      (optional)
 
         :raises keystoneauth1.exceptions.http.HttpError: An error from an
                                                          invalid HTTP response.
@@ -225,6 +231,23 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
                 service_url=self.auth_url,
                 service_type=service_type or 'identity')
             project_id = None
+        elif endpoint_override:
+            # TODO(mordred) Make a code path that will look for a
+            #               matching entry in the catalog if the catalog
+            #               exists and fill in the interface, region_name, etc.
+            #               For now, just use any information the use has
+            #               provided.
+            endpoint_data = discover.EndpointData(
+                catalog_url=endpoint_override,
+                interface=interface,
+                region_name=region_name,
+                service_name=service_name)
+            # Setting an endpoint_override then calling get_endpoint_data means
+            # you absolutely want the discovery info for the URL in question.
+            # There are no code flows where this will happen for any other
+            # reasons.
+            allow_version_hack = False
+            project_id = self.get_project_id(session)
         else:
             if not service_type:
                 LOG.warning('Plugin cannot return an endpoint without '

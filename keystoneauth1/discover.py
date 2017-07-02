@@ -613,7 +613,7 @@ class EndpointData(object):
             # We want to run discovery, but we don't want to find different
             # endpoints than what's in the catalog
             allow_version_hack = False
-            match_url = self.catalog_url
+            match_url = self.url
 
         if project_id:
             self.project_id = project_id

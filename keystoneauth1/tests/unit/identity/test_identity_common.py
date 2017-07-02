@@ -949,6 +949,68 @@ class CatalogHackTests(utils.TestCase):
 
         self.assertEqual(self.V2_URL, endpoint)
 
+    def test_endpoint_override_skips_discovery(self):
+        token = fixture.V2Token()
+        service = token.add_service(self.IDENTITY)
+        service.add_endpoint(public=self.V2_URL,
+                             admin=self.V2_URL,
+                             internal=self.V2_URL)
+
+        self.stub_url('POST',
+                      ['tokens'],
+                      base_url=self.V2_URL,
+                      json=token)
+
+        v2_auth = identity.V2Password(self.V2_URL,
+                                      username=uuid.uuid4().hex,
+                                      password=uuid.uuid4().hex)
+
+        sess = session.Session(auth=v2_auth)
+
+        endpoint = sess.get_endpoint(endpoint_override=self.OTHER_URL,
+                                     service_type=self.IDENTITY,
+                                     interface='public',
+                                     version=(3, 0))
+
+        self.assertEqual(self.OTHER_URL, endpoint)
+
+    def test_endpoint_override_data_runs_discovery(self):
+        common_disc = fixture.DiscoveryList(v2=False, v3=False)
+        common_disc.add_microversion(href=self.OTHER_URL, id='v2.1',
+                                     min_version='2.1', max_version='2.35')
+
+        common_m = self.stub_url('GET',
+                                 base_url=self.OTHER_URL,
+                                 status_code=200,
+                                 json=common_disc)
+
+        token = fixture.V2Token()
+        service = token.add_service(self.IDENTITY)
+        service.add_endpoint(public=self.V2_URL,
+                             admin=self.V2_URL,
+                             internal=self.V2_URL)
+
+        self.stub_url('POST',
+                      ['tokens'],
+                      base_url=self.V2_URL,
+                      json=token)
+
+        v2_auth = identity.V2Password(self.V2_URL,
+                                      username=uuid.uuid4().hex,
+                                      password=uuid.uuid4().hex)
+
+        sess = session.Session(auth=v2_auth)
+
+        data = sess.get_endpoint_data(endpoint_override=self.OTHER_URL,
+                                      service_type=self.IDENTITY,
+                                      interface='public',
+                                      version=(2, 0))
+
+        self.assertTrue(common_m.called)
+        self.assertEqual(self.OTHER_URL, data.url)
+        self.assertEqual((2, 1), data.min_microversion)
+        self.assertEqual((2, 35), data.max_microversion)
+
     def test_forcing_discovery(self):
         v2_disc = fixture.V2Discovery(self.V2_URL)
         common_disc = fixture.DiscoveryList(href=self.BASE_URL)
