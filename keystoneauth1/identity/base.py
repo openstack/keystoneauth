@@ -160,11 +160,15 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
                           region_name=None, service_name=None, version=None,
                           allow={}, allow_version_hack=True,
                           discover_versions=False, skip_discovery=False,
+                          min_version=None, max_version=None,
                           **kwargs):
         """Return a valid endpoint data for a service.
 
         If a valid token is not present then a new one will be fetched using
         the session and kwargs.
+
+        version, min_version and max_version can all be given either as a
+        string or a tuple.
 
         :param session: A session object that can be used for communication.
         :type session: keystoneauth1.session.Session
@@ -180,7 +184,7 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
                                    (optional)
         :param string service_name: The name of the service in the catalog.
                                    (optional)
-        :param tuple version: The minimum version number required for this
+        :param version: The minimum version number required for this
                               endpoint. (optional)
         :param dict allow: Extra filters to pass when discovering API
                            versions. (optional)
@@ -196,6 +200,14 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
                                     if endpoint_override or similar has been
                                     given and grabbing additional information
                                     about the endpoint is not useful.
+        :param min_version: The minimum version that is acceptable. Mutually
+                            exclusive with version. If min_version is given
+                            with no max_version it is as if max version is
+                            'latest'. (optional)
+        :param max_version: The maximum version that is acceptable. Mutually
+                            exclusive with version. If min_version is given
+                            with no max_version it is as if max version is
+                            'latest'. (optional)
 
         :raises keystoneauth1.exceptions.http.HttpError: An error from an
                                                          invalid HTTP response.
@@ -244,6 +256,8 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
             return endpoint_data.get_versioned_data(
                 session, version,
                 project_id=project_id,
+                min_version=min_version,
+                max_version=max_version,
                 authenticated=False,
                 cache=self._discovery_cache,
                 discover_versions=discover_versions,
@@ -253,7 +267,7 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
                 exceptions.ConnectionError):
             # If a version was requested, we didn't find it, return
             # None.
-            if version:
+            if version or max_version or min_version:
                 return None
             # If one wasn't, then the endpoint_data we already have
             # should be fine
@@ -262,11 +276,16 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
     def get_endpoint(self, session, service_type=None, interface=None,
                      region_name=None, service_name=None, version=None,
                      allow={}, allow_version_hack=True,
-                     discover_versions=False, skip_discovery=False, **kwargs):
+                     discover_versions=False, skip_discovery=False,
+                     min_version=None, max_version=None,
+                     **kwargs):
         """Return a valid endpoint for a service.
 
         If a valid token is not present then a new one will be fetched using
         the session and kwargs.
+
+        version, min_version and max_version can all be given either as a
+        string or a tuple.
 
         :param session: A session object that can be used for communication.
         :type session: keystoneauth1.session.Session
@@ -282,8 +301,8 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
                                    (optional)
         :param string service_name: The name of the service in the catalog.
                                    (optional)
-        :param tuple version: The minimum version number required for this
-                              endpoint. (optional)
+        :param version: The minimum version number required for this
+                        endpoint. (optional)
         :param dict allow: Extra filters to pass when discovering API
                            versions. (optional)
         :param bool allow_version_hack: Allow keystoneauth to hack up catalog
@@ -298,6 +317,14 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
                                     if endpoint_override or similar has been
                                     given and grabbing additional information
                                     about the endpoint is not useful.
+        :param min_version: The minimum version that is acceptable. Mutually
+                            exclusive with version. If min_version is given
+                            with no max_version it is as if max version is
+                            'latest'. (optional)
+        :param max_version: The maximum version that is acceptable. Mutually
+                            exclusive with version. If min_version is given
+                            with no max_version it is as if max version is
+                            'latest'. (optional)
 
         :raises keystoneauth1.exceptions.http.HttpError: An error from an
                                                          invalid HTTP response.
@@ -309,6 +336,8 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
             session, service_type=service_type, interface=interface,
             region_name=region_name, service_name=service_name,
             version=version, allow=allow,
+            min_version=min_version,
+            max_version=max_version,
             discover_versions=discover_versions,
             skip_discovery=skip_discovery,
             allow_version_hack=allow_version_hack, **kwargs)

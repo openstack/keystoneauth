@@ -113,9 +113,61 @@ def normalize_version_number(version):
     raise TypeError('Invalid version specified: %s' % version)
 
 
+def _normalize_version_args(version, min_version, max_version):
+    if version and (min_version or max_version):
+        raise TypeError(
+            "version is mutually exclusive with min_version and"
+            " max_version")
+    if min_version == 'latest' and max_version not in (
+            None, 'latest'):
+        raise TypeError(
+            "min_version is 'latest' and max_version is {max_version}"
+            " but is only allowed to be 'latest' or None".format(
+                max_version=max_version))
+
+    if version and version != 'latest':
+        version = normalize_version_number(version)
+
+    if min_version:
+        if min_version == 'latest':
+            min_version = None
+            max_version = 'latest'
+        else:
+            min_version = normalize_version_number(min_version)
+
+    if max_version and max_version != 'latest':
+        max_version = normalize_version_number(max_version)
+
+    return version, min_version, max_version
+
+
 def version_to_string(version):
     """Turn a version tuple into a string."""
     return ".".join([str(x) for x in version])
+
+
+def version_between(min_version, max_version, candidate):
+    # A version can't be between a range that doesn't exist
+    if not min_version and not max_version:
+        return False
+
+    # If the candidate is less than the min_version, it's
+    # not a match.
+    if min_version:
+        min_version = normalize_version_number(min_version)
+        if candidate < min_version:
+            return False
+
+    # Lack of max_version implies latest.
+    if max_version == 'latest' or not max_version:
+        return True
+
+    max_version = normalize_version_number(max_version)
+    if version_match(max_version, candidate):
+        return True
+    if max_version < candidate:
+        return False
+    return True
 
 
 def version_match(required, candidate):
@@ -324,8 +376,13 @@ class Discover(object):
         data = self.data_for(version, **kwargs)
         return data['url'] if data else None
 
-    def versioned_data_for(self, version=None, url=None, **kwargs):
-        """Return endpoint data that matches the version or url.
+    def versioned_data_for(self, version=None, url=None,
+                           min_version=None, max_version=None,
+                           **kwargs):
+        """Return endpoint data for the service at a url.
+
+        version, min_version and max_version can all be given either as a
+        string or a tuple.
 
         :param version: The version is the minimum version in the
             same major release as there should be no compatibility issues with
@@ -333,42 +390,83 @@ class Discover(object):
             given, the highest available version will be matched.
         :param string url: If url is given, the data will be returned for the
             endpoint data that has a self link matching the url.
+        :param min_version: The minimum version that is acceptable. Mutually
+            exclusive with version. If min_version is given with no max_version
+            it is as if max version is 'latest'. If min_version is 'latest',
+            max_version may only be 'latest' or None.
+        :param max_version: The maximum version that is acceptable. Mutually
+            exclusive with version. If min_version is given with no max_version
+            it is as if max version is 'latest'. If min_version is 'latest',
+            max_version may only be 'latest' or None.
 
         :returns: the endpoint data for a URL that matches the required version
                   (the format is described in version_data) or None if no
                   match.
         :rtype: dict
         """
+        version, min_version, max_version = _normalize_version_args(
+            version, min_version, max_version)
+        no_version = not version and not max_version and not min_version
+
         version_data = self.version_data(reverse=True, **kwargs)
 
-        if version == 'latest':
+        # If we don't have to check a min_version, we can short
+        # circuit anything else
+        if 'latest' in (version, max_version) and not min_version:
             # because we reverse we can just take the first entry
             return version_data[0]
 
-        if version:
-            version = normalize_version_number(version)
         if url:
             url = url.rstrip('/') + '/'
 
-        for data in self.version_data(reverse=True, **kwargs):
+        if no_version and not url:
+            # because we reverse we can just take the first entry
+            return version_data[0]
+
+        # Version data is in order from highest to lowest, so we return
+        # the first matching entry
+        for data in version_data:
             if url and data['url'] and data['url'].rstrip('/') + '/' == url:
                 return data
             if version and version_match(version, data['version']):
                 return data
+            if version_between(min_version, max_version, data['version']):
+                return data
 
+        # If there is no version requested and we could not find a matching
+        # url in the discovery doc, that means we've got an unversioned
+        # endpoint in the catalog and the user is requesting version data
+        # so that they know what version they got. We can return the first
+        # entry from version_data, because the user hasn't requested anything
+        # different.
+        if no_version and url:
+            return version_data[0]
+
+        # We couldn't find a match.
         return None
 
-    def versioned_url_for(self, version, **kwargs):
+    def versioned_url_for(self, version=None,
+                          min_version=None, max_version=None, **kwargs):
         """Get the endpoint url for a version.
 
-        :param tuple version: The version is always a minimum version in the
+        version, min_version and max_version can all be given either as a
+        string or a tuple.
+
+        :param version: The version is always a minimum version in the
             same major release as there should be no compatibility issues with
             using a version newer than the one asked for.
+        :param min_version: The minimum version that is acceptable. Mutually
+            exclusive with version. If min_version is given with no max_version
+            it is as if max version is 'latest'.
+        :param max_version: The maximum version that is acceptable. Mutually
+            exclusive with version. If min_version is given with no max_version
+            it is as if max version is 'latest'.
 
         :returns: The url for the specified version or None if no match.
         :rtype: str
         """
-        data = self.versioned_data_for(version, **kwargs)
+        data = self.versioned_data_for(version, min_version=min_version,
+                                       max_version=max_version, **kwargs)
         return data['url'] if data else None
 
 
@@ -436,19 +534,23 @@ class EndpointData(object):
         return self.service_url or self.catalog_url
 
     @positional(3)
-    def get_versioned_data(self, session, version,
+    def get_versioned_data(self, session, version=None,
                            authenticated=False, allow=None, cache=None,
                            allow_version_hack=True, project_id=None,
-                           discover_versions=False):
+                           discover_versions=False,
+                           min_version=None, max_version=None):
         """Run version discovery for the service described.
 
         Performs Version Discovery and returns a new EndpointData object with
         information found.
 
+        version, min_version and max_version can all be given either as a
+        string or a tuple.
+
         :param session: A session object that can be used for communication.
         :type session: keystoneauth1.session.Session
-        :param tuple version: The minimum major version required for this
-                              endpoint.
+        :param version: The minimum major version required for this endpoint.
+                        Mutually exclusive with min_version and max_version.
         :param string project_id: ID of the currently scoped project. Used for
                                   removing project_id components of URLs from
                                   the catalog. (optional)
@@ -466,39 +568,48 @@ class EndpointData(object):
                                        even if a version string wasn't
                                        requested. This is useful for getting
                                        microversion information.
+        :param min_version: The minimum version that is acceptable. Mutually
+                            exclusive with version. If min_version is given
+                            with no max_version it is as if max version is
+                            'latest'.
+        :param max_version: The maximum version that is acceptable. Mutually
+                            exclusive with version. If min_version is given
+                            with no max_version it is as if max version is
+                            'latest'.
 
         :raises keystoneauth1.exceptions.http.HttpError: An error from an
                                                          invalid HTTP response.
         """
+        version, min_version, max_version = _normalize_version_args(
+            version, min_version, max_version)
+
         if not allow:
             allow = {}
 
         # This method should always return a new EndpointData
         new_data = copy.copy(self)
 
-        if not version and not discover_versions:
-            # NOTE(jamielennox): This may not be the best thing to default to
-            # but is here for backwards compatibility. It may be worth
-            # defaulting to the most recent version.
-            return new_data
-
         new_data._set_version_info(
             session=session, version=version, authenticated=authenticated,
             allow=allow, cache=cache, allow_version_hack=allow_version_hack,
-            project_id=project_id, discover_versions=discover_versions)
+            project_id=project_id, discover_versions=discover_versions,
+            min_version=min_version, max_version=max_version)
         return new_data
 
     def _set_version_info(self, session, version,
                           authenticated=False, allow=None, cache=None,
                           allow_version_hack=True, project_id=None,
-                          discover_versions=False):
+                          discover_versions=False,
+                          min_version=None, max_version=None):
         match_url = None
-        if not version and not discover_versions:
+
+        no_version = not version and not max_version and not min_version
+        if no_version and not discover_versions:
             # NOTE(jamielennox): This may not be the best thing to default to
             # but is here for backwards compatibility. It may be worth
             # defaulting to the most recent version.
             return
-        elif not version and discover_versions:
+        elif no_version and discover_versions:
             # We want to run discovery, but we don't want to find different
             # endpoints than what's in the catalog
             allow_version_hack = False
@@ -510,8 +621,11 @@ class EndpointData(object):
         disc = None
         vers_url = None
         tried = set()
-        for vers_url in self._get_url_choices(version, project_id,
-                                              allow_version_hack):
+        for vers_url in self._get_discovery_url_choices(
+                version=version, project_id=project_id,
+                allow_version_hack=allow_version_hack,
+                min_version=min_version,
+                max_version=max_version):
 
             if vers_url in tried:
                 continue
@@ -557,24 +671,40 @@ class EndpointData(object):
                     "Version requested but version discovery document was not"
                     " found and allow_version_hack was False")
 
-        # NOTE(jamielennox): urljoin allows the url to be relative or even
-        # protocol-less. The additional trailing '/' make urljoin respect
-        # the current path as canonical even if the url doesn't include it.
-        # for example a "v2" path from http://host/admin should resolve as
-        # http://host/admin/v2 where it would otherwise be host/v2.
-        # This has no effect on absolute urls returned from url_for.
         discovered_data = disc.versioned_data_for(
-            version, url=match_url, **allow)
+            version, min_version=min_version, max_version=max_version,
+            url=match_url, **allow)
         if not discovered_data:
-            raise exceptions.DiscoveryFailure(
-                "Version {version} requested, but was not found".format(
-                    version=version_to_string(version)))
+            if version:
+                raise exceptions.DiscoveryFailure(
+                    "Version {version} requested, but was not found".format(
+                        version=version_to_string(version)))
+            elif min_version and not max_version:
+                raise exceptions.DiscoveryFailure(
+                    "Minimum version {min_version} was not found".format(
+                        min_version=version_to_string(min_version)))
+            elif max_version and not min_version:
+                raise exceptions.DiscoveryFailure(
+                    "Maximum version {max_version} was not found".format(
+                        max_version=version_to_string(max_version)))
+            elif min_version and max_version:
+                raise exceptions.DiscoveryFailure(
+                    "No version found between {min_version}"
+                    " and {max_version}".format(
+                        min_version=version_to_string(min_version),
+                        max_version=version_to_string(max_version)))
 
         self.min_microversion = discovered_data['min_microversion']
         self.max_microversion = discovered_data['max_microversion']
 
         discovered_url = discovered_data['url']
 
+        # NOTE(jamielennox): urljoin allows the url to be relative or even
+        # protocol-less. The additional trailing '/' make urljoin respect
+        # the current path as canonical even if the url doesn't include it.
+        # for example a "v2" path from http://host/admin should resolve as
+        # http://host/admin/v2 where it would otherwise be host/v2.
+        # This has no effect on absolute urls returned from url_for.
         url = urllib.parse.urljoin(vers_url.rstrip('/') + '/', discovered_url)
 
         # If we had to pop a project_id from the catalog_url, put it back on
@@ -583,7 +713,14 @@ class EndpointData(object):
                                        self._saved_project_id)
         self.service_url = url
 
-    def _get_url_choices(self, version, project_id, allow_version_hack=True):
+    def _get_discovery_url_choices(
+            self, version=None, project_id=None, allow_version_hack=True,
+            min_version=None, max_version=None):
+        """Find potential locations for version discovery URLs.
+
+        version, min_version and max_version are already normalized, so will
+        either be None, 'latest' or a tuple.
+        """
         if allow_version_hack:
             url = urllib.parse.urlparse(self.url)
             url_parts = url.path.split('/')
@@ -593,30 +730,51 @@ class EndpointData(object):
             if project_id and url_parts[-1].endswith(project_id):
                 self._saved_project_id = url_parts.pop()
 
+            catalog_discovery = None
+
             # Next, check to see if the url indicates a version and if that
-            # version matches our request. If so, we can start by trying
-            # the given url as it has a high potential for success
-            url_version = None
-            if url_parts[-1].startswith('v'):
-                try:
-                    url_version = normalize_version_number(url_parts[-1])
-                except TypeError:
-                    pass
-            if url_version:
-                if version_match(version, url_version):
+            # version either matches our version request or is withing the
+            # range requested. If so, we can start by trying the given url
+            # as it has a high potential for success.
+            try:
+                url_version = normalize_version_number(url_parts[-1])
+            except TypeError:
+                pass
+            else:
+                is_between = version_between(
+                    min_version, max_version, url_version)
+                exact_match = (version and version != 'latest'
+                               and version_match(version, url_version))
+                high_match = (is_between and max_version
+                              and max_version != 'latest' and version_match(
+                                  max_version, url_version))
+
+                if exact_match or is_between:
                     self._catalog_matches_version = True
-                    # This endpoint matches the version request, try it first
-                    yield urllib.parse.ParseResult(
+                    # The endpoint from the catalog matches the version request
+                    # We construct a URL minus any project_id, but we don't
+                    # return it just yet. It's a good option, but unless we
+                    # have an exact match or match the max requested, we want
+                    # to try for an unversioned endpoint first.
+                    catalog_discovery = urllib.parse.ParseResult(
                         url.scheme,
                         url.netloc,
                         '/'.join(url_parts),
                         url.params,
                         url.query,
                         url.fragment).geturl()
+
+                # If we found a viable catalog endpoint and it's
+                # an exact match or matches the max, go ahead and give
+                # it a go.
+                if catalog_discovery and (high_match or exact_match):
+                    yield catalog_discovery
+                    catalog_discovery = None
+
                 url_parts.pop()
 
             # If there were projects or versions in the url they are now gone.
-            # That means we're left with the unversioned url
+            # That means we're left with what should be the unversioned url.
             yield urllib.parse.ParseResult(
                 url.scheme,
                 url.netloc,
@@ -625,14 +783,22 @@ class EndpointData(object):
                 url.query,
                 url.fragment).geturl()
 
+            # If we have a catalog discovery url, it either means we didn't
+            # return it earlier because it wasn't an exact enough match, or
+            # that we did and it failed. We don't double-request things when
+            # consuming this, so it's safe to return it here in case we didn't
+            # already return it.
+            if catalog_discovery:
+                yield catalog_discovery
+
             # NOTE(mordred): For backwards compatibility people might have
             # added version hacks using the version hack system. The logic
             # above should handle most cases, so by the time we get here it's
             # most likely to be a no-op
             yield self._get_catalog_discover_hack()
 
-        # As a final fallthrough case, add the url from the catalog. If hacks
-        # are turned off, this will be the only choice.
+        # As a final fallthrough case, return the actual unmodified url from
+        # the catalog. If hacks are turned off, this will be the only choice.
         yield self.catalog_url
 
     def _get_catalog_discover_hack(self):
