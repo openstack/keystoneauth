@@ -158,7 +158,9 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
 
     def get_endpoint_data(self, session, service_type=None, interface=None,
                           region_name=None, service_name=None, version=None,
-                          allow={}, allow_version_hack=True, **kwargs):
+                          allow={}, allow_version_hack=True,
+                          discover_versions=False, skip_discovery=False,
+                          **kwargs):
         """Return a valid endpoint data for a service.
 
         If a valid token is not present then a new one will be fetched using
@@ -185,6 +187,15 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
         :param bool allow_version_hack: Allow keystoneauth to hack up catalog
                                         URLS to support older schemes.
                                         (optional, default True)
+        :param bool discover_versions: Whether to perform version discovery
+                                       even if a version string wasn't
+                                       requested. This is useful for getting
+                                       microversion information.
+        :param bool skip_discovery: Whether to skip version discovery even
+                                    if a version has been given. This is useful
+                                    if endpoint_override or similar has been
+                                    given and grabbing additional information
+                                    about the endpoint is not useful.
 
         :raises keystoneauth1.exceptions.http.HttpError: An error from an
                                                          invalid HTTP response.
@@ -226,21 +237,32 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
             if not endpoint_data:
                 return None
 
+        if skip_discovery:
+            return endpoint_data
+
         try:
             return endpoint_data.get_versioned_data(
                 session, version,
                 project_id=project_id,
                 authenticated=False,
                 cache=self._discovery_cache,
+                discover_versions=discover_versions,
                 allow_version_hack=allow_version_hack, allow=allow)
         except (exceptions.DiscoveryFailure,
                 exceptions.HttpError,
                 exceptions.ConnectionError):
-            return None
+            # If a version was requested, we didn't find it, return
+            # None.
+            if version:
+                return None
+            # If one wasn't, then the endpoint_data we already have
+            # should be fine
+            return endpoint_data
 
     def get_endpoint(self, session, service_type=None, interface=None,
                      region_name=None, service_name=None, version=None,
-                     allow={}, allow_version_hack=True, **kwargs):
+                     allow={}, allow_version_hack=True,
+                     discover_versions=False, skip_discovery=False, **kwargs):
         """Return a valid endpoint for a service.
 
         If a valid token is not present then a new one will be fetched using
@@ -267,6 +289,15 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
         :param bool allow_version_hack: Allow keystoneauth to hack up catalog
                                         URLS to support older schemes.
                                         (optional, default True)
+        :param bool discover_versions: Whether to perform version discovery
+                                       even if a version string wasn't
+                                       requested. This is useful for getting
+                                       microversion information.
+        :param bool skip_discovery: Whether to skip version discovery even
+                                    if a version has been given. This is useful
+                                    if endpoint_override or similar has been
+                                    given and grabbing additional information
+                                    about the endpoint is not useful.
 
         :raises keystoneauth1.exceptions.http.HttpError: An error from an
                                                          invalid HTTP response.
@@ -278,6 +309,8 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
             session, service_type=service_type, interface=interface,
             region_name=region_name, service_name=service_name,
             version=version, allow=allow,
+            discover_versions=discover_versions,
+            skip_discovery=skip_discovery,
             allow_version_hack=allow_version_hack, **kwargs)
         return endpoint_data.url if endpoint_data else None
 

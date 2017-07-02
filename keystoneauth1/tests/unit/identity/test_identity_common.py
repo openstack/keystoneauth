@@ -924,6 +924,122 @@ class CatalogHackTests(utils.TestCase):
 
         self.assertEqual(self.V2_URL, endpoint)
 
+    def test_returns_original_skipping_discovery(self):
+        token = fixture.V2Token()
+        service = token.add_service(self.IDENTITY)
+        service.add_endpoint(public=self.V2_URL,
+                             admin=self.V2_URL,
+                             internal=self.V2_URL)
+
+        self.stub_url('POST',
+                      ['tokens'],
+                      base_url=self.V2_URL,
+                      json=token)
+
+        v2_auth = identity.V2Password(self.V2_URL,
+                                      username=uuid.uuid4().hex,
+                                      password=uuid.uuid4().hex)
+
+        sess = session.Session(auth=v2_auth)
+
+        endpoint = sess.get_endpoint(service_type=self.IDENTITY,
+                                     interface='public',
+                                     skip_discovery=True,
+                                     version=(3, 0))
+
+        self.assertEqual(self.V2_URL, endpoint)
+
+    def test_forcing_discovery(self):
+        v2_disc = fixture.V2Discovery(self.V2_URL)
+        common_disc = fixture.DiscoveryList(href=self.BASE_URL)
+
+        v2_m = self.stub_url('GET',
+                             ['v2.0'],
+                             base_url=self.BASE_URL,
+                             status_code=200,
+                             json={'version': v2_disc})
+
+        common_m = self.stub_url('GET',
+                                 [],
+                                 base_url=self.BASE_URL,
+                                 status_code=300,
+                                 json=common_disc)
+
+        token = fixture.V2Token()
+        service = token.add_service(self.IDENTITY)
+        service.add_endpoint(public=self.V2_URL,
+                             admin=self.V2_URL,
+                             internal=self.V2_URL)
+
+        self.stub_url('POST',
+                      ['tokens'],
+                      base_url=self.V2_URL,
+                      json=token)
+
+        v2_auth = identity.V2Password(self.V2_URL,
+                                      username=uuid.uuid4().hex,
+                                      password=uuid.uuid4().hex)
+
+        sess = session.Session(auth=v2_auth)
+
+        # v2 auth with v2 url doesn't make any discovery calls.
+        self.assertFalse(v2_m.called)
+        self.assertFalse(common_m.called)
+
+        endpoint = sess.get_endpoint(service_type=self.IDENTITY,
+                                     discover_versions=True)
+
+        # We should get the v2 document, but not the unversioned
+        self.assertTrue(v2_m.called)
+        self.assertFalse(common_m.called)
+
+        # got v2 url
+        self.assertEqual(self.V2_URL, endpoint)
+
+    def test_forcing_discovery_list_returns_url(self):
+        common_disc = fixture.DiscoveryList(href=self.BASE_URL)
+
+        # 2.0 doesn't usually return a list. This is testing that if
+        # the catalog url returns an endpoint that has a discovery document
+        # with more than one URL and that a different url would be returned
+        # by "return the latest" rules, that we get the info of the url from
+        # the catalog if we don't provide a version but do provide
+        # discover_versions
+        v2_m = self.stub_url('GET',
+                             ['v2.0'],
+                             base_url=self.BASE_URL,
+                             status_code=200,
+                             json=common_disc)
+
+        token = fixture.V2Token()
+        service = token.add_service(self.IDENTITY)
+        service.add_endpoint(public=self.V2_URL,
+                             admin=self.V2_URL,
+                             internal=self.V2_URL)
+
+        self.stub_url('POST',
+                      ['tokens'],
+                      base_url=self.V2_URL,
+                      json=token)
+
+        v2_auth = identity.V2Password(self.V2_URL,
+                                      username=uuid.uuid4().hex,
+                                      password=uuid.uuid4().hex)
+
+        sess = session.Session(auth=v2_auth)
+
+        # v2 auth with v2 url doesn't make any discovery calls.
+        self.assertFalse(v2_m.called)
+
+        endpoint = sess.get_endpoint(service_type=self.IDENTITY,
+                                     discover_versions=True)
+
+        # We should make the one call
+        self.assertTrue(v2_m.called)
+
+        # got v2 url
+        self.assertEqual(self.V2_URL, endpoint)
+
     def test_getting_endpoints_on_auth_interface(self):
         disc = fixture.DiscoveryList(href=self.BASE_URL)
         self.stub_url('GET',

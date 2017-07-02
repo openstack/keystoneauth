@@ -286,6 +286,10 @@ class Discover(object):
     def data_for(self, version, **kwargs):
         """Return endpoint data for a version.
 
+        NOTE: This method raises a TypeError if version is None. It is
+              kept for backwards compatability. New code should use
+              versioned_data_for instead.
+
         :param tuple version: The version is always a minimum version in the
             same major release as there should be no compatibility issues with
             using a version newer than the one asked for.
@@ -306,6 +310,10 @@ class Discover(object):
     def url_for(self, version, **kwargs):
         """Get the endpoint url for a version.
 
+        NOTE: This method raises a TypeError if version is None. It is
+              kept for backwards compatability. New code should use
+              versioned_url_for instead.
+
         :param tuple version: The version is always a minimum version in the
             same major release as there should be no compatibility issues with
             using a version newer than the one asked for.
@@ -314,6 +322,47 @@ class Discover(object):
         :rtype: str
         """
         data = self.data_for(version, **kwargs)
+        return data['url'] if data else None
+
+    def versioned_data_for(self, version=None, url=None, **kwargs):
+        """Return endpoint data that matches the version or url.
+
+        :param version: The version is the minimum version in the
+            same major release as there should be no compatibility issues with
+            using a version newer than the one asked for. If version is not
+            given, the highest available version will be matched.
+        :param string url: If url is given, the data will be returned for the
+            endpoint data that has a self link matching the url.
+
+        :returns: the endpoint data for a URL that matches the required version
+                  (the format is described in version_data) or None if no
+                  match.
+        :rtype: dict
+        """
+        if version:
+            version = normalize_version_number(version)
+        if url:
+            url = url.rstrip('/') + '/'
+
+        for data in self.version_data(reverse=True, **kwargs):
+            if url and data['url'] and data['url'].rstrip('/') + '/' == url:
+                return data
+            if version and version_match(version, data['version']):
+                return data
+
+        return None
+
+    def versioned_url_for(self, version, **kwargs):
+        """Get the endpoint url for a version.
+
+        :param tuple version: The version is always a minimum version in the
+            same major release as there should be no compatibility issues with
+            using a version newer than the one asked for.
+
+        :returns: The url for the specified version or None if no match.
+        :rtype: str
+        """
+        data = self.versioned_data_for(version, **kwargs)
         return data['url'] if data else None
 
 
@@ -383,7 +432,8 @@ class EndpointData(object):
     @positional(3)
     def get_versioned_data(self, session, version,
                            authenticated=False, allow=None, cache=None,
-                           allow_version_hack=True, project_id=None):
+                           allow_version_hack=True, project_id=None,
+                           discover_versions=False):
         """Run version discovery for the service described.
 
         Performs Version Discovery and returns a new EndpointData object with
@@ -406,6 +456,10 @@ class EndpointData(object):
                            (optional)
         :param bool authenticated: Include a token in the discovery call.
                                    (optional) Defaults to False.
+        :param bool discover_versions: Whether to perform version discovery
+                                       even if a version string wasn't
+                                       requested. This is useful for getting
+                                       microversion information.
 
         :raises keystoneauth1.exceptions.http.HttpError: An error from an
                                                          invalid HTTP response.
@@ -416,7 +470,7 @@ class EndpointData(object):
         # This method should always return a new EndpointData
         new_data = copy.copy(self)
 
-        if not version:
+        if not version and not discover_versions:
             # NOTE(jamielennox): This may not be the best thing to default to
             # but is here for backwards compatibility. It may be worth
             # defaulting to the most recent version.
@@ -425,12 +479,25 @@ class EndpointData(object):
         new_data._set_version_info(
             session=session, version=version, authenticated=authenticated,
             allow=allow, cache=cache, allow_version_hack=allow_version_hack,
-            project_id=project_id)
+            project_id=project_id, discover_versions=discover_versions)
         return new_data
 
     def _set_version_info(self, session, version,
                           authenticated=False, allow=None, cache=None,
-                          allow_version_hack=True, project_id=None):
+                          allow_version_hack=True, project_id=None,
+                          discover_versions=False):
+        match_url = None
+        if not version and not discover_versions:
+            # NOTE(jamielennox): This may not be the best thing to default to
+            # but is here for backwards compatibility. It may be worth
+            # defaulting to the most recent version.
+            return
+        elif not version and discover_versions:
+            # We want to run discovery, but we don't want to find different
+            # endpoints than what's in the catalog
+            allow_version_hack = False
+            match_url = self.catalog_url
+
         if project_id:
             self.project_id = project_id
 
@@ -490,7 +557,8 @@ class EndpointData(object):
         # for example a "v2" path from http://host/admin should resolve as
         # http://host/admin/v2 where it would otherwise be host/v2.
         # This has no effect on absolute urls returned from url_for.
-        discovered_data = disc.data_for(version, **allow)
+        discovered_data = disc.versioned_data_for(
+            version, url=match_url, **allow)
         if not discovered_data:
             raise exceptions.DiscoveryFailure(
                 "Version {version} requested, but was not found".format(
