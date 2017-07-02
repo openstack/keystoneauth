@@ -159,7 +159,7 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
     def get_endpoint_data(self, session, service_type=None, interface=None,
                           region_name=None, service_name=None, version=None,
                           allow={}, allow_version_hack=True,
-                          discover_versions=False, skip_discovery=False,
+                          discover_versions=True, skip_discovery=False,
                           min_version=None, max_version=None,
                           endpoint_override=None,
                           **kwargs):
@@ -197,10 +197,11 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
         :param bool allow_version_hack: Allow keystoneauth to hack up catalog
                                         URLS to support older schemes.
                                         (optional, default True)
-        :param bool discover_versions: Whether to perform version discovery
-                                       even if a version string wasn't
-                                       requested. This is useful for getting
-                                       microversion information.
+        :param bool discover_versions: Whether to get version metadata from
+                                       the version discovery document even
+                                       if it's not neccessary to fulfill the
+                                       major version request. (optional,
+                                       defaults to True)
         :param bool skip_discovery: Whether to skip version discovery even
                                     if a version has been given. This is useful
                                     if endpoint_override or similar has been

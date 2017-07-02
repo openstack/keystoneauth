@@ -544,7 +544,7 @@ class EndpointData(object):
     def get_versioned_data(self, session, version=None,
                            authenticated=False, allow=None, cache=None,
                            allow_version_hack=True, project_id=None,
-                           discover_versions=False,
+                           discover_versions=True,
                            min_version=None, max_version=None):
         """Run version discovery for the service described.
 
@@ -571,10 +571,11 @@ class EndpointData(object):
                            (optional)
         :param bool authenticated: Include a token in the discovery call.
                                    (optional) Defaults to False.
-        :param bool discover_versions: Whether to perform version discovery
-                                       even if a version string wasn't
-                                       requested. This is useful for getting
-                                       microversion information.
+        :param bool discover_versions: Whether to get version metadata from
+                                       the version discovery document even
+                                       if it's not neccessary to fulfill the
+                                       major version request. (optional,
+                                       defaults to True)
         :param min_version: The minimum version that is acceptable. Mutually
                             exclusive with version. If min_version is given
                             with no max_version it is as if max version is
