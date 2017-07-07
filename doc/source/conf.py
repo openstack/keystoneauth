@@ -15,9 +15,7 @@
 from __future__ import unicode_literals
 
 import os
-import subprocess
 import sys
-import warnings
 
 import pbr.version
 
@@ -40,7 +38,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__),
 extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.coverage',
               'sphinx.ext.intersphinx',
-              'oslosphinx',
+              'openstackdocstheme',
               'ext.list_plugins',
              ]
 
@@ -119,6 +117,7 @@ modindex_common_prefix = ['keystoneauth1.']
 # Sphinx are currently 'default' and 'sphinxdoc'.
 #html_theme_path = ["."]
 #html_theme = '_theme'
+html_theme = 'openstackdocs'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -151,13 +150,7 @@ modindex_common_prefix = ['keystoneauth1.']
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
-git_cmd = ["git", "log", "--pretty=format:'%ad, commit %h'", "--date=local",
-           "-n1"]
-try:
-    html_last_updated_fmt = subprocess.check_output(git_cmd).decode('utf-8')
-except:
-    warnings.warn('Cannot get last updated time from git repository. '
-                  'Not setting "html_last_updated_fmt".')
+html_last_updated_fmt = '%Y-%m-%d %H:%M'
 
 # If true, SmartyPants will be used to convert quotes and dashes to
 # typographically correct entities.
@@ -236,3 +229,8 @@ intersphinx_mapping = {
     'osloconfig': ('https://docs.openstack.org/oslo.config/latest/', None),
     'keystoneclient': (ksc, None),
 }
+
+# -- Options for openstackdocstheme -------------------------------------------
+repository_name = 'openstack/keystoneauth'
+bug_project = 'keystoneauth'
+bug_tag = 'doc'
