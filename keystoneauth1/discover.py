@@ -298,10 +298,16 @@ class Discover(object):
             version_number = normalize_version_number(version_str)
 
             # collect microversion information
+            # NOTE(efried): Some existing discovery documents (e.g. from nova
+            # v2.0 in the pike release) include *version keys with "" (empty
+            # string) values, expecting them to be treated the same as if the
+            # keys were absent.
             min_microversion = v.get('min_version') or None
             if min_microversion:
                 min_microversion = normalize_version_number(min_microversion)
-            max_microversion = v.get('max_version', v.get('version')) or None
+            max_microversion = v.get('max_version')
+            if not max_microversion:
+                max_microversion = v.get('version') or None
             if max_microversion:
                 max_microversion = normalize_version_number(max_microversion)
 
