@@ -114,7 +114,7 @@ class VersionDiscovery(DiscoveryBase):
 
 
 class MicroversionDiscovery(DiscoveryBase):
-    """A Version element for that has microversions.
+    """A Version element that has microversions.
 
     Provides some default values and helper methods for creating a microversion
     endpoint version structure. Clients should use this instead of creating

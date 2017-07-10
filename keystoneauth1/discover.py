@@ -37,7 +37,43 @@ _LOGGER = utils.get_logger(__name__)
 
 @positional()
 def get_version_data(session, url, authenticated=None):
-    """Retrieve raw version data from a url."""
+    """Retrieve raw version data from a url.
+
+    The return is a list of dicts of the form::
+
+      [{
+          'status': 'STABLE',
+          'id': 'v2.3',
+          'links': [
+              {
+                  'href': 'http://network.example.com/v2.3',
+                  'rel': 'self',
+              },
+              {
+                  'href': 'http://network.example.com/',
+                  'rel': 'collection',
+              },
+          ],
+          'min_version': '2.0',
+          'max_version': '2.7',
+       },
+       ...,
+      ]
+
+    Note:
+    The maximum microversion may be specified by `max_version` or `version`,
+    the former superseding the latter.
+    All `*version` keys are optional.
+    Other keys and 'links' entries are permitted, but ignored.
+
+    :param session: A Session object that can be used for communication.
+    :type session: keystoneauth1.session.Session
+    :param string url: Endpoint or discovery URL from which to retrieve data.
+    :param bool authenticated: Include a token in the discovery call.
+                               (optional) Defaults to None.
+    :return: A list of dicts containing version information.
+    :rtype: list(dict)
+    """
     headers = {'Accept': 'application/json'}
 
     resp = session.get(url, headers=headers, authenticated=authenticated)
@@ -142,8 +178,12 @@ def _normalize_version_args(version, min_version, max_version):
 
 
 def version_to_string(version):
-    """Turn a version tuple into a string."""
-    return ".".join([str(x) for x in version])
+    """Turn a version tuple into a string.
+
+    :param tuple(int) version: A version represented as a tuple of ints.
+    :return: A version represented as a period-delimited string.
+    """
+    return ".".join(map(str, version))
 
 
 def version_between(min_version, max_version, candidate):
@@ -272,10 +312,15 @@ class Discover(object):
                              version.
         :returns: A list of version data dictionaries sorted by version number.
                   Each data element in the returned list is a dictionary
-                  consisting of at least:
+                  consisting of:
 
           :version tuple: The normalized version of the endpoint.
           :url str: The url for the endpoint.
+          :collection: The URL for the discovery document.  May be None.
+          :min_microversion: The minimum microversion supported by the
+                             endpoint.  May be None.
+          :max_microversion: The maximum microversion supported by the
+                             endpoint.  May be None.
           :raw_status str: The status as provided by the server
         :rtype: list(dict)
         """
@@ -868,9 +913,6 @@ class EndpointData(object):
         """Apply the catalog hacks and figure out an unversioned endpoint.
 
         This function is internal to keystoneauth1.
-
-        :param bool allow_version_hack: Whether or not to allow version hacks
-                                        to be applied. (defaults to True)
 
         :returns: A url that has been transformed by the regex hacks that
                   match the service_type.
