@@ -287,7 +287,6 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
                 project_id=project_id,
                 min_version=min_version,
                 max_version=max_version,
-                authenticated=False,
                 cache=self._discovery_cache,
                 discover_versions=discover_versions,
                 allow_version_hack=allow_version_hack, allow=allow)
