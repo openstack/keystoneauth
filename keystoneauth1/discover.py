@@ -74,39 +74,75 @@ def get_version_data(session, url, authenticated=None):
 
 
 def normalize_version_number(version):
-    """Turn a version representation into a tuple."""
-    # if it's an integer or a numeric as a string then normalize it
-    # to a string, this ensures 1 decimal point
-    # If it's a float as a string, don't do that, the split/map below
-    # will do what we want. (Otherwise, we wind up with 3.20 -> (3, 2)
-    if isinstance(version, six.string_types):
+    """Turn a version representation into a tuple.
+
+    Examples:
+
+    The following all produce a return value of (1, 0)::
+
+      1, '1', 'v1', [1], (1,), ['1'], 1.0, '1.0', 'v1.0', (1, 0)
+
+    The following all produce a return value of (1, 20, 3)::
+
+      'v1.20.3', '1.20.3', (1, 20, 3), ['1', '20', '3']
+
+    :param version: A version specifier in any of the following forms:
+        String, possibly prefixed with 'v', containing one or more numbers
+        separated by periods.  Examples: 'v1', 'v1.2', '1.2.3', '123'
+        Integer.  This will be assumed to be the major version, with a minor
+        version of 0.
+        Float.  The integer part is assumed to be the major version; the
+        decimal part the minor version.
+        Non-string iterable comprising integers or integer strings.
+        Examples: (1,), [1, 2], ('12', '34', '56')
+    :return: A tuple of integers of len >= 2.
+    :rtype: tuple(int)
+    :raises TypeError: If the input version cannot be interpreted.
+    """
+    # Copy the input var so the error presents the original value
+    ver = version
+
+    # If it's a non-string iterable, turn it into a string for subsequent
+    # processing.  This ensures at least 1 decimal point if e.g. [1] is given.
+    if not isinstance(ver, six.string_types):
+        try:
+            ver = '.'.join(map(str, ver))
+        except TypeError:
+            # Not an iterable
+            pass
+
+    # If it's a numeric or an integer as a string then normalize it to a
+    # float string. This ensures 1 decimal point.
+    # If it's a float as a string, don't do that, the split/map below will do
+    # what we want. (Otherwise, we wind up with 3.20 -> (3, 2))
+    if isinstance(ver, six.string_types):
         # trim the v from a 'v2.0' or similar
-        version = version.lstrip('v')
+        ver = ver.lstrip('v')
         try:
             # If version is a pure int, like '1' or '200' this will produce
             # a stringified version with a .0 added. If it's any other number,
             # such as '1.1' - int(version) raises an Exception
-            version = str(float(int(version)))
+            ver = str(float(int(ver)))
         except ValueError:
             pass
 
-    # If it's an int, turn it into a float
-    elif isinstance(version, int):
-        version = str(float(version))
+    # If it's an int or float, turn it into a float string
+    elif isinstance(ver, (int, float)):
+        ver = str(float(ver))
 
-    elif isinstance(version, float):
-        version = str(version)
-
-    # At this point, we should either have a string that contains a number
-    # or something decidedly else.
+    # At this point, we should either have a string that contains numbers with
+    # at least one decimal point, or something decidedly else.
 
     # if it's a string from above break it on .
-    if hasattr(version, 'split'):
-        version = version.split('.')
+    try:
+        ver = ver.split('.')
+    except AttributeError:
+        # Not a string
+        pass
 
     # It's either an interable, or something else that makes us sad.
     try:
-        return tuple(map(int, version))
+        return tuple(map(int, ver))
     except (TypeError, ValueError):
         pass
 
