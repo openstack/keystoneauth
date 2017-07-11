@@ -298,11 +298,15 @@ class DiscoverUtils(utils.TestCase):
         assertVersion(5.2, (5, 2))
         assertVersion('3.20', (3, 20))
         assertVersion((6, 1), (6, 1))
-        assertVersion([1, 4], (1, 4))
+        assertVersion([1, 40], (1, 40))
+        assertVersion((1,), (1, 0))
+        assertVersion(['1'], (1, 0))
 
         versionRaises('hello')
         versionRaises('1.a')
         versionRaises('vacuum')
+        versionRaises('')
+        versionRaises(('1', 'a'))
 
 
 class VersionDataTests(utils.TestCase):
