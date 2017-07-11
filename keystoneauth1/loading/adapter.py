@@ -45,6 +45,19 @@ class Adapter(base.BaseLoader):
             :region_name:       The default region_name for URL discovery.
             :endpoint_override: Always use this endpoint URL for requests
                                 for this client.
+            :version:           The minimum version restricted to a given Major
+                                API. Mutually exclusive with min_version and
+                                max_version.
+            :min_version:       The minimum major version of a given API,
+                                intended to be used as the lower bound of a
+                                range with max_version. Mutually exclusive with
+                                version. If min_version is given with no
+                                max_version it is as if max version is
+                                'latest'.
+            :max_version:       The maximum major version of a given API,
+                                intended to be used as the upper bound of a
+                                range with min_version. Mutually exclusive with
+                                version.
 
         :returns: A list of oslo_config options.
         """
@@ -65,6 +78,23 @@ class Adapter(base.BaseLoader):
                 cfg.StrOpt('endpoint-override',
                            help='Always use this endpoint URL for requests '
                                 'for this client.'),
+                cfg.StrOpt('version',
+                           help='Minimum Major API version within a given '
+                                'Major API version for endpoint URL '
+                                'discovery. Mutually exclusive with '
+                                'min_version and max_version'),
+                cfg.StrOpt('min-version',
+                           help='The minimum major version of a given API, '
+                                'intended to be used as the lower bound of a '
+                                'range with max_version. Mutually exclusive '
+                                'with version. If min_version is given with '
+                                'no max_version it is as if max version is '
+                                '"latest".'),
+                cfg.StrOpt('max-version',
+                           help='The maximum major version of a given API, '
+                                'intended to be used as the upper bound of a '
+                                'range with min_version. Mutually exclusive '
+                                'with version.'),
                 ]
 
     def register_conf_options(self, conf, group):
@@ -77,6 +107,19 @@ class Adapter(base.BaseLoader):
             :region_name:       The default region_name for URL discovery.
             :endpoint_override: Always use this endpoint URL for requests
                                 for this client.
+            :version:           The minimum version restricted to a given Major
+                                API. Mutually exclusive with min_version and
+                                max_version.
+            :min_version:       The minimum major version of a given API,
+                                intended to be used as the lower bound of a
+                                range with max_version. Mutually exclusive with
+                                version. If min_version is given with no
+                                max_version it is as if max version is
+                                'latest'.
+            :max_version:       The maximum major version of a given API,
+                                intended to be used as the upper bound of a
+                                range with min_version. Mutually exclusive with
+                                version.
 
         :param oslo_config.Cfg conf: config object to register with.
         :param string group: The ini group to register options in.
@@ -107,6 +150,14 @@ class Adapter(base.BaseLoader):
         kwargs.setdefault('interface', c.interface)
         kwargs.setdefault('region_name', c.region_name)
         kwargs.setdefault('endpoint_override', c.endpoint_override)
+        kwargs.setdefault('version', c.version)
+        kwargs.setdefault('min_version', c.min_version)
+        kwargs.setdefault('max_version', c.max_version)
+        if kwargs['version'] and (
+                kwargs['max_version'] or kwargs['min_version']):
+            raise TypeError(
+                "version is mutually exclusive with min_version and"
+                " max_version")
 
         return self.load_from_options(**kwargs)
 

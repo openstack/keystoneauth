@@ -27,6 +27,9 @@ class Adapter(object):
     particular client that is using the session. An adapter provides a wrapper
     of client local data around the global session object.
 
+    version, min_version and max_version can all be given either as a
+    string or a tuple.
+
     :param session: The session object to wrap.
     :type session: keystoneauth1.session.Session
     :param str service_type: The default service_type for URL discovery.
@@ -35,7 +38,9 @@ class Adapter(object):
     :param str region_name: The default region_name for URL discovery.
     :param str endpoint_override: Always use this endpoint URL for requests
                                   for this client.
-    :param tuple version: The version that this API targets.
+    :param version: The minimum version restricted to a given Major API.
+                    Mutually exclusive with min_version and max_version.
+                    (optional)
     :param auth: An auth plugin to use instead of the session one.
     :type auth: keystoneauth1.plugin.BaseAuthPlugin
     :param str user_agent: The User-Agent string to set.
@@ -64,6 +69,14 @@ class Adapter(object):
                                   ``req-$uuid``) that will be passed on all
                                   requests. Enables cross project request id
                                   tracking.
+    :param min_version: The minimum major version of a given API, intended to
+                        be used as the lower bound of a range with
+                        max_version. Mutually exclusive with version.
+                        If min_version is given with no max_version it is as
+                        if max version is 'latest'. (optional)
+    :param max_version: The maximum major version of a given API, intended to
+                        be used as the upper bound of a range with min_version.
+                        Mutually exclusive with version. (optional)
     """
 
     client_name = None
@@ -76,7 +89,12 @@ class Adapter(object):
                  connect_retries=None, logger=None, allow={},
                  additional_headers=None, client_name=None,
                  client_version=None, allow_version_hack=None,
-                 global_request_id=None):
+                 global_request_id=None,
+                 min_version=None, max_version=None):
+        if version and (min_version or max_version):
+            raise TypeError(
+                "version is mutually exclusive with min_version and"
+                " max_version")
         # NOTE(jamielennox): when adding new parameters to adapter please also
         # add them to the adapter call in httpclient.HTTPClient.__init__ as
         # well as to load_adapter_from_argparse below if the argument is
@@ -96,6 +114,8 @@ class Adapter(object):
         self.allow = allow
         self.additional_headers = additional_headers or {}
         self.allow_version_hack = allow_version_hack
+        self.min_version = min_version
+        self.max_version = max_version
 
         self.global_request_id = global_request_id
 
@@ -115,6 +135,10 @@ class Adapter(object):
             kwargs.setdefault('region_name', self.region_name)
         if self.version:
             kwargs.setdefault('version', self.version)
+        if self.min_version:
+            kwargs.setdefault('min_version', self.min_version)
+        if self.max_version:
+            kwargs.setdefault('max_version', self.max_version)
         if self.allow_version_hack is not None:
             kwargs.setdefault('allow_version_hack', self.allow_version_hack)
 
