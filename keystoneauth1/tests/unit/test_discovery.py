@@ -361,6 +361,81 @@ class VersionDataTests(utils.TestCase):
 
         self.assertTrue(mock.called_once)
 
+    def test_version_data_microversions(self):
+        """Validate [min_|max_]version conversion to {min|max}_microversion."""
+        def setup_mock(versions_in):
+            # Set up the test data with the input version data
+            jsondata = {
+                "versions": [
+                    dict(
+                        {
+                            "status": "CURRENT",
+                            "id": "v2.2",
+                            "links": [
+                                {
+                                    "href": V3_URL,
+                                    "rel": "self"
+                                }
+                            ]
+                        },
+                        **versions_in
+                    )
+                ]
+            }
+            self.requests_mock.get(
+                V3_URL, status_code=200, json=jsondata)
+
+        def test_ok(versions_in, versions_out):
+            setup_mock(versions_in)
+            # Ensure the output contains the expected microversions
+            self.assertEqual(
+                [
+                    dict(
+                        {
+                            'collection': None,
+                            'version': (2, 2),
+                            'url': V3_URL,
+                            'raw_status': 'CURRENT',
+                        },
+                        **versions_out
+                    )
+                ],
+                discover.Discover(self.session, V3_URL).version_data())
+
+        def test_exc(versions_in):
+            setup_mock(versions_in)
+            # Ensure TypeError is raised
+            self.assertRaises(
+                TypeError,
+                discover.Discover(self.session, V3_URL).version_data)
+
+        # no version info in input
+        test_ok({},
+                {'min_microversion': None, 'max_microversion': None})
+
+        # version => max_microversion
+        test_ok({'version': '2.2'},
+                {'min_microversion': None, 'max_microversion': (2, 2)})
+
+        # max_version supersedes version (even if malformed).  min_version &
+        # normalization.
+        test_ok({'min_version': '2', 'version': 'foo', 'max_version': '2.2'},
+                {'min_microversion': (2, 0), 'max_microversion': (2, 2)})
+
+        # Edge case: min/max_version ignored if present but "empty"; version
+        # used for max_microversion.
+        test_ok({'min_version': '', 'version': '2.1', 'max_version': ''},
+                {'min_microversion': None, 'max_microversion': (2, 1)})
+
+        # Badly-formatted min_version
+        test_exc({'min_version': 'foo', 'max_version': '2.1'})
+
+        # Badly-formatted max_version
+        test_exc({'min_version': '2.1', 'max_version': 'foo'})
+
+        # Badly-formatted version (when max_version omitted)
+        test_exc({'min_version': '2.1', 'version': 'foo'})
+
     def test_data_for_url(self):
         mock = self.requests_mock.get(V3_URL,
                                       status_code=200,
