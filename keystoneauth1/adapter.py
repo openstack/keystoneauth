@@ -216,8 +216,8 @@ class Adapter(object):
         self._set_endpoint_filter_kwargs(kwargs)
         return self.session.get_endpoint(auth or self.auth, **kwargs)
 
-    def get_endpoint_data(self, auth=None, **kwargs):
-        """Get the endpoint data as provided by the auth plugin.
+    def get_endpoint_data(self, auth=None):
+        """Get the endpoint data for this Adapter's endpoint.
 
         :param auth: The auth plugin to use for token. Overrides the plugin on
                      the session. (optional)
@@ -230,6 +230,7 @@ class Adapter(object):
         :returns: Endpoint data if available or None.
         :rtype: keystoneauth1.discover.EndpointData
         """
+        kwargs = {}
         self._set_endpoint_filter_kwargs(kwargs)
         if self.endpoint_override:
             kwargs['endpoint_override'] = self.endpoint_override
