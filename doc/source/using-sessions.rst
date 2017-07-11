@@ -170,6 +170,9 @@ The overall transaction then has three parts:
 Major API of a given service, as well as reporting the available microversion
 ranges that endpoint supports, if any.
 
+More information is available in the `API-WG Specs`_ on the topics of
+`Microversions`_ and `Consuming the Catalog`_.
+
 Authentication
 --------------
 
@@ -349,7 +352,11 @@ of ranges, lists of input values or ``latest`` version.
 
 It can also be used to determine the `min_microversion` and `max_microversion`
 supported by the API. If an API does not support microversions, the values for
-both will be ``None``.
+both will be ``None``. It will also contain values for `next_min_version` and
+`not_before` if they exist for the endpoint, or ``None`` if they do not. The
+:class:`keystoneauth1.discovery.EndpointData` object will always contain
+microversion related attributes regardless of whether the REST document does
+or not.
 
 ``get_endpoint_data`` makes use of the same cache as the rest of the discovery
 process, so calling it should incur no undue expense. By default it will make
@@ -357,3 +364,8 @@ at least one version discovery call so that it can fetch microversion metadata.
 If the user knows a service does not support microversions and is merely
 curious as to which major version was discovered, `discover_versions` can be
 set to `False` to prevent fetching microversion metadata.
+
+.. _API-WG Specs: http://specs.openstack.org/openstack/api-wg/
+.. _Consuming the Catalog: http://specs.openstack.org/openstack/api-wg/guidelines/consuming-catalog.html
+.. _Microversions: http://specs.openstack.org/openstack/api-wg/guidelines/microversion_specification.html#version-discovery
+
