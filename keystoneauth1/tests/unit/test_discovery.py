@@ -11,11 +11,13 @@
 # under the License.
 
 import json
+import mock
 import re
 
 from testtools import matchers
 
 from keystoneauth1 import discover
+from keystoneauth1 import exceptions
 from keystoneauth1 import fixture
 from keystoneauth1 import session
 from keystoneauth1.tests.unit import utils
@@ -674,3 +676,25 @@ class VersionDataTests(utils.TestCase):
         # only the version with both id and links will be actually returned
         versions = disc.version_data()
         self.assertEqual(1, len(versions))
+
+
+class EndpointDataTests(utils.TestCase):
+    @mock.patch('keystoneauth1.discover.get_discovery')
+    @mock.patch('keystoneauth1.discover.EndpointData.'
+                '_get_discovery_url_choices')
+    def test_run_discovery_cache(self, mock_url_choices, mock_get_disc):
+        # get_discovery raises so we keep looping
+        mock_get_disc.side_effect = exceptions.DiscoveryFailure()
+        # Duplicate 'url1' in here to validate the cache behavior
+        mock_url_choices.return_value = ('url1', 'url2', 'url1', 'url3')
+        epd = discover.EndpointData()
+        epd._run_discovery(
+            session='sess', cache='cache', version='vers', min_version='min',
+            max_version='max', match_url='match', project_id='projid',
+            allow_version_hack='allow_hack', allow='allow',
+            discover_versions='disc_vers')
+        # Only one call with 'url1'
+        self.assertEqual(3, mock_get_disc.call_count)
+        mock_get_disc.assert_has_calls(
+            [mock.call('sess', url, cache='cache', authenticated=False)
+             for url in ('url1', 'url2', 'url3')])

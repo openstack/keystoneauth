@@ -707,7 +707,7 @@ class EndpointData(object):
 
             if vers_url in tried:
                 continue
-            tried.update(vers_url)
+            tried.add(vers_url)
 
             try:
                 self._disc = get_discovery(
