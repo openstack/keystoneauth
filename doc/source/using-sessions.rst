@@ -34,10 +34,10 @@ Features
 - Standard service and version discovery
 
   Clients are not expected to have any knowledge of an identity token or any
-  other form of identification credential. Service, endpoint and version
-  discovery are handled by the Session and plugins. Discovery information is
-  automatically cached in memory, so the user need not worry about excessive
-  use of discovery metadata.
+  other form of identification credential. Service, endpoint, major version
+  discovery and microversion support discovery are handled by the Session and
+  plugins. Discovery information is automatically cached in memory, so the user
+  need not worry about excessive use of discovery metadata.
 
 
 Sessions for Users
@@ -109,6 +109,67 @@ authentication data and token formats. Clients should be able to specify filter
 parameters for selecting the endpoint and have the parsing of the catalog
 managed for them.
 
+Major Version Discovery and Microversion Support
+------------------------------------------------
+
+In OpenStack the root URLs of available services are distributed to the user
+in an object called the Service Catalog, which is part of the token they
+receive. Clients are expected to use the URLs from the Service Catalog rather
+than have them provided. The root URL of a given service is referred to as the
+`endpoint` of the service. The URL of a specific version of a service is
+referred to as a `versioned endpoint`. REST requests for a service are made
+against a given `versioned endpoint`.
+
+The topic of Major API versions and microversions can be confusing. As
+`keystoneauth` provides facilities for discovery of versioned endpoints
+associated with a Major API Version and for fetching information about
+the microversions that versioned endpoint supports, it is important to be aware
+of the distinction between the two.
+
+Conceptually the most important thing to understand is that a Major API Version
+describes the URL of a discrete versioned endpoint, while a given versioned
+endpoint might have properties that express that it supports a range of
+microversions.
+
+When a user wants to make a REST request against a service, the user expresses
+the Major API version and the type of service so that the appropriate versioned
+endpoint can be found and used. For example, a user might request
+version 2 of the compute service from cloud.example.com and end up with a
+versioned endpoint of ``https://compute.example.com/v2``.
+
+Each service provides a discovery document at the root of each versioned
+endpoint that contains information about that versioned endpoint. Each service
+also provides a document at the root of the unversioned endpoint that contains
+a list of the discovery documents for all of the available versioned endpoints.
+By examining these documents, it is possible to find the versioned endpoint
+that corresponds with the user's desired Major API version.
+
+Each of those documents may also indicate that the given versioned endpoint
+supports microversions by listing a minimum and maximum microversion that it
+understands. As a result of having found the versioned endpoint for the
+requested Major API version, the user will also know which microversions,
+if any, may be used in requests to that versioned endpoint.
+
+When a client makes REST requests to the Major API version's endpoint, the
+client can, optionally, on a request-by-request basis, include a header
+specifying that the individual request use the behavior defined by the given
+microversion. If a client does not request a microversion, the service will
+behave as if the minimum supported microversion was specified.
+
+.. note: The changes that each microversion reflects are documented elsewhere
+         and are not information provided by the discovery process.
+
+The overall transaction then has three parts:
+
+* What is the endpoint for a given Major API version of a given service?
+* What are the minimum and maximum microversions supported at that endpoint?
+* Which one of that range of microversions, if any, does the user want to use
+  for a given request?
+
+`keystoneauth` provides facilities for discovering the endpoint for a given
+Major API of a given service, as well as reporting the available microversion
+ranges that endpoint supports, if any.
+
 Authentication
 --------------
 
@@ -124,10 +185,6 @@ token, by default a token is included if an authentication plugin is available::
 Service Discovery
 -----------------
 
-In OpenStack the URLs of available services are distributed to the user in an
-object called the Service Catalog, which is part of the token they receive.
-Clients are expected to use the URLs from the Service Catalog rather than have
-them provided.
 
 In general a client does not need to know the full URL for the server that they
 are communicating with, simply that it should send a request to a path
@@ -145,6 +202,11 @@ the request needs to be specified::
                                             'min_version': '2.0',
                                             'max_version': '3.4',
                                             'discover_versions': False})
+
+.. note:: The min_version and max_version arguments in this example indicate
+          acceptable range for finding the endpoint for the given Major API
+          versions. They are in the endpoint_filter, they are not requesting
+          the call to ``/users`` be made at a specific microversion.
 
 `endpoint_filter` accepts a number of arguments with which it can determine an
 endpoint url:
@@ -166,7 +228,7 @@ region_name
   the name of the region where the endpoint resides.
 
 version
-  the minimum version, restricted to a given major API. For instance, a
+  the minimum version, restricted to a given Major API. For instance, a
   `version` of ``2.2`` will match ``2.2`` and ``2.3`` but not ``2.1`` or
   ``3.0``. Mutually exclusive with `min_version` and `max_version`.
 
@@ -184,6 +246,9 @@ max_version
 
   will match ``2.2``, ``2.10``, ``3.0``, and ``3.3``, but not ``1.42``,
   ``2.1``, or ``3.20``. Mutually exclusive with `version`.
+
+.. note:: version, min_version and max_version are all used to help determine
+          the endpoint for a given Major API version of a service.
 
 discover_versions
   whether or not version discovery should be run, even if not strictly
@@ -259,6 +324,10 @@ methods, but is "mounted" on the endpoint that would be found by
         interface='public',
         version=1)
     response = adapter.get('/volumes')
+
+As with ``endpoint_filter`` on a Session, the ``version``, ``min_version``
+and ``max_version`` parameters exist to help determine the appropriate
+endpoint for a Major API of a service.
 
 Endpoint Metadata
 -----------------
