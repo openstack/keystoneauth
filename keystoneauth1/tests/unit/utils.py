@@ -109,6 +109,14 @@ class TestCase(testtools.TestCase):
         headers = self.requests_mock.last_request.headers
         self.assertEqual(headers.get(name), val)
 
+    def assertRequestNotInHeader(self, name):
+        """Verify that the last request made does not contain a header key.
+
+        The request must have already been made.
+        """
+        headers = self.requests_mock.last_request.headers
+        self.assertNotIn(name, headers)
+
 
 class TestResponse(requests.Response):
     """Class used to wrap requests.Response.
