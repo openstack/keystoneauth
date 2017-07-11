@@ -42,6 +42,10 @@ class Adapter(base.BaseLoader):
             :service_type:      The default service_type for URL discovery.
             :service_name:      The default service_name for URL discovery.
             :interface:         The default interface for URL discovery.
+                                (deprecated)
+            :valid_interfaces:  List of acceptable interfaces for URL
+                                discovery. Can be a list of any of
+                                'public', 'internal' or 'admin'.
             :region_name:       The default region_name for URL discovery.
             :endpoint_override: Always use this endpoint URL for requests
                                 for this client.
@@ -71,7 +75,15 @@ class Adapter(base.BaseLoader):
                                 'discovery.'),
                 cfg.StrOpt('interface',
                            help='The default interface for endpoint URL '
-                                'discovery.'),
+                                'discovery.',
+                           deprecated_for_removal=True,
+                           deprecated_since='3.0',
+                           deprecated_reason='interface can be requested as a '
+                                             'list. Please use '
+                                             'valid-interfaces instead.'),
+                cfg.ListOpt('valid-interfaces',
+                            help='List of interfaces, in order of preference, '
+                                 'for endpoint URL.'),
                 cfg.StrOpt('region-name',
                            help='The default region_name for endpoint URL '
                                 'discovery.'),
@@ -104,6 +116,10 @@ class Adapter(base.BaseLoader):
             :service_type:      The default service_type for URL discovery.
             :service_name:      The default service_name for URL discovery.
             :interface:         The default interface for URL discovery.
+                                (deprecated)
+            :valid_interfaces:  List of acceptable interfaces for URL
+                                discovery. Can be a list of any of
+                                'public', 'internal' or 'admin'.
             :region_name:       The default region_name for URL discovery.
             :endpoint_override: Always use this endpoint URL for requests
                                 for this client.
@@ -145,9 +161,20 @@ class Adapter(base.BaseLoader):
         """
         c = conf[group]
 
+        if c.valid_interfaces and c.interface:
+            raise TypeError("interface and valid_interfaces are mutually"
+                            " exclusive. Please use valid_interfaces.")
+        if c.valid_interfaces:
+            for iface in c.valid_interfaces:
+                if iface not in ('public', 'internal', 'admin'):
+                    raise TypeError("'{iface}' is not a valid value for"
+                                    " valid_interfaces. Valid valies are"
+                                    " public, internal or admin")
+            kwargs.setdefault('interface', c.valid_interfaces)
+        else:
+            kwargs.setdefault('interface', c.interface)
         kwargs.setdefault('service_type', c.service_type)
         kwargs.setdefault('service_name', c.service_name)
-        kwargs.setdefault('interface', c.interface)
         kwargs.setdefault('region_name', c.region_name)
         kwargs.setdefault('endpoint_override', c.endpoint_override)
         kwargs.setdefault('version', c.version)
