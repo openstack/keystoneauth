@@ -188,10 +188,9 @@ def normalize_version_number(version):
 def _normalize_version_args(version, min_version, max_version):
     if version and (min_version or max_version):
         raise ValueError(
-            "version is mutually exclusive with min_version and"
-            " max_version")
-    if min_version == 'latest' and max_version not in (
-            None, 'latest'):
+            "version is mutually exclusive with min_version and max_version")
+
+    if min_version == 'latest' and max_version not in (None, 'latest'):
         raise ValueError(
             "min_version is 'latest' and max_version is {max_version}"
             " but is only allowed to be 'latest' or None".format(
@@ -722,9 +721,8 @@ class EndpointData(object):
             self._run_discovery(
                 session=session, cache=cache,
                 version=version, min_version=min_version,
-                max_version=max_version,
-                match_url=match_url, project_id=project_id,
-                allow_version_hack=allow_version_hack, allow=allow,
+                max_version=max_version, project_id=project_id,
+                allow_version_hack=allow_version_hack,
                 discover_versions=discover_versions)
             if not self._disc:
                 return
@@ -776,9 +774,8 @@ class EndpointData(object):
 
     @positional(1)
     def _run_discovery(self, session, cache, version, min_version,
-                       max_version, match_url, project_id,
-                       allow_version_hack, allow, discover_versions):
-        vers_url = None
+                       max_version, project_id,
+                       allow_version_hack, discover_versions):
         tried = set()
 
         for vers_url in self._get_discovery_url_choices(
@@ -857,13 +854,12 @@ class EndpointData(object):
             # Peek to see if -2 is a version. If so, -1 is a project_id,
             # even if we don't know that at this point in the call stack
             try:
-                url_version = normalize_version_number(url_parts[-2])
+                normalize_version_number(url_parts[-2])
                 self._saved_project_id = url_parts.pop()
             except TypeError:
                 pass
 
         catalog_discovery = versioned_discovery = None
-        high_match = exact_match = None
 
         # Next, check to see if the url indicates a version and if that
         # version either matches our version request or is withing the
@@ -883,11 +879,11 @@ class EndpointData(object):
         else:
             is_between = version_between(
                 min_version, max_version, url_version)
-            exact_match = (version and version != 'latest'
-                           and version_match(version, url_version))
-            high_match = (is_between and max_version
-                          and max_version != 'latest' and version_match(
-                              max_version, url_version))
+            exact_match = (version and version != 'latest' and
+                           version_match(version, url_version))
+            high_match = (is_between and max_version and
+                          max_version != 'latest' and
+                          version_match(max_version, url_version))
 
             if exact_match or is_between:
                 self._catalog_matches_version = True

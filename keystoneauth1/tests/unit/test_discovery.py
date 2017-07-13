@@ -769,9 +769,8 @@ class EndpointDataTests(utils.TestCase):
         epd = discover.EndpointData()
         epd._run_discovery(
             session='sess', cache='cache', version='vers', min_version='min',
-            max_version='max', match_url='match', project_id='projid',
-            allow_version_hack='allow_hack', allow='allow',
-            discover_versions='disc_vers')
+            max_version='max', project_id='projid',
+            allow_version_hack='allow_hack', discover_versions='disc_vers')
         # Only one call with 'url1'
         self.assertEqual(3, mock_get_disc.call_count)
         mock_get_disc.assert_has_calls(
