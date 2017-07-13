@@ -303,12 +303,113 @@ class DiscoverUtils(utils.TestCase):
         assertVersion([1, 40], (1, 40))
         assertVersion((1,), (1, 0))
         assertVersion(['1'], (1, 0))
+        assertVersion('latest', (discover.LATEST, discover.LATEST))
+        assertVersion(['latest'], (discover.LATEST, discover.LATEST))
+        assertVersion(discover.LATEST, (discover.LATEST, discover.LATEST))
+        assertVersion((discover.LATEST,), (discover.LATEST, discover.LATEST))
+        assertVersion('10.latest', (10, discover.LATEST))
+        assertVersion((10, 'latest'), (10, discover.LATEST))
+        assertVersion((10, discover.LATEST), (10, discover.LATEST))
 
+        versionRaises(None)
         versionRaises('hello')
         versionRaises('1.a')
         versionRaises('vacuum')
         versionRaises('')
         versionRaises(('1', 'a'))
+
+    def test_version_args(self):
+        """Validate _normalize_version_args."""
+        def assert_min_max(in_ver, in_min, in_max, out_min, out_max):
+            self.assertEqual(
+                (out_min, out_max),
+                discover._normalize_version_args(in_ver, in_min, in_max))
+
+        def normalize_raises(ver, min, max):
+            self.assertRaises(ValueError,
+                              discover._normalize_version_args, ver, min, max)
+
+        assert_min_max(None, None, None,
+                       None, None)
+        assert_min_max(None, None, 'v1.2',
+                       None, (1, 2))
+        assert_min_max(None, 'v1.2', 'latest',
+                       (1, 2), (discover.LATEST, discover.LATEST))
+        assert_min_max(None, 'v1.2', '1.6',
+                       (1, 2), (1, 6))
+        assert_min_max(None, 'v1.2', '1.latest',
+                       (1, 2), (1, discover.LATEST))
+        assert_min_max(None, 'latest', 'latest',
+                       (discover.LATEST, discover.LATEST),
+                       (discover.LATEST, discover.LATEST))
+        assert_min_max(None, 'latest', None,
+                       (discover.LATEST, discover.LATEST),
+                       (discover.LATEST, discover.LATEST))
+        assert_min_max(None, (1, 2), None,
+                       (1, 2), (discover.LATEST, discover.LATEST))
+        assert_min_max('', ('1', '2'), (1, 6),
+                       (1, 2), (1, 6))
+        assert_min_max(None, ('1', '2'), (1, discover.LATEST),
+                       (1, 2), (1, discover.LATEST))
+        assert_min_max('v1.2', '', None,
+                       (1, 2), (1, discover.LATEST))
+        assert_min_max('1.latest', None, '',
+                       (1, discover.LATEST), (1, discover.LATEST))
+        assert_min_max('v1', None, None,
+                       (1, 0), (1, discover.LATEST))
+        assert_min_max('latest', None, None,
+                       (discover.LATEST, discover.LATEST),
+                       (discover.LATEST, discover.LATEST))
+
+        normalize_raises('v1', 'v2', None)
+        normalize_raises('v1', None, 'v2')
+        normalize_raises(None, 'latest', 'v1')
+        normalize_raises(None, 'v1.2', 'v1.1')
+        normalize_raises(None, 'v1.2', 1)
+
+    def test_version_to_string(self):
+        def assert_string(inp, out):
+            self.assertEqual(out, discover.version_to_string(inp))
+
+        assert_string((discover.LATEST,), 'latest')
+        assert_string((discover.LATEST, discover.LATEST), 'latest')
+        assert_string((discover.LATEST, discover.LATEST, discover.LATEST),
+                      'latest')
+        assert_string((1,), '1')
+        assert_string((1, 2), '1.2')
+        assert_string((1, discover.LATEST), '1.latest')
+
+    def test_version_between(self):
+        def good(minver, maxver, cand):
+            self.assertTrue(discover.version_between(minver, maxver, cand))
+
+        def bad(minver, maxver, cand):
+            self.assertFalse(discover.version_between(minver, maxver, cand))
+
+        def exc(minver, maxver, cand):
+            self.assertRaises(ValueError,
+                              discover.version_between, minver, maxver, cand)
+
+        good((1, 0), (1, 0), (1, 0))
+        good((1, 0), (1, 10), (1, 2))
+        good(None, (1, 10), (1, 2))
+        good((1, 20), (2, 0), (1, 21))
+        good((1, 0), (2, discover.LATEST), (1, 21))
+        good((1, 0), (2, discover.LATEST), (1, discover.LATEST))
+        good((1, 50), (2, discover.LATEST), (2, discover.LATEST))
+
+        bad((discover.LATEST, discover.LATEST),
+            (discover.LATEST, discover.LATEST), (1, 0))
+        bad(None, None, (1, 0))
+        bad((1, 50), (2, discover.LATEST), (3, 0))
+        bad((1, 50), (2, discover.LATEST), (3, discover.LATEST))
+        bad((1, 50), (2, 5), (2, discover.LATEST))
+
+        exc((1, 0), (1, 0), None)
+        exc('v1.0', (1, 0), (1, 0))
+        exc((1, 0), 'v1.0', (1, 0))
+        exc((1, 0), (1, 0), 'v1.0')
+        exc((1, 0), None, (1, 0))
 
 
 class VersionDataTests(utils.TestCase):
@@ -476,7 +577,7 @@ class VersionDataTests(utils.TestCase):
 
         disc = discover.Discover(self.session, V3_URL)
 
-        data = disc.versioned_data_for(version=None)
+        data = disc.versioned_data_for()
         self.assertEqual(data['version'], (3, 0))
         self.assertEqual(data['raw_status'], 'stable')
         self.assertEqual(data['url'], V3_URL)
@@ -508,21 +609,43 @@ class VersionDataTests(utils.TestCase):
             self.assertIn(v['version'], ((2, 0), (3, 0)))
             self.assertEqual(v['raw_status'], 'stable')
 
-        for meth in (disc.data_for, disc.versioned_data_for):
-            version = meth('v3.0')
+        for version in (disc.data_for('v3.0'),
+                        disc.data_for('3.latest'),
+                        disc.data_for('latest'),
+                        disc.versioned_data_for(
+                            min_version='v3.0', max_version='v3.latest'),
+                        disc.versioned_data_for(min_version='3'),
+                        disc.versioned_data_for(min_version='3.latest'),
+                        disc.versioned_data_for(min_version='latest'),
+                        disc.versioned_data_for(min_version='3.latest',
+                                                max_version='latest'),
+                        disc.versioned_data_for(min_version='latest',
+                                                max_version='latest'),
+                        disc.versioned_data_for(min_version=2),
+                        disc.versioned_data_for(min_version='2.latest')):
             self.assertEqual((3, 0), version['version'])
             self.assertEqual('stable', version['raw_status'])
             self.assertEqual(V3_URL, version['url'])
 
-            version = meth(2)
+        for version in (disc.data_for(2),
+                        disc.data_for('2.latest'),
+                        disc.versioned_data_for(
+                            min_version=2, max_version=(2, discover.LATEST)),
+                        disc.versioned_data_for(
+                            min_version='2.latest', max_version='2.latest')):
             self.assertEqual((2, 0), version['version'])
             self.assertEqual('stable', version['raw_status'])
             self.assertEqual(V2_URL, version['url'])
 
-        for meth in (disc.url_for, disc.versioned_url_for):
-            self.assertIsNone(meth('v4'))
-            self.assertEqual(V3_URL, meth('v3'))
-            self.assertEqual(V2_URL, meth('v2'))
+        self.assertIsNone(disc.url_for('v4'))
+        self.assertIsNone(disc.versioned_url_for(
+            min_version='v4', max_version='v4.latest'))
+        self.assertEqual(V3_URL, disc.url_for('v3'))
+        self.assertEqual(V3_URL, disc.versioned_url_for(
+            min_version='v3', max_version='v3.latest'))
+        self.assertEqual(V2_URL, disc.url_for('v2'))
+        self.assertEqual(V2_URL, disc.versioned_url_for(
+            min_version='v2', max_version='v2.latest'))
 
         self.assertTrue(mock.called_once)
 
@@ -585,22 +708,33 @@ class VersionDataTests(utils.TestCase):
             },
         ])
 
-        for meth in (disc.data_for, disc.versioned_data_for):
-            version = meth('v2.0')
+        for version in (disc.data_for('v2.0'),
+                        disc.versioned_data_for(min_version='v2.0',
+                                                max_version='v2.latest')):
             self.assertEqual((2, 0), version['version'])
             self.assertEqual('CURRENT', version['raw_status'])
             self.assertEqual(v2_url, version['url'])
 
-            version = meth(1)
+        for version in (disc.data_for(1),
+                        disc.versioned_data_for(
+                            min_version=(1,),
+                            max_version=(1, discover.LATEST))):
             self.assertEqual((1, 0), version['version'])
             self.assertEqual('CURRENT', version['raw_status'])
             self.assertEqual(v1_url, version['url'])
 
-        for meth in (disc.url_for, disc.versioned_url_for):
-            self.assertIsNone(meth('v4'))
-            self.assertEqual(v3_url, meth('v3'))
-            self.assertEqual(v2_url, meth('v2'))
-            self.assertEqual(v1_url, meth('v1'))
+        self.assertIsNone(disc.url_for('v4'))
+        self.assertIsNone(disc.versioned_url_for(min_version='v4',
+                                                 max_version='v4.latest'))
+        self.assertEqual(v3_url, disc.url_for('v3'))
+        self.assertEqual(v3_url, disc.versioned_url_for(
+            min_version='v3', max_version='v3.latest'))
+        self.assertEqual(v2_url, disc.url_for('v2'))
+        self.assertEqual(v2_url, disc.versioned_url_for(
+            min_version='v2', max_version='v2.latest'))
+        self.assertEqual(v1_url, disc.url_for('v1'))
+        self.assertEqual(v1_url, disc.versioned_url_for(
+            min_version='v1', max_version='v1.latest'))
 
         self.assertTrue(mock.called_once)
 
@@ -679,24 +813,32 @@ class VersionDataTests(utils.TestCase):
             },
         ])
 
-        for meth in (disc.data_for, disc.versioned_data_for):
-            for ver in (2, 2.1, 2.2):
-                version = meth(ver)
+        for ver in (2, 2.1, 2.2):
+            for version in (disc.data_for(ver),
+                            disc.versioned_data_for(
+                                min_version=ver,
+                                max_version=(2, discover.LATEST))):
                 self.assertEqual((2, 2), version['version'])
                 self.assertEqual('CURRENT', version['raw_status'])
                 self.assertEqual(v2_url, version['url'])
                 self.assertEqual(v2_url, disc.url_for(ver))
 
-            for ver in (1, 1.1):
-                version = meth(ver)
+        for ver in (1, 1.1):
+            for version in (disc.data_for(ver),
+                            disc.versioned_data_for(
+                                min_version=ver,
+                                max_version=(1, discover.LATEST))):
                 self.assertEqual((1, 1), version['version'])
                 self.assertEqual('CURRENT', version['raw_status'])
                 self.assertEqual(v1_url, version['url'])
                 self.assertEqual(v1_url, disc.url_for(ver))
 
-        for meth in (disc.url_for, disc.versioned_url_for):
-            self.assertIsNone(meth('v3'))
-            self.assertIsNone(meth('v2.3'))
+        self.assertIsNone(disc.url_for('v3'))
+        self.assertIsNone(disc.versioned_url_for(min_version='v3',
+                                                 max_version='v3.latest'))
+        self.assertIsNone(disc.url_for('v2.3'))
+        self.assertIsNone(disc.versioned_url_for(min_version='v2.3',
+                                                 max_version='v2.latest'))
 
         self.assertTrue(mock.called_once)
 
@@ -799,7 +941,7 @@ class EndpointDataTests(utils.TestCase):
         mock_url_choices.return_value = ('url1', 'url2', 'url1', 'url3')
         epd = discover.EndpointData()
         epd._run_discovery(
-            session='sess', cache='cache', version='vers', min_version='min',
+            session='sess', cache='cache', min_version='min',
             max_version='max', project_id='projid',
             allow_version_hack='allow_hack', discover_versions='disc_vers')
         # Only one call with 'url1'

@@ -34,6 +34,28 @@ from keystoneauth1 import exceptions
 
 _LOGGER = utils.get_logger(__name__)
 
+LATEST = float('inf')
+
+
+def _str_or_latest(val):
+    """Convert val to a string, handling LATEST => 'latest'.
+
+    :param val: An int or the special value LATEST.
+    :return: A string representation of val.  If val was LATEST, the return is
+             'latest'.
+    """
+    return 'latest' if val == LATEST else str(val)
+
+
+def _int_or_latest(val):
+    """Convert val to an int or the special value LATEST.
+
+    :param val: An int()-able, or the string 'latest', or the special value
+                LATEST.
+    :return: An int, or the special value LATEST
+    """
+    return LATEST if val == 'latest' or val == LATEST else int(val)
+
 
 @positional()
 def get_version_data(session, url, authenticated=None):
@@ -122,17 +144,26 @@ def normalize_version_number(version):
 
       'v1.20.3', '1.20.3', (1, 20, 3), ['1', '20', '3']
 
+    The following all produce a return value of (LATEST, LATEST)::
+
+      'latest', 'vlatest', ('latest', 'latest'), (LATEST, LATEST)
+
+    The following all produce a return value of (2, LATEST)::
+
+      '2.latest', 'v2.latest', (2, LATEST), ('2', 'latest')
+
     :param version: A version specifier in any of the following forms:
         String, possibly prefixed with 'v', containing one or more numbers
-        separated by periods.  Examples: 'v1', 'v1.2', '1.2.3', '123'
+        *or* the string 'latest', separated by periods.  Examples: 'v1',
+        'v1.2', '1.2.3', '123', 'latest', '1.latest', 'v1.latest'.
         Integer.  This will be assumed to be the major version, with a minor
         version of 0.
         Float.  The integer part is assumed to be the major version; the
         decimal part the minor version.
-        Non-string iterable comprising integers or integer strings.
-        Examples: (1,), [1, 2], ('12', '34', '56')
-    :return: A tuple of integers of len >= 2.
-    :rtype: tuple(int)
+        Non-string iterable comprising integers, integer strings, the string
+        'latest', or the special value LATEST.
+        Examples: (1,), [1, 2], ('12', '34', '56'), (LATEST,), (2, 'latest')
+    :return: A tuple of len >= 2 comprising integers and/or LATEST.
     :raises TypeError: If the input version cannot be interpreted.
     """
     # Copy the input var so the error presents the original value
@@ -142,7 +173,7 @@ def normalize_version_number(version):
     # processing.  This ensures at least 1 decimal point if e.g. [1] is given.
     if not isinstance(ver, six.string_types):
         try:
-            ver = '.'.join(map(str, ver))
+            ver = '.'.join(map(_str_or_latest, ver))
         except TypeError:
             # Not an iterable
             pass
@@ -164,7 +195,7 @@ def normalize_version_number(version):
 
     # If it's an int or float, turn it into a float string
     elif isinstance(ver, (int, float)):
-        ver = str(float(ver))
+        ver = _str_or_latest(float(ver))
 
     # At this point, we should either have a string that contains numbers with
     # at least one decimal point, or something decidedly else.
@@ -176,9 +207,13 @@ def normalize_version_number(version):
         # Not a string
         pass
 
+    # Handle special case variants of just 'latest'
+    if ver == 'latest' or tuple(ver) == ('latest',):
+        return LATEST, LATEST
+
     # It's either an interable, or something else that makes us sad.
     try:
-        return tuple(map(int, ver))
+        return tuple(map(_int_or_latest, ver))
     except (TypeError, ValueError):
         pass
 
@@ -190,58 +225,97 @@ def _normalize_version_args(version, min_version, max_version):
         raise ValueError(
             "version is mutually exclusive with min_version and max_version")
 
-    if min_version == 'latest' and max_version not in (None, 'latest'):
-        raise ValueError(
-            "min_version is 'latest' and max_version is {max_version}"
-            " but is only allowed to be 'latest' or None".format(
-                max_version=max_version))
+    if version:
+        # Explode this into min_version and max_version
+        min_version = normalize_version_number(version)
+        max_version = (min_version[0], LATEST)
+        return min_version, max_version
 
-    if version and version != 'latest':
-        version = normalize_version_number(version)
+    if min_version == 'latest':
+        if max_version not in (None, 'latest'):
+            raise ValueError(
+                "min_version is 'latest' and max_version is {max_version}"
+                " but is only allowed to be 'latest' or None".format(
+                    max_version=max_version))
+        max_version = 'latest'
+
+    # Normalize e.g. empty string to None
+    min_version = min_version or None
+    max_version = max_version or None
 
     if min_version:
-        if min_version == 'latest':
-            min_version = None
-            max_version = 'latest'
-        else:
-            min_version = normalize_version_number(min_version)
+        min_version = normalize_version_number(min_version)
+        # If min_version was specified but max_version was not, max is latest.
+        max_version = normalize_version_number(max_version or 'latest')
 
-    if max_version and max_version != 'latest':
+    # NOTE(efried): We should be doing this instead:
+    # max_version = normalize_version_number(max_version or 'latest')
+    # However, see first NOTE(jamielennox) in EndpointData._set_version_info.
+    if max_version:
         max_version = normalize_version_number(max_version)
 
-    return version, min_version, max_version
+    if None not in (min_version, max_version) and max_version < min_version:
+        raise ValueError("min_version cannot be greater than max_version")
+
+    return min_version, max_version
 
 
 def version_to_string(version):
     """Turn a version tuple into a string.
 
-    :param tuple(int) version: A version represented as a tuple of ints.
+    :param tuple version: A version represented as a tuple of ints.  As a
+                          special case, a tuple member may be LATEST, which
+                          translates to 'latest'.
     :return: A version represented as a period-delimited string.
     """
-    return ".".join(map(str, version))
+    # Special case
+    if all(ver == LATEST for ver in version):
+        return 'latest'
+
+    return ".".join(map(_str_or_latest, version))
 
 
 def version_between(min_version, max_version, candidate):
+    """Determine whether a candidate version is within a specified range.
+
+    :param min_version: Normalized lower bound.  May be None.  May be
+                        (LATEST, LATEST).
+    :param max_version: Normalized upper bound.  May be None.  May be
+                        (LATEST, LATEST).
+    :param candidate: Normalized candidate version to test.  May not be None.
+    :return: True if candidate is between min_version and max_version; False
+             otherwise.
+    :raises ValueError: If candidate is None or the input is not properly
+                        normalized.
+    """
+    def is_normalized(ver):
+        return normalize_version_number(ver) == ver
+
     # A version can't be between a range that doesn't exist
     if not min_version and not max_version:
         return False
 
+    if candidate is None:
+        raise ValueError("candidate cannot be None.")
+
+    if min_version is not None and not is_normalized(min_version):
+        raise ValueError("min_version is not normalized.")
+    if max_version is not None and not is_normalized(max_version):
+        raise ValueError("max_version is not normalized.")
+    if not is_normalized(candidate):
+        raise ValueError("candidate is not normalized.")
+    # This is only possible if args weren't run through _normalize_version_args
+    if max_version is None and min_version is not None:
+        raise ValueError("Can't use None as an upper bound.")
+
     # If the candidate is less than the min_version, it's
-    # not a match.
-    if min_version:
-        min_version = normalize_version_number(min_version)
-        if candidate < min_version:
-            return False
-
-    # Lack of max_version implies latest.
-    if max_version == 'latest' or not max_version:
-        return True
-
-    max_version = normalize_version_number(max_version)
-    if version_match(max_version, candidate):
-        return True
-    if max_version < candidate:
+    # not a match.  None works here.
+    if min_version is not None and candidate < min_version:
         return False
+
+    if max_version is not None and candidate > max_version:
+        return False
+
     return True
 
 
@@ -269,6 +343,24 @@ def version_match(required, candidate):
         return False
 
     return True
+
+
+def _latest_soft_match(required, candidate):
+    if not required:
+        return False
+
+    if LATEST not in required:
+        return False
+
+    if all(part == LATEST for part in required):
+        return True
+
+    if required[0] == candidate[0] and required[1] == LATEST:
+        return True
+
+    # TODO(efried): Do we need to handle >2-part version numbers here?
+
+    return False
 
 
 def _combine_relative_url(discovery_url, version_url):
@@ -446,6 +538,10 @@ class Discover(object):
         version = normalize_version_number(version)
 
         for data in self.version_data(reverse=True, **kwargs):
+            # Since the data is reversed, the latest version is first.  If
+            # latest was requested, return it.
+            if _latest_soft_match(version, data['version']):
+                return data
             if version_match(version, data['version']):
                 return data
 
@@ -468,43 +564,39 @@ class Discover(object):
         data = self.data_for(version, **kwargs)
         return data['url'] if data else None
 
-    def versioned_data_for(self, version=None, url=None,
+    def versioned_data_for(self, url=None,
                            min_version=None, max_version=None,
                            **kwargs):
         """Return endpoint data for the service at a url.
 
-        version, min_version and max_version can all be given either as a
-        string or a tuple.
+        min_version and max_version can be given either as strings or tuples.
 
-        :param version: The version is the minimum version in the
-            same major release as there should be no compatibility issues with
-            using a version newer than the one asked for. If version is not
-            given, the highest available version will be matched.
         :param string url: If url is given, the data will be returned for the
             endpoint data that has a self link matching the url.
-        :param min_version: The minimum version that is acceptable. Mutually
-            exclusive with version. If min_version is given with no max_version
-            it is as if max version is 'latest'. If min_version is 'latest',
-            max_version may only be 'latest' or None.
-        :param max_version: The maximum version that is acceptable. Mutually
-            exclusive with version. If min_version is given with no max_version
-            it is as if max version is 'latest'. If min_version is 'latest',
-            max_version may only be 'latest' or None.
+        :param min_version: The minimum endpoint version that is acceptable. If
+            min_version is given with no max_version it is as if max version is
+            'latest'. If min_version is 'latest', max_version may only be
+            'latest' or None.
+        :param max_version: The maximum endpoint version that is acceptable. If
+            min_version is given with no max_version it is as if max version is
+            'latest'. If min_version is 'latest', max_version may only be
+            'latest' or None.
 
         :returns: the endpoint data for a URL that matches the required version
                   (the format is described in version_data) or None if no
                   match.
         :rtype: dict
         """
-        version, min_version, max_version = _normalize_version_args(
-            version, min_version, max_version)
-        no_version = not version and not max_version and not min_version
+        min_version, max_version = _normalize_version_args(
+            None, min_version, max_version)
+        no_version = not max_version and not min_version
 
         version_data = self.version_data(reverse=True, **kwargs)
 
         # If we don't have to check a min_version, we can short
         # circuit anything else
-        if 'latest' in (version, max_version) and not min_version:
+        if (max_version == (LATEST, LATEST) and
+                (not min_version or min_version == (LATEST, LATEST))):
             # because we reverse we can just take the first entry
             return version_data[0]
 
@@ -520,7 +612,7 @@ class Discover(object):
         for data in version_data:
             if url and data['url'] and data['url'].rstrip('/') + '/' == url:
                 return data
-            if version and version_match(version, data['version']):
+            if _latest_soft_match(min_version, data['version']):
                 return data
             if version_between(min_version, max_version, data['version']):
                 return data
@@ -537,27 +629,22 @@ class Discover(object):
         # We couldn't find a match.
         return None
 
-    def versioned_url_for(self, version=None,
-                          min_version=None, max_version=None, **kwargs):
+    def versioned_url_for(self, min_version=None, max_version=None, **kwargs):
         """Get the endpoint url for a version.
 
-        version, min_version and max_version can all be given either as a
-        string or a tuple.
+        min_version and max_version can be given either as strings or tuples.
 
-        :param version: The version is always a minimum version in the
-            same major release as there should be no compatibility issues with
-            using a version newer than the one asked for.
-        :param min_version: The minimum version that is acceptable. Mutually
-            exclusive with version. If min_version is given with no max_version
-            it is as if max version is 'latest'.
-        :param max_version: The maximum version that is acceptable. Mutually
-            exclusive with version. If min_version is given with no max_version
-            it is as if max version is 'latest'.
+        :param min_version: The minimum version that is acceptable. If
+            min_version is given with no max_version it is as if max version
+            is 'latest'.
+        :param max_version: The maximum version that is acceptable. If
+            min_version is given with no max_version it is as if max version is
+            'latest'.
 
         :returns: The url for the specified version or None if no match.
         :rtype: str
         """
-        data = self.versioned_data_for(version, min_version=min_version,
+        data = self.versioned_data_for(min_version=min_version,
                                        max_version=max_version, **kwargs)
         return data['url'] if data else None
 
@@ -639,22 +726,19 @@ class EndpointData(object):
         return self.service_url or self.catalog_url
 
     @positional(3)
-    def get_versioned_data(self, session, version=None,
-                           allow=None, cache=None, allow_version_hack=True,
-                           project_id=None, discover_versions=True,
+    def get_versioned_data(self, session, allow=None, cache=None,
+                           allow_version_hack=True, project_id=None,
+                           discover_versions=True,
                            min_version=None, max_version=None):
         """Run version discovery for the service described.
 
         Performs Version Discovery and returns a new EndpointData object with
         information found.
 
-        version, min_version and max_version can all be given either as a
-        string or a tuple.
+        min_version and max_version can be given either as strings or tuples.
 
         :param session: A session object that can be used for communication.
         :type session: keystoneauth1.session.Session
-        :param version: The minimum major version required for this endpoint.
-                        Mutually exclusive with min_version and max_version.
         :param dict allow: Extra filters to pass when discovering API
                            versions. (optional)
         :param dict cache: A dict to be used for caching results in
@@ -671,14 +755,12 @@ class EndpointData(object):
                                        if it's not neccessary to fulfill the
                                        major version request. (optional,
                                        defaults to True)
-        :param min_version: The minimum version that is acceptable. Mutually
-                            exclusive with version. If min_version is given
-                            with no max_version it is as if max version is
-                            'latest'.
-        :param max_version: The maximum version that is acceptable. Mutually
-                            exclusive with version. If min_version is given
-                            with no max_version it is as if max version is
-                            'latest'.
+        :param min_version: The minimum version that is acceptable. If
+                            min_version is given with no max_version it is as
+                            if max version is 'latest'.
+        :param max_version: The maximum version that is acceptable. If
+                            min_version is given with no max_version it is as
+                            if max version is 'latest'.
 
         :returns: A new EndpointData with the requested versioned data.
         :rtype: :py:class:`keystoneauth1.discover.EndpointData`
@@ -686,8 +768,8 @@ class EndpointData(object):
                                                     appropriate versioned data
                                                     could not be discovered.
         """
-        version, min_version, max_version = _normalize_version_args(
-            version, min_version, max_version)
+        min_version, max_version = _normalize_version_args(
+            None, min_version, max_version)
 
         if not allow:
             allow = {}
@@ -696,19 +778,19 @@ class EndpointData(object):
         new_data = copy.copy(self)
 
         new_data._set_version_info(
-            session=session, version=version, allow=allow, cache=cache,
+            session=session, allow=allow, cache=cache,
             allow_version_hack=allow_version_hack, project_id=project_id,
             discover_versions=discover_versions, min_version=min_version,
             max_version=max_version)
         return new_data
 
-    def _set_version_info(self, session, version, allow=None, cache=None,
+    def _set_version_info(self, session, allow=None, cache=None,
                           allow_version_hack=True, project_id=None,
                           discover_versions=False,
                           min_version=None, max_version=None):
         match_url = None
 
-        no_version = not version and not max_version and not min_version
+        no_version = not max_version and not min_version
         if no_version and not discover_versions:
             # NOTE(jamielennox): This may not be the best thing to default to
             # but is here for backwards compatibility. It may be worth
@@ -727,27 +809,22 @@ class EndpointData(object):
         # satisfy the request without further work
         if self._disc:
             discovered_data = self._disc.versioned_data_for(
-                version, min_version=min_version, max_version=max_version,
+                min_version=min_version, max_version=max_version,
                 url=match_url, **allow)
         if not discovered_data:
             self._run_discovery(
                 session=session, cache=cache,
-                version=version, min_version=min_version,
-                max_version=max_version, project_id=project_id,
-                allow_version_hack=allow_version_hack,
+                min_version=min_version, max_version=max_version,
+                project_id=project_id, allow_version_hack=allow_version_hack,
                 discover_versions=discover_versions)
             if not self._disc:
                 return
             discovered_data = self._disc.versioned_data_for(
-                version, min_version=min_version, max_version=max_version,
+                min_version=min_version, max_version=max_version,
                 url=match_url, **allow)
 
         if not discovered_data:
-            if version:
-                raise exceptions.DiscoveryFailure(
-                    "Version {version} requested, but was not found".format(
-                        version=version_to_string(version)))
-            elif min_version and not max_version:
+            if min_version and not max_version:
                 raise exceptions.DiscoveryFailure(
                     "Minimum version {min_version} was not found".format(
                         min_version=version_to_string(min_version)))
@@ -787,13 +864,12 @@ class EndpointData(object):
         self.service_url = url
 
     @positional(1)
-    def _run_discovery(self, session, cache, version, min_version,
-                       max_version, project_id,
-                       allow_version_hack, discover_versions):
+    def _run_discovery(self, session, cache, min_version, max_version,
+                       project_id, allow_version_hack, discover_versions):
         tried = set()
 
         for vers_url in self._get_discovery_url_choices(
-                version=version, project_id=project_id,
+                project_id=project_id,
                 allow_version_hack=allow_version_hack,
                 min_version=min_version,
                 max_version=max_version):
@@ -850,12 +926,12 @@ class EndpointData(object):
                     " found and allow_version_hack was False")
 
     def _get_discovery_url_choices(
-            self, version=None, project_id=None, allow_version_hack=True,
+            self, project_id=None, allow_version_hack=True,
             min_version=None, max_version=None):
         """Find potential locations for version discovery URLs.
 
-        version, min_version and max_version are already normalized, so will
-        either be None, 'latest' or a tuple.
+        min_version and max_version are already normalized, so will either be
+        None or a tuple.
         """
         url = urllib.parse.urlparse(self.url)
         url_parts = url.path.split('/')
@@ -891,14 +967,12 @@ class EndpointData(object):
         except TypeError:
             pass
         else:
-            is_between = version_between(
-                min_version, max_version, url_version)
-            exact_match = (version and version != 'latest' and
-                           version_match(version, url_version))
+            is_between = version_between(min_version, max_version, url_version)
+            exact_match = (is_between and max_version and
+                           max_version[0] == url_version[0])
             high_match = (is_between and max_version and
-                          max_version != 'latest' and
+                          max_version[1] != LATEST and
                           version_match(max_version, url_version))
-
             if exact_match or is_between:
                 self._catalog_matches_version = True
                 self._catalog_matches_exactly = exact_match
