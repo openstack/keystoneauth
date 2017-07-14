@@ -124,7 +124,7 @@ class LoadingTests(utils.TestCase):
         # only the options not passed by kwargs should get passed to getter
         self.assertEqual(set(('a-bool', 'a-float')), called_opts)
 
-        self.assertEqual(False, p['a_bool'])
+        self.assertFalse(p['a_bool'])
         self.assertEqual(99.99, p['a_float'])
         self.assertEqual('another', p['a_str'])
         self.assertEqual(66, p['a_int'])
