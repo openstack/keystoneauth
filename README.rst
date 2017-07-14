@@ -30,6 +30,6 @@ These tools include:
 Further information:
 
 * Free software: Apache license
-* Documentation: https://docs.openstack.org/developer/keystoneauth
+* Documentation: https://docs.openstack.org/keystoneauth/latest/
 * Source: https://git.openstack.org/cgit/openstack/keystoneauth
 * Bugs: https://bugs.launchpad.net/keystoneauth
