@@ -31,11 +31,13 @@ Features
   clients such that in the event of problems it can be fixed in a single
   location.
 
-- Standard discovery mechanisms
+- Standard service and version discovery
 
   Clients are not expected to have any knowledge of an identity token or any
-  other form of identification credential. Service and endpoint discovery are
-  handled by the Session and plugins.
+  other form of identification credential. Service, endpoint and version
+  discovery are handled by the Session and plugins. Discovery information is
+  automatically cached in memory, so the user need not worry about excessive
+  use of discovery metadata.
 
 
 Sessions for Users
@@ -53,7 +55,7 @@ asked for a valid token. If a valid token is available it will be used
 otherwise the authentication plugin may attempt to contact the authentication
 service and fetch a new one.
 
-An example using keystoneclient to wrap a session::
+An example using keystoneclient to wrap a Session::
 
     >>> from keystoneauth1.identity import v3
     >>> from keystoneauth1 import session
@@ -78,26 +80,26 @@ constructor.
 Sharing Authentication Plugins
 ------------------------------
 
-A session can only contain one authentication plugin however there is nothing
-that specifically binds the authentication plugin to that session, a new
-Session can be created that reuses the existing authentication plugin::
+A Session can only contain one authentication plugin. However, there is
+nothing that specifically binds the authentication plugin to that Session - a
+new Session can be created that reuses the existing authentication plugin::
 
     >>> new_sess = session.Session(auth=sess.auth,
                                    verify='/path/to/different-cas.cert')
 
-In this case we cannot know which session object will be used when the plugin
+In this case we cannot know which Session object will be used when the plugin
 performs the authentication call so the command must be able to succeed with
 either.
 
 Authentication plugins can also be provided on a per-request basis. This will
-be beneficial in a situation where a single session is juggling multiple
+be beneficial in a situation where a single Session is juggling multiple
 authentication credentials::
 
     >>> sess.get('https://my.keystone.com:5000/v3',
                  auth=my_auth_plugin)
 
 If an auth plugin is provided via parameter then it will override any auth
-plugin on the session.
+plugin on the Session.
 
 Sessions for Client Developers
 ==============================
@@ -110,7 +112,7 @@ managed for them.
 Authentication
 --------------
 
-When making a request with a session object you can simply pass the keyword
+When making a request with a Session object you can simply pass the keyword
 parameter ``authenticated`` to indicate whether the argument should contain a
 token, by default a token is included if an authentication plugin is available::
 
@@ -122,9 +124,10 @@ token, by default a token is included if an authentication plugin is available::
 Service Discovery
 -----------------
 
-In OpenStack the URLs of available services are distributed to the user as a
-part of the token they receive called the Service Catalog. Clients are expected
-to use the URLs from the Service Catalog rather than have them provided.
+In OpenStack the URLs of available services are distributed to the user in an
+object called the Service Catalog, which is part of the token they receive.
+Clients are expected to use the URLs from the Service Catalog rather than have
+them provided.
 
 In general a client does not need to know the full URL for the server that they
 are communicating with, simply that it should send a request to a path
@@ -138,21 +141,67 @@ the request needs to be specified::
     >>> resp = session.get('/users',
                            endpoint_filter={'service_type': 'identity',
                                             'interface': 'admin',
-                                            'region_name': 'myregion'})
+                                            'region_name': 'myregion',
+                                            'min_version': '2.0',
+                                            'max_version': '3.4',
+                                            'discover_versions': False})
 
 `endpoint_filter` accepts a number of arguments with which it can determine an
 endpoint url:
 
-- `service_type`: the type of service. For example ``identity``, ``compute``,
-  ``volume`` or many other predefined identifiers.
+service_type
+  the type of service. For example ``identity``, ``compute``, ``volume`` or
+  many other predefined identifiers.
 
-- `interface`: the network exposure the interface has. This will be one of:
+interface
+  the network exposure the interface has. Can also be a list, in which case the
+  first matching interface will be used. Valid values are:
 
   - ``public``: An endpoint that is available to the wider internet or network.
-  - ``internal``: An endpoint that is only accessible within the private network.
+  - ``internal``: An endpoint that is only accessible within the private
+    network.
   - ``admin``: An endpoint to be used for administrative tasks.
 
-- `region_name`: the name of the region where the endpoint resides.
+region_name
+  the name of the region where the endpoint resides.
+
+version
+  the minimum version, restricted to a given major API. For instance, a
+  `version` of ``2.2`` will match ``2.2`` and ``2.3`` but not ``2.1`` or
+  ``3.0``. Mutually exclusive with `min_version` and `max_version`.
+
+min_version
+  the minimum version of a given API, intended to be used as the lower bound of
+  a range with `max_version`. See `max_version` for examples. Mutually
+  exclusive with `version`.
+
+max_version
+  the maximum version of a given API, intended to be used as the upper bound of
+  a range with `min_version`. For example::
+
+    'min_version': '2.2',
+    'max_version': '3.3'
+
+  will match ``2.2``, ``2.10``, ``3.0``, and ``3.3``, but not ``1.42``,
+  ``2.1``, or ``3.20``. Mutually exclusive with `version`.
+
+discover_versions
+  whether or not version discovery should be run, even if not strictly
+  necessary. It is often possible to fulfill an endpoint request purely
+  from the catalog, meaning the version discovery API is a potentially
+  wasted additional call. However, it's possible that running discovery
+  instead of inference is desired. Defaults to ``True``.
+
+All version arguments (`version`, `min_version` and `max_version`) can
+be given as:
+
+* string: ``'2.0'``
+* int: ``2``
+* float: ``2.0``
+* tuple of ints: ``(2, 0)``
+
+`version` and `max_version` can also be given the string ``latest``, which
+indicates that the highest available version should be used.
 
 The endpoint filter is a simple key-value filter and can be provided with any
 number of arguments. It is then up to the auth plugin to correctly use the
@@ -175,14 +224,14 @@ The discoverable types of endpoints that `allow` can recognize are:
 
 - `allow_unknown`: Allow endpoints with an unrecognised status.
 
-The session object determines the URL matching the filters and append to it the
-provided path and so create a valid request. If multiple URL matches are found
-then any one may be chosen.
+The Session object creates a valid request by determining the URL matching the
+filters and appending it to the provided path. If multiple URL matches are
+found then any one may be chosen.
 
 While authentication plugins will endeavour to maintain a consistent set of
 arguments for an ``endpoint_filter`` the concept of an authentication plugin is
-purposefully generic and a specific mechanism may not know how to interpret
-certain arguments and ignore them. For example the
+purposefully generic. A specific mechanism may not know how to interpret
+certain arguments in which case it may ignore them. For example the
 :class:`keystoneauth1.token_endpoint.Token` plugin (which is used when you want
 to always use a specific endpoint and token combination) will always return the
 same endpoint regardless of the parameters to ``endpoint_filter`` or a custom
@@ -191,3 +240,46 @@ OpenStack authentication mechanism may not have the concept of multiple
 
 There is some expectation on the user that they understand the limitations of
 the authentication system they are using.
+
+Using Adapters
+--------------
+
+If the developer would prefer not to provide `endpoint_filter` with every API
+call, a :class:`keystoneauth1.adapter.Adapter` can be created. The `Adapter`
+constructor takes the same arguments as `endpoint_filter`, as well as a
+`Session`. An `Adapter` behaves much like a `Session`, with the same REST
+methods, but is "mounted" on the endpoint that would be found by
+`endpoint_filter`.
+
+.. code-block:: python
+
+    adapter = keystoneauth1.adapter.Adapter(
+        session=session,
+        service_type='volume',
+        interface='public',
+        version=1)
+    response = adapter.get('/volumes')
+
+Endpoint Metadata
+-----------------
+
+Both :class:`keystoneauth1.adapter.Adapter` and
+:class:`keystoneauth1.session.Session` have a method for getting metadata about
+the endpoint found for a given service: ``get_endpoint_data``. It takes the
+same arguments as the `Adapter` constructor and `endpoint_filter`, and returns
+a :class:`keystoneauth1.discovery.EndpointData` object. This object can be used
+to determine which major `api_version` was found, or which `interface` in case
+of ranges, lists of input values or ``latest`` version. It can also be used to
+determine the `min_microversion` and `max_microversion` supported by the API.
+If an API does not support microversions, the values will be ``None``.
+
+Note that endpoint filter-related arguments can be omitted from calls to
+``Adapter.get_endpoint_data``, in which case they are gleaned from those set
+on the Adapter when it was initialized.
+
+``get_endpoint_data`` makes use of the same cache as the rest of the discovery
+process, so calling it should incur no undue expense. It will make at least one
+version discovery call so that it can fetch microversion metadata. If the user
+knows a service does not support microversions and is merely curious as to
+which major version was discovered, `discover_versions` can be set to `False`
+to prevent fetching microversion metadata.
