@@ -206,9 +206,9 @@ class ServiceCatalog(object):
             return matching_endpoints
 
         ret = {}
-        for service_type, endpoints in matching_endpoints.items():
+        for matched_service_type, endpoints in matching_endpoints.items():
             if not endpoints:
-                ret[service_type] = []
+                ret[matched_service_type] = []
                 continue
             matches_by_interface = {}
             for endpoint in endpoints:
@@ -216,7 +216,7 @@ class ServiceCatalog(object):
                 matches_by_interface[endpoint.interface].append(endpoint)
             best_interface = [i for i in interfaces
                               if i in matches_by_interface.keys()][0]
-            ret[service_type] = matches_by_interface[best_interface]
+            ret[matched_service_type] = matches_by_interface[best_interface]
 
         return ret
 
