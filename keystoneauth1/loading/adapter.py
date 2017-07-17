@@ -77,10 +77,10 @@ class Adapter(base.BaseLoader):
                            help='The default interface for endpoint URL '
                                 'discovery.',
                            deprecated_for_removal=True,
-                           deprecated_since='3.0',
-                           deprecated_reason='interface can be requested as a '
-                                             'list. Please use '
-                                             'valid-interfaces instead.'),
+                           deprecated_reason='Using valid-interfaces is'
+                                             ' preferrable because it is'
+                                             ' capable of accepting a list of'
+                                             ' possible interfaces.'),
                 cfg.ListOpt('valid-interfaces',
                             help='List of interfaces, in order of preference, '
                                  'for endpoint URL.'),
