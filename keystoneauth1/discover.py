@@ -390,6 +390,10 @@ class Discover(object):
                 max_microversion = v.get('version') or None
             if max_microversion:
                 max_microversion = normalize_version_number(max_microversion)
+            next_min_version = v.get('next_min_version') or None
+            if next_min_version:
+                next_min_version = normalize_version_number(next_min_version)
+            not_before = v.get('not_before') or None
 
             self_url = None
             collection_url = None
@@ -416,6 +420,8 @@ class Discover(object):
                              'collection': collection_url,
                              'min_microversion': min_microversion,
                              'max_microversion': max_microversion,
+                             'next_min_version': next_min_version,
+                             'not_before': not_before,
                              'raw_status': v['status']})
 
         versions.sort(key=lambda v: v['version'], reverse=reverse)
@@ -581,7 +587,9 @@ class EndpointData(object):
                  api_version=None,
                  major_version=None,
                  min_microversion=None,
-                 max_microversion=None):
+                 max_microversion=None,
+                 next_min_version=None,
+                 not_before=None):
         self.catalog_url = catalog_url
         self.service_url = service_url
         self.service_type = service_type
@@ -595,6 +603,8 @@ class EndpointData(object):
         self.major_version = major_version
         self.min_microversion = min_microversion
         self.max_microversion = max_microversion
+        self.next_min_version = next_min_version
+        self.not_before = not_before
         self._saved_project_id = None
         self._catalog_matches_version = False
         self._catalog_matches_exactly = False
@@ -615,7 +625,9 @@ class EndpointData(object):
             api_version=self.api_version,
             major_version=self.major_version,
             min_microversion=self.min_microversion,
-            max_microversion=self.max_microversion)
+            max_microversion=self.max_microversion,
+            next_min_version=self.next_min_version,
+            not_before=self.not_before)
         # Save cached discovery object - but we don't want to
         # actually provide a constructor argument
         new_data._disc = self._disc
@@ -752,6 +764,8 @@ class EndpointData(object):
 
         self.min_microversion = discovered_data['min_microversion']
         self.max_microversion = discovered_data['max_microversion']
+        self.next_min_version = discovered_data['next_min_version']
+        self.not_before = discovered_data['not_before']
 
         # TODO(mordred): these next two things should be done by Discover
         # in versioned_data_for.

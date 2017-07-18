@@ -157,6 +157,8 @@ CINDER_EXAMPLES = {
             "id": "v3.0",
             "version": "3.27",
             "min_version": "3.0",
+            "next_min_version": "3.4",
+            "not_before": "2019-12-31",
             "links": [
                 {
                     "href": BASE_URL,
@@ -415,21 +417,31 @@ class VersionDataTests(utils.TestCase):
 
         # no version info in input
         test_ok({},
-                {'min_microversion': None, 'max_microversion': None})
+                {'min_microversion': None, 'max_microversion': None,
+                 'next_min_version': None, 'not_before': None})
 
         # version => max_microversion
         test_ok({'version': '2.2'},
-                {'min_microversion': None, 'max_microversion': (2, 2)})
+                {'min_microversion': None, 'max_microversion': (2, 2),
+                 'next_min_version': None, 'not_before': None})
 
         # max_version supersedes version (even if malformed).  min_version &
         # normalization.
         test_ok({'min_version': '2', 'version': 'foo', 'max_version': '2.2'},
-                {'min_microversion': (2, 0), 'max_microversion': (2, 2)})
+                {'min_microversion': (2, 0), 'max_microversion': (2, 2),
+                 'next_min_version': None, 'not_before': None})
 
         # Edge case: min/max_version ignored if present but "empty"; version
         # used for max_microversion.
         test_ok({'min_version': '', 'version': '2.1', 'max_version': ''},
-                {'min_microversion': None, 'max_microversion': (2, 1)})
+                {'min_microversion': None, 'max_microversion': (2, 1),
+                 'next_min_version': None, 'not_before': None})
+
+        # next_min_version set
+        test_ok({'min_version': '2', 'max_version': '2.2',
+                 'next_min_version': '2.1', 'not_before': '2019-07-01'},
+                {'min_microversion': (2, 0), 'max_microversion': (2, 2),
+                 'next_min_version': (2, 1), 'not_before': '2019-07-01'})
 
         # Badly-formatted min_version
         test_exc({'min_version': 'foo', 'max_version': '2.1'})
@@ -439,6 +451,9 @@ class VersionDataTests(utils.TestCase):
 
         # Badly-formatted version (when max_version omitted)
         test_exc({'min_version': '2.1', 'version': 'foo'})
+
+        # Badly-formatted next_min_version
+        test_exc({'next_min_version': 'bogus', 'not_before': '2019-07-01'})
 
     def test_data_for_url(self):
         mock = self.requests_mock.get(V3_URL,
@@ -542,6 +557,8 @@ class VersionDataTests(utils.TestCase):
                 'collection': None,
                 'max_microversion': None,
                 'min_microversion': None,
+                'next_min_version': None,
+                'not_before': None,
                 'version': (1, 0),
                 'url': v1_url,
                 'raw_status': 'CURRENT',
@@ -550,6 +567,8 @@ class VersionDataTests(utils.TestCase):
                 'collection': None,
                 'max_microversion': None,
                 'min_microversion': None,
+                'next_min_version': None,
+                'not_before': None,
                 'version': (2, 0),
                 'url': v2_url,
                 'raw_status': 'CURRENT',
@@ -558,6 +577,8 @@ class VersionDataTests(utils.TestCase):
                 'collection': BASE_URL,
                 'max_microversion': (3, 27),
                 'min_microversion': (3, 0),
+                'next_min_version': (3, 4),
+                'not_before': u'2019-12-31',
                 'version': (3, 0),
                 'url': v3_url,
                 'raw_status': 'CURRENT',
@@ -610,6 +631,8 @@ class VersionDataTests(utils.TestCase):
                 'collection': None,
                 'max_microversion': None,
                 'min_microversion': None,
+                'next_min_version': None,
+                'not_before': None,
                 'version': (1, 0),
                 'url': v1_url,
                 'raw_status': 'SUPPORTED',
@@ -618,6 +641,8 @@ class VersionDataTests(utils.TestCase):
                 'collection': None,
                 'max_microversion': None,
                 'min_microversion': None,
+                'next_min_version': None,
+                'not_before': None,
                 'version': (1, 1),
                 'url': v1_url,
                 'raw_status': 'CURRENT',
@@ -626,6 +651,8 @@ class VersionDataTests(utils.TestCase):
                 'collection': None,
                 'max_microversion': None,
                 'min_microversion': None,
+                'next_min_version': None,
+                'not_before': None,
                 'version': (2, 0),
                 'url': v2_url,
                 'raw_status': 'SUPPORTED',
@@ -634,6 +661,8 @@ class VersionDataTests(utils.TestCase):
                 'collection': None,
                 'max_microversion': None,
                 'min_microversion': None,
+                'next_min_version': None,
+                'not_before': None,
                 'version': (2, 1),
                 'url': v2_url,
                 'raw_status': 'SUPPORTED',
@@ -642,6 +671,8 @@ class VersionDataTests(utils.TestCase):
                 'collection': None,
                 'max_microversion': None,
                 'min_microversion': None,
+                'next_min_version': None,
+                'not_before': None,
                 'version': (2, 2),
                 'url': v2_url,
                 'raw_status': 'CURRENT',
