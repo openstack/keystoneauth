@@ -334,21 +334,26 @@ Endpoint Metadata
 
 Both :class:`keystoneauth1.adapter.Adapter` and
 :class:`keystoneauth1.session.Session` have a method for getting metadata about
-the endpoint found for a given service: ``get_endpoint_data``. It takes the
-same arguments as the `Adapter` constructor and `endpoint_filter`, and returns
-a :class:`keystoneauth1.discovery.EndpointData` object. This object can be used
-to determine which major `api_version` was found, or which `interface` in case
-of ranges, lists of input values or ``latest`` version. It can also be used to
-determine the `min_microversion` and `max_microversion` supported by the API.
-If an API does not support microversions, the values will be ``None``.
+the endpoint found for a given service: ``get_endpoint_data``.
 
-Note that endpoint filter-related arguments can be omitted from calls to
-``Adapter.get_endpoint_data``, in which case they are gleaned from those set
-on the Adapter when it was initialized.
+On the :class:`keystoneauth1.session.Session` it takes the same arguments as
+`endpoint_filter`.
+
+On the :class:`keystoneauth1.adapter.Adapter` it does not take arguments, as
+it returns the information for the Endpoint the Adapter is mounted on.
+
+``get_endpoint_data`` returns an :class:`keystoneauth1.discovery.EndpointData`
+object. This object can be used to find information about the Endpoint,
+including which major `api_version` was found, or which `interface` in case
+of ranges, lists of input values or ``latest`` version.
+
+It can also be used to determine the `min_microversion` and `max_microversion`
+supported by the API. If an API does not support microversions, the values for
+both will be ``None``.
 
 ``get_endpoint_data`` makes use of the same cache as the rest of the discovery
-process, so calling it should incur no undue expense. It will make at least one
-version discovery call so that it can fetch microversion metadata. If the user
-knows a service does not support microversions and is merely curious as to
-which major version was discovered, `discover_versions` can be set to `False`
-to prevent fetching microversion metadata.
+process, so calling it should incur no undue expense. By default it will make
+at least one version discovery call so that it can fetch microversion metadata.
+If the user knows a service does not support microversions and is merely
+curious as to which major version was discovered, `discover_versions` can be
+set to `False` to prevent fetching microversion metadata.
