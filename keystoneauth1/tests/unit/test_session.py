@@ -105,6 +105,85 @@ class SessionTests(utils.TestCase):
         self.assertEqual(resp.text, 'response')
         self.assertRequestBodyIs(json={'hello': 'world'})
 
+    def test_set_microversion_headers(self):
+
+        # String microversion, specified service type
+        headers = {}
+        client_session.Session._set_microversion_headers(
+            headers, '2.30', 'compute', None)
+        self.assertEqual(headers['OpenStack-API-Version'], 'compute 2.30')
+        self.assertEqual(headers['X-OpenStack-Nova-API-Version'], '2.30')
+        self.assertEqual(len(headers.keys()), 2)
+
+        # Tuple microversion, service type via endpoint_filter
+        headers = {}
+        client_session.Session._set_microversion_headers(
+            headers, (2, 30), None, {'service_type': 'compute'})
+        self.assertEqual(headers['OpenStack-API-Version'], 'compute 2.30')
+        self.assertEqual(headers['X-OpenStack-Nova-API-Version'], '2.30')
+        self.assertEqual(len(headers.keys()), 2)
+
+        # ironic microversion, specified service type
+        headers = {}
+        client_session.Session._set_microversion_headers(
+            headers, '2.30', 'baremetal', None)
+        self.assertEqual(headers['X-OpenStack-Ironic-API-Version'], '2.30')
+        self.assertEqual(len(headers.keys()), 1)
+
+        # volumev2 service-type - volume microversion
+        headers = {}
+        client_session.Session._set_microversion_headers(
+            headers, (2, 30), None, {'service_type': 'volumev2'})
+        self.assertEqual(headers['OpenStack-API-Version'], 'volume 2.30')
+        self.assertEqual(len(headers.keys()), 1)
+
+        # block-storage service-type - volume microversion
+        headers = {}
+        client_session.Session._set_microversion_headers(
+            headers, (2, 30), None, {'service_type': 'block-storage'})
+        self.assertEqual(headers['OpenStack-API-Version'], 'volume 2.30')
+        self.assertEqual(len(headers.keys()), 1)
+
+        # Headers already exist - no change
+        headers = {
+            'OpenStack-API-Version': 'compute 2.30',
+            'X-OpenStack-Nova-API-Version': '2.30',
+        }
+        client_session.Session._set_microversion_headers(
+            headers, (2, 31), None, {'service_type': 'volume'})
+        self.assertEqual(headers['OpenStack-API-Version'], 'compute 2.30')
+        self.assertEqual(headers['X-OpenStack-Nova-API-Version'], '2.30')
+
+        # Normalization error
+        self.assertRaises(TypeError,
+                          client_session.Session._set_microversion_headers,
+                          {}, 'bogus', 'service_type', None)
+        # No service type in param or endpoint filter
+        self.assertRaises(TypeError,
+                          client_session.Session._set_microversion_headers,
+                          {}, (2, 30), None, None)
+        self.assertRaises(TypeError,
+                          client_session.Session._set_microversion_headers,
+                          {}, (2, 30), None, {'no_service_type': 'here'})
+
+    def test_microversion(self):
+        # microversion not specified
+        session = client_session.Session()
+        self.stub_url('GET', text='response')
+        resp = session.get(self.TEST_URL)
+
+        self.assertTrue(resp.ok)
+        self.assertRequestNotInHeader('OpenStack-API-Version')
+
+        session = client_session.Session()
+        self.stub_url('GET', text='response')
+        resp = session.get(self.TEST_URL, microversion='2.30',
+                           microversion_service_type='compute',
+                           endpoint_filter={'endpoint': 'filter'})
+
+        self.assertTrue(resp.ok)
+        self.assertRequestHeaderEqual('OpenStack-API-Version', 'compute 2.30')
+
     def test_user_agent(self):
         session = client_session.Session()
         self.stub_url('GET', text='response')
@@ -1278,6 +1357,29 @@ class AdapterTest(utils.TestCase):
 
         last_token = self.requests_mock.last_request.headers['X-Auth-Token']
         self.assertEqual(token, last_token)
+
+    def test_default_microversion(self):
+        sess = client_session.Session()
+        url = 'http://url'
+
+        def validate(adap_kwargs, get_kwargs, exp_kwargs):
+            with mock.patch.object(sess, 'request') as m:
+                adapter.Adapter(sess, **adap_kwargs).get(url, **get_kwargs)
+                m.assert_called_once_with(url, 'GET', endpoint_filter={},
+                                          **exp_kwargs)
+
+        # No default_microversion in Adapter, no microversion in get()
+        validate({}, {}, {})
+
+        # default_microversion in Adapter, no microversion in get()
+        validate({'default_microversion': '1.2'}, {}, {'microversion': '1.2'})
+
+        # No default_microversion in Adapter, microversion specified in get()
+        validate({}, {'microversion': '1.2'}, {'microversion': '1.2'})
+
+        # microversion in get() overrides default_microversion in Adapter
+        validate({'default_microversion': '1.2'}, {'microversion': '1.5'},
+                 {'microversion': '1.5'})
 
 
 class TCPKeepAliveAdapterTest(utils.TestCase):

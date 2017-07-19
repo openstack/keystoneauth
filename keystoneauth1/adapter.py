@@ -27,8 +27,8 @@ class Adapter(object):
     particular client that is using the session. An adapter provides a wrapper
     of client local data around the global session object.
 
-    version, min_version and max_version can all be given either as a
-    string or a tuple.
+    version, min_version, max_version and default_microversion can all be
+    given either as a string or a tuple.
 
     :param session: The session object to wrap.
     :type session: keystoneauth1.session.Session
@@ -77,6 +77,11 @@ class Adapter(object):
     :param max_version: The maximum major version of a given API, intended to
                         be used as the upper bound of a range with min_version.
                         Mutually exclusive with version. (optional)
+    :param default_microversion: The default microversion value to send
+                                 with API requests. While microversions are
+                                 a per-request feature, a user may know they
+                                 want to default to sending a specific value.
+                                 (optional)
     """
 
     client_name = None
@@ -90,7 +95,8 @@ class Adapter(object):
                  additional_headers=None, client_name=None,
                  client_version=None, allow_version_hack=None,
                  global_request_id=None,
-                 min_version=None, max_version=None):
+                 min_version=None, max_version=None,
+                 default_microversion=None):
         if version and (min_version or max_version):
             raise TypeError(
                 "version is mutually exclusive with min_version and"
@@ -116,6 +122,7 @@ class Adapter(object):
         self.allow_version_hack = allow_version_hack
         self.min_version = min_version
         self.max_version = max_version
+        self.default_microversion = default_microversion
 
         self.global_request_id = global_request_id
 
@@ -159,6 +166,8 @@ class Adapter(object):
             kwargs.setdefault('logger', self.logger)
         if self.allow:
             kwargs.setdefault('allow', self.allow)
+        if self.default_microversion is not None:
+            kwargs.setdefault('microversion', self.default_microversion)
 
         if isinstance(self.session, (session.Session, Adapter)):
             # these things are unsupported by keystoneclient's session so be

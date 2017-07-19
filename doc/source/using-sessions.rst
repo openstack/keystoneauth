@@ -365,6 +365,25 @@ If the user knows a service does not support microversions and is merely
 curious as to which major version was discovered, `discover_versions` can be
 set to `False` to prevent fetching microversion metadata.
 
+Requesting a Microversion
+-------------------------
+
+A user who wants to specify a microversion for a given request can pass it to
+the ``microversion`` parameter of the `request` method on the
+:class:`keystoneauth1.session.Session` object, or the
+:class:`keystoneauth1.adapter.Adapter` object. This will cause `keystoneauth`
+to pass the appropriate header to the service informing the service of the
+microversion the user wants.
+
+If the user is using a :class:`keystoneauth1.adapter.Adapter`, the
+`service_type`, which is a part of the data sent in the microversion header,
+will be taken from the Adapter's `service_type`.
+
+If the user is using a :class:`keystoneauth1.session.Session`, the
+`service_type` will be taken from the `service_type` in `endpoint_filter`
+or alternately from the parameter `microversion_service_type` in case there
+is no `service_type` in `endpoint_filter` for some reason.
+
 .. _API-WG Specs: http://specs.openstack.org/openstack/api-wg/
 .. _Consuming the Catalog: http://specs.openstack.org/openstack/api-wg/guidelines/consuming-catalog.html
 .. _Microversions: http://specs.openstack.org/openstack/api-wg/guidelines/microversion_specification.html#version-discovery

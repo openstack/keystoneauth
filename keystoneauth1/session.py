@@ -29,6 +29,7 @@ from six.moves import urllib
 
 import keystoneauth1
 from keystoneauth1 import _utils as utils
+from keystoneauth1 import discover
 from keystoneauth1 import exceptions
 
 try:
@@ -63,6 +64,22 @@ def _construct_session(session_obj=None):
         for scheme in list(session_obj.adapters):
             session_obj.mount(scheme, TCPKeepAliveAdapter())
     return session_obj
+
+
+def _mv_legacy_headers_for_service(mv_service_type):
+    """Workaround for services that predate standardization.
+
+    TODO(sdague): eventually convert this to using os-service-types
+    and put the logic there. However, right now this is so little
+    logic, inlining it for release is a better call.
+
+    """
+    headers = []
+    if mv_service_type == "compute":
+        headers.append("X-OpenStack-Nova-API-Version")
+    elif mv_service_type == "baremetal":
+        headers.append("X-OpenStack-Ironic-API-Version")
+    return headers
 
 
 class _JSONEncoder(json.JSONEncoder):
@@ -405,13 +422,57 @@ class Session(object):
 
         logger.debug(' '.join(string_parts))
 
+    @staticmethod
+    def _set_microversion_headers(
+            headers, microversion, service_type, endpoint_filter):
+        # We're converting it to normalized version number for two reasons.
+        # First, to validate it's a real version number. Second, so that in
+        # the future we can pre-validate that it is within the range of
+        # available microversions before we send the request.
+        # TODO(mordred) Validate when we get the response back that
+        # the server executed in the microversion we expected.
+        # TODO(mordred) Validate that the requested microversion works
+        # with the microversion range we found in discovery.
+        microversion = discover.normalize_version_number(microversion)
+        microversion = discover.version_to_string(microversion)
+        if not service_type:
+            if endpoint_filter and 'service_type' in endpoint_filter:
+                service_type = endpoint_filter['service_type']
+            else:
+                raise TypeError(
+                    "microversion {microversion} was requested but no"
+                    " service_type information is available. Either provide a"
+                    " service_type in endpoint_filter or pass"
+                    " microversion_service_type as an argument.".format(
+                        microversion=discover.version_to_string(microversion)))
+
+        # TODO(mordred) cinder uses volume in its microversion header. This
+        # logic should be handled in the future by os-service-types but for
+        # now hard-code for cinder.
+        if (service_type.startswith('volume')
+                or service_type == 'block-storage'):
+            service_type = 'volume'
+        # TODO(mordred) Fix this as part of the service-types generalized
+        # fix. Ironic does not yet support the new version header
+        if service_type != 'baremetal':
+            headers.setdefault('OpenStack-API-Version',
+                               '{service_type} {microversion}'.format(
+                                   service_type=service_type,
+                                   microversion=microversion))
+        header_names = _mv_legacy_headers_for_service(service_type)
+        for h in header_names:
+            headers.setdefault(h, microversion)
+        return headers
+
     @positional()
     def request(self, url, method, json=None, original_ip=None,
                 user_agent=None, redirect=None, authenticated=None,
                 endpoint_filter=None, auth=None, requests_auth=None,
                 raise_exc=True, allow_reauth=True, log=True,
                 endpoint_override=None, connect_retries=0, logger=_logger,
-                allow={}, client_name=None, client_version=None, **kwargs):
+                allow={}, client_name=None, client_version=None,
+                microversion=None, microversion_service_type=None,
+                **kwargs):
         """Send an HTTP request with the specified characteristics.
 
         Wrapper around `requests.Session.request` to handle tasks such as
@@ -479,6 +540,16 @@ class Session(object):
         :type logger: logging.Logger
         :param dict allow: Extra filters to pass when discovering API
                            versions. (optional)
+        :param microversion: Microversion to send for this request.
+                       microversion can be given as a string or a tuple.
+                       (optional)
+        :param str microversion_service_type: The service_type to be sent in
+                       the microversion header, if a microversion is given.
+                       Defaults to the value of service_type from
+                       endpoint_filter if one exists. If endpoint_filter
+                       does not have a service_type, microversion is given and
+                       microversion_service_type is not provided, an exception
+                       will be raised.
         :param kwargs: any other parameter that can be passed to
                        :meth:`requests.Session.request` (such as `headers`).
                        Except:
@@ -494,6 +565,10 @@ class Session(object):
         :returns: The response to the request.
         """
         headers = kwargs.setdefault('headers', dict())
+        if microversion:
+            self._set_microversion_headers(
+                headers, microversion, microversion_service_type,
+                endpoint_filter)
 
         if authenticated is None:
             authenticated = bool(auth or self.auth)
