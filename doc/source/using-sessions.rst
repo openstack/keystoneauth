@@ -375,14 +375,64 @@ the ``microversion`` parameter of the `request` method on the
 to pass the appropriate header to the service informing the service of the
 microversion the user wants.
 
+.. code-block:: python
+
+    resp = session.get('/volumes',
+                       microversion='3.15',
+                       endpoint_filter={'service_type': 'volume',
+                                        'interface': 'public',
+                                        'min_version': '3',
+                                        'max_version': 'latest'})
+
 If the user is using a :class:`keystoneauth1.adapter.Adapter`, the
 `service_type`, which is a part of the data sent in the microversion header,
 will be taken from the Adapter's `service_type`.
 
+.. code-block:: python
+
+    adapter = keystoneauth1.adapter.Adapter(
+        session=session,
+        service_type='compute',
+        interface='public',
+        min_version='2.1')
+    response = adapter.get('/servers', microversion='2.38')
+
+The user can also provide a ``default_microversion`` parameter to the Adapter
+constructor which will be used on all requests where an explicit microversion
+is not requested.
+
+.. code-block:: python
+
+    adapter = keystoneauth1.adapter.Adapter(
+        session=session,
+        service_type='compute',
+        interface='public',
+        min_version='2.1',
+        default_microversion='2.38')
+    response = adapter.get('/servers')
+
 If the user is using a :class:`keystoneauth1.session.Session`, the
-`service_type` will be taken from the `service_type` in `endpoint_filter`
-or alternately from the parameter `microversion_service_type` in case there
-is no `service_type` in `endpoint_filter` for some reason.
+`service_type` will be taken from the `service_type` in `endpoint_filter`.
+
+If the `service_type` is the incorrect value to use for the microversion header
+for the service in question, the parameter `microversion_service_type` can be
+given. For instance, although keystoneauth already knows about Cinder, the
+`service_type` for Cinder is ``block-storage`` but the microversion header
+expects ``volume``.
+
+.. code-block:: python
+
+    # Interactions with cinder do not need to explicitly override the
+    # microversion_service_type - it is only being used as an example for the
+    # use of the parameter.
+    resp = session.get('/volumes',
+                       microversion='3.15',
+                       microversion_service_type='volume',
+                       endpoint_filter={'service_type': 'block-storage',
+                                        'interface': 'public',
+                                        'min_version': '3',
+                                        'max_version': 'latest'})
+
 
 .. _API-WG Specs: http://specs.openstack.org/openstack/api-wg/
 .. _Consuming the Catalog: http://specs.openstack.org/openstack/api-wg/guidelines/consuming-catalog.html

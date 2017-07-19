@@ -444,7 +444,7 @@ class Session(object):
                     " service_type information is available. Either provide a"
                     " service_type in endpoint_filter or pass"
                     " microversion_service_type as an argument.".format(
-                        microversion=discover.version_to_string(microversion)))
+                        microversion=microversion))
 
         # TODO(mordred) cinder uses volume in its microversion header. This
         # logic should be handled in the future by os-service-types but for
@@ -452,17 +452,13 @@ class Session(object):
         if (service_type.startswith('volume')
                 or service_type == 'block-storage'):
             service_type = 'volume'
-        # TODO(mordred) Fix this as part of the service-types generalized
-        # fix. Ironic does not yet support the new version header
-        if service_type != 'baremetal':
-            headers.setdefault('OpenStack-API-Version',
-                               '{service_type} {microversion}'.format(
-                                   service_type=service_type,
-                                   microversion=microversion))
+        headers.setdefault('OpenStack-API-Version',
+                           '{service_type} {microversion}'.format(
+                               service_type=service_type,
+                               microversion=microversion))
         header_names = _mv_legacy_headers_for_service(service_type)
         for h in header_names:
             headers.setdefault(h, microversion)
-        return headers
 
     @positional()
     def request(self, url, method, json=None, original_ip=None,
@@ -546,10 +542,10 @@ class Session(object):
         :param str microversion_service_type: The service_type to be sent in
                        the microversion header, if a microversion is given.
                        Defaults to the value of service_type from
-                       endpoint_filter if one exists. If endpoint_filter
-                       does not have a service_type, microversion is given and
-                       microversion_service_type is not provided, an exception
-                       will be raised.
+                       endpoint_filter if one exists. If endpoint_filter is not
+                       provided or does not have a service_type, microversion
+                       is given and microversion_service_type is not provided,
+                       an exception will be raised.
         :param kwargs: any other parameter that can be passed to
                        :meth:`requests.Session.request` (such as `headers`).
                        Except:

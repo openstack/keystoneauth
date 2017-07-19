@@ -127,8 +127,9 @@ class SessionTests(utils.TestCase):
         headers = {}
         client_session.Session._set_microversion_headers(
             headers, '2.30', 'baremetal', None)
+        self.assertEqual(headers['OpenStack-API-Version'], 'baremetal 2.30')
         self.assertEqual(headers['X-OpenStack-Ironic-API-Version'], '2.30')
-        self.assertEqual(len(headers.keys()), 1)
+        self.assertEqual(len(headers.keys()), 2)
 
         # volumev2 service-type - volume microversion
         headers = {}
@@ -183,6 +184,7 @@ class SessionTests(utils.TestCase):
 
         self.assertTrue(resp.ok)
         self.assertRequestHeaderEqual('OpenStack-API-Version', 'compute 2.30')
+        self.assertRequestHeaderEqual('X-OpenStack-Nova-API-Version', '2.30')
 
     def test_user_agent(self):
         session = client_session.Session()
