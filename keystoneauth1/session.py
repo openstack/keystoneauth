@@ -434,6 +434,11 @@ class Session(object):
         # TODO(mordred) Validate that the requested microversion works
         # with the microversion range we found in discovery.
         microversion = discover.normalize_version_number(microversion)
+        # Can't specify a M.latest microversion
+        if (microversion[0] != discover.LATEST and
+                discover.LATEST in microversion[1:]):
+            raise TypeError(
+                "Specifying a '{major}.latest' microversion is not allowed.")
         microversion = discover.version_to_string(microversion)
         if not service_type:
             if endpoint_filter and 'service_type' in endpoint_filter:
@@ -942,6 +947,7 @@ class Session(object):
             return kwargs['endpoint_override']
 
         auth = self._auth_required(auth, 'determine endpoint URL')
+
         return auth.get_endpoint(self, **kwargs)
 
     def get_endpoint_data(self, auth=None, **kwargs):

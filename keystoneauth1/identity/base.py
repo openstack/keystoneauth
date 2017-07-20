@@ -157,12 +157,10 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
         return False
 
     def get_endpoint_data(self, session, service_type=None, interface=None,
-                          region_name=None, service_name=None, version=None,
-                          allow={}, allow_version_hack=True,
-                          discover_versions=True, skip_discovery=False,
-                          min_version=None, max_version=None,
-                          endpoint_override=None,
-                          **kwargs):
+                          region_name=None, service_name=None, allow={},
+                          allow_version_hack=True, discover_versions=True,
+                          skip_discovery=False, min_version=None,
+                          max_version=None, endpoint_override=None, **kwargs):
         """Return a valid endpoint data for a service.
 
         If a valid token is not present then a new one will be fetched using
@@ -190,8 +188,6 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
                                    (optional)
         :param string service_name: The name of the service in the catalog.
                                    (optional)
-        :param version: The minimum version number required for this
-                              endpoint. (optional)
         :param dict allow: Extra filters to pass when discovering API
                            versions. (optional)
         :param bool allow_version_hack: Allow keystoneauth to hack up catalog
@@ -220,6 +216,7 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
                                       but version discovery will be run.
                                       Sets allow_version_hack to False
                                       (optional)
+        :param kwargs: Ignored.
 
         :raises keystoneauth1.exceptions.http.HttpError: An error from an
                                                          invalid HTTP response.
@@ -227,6 +224,9 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
         :return: Valid EndpointData or None if not available.
         :rtype: `keystoneauth1.discover.EndpointData` or None
         """
+        min_version, max_version = discover._normalize_version_args(
+            None, min_version, max_version)
+
         # NOTE(jamielennox): if you specifically ask for requests to be sent to
         # the auth url then we can ignore many of the checks. Typically if you
         # are asking for the auth endpoint it means that there is no catalog to
@@ -283,7 +283,7 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
 
         try:
             return endpoint_data.get_versioned_data(
-                session, version,
+                session,
                 project_id=project_id,
                 min_version=min_version,
                 max_version=max_version,
@@ -295,7 +295,7 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
                 exceptions.ConnectionError):
             # If a version was requested, we didn't find it, return
             # None.
-            if version or max_version or min_version:
+            if max_version or min_version:
                 return None
             # If one wasn't, then the endpoint_data we already have
             # should be fine
@@ -361,6 +361,10 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
         :return: A valid endpoint URL or None if not available.
         :rtype: string or None
         """
+        # Explode `version` into min_version and max_version - everything below
+        # here uses the latter rather than the former.
+        min_version, max_version = discover._normalize_version_args(
+            version, min_version, max_version)
         # Set discover_versions to False since we're only going to return
         # a URL. Fetching the microversion data would be needlessly
         # expensive in the common case. However, discover_versions=False
@@ -369,11 +373,8 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
         endpoint_data = self.get_endpoint_data(
             session, service_type=service_type, interface=interface,
             region_name=region_name, service_name=service_name,
-            version=version, allow=allow,
-            min_version=min_version,
-            max_version=max_version,
-            discover_versions=False,
-            skip_discovery=skip_discovery,
+            allow=allow, min_version=min_version, max_version=max_version,
+            discover_versions=False, skip_discovery=skip_discovery,
             allow_version_hack=allow_version_hack, **kwargs)
         return endpoint_data.url if endpoint_data else None
 

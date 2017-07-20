@@ -23,6 +23,7 @@ import six
 from testtools import matchers
 
 from keystoneauth1 import adapter
+from keystoneauth1 import discover
 from keystoneauth1 import exceptions
 from keystoneauth1 import plugin
 from keystoneauth1 import session as client_session
@@ -123,6 +124,22 @@ class SessionTests(utils.TestCase):
         self.assertEqual(headers['X-OpenStack-Nova-API-Version'], '2.30')
         self.assertEqual(len(headers.keys()), 2)
 
+        # 'latest' (string) microversion
+        headers = {}
+        client_session.Session._set_microversion_headers(
+            headers, 'latest', 'compute', None)
+        self.assertEqual(headers['OpenStack-API-Version'], 'compute latest')
+        self.assertEqual(headers['X-OpenStack-Nova-API-Version'], 'latest')
+        self.assertEqual(len(headers.keys()), 2)
+
+        # LATEST (tuple) microversion
+        headers = {}
+        client_session.Session._set_microversion_headers(
+            headers, (discover.LATEST, discover.LATEST), 'compute', None)
+        self.assertEqual(headers['OpenStack-API-Version'], 'compute latest')
+        self.assertEqual(headers['X-OpenStack-Nova-API-Version'], 'latest')
+        self.assertEqual(len(headers.keys()), 2)
+
         # ironic microversion, specified service type
         headers = {}
         client_session.Session._set_microversion_headers(
@@ -154,10 +171,19 @@ class SessionTests(utils.TestCase):
         self.assertEqual(headers['OpenStack-API-Version'], 'compute 2.30')
         self.assertEqual(headers['X-OpenStack-Nova-API-Version'], '2.30')
 
+        # Can't specify a 'M.latest' microversion
+        self.assertRaises(TypeError,
+                          client_session.Session._set_microversion_headers,
+                          {}, '2.latest', 'service_type', None)
+        self.assertRaises(TypeError,
+                          client_session.Session._set_microversion_headers,
+                          {}, (2, discover.LATEST), 'service_type', None)
+
         # Normalization error
         self.assertRaises(TypeError,
                           client_session.Session._set_microversion_headers,
                           {}, 'bogus', 'service_type', None)
+
         # No service type in param or endpoint filter
         self.assertRaises(TypeError,
                           client_session.Session._set_microversion_headers,

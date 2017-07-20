@@ -535,11 +535,13 @@ class CommonIdentityTests(object):
         data_v2 = a.get_endpoint_data(session=s,
                                       service_type='compute',
                                       interface='admin',
-                                      version=(2, 0))
+                                      min_version=(2, 0),
+                                      max_version=(2, discover.LATEST))
         data_v3 = a.get_endpoint_data(session=s,
                                       service_type='compute',
                                       interface='admin',
-                                      version=(3, 0))
+                                      min_version=(3, 0),
+                                      max_version=(3, discover.LATEST))
 
         self.assertEqual(self.TEST_COMPUTE_ADMIN + '/v2.0', data_v2.url)
         self.assertEqual(self.TEST_COMPUTE_ADMIN + '/v3', data_v3.url)
@@ -566,15 +568,26 @@ class CommonIdentityTests(object):
                                    interface='admin')
         self.assertEqual(v3_compute, data.url)
 
-        v2_data = data.get_versioned_data(s, version='2.0')
+        v2_data = data.get_versioned_data(s, min_version='2.0',
+                                          max_version='2.latest')
         self.assertEqual(v2_compute, v2_data.url)
         self.assertEqual(v2_compute, v2_data.service_url)
         self.assertEqual(self.TEST_COMPUTE_ADMIN, v2_data.catalog_url)
 
-        v3_data = data.get_versioned_data(s, version='3.0')
-        self.assertEqual(v3_compute, v3_data.url)
-        self.assertEqual(v3_compute, v3_data.service_url)
-        self.assertEqual(self.TEST_COMPUTE_ADMIN, v3_data.catalog_url)
+        # Variants that all return v3 data
+        for vkwargs in (dict(min_version='3.0', max_version='3.latest'),
+                        # min/max spans major versions
+                        dict(min_version='2.0', max_version='3.latest'),
+                        # latest major max
+                        dict(min_version='2.0', max_version='latest'),
+                        # implicit max
+                        dict(min_version='2.0'),
+                        # implicit min/max
+                        dict()):
+            v3_data = data.get_versioned_data(s, **vkwargs)
+            self.assertEqual(v3_compute, v3_data.url)
+            self.assertEqual(v3_compute, v3_data.service_url)
+            self.assertEqual(self.TEST_COMPUTE_ADMIN, v3_data.catalog_url)
 
     def test_interface_list(self):
 
@@ -637,7 +650,8 @@ class CommonIdentityTests(object):
                          data.url)
 
         v3_data = data.get_versioned_data(
-            s, version='3.0', project_id=self.project_id)
+            s, min_version='3.0', max_version='3.latest',
+            project_id=self.project_id)
 
         self.assertEqual(self.TEST_VOLUME.versions['v3'].service.public,
                          v3_data.url)
@@ -651,7 +665,8 @@ class CommonIdentityTests(object):
         # find the unversioned endpoint
         self.requests_mock.get(self.TEST_VOLUME.unversioned.public, resps)
         v2_data = data.get_versioned_data(
-            s, version='2.0', project_id=self.project_id)
+            s, min_version='2.0', max_version='2.latest',
+            project_id=self.project_id)
 
         # Even though we never requested volumev2 from the catalog, we should
         # wind up re-constructing it via version discovery and re-appending
@@ -700,7 +715,8 @@ class CommonIdentityTests(object):
         # it should fetch the unversioned endpoint
         v2_data = s.get_endpoint_data(service_type='volumev3',
                                       interface='public',
-                                      version='2.0',
+                                      min_version='2.0',
+                                      max_version='2.latest',
                                       project_id=self.project_id)
 
         # Even though we never requested volumev2 from the catalog, we should
@@ -718,7 +734,8 @@ class CommonIdentityTests(object):
         # request for v2, we should have all the relevant data cached in the
         # discovery object - and should not fetch anything new.
         v3_data = v2_data.get_versioned_data(
-            s, version='3.0', project_id=self.project_id)
+            s, min_version='3.0', max_version='3.latest',
+            project_id=self.project_id)
 
         self.assertEqual(self.TEST_VOLUME.versions['v3'].service.public,
                          v3_data.url)
@@ -1104,7 +1121,8 @@ class CatalogHackTests(utils.TestCase):
         data = sess.get_endpoint_data(endpoint_override=self.OTHER_URL,
                                       service_type=self.IDENTITY,
                                       interface='public',
-                                      version=(2, 0))
+                                      min_version=(2, 0),
+                                      max_version=(2, discover.LATEST))
 
         self.assertTrue(common_m.called)
         self.assertEqual(self.OTHER_URL, data.url)
@@ -1308,9 +1326,8 @@ class CatalogHackTests(utils.TestCase):
         endpoint = sess.get_endpoint(service_type=self.IDENTITY,
                                      min_version='1', max_version='2')
 
-        # We should make one more calls
-        # TODO(mordred) optimize this - we can peek in the cache
-        self.assertTrue(v2_m.called)
+        # We should make no calls - we peek in the cache
+        self.assertFalse(v2_m.called)
         self.assertFalse(common_m.called)
 
         # And get the v2 url
