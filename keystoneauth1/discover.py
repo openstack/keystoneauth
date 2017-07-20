@@ -276,42 +276,34 @@ def version_to_string(version):
 def _version_between(min_version, max_version, candidate):
     """Determine whether a candidate version is within a specified range.
 
-    :param min_version: Normalized lower bound.  May be None.  May be
-                        (LATEST, LATEST).
-    :param max_version: Normalized upper bound.  May be None.  May be
-                        (LATEST, LATEST).
-    :param candidate: Normalized candidate version to test.  May not be None.
+    :param min_version: The minimum version that is acceptable.
+                        None/empty indicates no lower bound.
+    :param max_version: The maximum version that is acceptable.
+                        None/empty indicates no upper bound.
+    :param candidate: Candidate version to test.  May not be None/empty.
     :return: True if candidate is between min_version and max_version; False
              otherwise.
-    :raises ValueError: If candidate is None or the input is not properly
-                        normalized.
+    :raises ValueError: If candidate is None.
+    :raises TypeError: If any input cannot be normalized.
     """
-    def is_normalized(ver):
-        return normalize_version_number(ver) == ver
+    if not candidate:
+        raise ValueError("candidate is required.")
+    candidate = normalize_version_number(candidate)
 
-    # A version can't be between a range that doesn't exist
-    if not min_version and not max_version:
+    # Normalize up front to validate any malformed inputs
+    if min_version:
+        min_version = normalize_version_number(min_version)
+    if max_version:
+        max_version = normalize_version_number(max_version)
+
+    # If the candidate is less than the min_version, it's not a match.
+    # No min_version means no lower bound.
+    if min_version and candidate < min_version:
         return False
 
-    if candidate is None:
-        raise ValueError("candidate cannot be None.")
-
-    if min_version is not None and not is_normalized(min_version):
-        raise ValueError("min_version is not normalized.")
-    if max_version is not None and not is_normalized(max_version):
-        raise ValueError("max_version is not normalized.")
-    if not is_normalized(candidate):
-        raise ValueError("candidate is not normalized.")
-    # This is only possible if args weren't run through _normalize_version_args
-    if max_version is None and min_version is not None:
-        raise ValueError("Can't use None as an upper bound.")
-
-    # If the candidate is less than the min_version, it's
-    # not a match.  None works here.
-    if min_version is not None and candidate < min_version:
-        return False
-
-    if max_version is not None and candidate > max_version:
+    # If the candidate is higher than the max_version, it's not a match.
+    # No max_version means no upper bound.
+    if max_version and candidate > max_version:
         return False
 
     return True
@@ -633,7 +625,9 @@ class Discover(object):
                 return data
             if _latest_soft_match(min_version, data['version']):
                 return data
-            if _version_between(min_version, max_version, data['version']):
+            # Only validate version bounds if versions were specified
+            if min_version and max_version and _version_between(
+                    min_version, max_version, data['version']):
                 return data
 
         # If there is no version requested and we could not find a matching
@@ -1019,8 +1013,10 @@ class EndpointData(object):
         except TypeError:
             pass
         else:
-            is_between = _version_between(min_version, max_version,
-                                          url_version)
+            # `is_between` means version bounds were specified *and* the URL
+            # version is between them.
+            is_between = min_version and max_version and _version_between(
+                min_version, max_version, url_version)
             exact_match = (is_between and max_version and
                            max_version[0] == url_version[0])
             high_match = (is_between and max_version and

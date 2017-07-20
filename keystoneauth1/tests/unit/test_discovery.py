@@ -386,30 +386,61 @@ class DiscoverUtils(utils.TestCase):
         def bad(minver, maxver, cand):
             self.assertFalse(discover._version_between(minver, maxver, cand))
 
-        def exc(minver, maxver, cand):
-            self.assertRaises(ValueError,
+        def exc(excls, minver, maxver, cand):
+            self.assertRaises(excls,
                               discover._version_between, minver, maxver, cand)
 
+        # candidate required
+        exc(ValueError, (1, 0), (1, 0), None)
+        exc(ValueError, 'v1.0', '1.0', '')
+        # malformed candidate
+        exc(TypeError, None, None, 'bogus')
+        exc(TypeError, None, None, (1, 'two'))
+        # malformed min_version
+        exc(TypeError, 'bogus', None, (1, 0))
+        exc(TypeError, (1, 'two'), None, (1, 0))
+        # malformed max_version
+        exc(TypeError, None, 'bogus', (1, 0))
+        exc(TypeError, None, (1, 'two'), (1, 0))
+
+        # fail on minimum
+        bad((2, 4), None, (1, 55))
+        bad('v2.4', '', '2.3')
+        bad('latest', None, (2, 3000))
+        bad((2, discover.LATEST), '', 'v2.3000')
+        bad((2, 3000), '', (1, discover.LATEST))
+        bad('latest', None, 'v1000.latest')
+        # fail on maximum
+        bad(None, (2, 4), (2, 5))
+        bad('', 'v2.4', '2.5')
+        bad(None, (2, discover.LATEST), (3, 0))
+        bad('', '2000.latest', 'latest')
+
+        # candidate matches a bound
         good((1, 0), (1, 0), (1, 0))
+        good('1.0', '2.9', '1.0')
+        good('v1.0', 'v2.9', 'v2.9')
+        # properly in between
         good((1, 0), (1, 10), (1, 2))
-        good(None, (1, 10), (1, 2))
-        good((1, 20), (2, 0), (1, 21))
-        good((1, 0), (2, discover.LATEST), (1, 21))
-        good((1, 0), (2, discover.LATEST), (1, discover.LATEST))
-        good((1, 50), (2, discover.LATEST), (2, discover.LATEST))
-
-        bad((discover.LATEST, discover.LATEST),
-            (discover.LATEST, discover.LATEST), (1, 0))
-        bad(None, None, (1, 0))
-        bad((1, 50), (2, discover.LATEST), (3, 0))
-        bad((1, 50), (2, discover.LATEST), (3, discover.LATEST))
-        bad((1, 50), (2, 5), (2, discover.LATEST))
-
-        exc((1, 0), (1, 0), None)
-        exc('v1.0', (1, 0), (1, 0))
-        exc((1, 0), 'v1.0', (1, 0))
-        exc((1, 0), (1, 0), 'v1.0')
-        exc((1, 0), None, (1, 0))
+        good('1', '2', '1.2')
+        # no lower bound
+        good(None, (2, 5), (2, 3))
+        # no upper bound
+        good('2.5', '', '2.6')
+        # no bounds at all
+        good('', '', 'v1')
+        good(None, None, (999, 999))
+        good(None, None, 'latest')
+        # Various good 'latest' scenarios
+        good((discover.LATEST, discover.LATEST),
+             (discover.LATEST, discover.LATEST),
+             (discover.LATEST, discover.LATEST))
+        good((discover.LATEST, discover.LATEST), None,
+             (discover.LATEST, discover.LATEST))
+        good('', 'latest', 'latest')
+        good('2.latest', '3.latest', '3.0')
+        good('2.latest', None, (55, 66))
+        good(None, '3.latest', '3.9999')
 
 
 class VersionDataTests(utils.TestCase):
