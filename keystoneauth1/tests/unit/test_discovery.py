@@ -381,14 +381,14 @@ class DiscoverUtils(utils.TestCase):
 
     def test_version_between(self):
         def good(minver, maxver, cand):
-            self.assertTrue(discover.version_between(minver, maxver, cand))
+            self.assertTrue(discover._version_between(minver, maxver, cand))
 
         def bad(minver, maxver, cand):
-            self.assertFalse(discover.version_between(minver, maxver, cand))
+            self.assertFalse(discover._version_between(minver, maxver, cand))
 
         def exc(minver, maxver, cand):
             self.assertRaises(ValueError,
-                              discover.version_between, minver, maxver, cand)
+                              discover._version_between, minver, maxver, cand)
 
         good((1, 0), (1, 0), (1, 0))
         good((1, 0), (1, 10), (1, 2))

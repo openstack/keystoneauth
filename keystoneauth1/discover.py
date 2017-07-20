@@ -275,7 +275,7 @@ def version_to_string(version):
     return ".".join(map(_str_or_latest, version))
 
 
-def version_between(min_version, max_version, candidate):
+def _version_between(min_version, max_version, candidate):
     """Determine whether a candidate version is within a specified range.
 
     :param min_version: Normalized lower bound.  May be None.  May be
@@ -614,7 +614,7 @@ class Discover(object):
                 return data
             if _latest_soft_match(min_version, data['version']):
                 return data
-            if version_between(min_version, max_version, data['version']):
+            if _version_between(min_version, max_version, data['version']):
                 return data
 
         # If there is no version requested and we could not find a matching
@@ -967,7 +967,8 @@ class EndpointData(object):
         except TypeError:
             pass
         else:
-            is_between = version_between(min_version, max_version, url_version)
+            is_between = _version_between(min_version, max_version,
+                                          url_version)
             exact_match = (is_between and max_version and
                            max_version[0] == url_version[0])
             high_match = (is_between and max_version and
