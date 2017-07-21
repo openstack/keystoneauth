@@ -946,7 +946,7 @@ class EndpointData(object):
             try:
                 normalize_version_number(url_parts[-2])
                 self._saved_project_id = url_parts.pop()
-            except TypeError:
+            except (IndexError, TypeError):
                 pass
 
         catalog_discovery = versioned_discovery = None
