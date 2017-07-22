@@ -988,7 +988,7 @@ class EndpointData(object):
                     '/'.join(url_parts),
                     url.params,
                     url.query,
-                    url.fragment).geturl()
+                    url.fragment).geturl().rstrip('/') + '/'
 
             # If we found a viable catalog endpoint and it's
             # an exact match or matches the max, go ahead and give
@@ -1002,13 +1002,20 @@ class EndpointData(object):
         if allow_version_hack:
             # If there were projects or versions in the url they are now gone.
             # That means we're left with what should be the unversioned url.
-            yield urllib.parse.ParseResult(
+            hacked_url = urllib.parse.ParseResult(
                 url.scheme,
                 url.netloc,
                 '/'.join(url_parts),
                 url.params,
                 url.query,
                 url.fragment).geturl()
+            # Since this is potentially us constructing a base URL from the
+            # versioned URL - we need to make sure it has a trailing /. But
+            # we only want to do that if we have built a new URL - not if
+            # we're using the one from the catalog
+            if hacked_url != self.catalog_url:
+                hacked_url = hacked_url.strip('/') + '/'
+            yield hacked_url
 
             # If we have a catalog discovery url, it either means we didn't
             # return it earlier because it wasn't an exact enough match, or

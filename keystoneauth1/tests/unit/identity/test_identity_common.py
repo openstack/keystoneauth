@@ -709,7 +709,10 @@ class CommonIdentityTests(object):
         resps = [{'json': disc}, {'status_code': 500}]
 
         # We should only try to fetch the unversioned non-project_id url once
-        self.requests_mock.get(self.TEST_VOLUME.unversioned.public, resps)
+        # Because the catalog has the versioned endpoint but we constructed
+        # an unversioned endpoint, the url needs to have a trailing /
+        self.requests_mock.get(
+            self.TEST_VOLUME.unversioned.public + '/', resps)
 
         # Fetch v2.0 first - since that doesn't match endpoint optimization,
         # it should fetch the unversioned endpoint
