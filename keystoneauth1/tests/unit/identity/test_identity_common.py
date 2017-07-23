@@ -748,6 +748,62 @@ class CommonIdentityTests(object):
         self.assertEqual(self.TEST_VOLUME.versions['v3'].service.public,
                          v3_data.service_url)
 
+    def test_trailing_slash_on_computed_endpoint(self):
+
+        disc = fixture.DiscoveryList(v2=False, v3=False)
+
+        # A versioned URL in the Catalog
+        disc.add_nova_microversion(
+            href=self.TEST_VOLUME.versions['v3'].discovery.public,
+            id='v3.0', status='CURRENT',
+            min_version='3.0', version='3.20')
+
+        a = self.create_auth_plugin()
+        s = session.Session(auth=a)
+
+        # endpoint ends in v3, we will construct the unversioned endpoint.
+        # Because the catalog has the versioned endpoint but we constructed
+        # an unversioned endpoint, the url needs to have a trailing /
+        self.requests_mock.get(
+            self.TEST_VOLUME.unversioned.public + '/', json=disc)
+
+        # We're requesting version 2 of volumev3 to make sure we
+        # trigger the logic constructing the unversioned endpoint from the
+        # versioned endpoint in the catalog
+        s.get_endpoint_data(service_type='volumev3',
+                            interface='public',
+                            min_version='2.0',
+                            max_version='2.latest',
+                            project_id=self.project_id)
+
+        self.assertTrue(
+            self.requests_mock.request_history[-1].url.endswith('/'))
+
+    def test_no_trailing_slash_on_catalog_endpoint(self):
+
+        disc = fixture.DiscoveryList(v2=False, v3=False)
+
+        # A versioned URL in the Catalog
+        disc.add_nova_microversion(
+            href=self.TEST_COMPUTE_PUBLIC,
+            id='v2.1', status='CURRENT',
+            min_version='2.1', version='2.38')
+
+        a = self.create_auth_plugin()
+        s = session.Session(auth=a)
+
+        # nova has unversioned endpoint in this catalog. We should not
+        # modify it.
+        self.requests_mock.get(self.TEST_COMPUTE_PUBLIC, json=disc)
+
+        s.get_endpoint_data(service_type='compute',
+                            interface='public',
+                            min_version='2.1',
+                            max_version='2.latest')
+
+        self.assertFalse(
+            self.requests_mock.request_history[-1].url.endswith('/'))
+
     def test_asking_for_auth_endpoint_ignores_checks(self):
         a = self.create_auth_plugin()
         s = session.Session(auth=a)
