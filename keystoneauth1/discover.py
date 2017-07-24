@@ -376,6 +376,19 @@ def _combine_relative_url(discovery_url, version_url):
     return urllib.parse.urlparse(url).geturl()
 
 
+def _version_from_url(url):
+    if not url:
+        return url
+
+    url = urllib.parse.urlparse(url)
+    for part in reversed(url.path.split('/')):
+        try:
+            return normalize_version_number(part)
+        except Exception:
+            pass
+    return None
+
+
 class Discover(object):
 
     CURRENT_STATUSES = ('stable', 'current', 'supported')
@@ -686,7 +699,6 @@ class EndpointData(object):
         self.region_name = region_name
         self.endpoint_id = endpoint_id
         self.raw_endpoint = raw_endpoint
-        self.api_version = api_version
         self.major_version = major_version
         self.min_microversion = min_microversion
         self.max_microversion = max_microversion
@@ -696,6 +708,8 @@ class EndpointData(object):
         self._catalog_matches_version = False
         self._catalog_matches_exactly = False
         self._disc = None
+
+        self.api_version = api_version or _version_from_url(self.url)
 
     def __copy__(self):
         """Return a new EndpointData based on this one."""
@@ -724,6 +738,41 @@ class EndpointData(object):
     @property
     def url(self):
         return self.service_url or self.catalog_url
+
+    @positional(3)
+    def get_current_versioned_data(self, session, allow=None, cache=None,
+                                   project_id=None):
+        """Run version discovery on the current endpoint.
+
+        A simplified version of get_versioned_data, get_current_versioned_data
+        runs discovery but only on the endpoint that has been found already.
+
+        It can be useful in some workflows where the user wants version
+        information about the endpoint they have.
+
+        :param session: A session object that can be used for communication.
+        :type session: keystoneauth1.session.Session
+        :param dict allow: Extra filters to pass when discovering API
+                           versions. (optional)
+        :param dict cache: A dict to be used for caching results in
+                           addition to caching them on the Session.
+                           (optional)
+        :param string project_id: ID of the currently scoped project. Used for
+                                  removing project_id components of URLs from
+                                  the catalog. (optional)
+
+        :returns: A new EndpointData with the requested versioned data.
+        :rtype: :py:class:`keystoneauth1.discover.EndpointData`
+        :raises keystoneauth1.exceptions.discovery.DiscoveryFailure: If the
+                                                    appropriate versioned data
+                                                    could not be discovered.
+        """
+        min_version, max_version = _normalize_version_args(
+            self.api_version, None, None)
+        return self.get_versioned_data(
+            session=session, allow=allow, cache=cache, allow_version_hack=True,
+            discover_versions=True,
+            min_version=min_version, max_version=max_version)
 
     @positional(3)
     def get_versioned_data(self, session, allow=None, cache=None,
@@ -843,6 +892,7 @@ class EndpointData(object):
         self.max_microversion = discovered_data['max_microversion']
         self.next_min_version = discovered_data['next_min_version']
         self.not_before = discovered_data['not_before']
+        self.api_version = discovered_data['version']
 
         # TODO(mordred): these next two things should be done by Discover
         # in versioned_data_for.

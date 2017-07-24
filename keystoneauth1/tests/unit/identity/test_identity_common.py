@@ -499,6 +499,8 @@ class CommonIdentityTests(object):
                                    interface='admin')
 
         self.assertEqual(self.TEST_COMPUTE_ADMIN + '/v3', data.url)
+        # We should have gotten the version from the URL
+        self.assertEqual((3, 0), data.api_version)
 
     def test_endpoint_data_no_version_no_discovery(self):
         a = self.create_auth_plugin()
@@ -510,6 +512,22 @@ class CommonIdentityTests(object):
                                    discover_versions=False)
 
         self.assertEqual(self.TEST_COMPUTE_ADMIN, data.url)
+        # There's no version in the URL and no document - we have no idea
+        self.assertEqual(None, data.api_version)
+
+    def test_endpoint_data_version_url_no_discovery(self):
+        a = self.create_auth_plugin()
+        s = session.Session(auth=a)
+
+        data = a.get_endpoint_data(session=s,
+                                   service_type='volumev3',
+                                   interface='admin',
+                                   discover_versions=False)
+
+        self.assertEqual(
+            self.TEST_VOLUME.versions['v3'].service.admin, data.url)
+        # There's v3 in the URL
+        self.assertEqual((3, 0), data.api_version)
 
     def test_endpoint_no_version(self):
         a = self.create_auth_plugin()
@@ -588,6 +606,37 @@ class CommonIdentityTests(object):
             self.assertEqual(v3_compute, v3_data.url)
             self.assertEqual(v3_compute, v3_data.service_url)
             self.assertEqual(self.TEST_COMPUTE_ADMIN, v3_data.catalog_url)
+
+    def test_get_current_versioned_data(self):
+        v2_compute = self.TEST_COMPUTE_ADMIN + '/v2.0'
+        v3_compute = self.TEST_COMPUTE_ADMIN + '/v3'
+
+        disc = fixture.DiscoveryList(v2=False, v3=False)
+        disc.add_v2(v2_compute)
+        disc.add_v3(v3_compute)
+
+        # Make sure that we don't do more than one discovery call
+        # register responses such that if the discovery URL is hit more than
+        # once then the response will be invalid and not point to COMPUTE_ADMIN
+        resps = [{'json': disc}, {'status_code': 500}]
+        self.requests_mock.get(self.TEST_COMPUTE_ADMIN, resps)
+
+        a = self.create_auth_plugin()
+        s = session.Session(auth=a)
+
+        data = a.get_endpoint_data(session=s,
+                                   service_type='compute',
+                                   interface='admin')
+        self.assertEqual(v3_compute, data.url)
+
+        v3_data = data.get_current_versioned_data(s)
+
+        self.assertEqual(v3_compute, v3_data.url)
+        self.assertEqual(v3_compute, v3_data.service_url)
+        self.assertEqual(self.TEST_COMPUTE_ADMIN, v3_data.catalog_url)
+        self.assertEqual((3, 0), v3_data.api_version)
+        self.assertEqual(None, v3_data.min_microversion)
+        self.assertEqual(None, v3_data.max_microversion)
 
     def test_interface_list(self):
 
@@ -932,8 +981,9 @@ class CommonIdentityTests(object):
 
         data = sess.get_endpoint_data(service_type='network')
 
-        # Discovery ran and returned the URL
+        # Discovery ran and returned the URL and its version
         self.assertEqual(url, data.url)
+        self.assertEqual((2, 1), data.api_version)
 
         # Run with a project_id to ensure that path is covered
         self.assertEqual(
@@ -1213,6 +1263,7 @@ class CatalogHackTests(utils.TestCase):
         self.assertEqual(self.OTHER_URL, data.url)
         self.assertEqual((2, 1), data.min_microversion)
         self.assertEqual((2, 35), data.max_microversion)
+        self.assertEqual((2, 1), data.api_version)
 
     def test_forcing_discovery(self):
         v2_disc = fixture.V2Discovery(self.V2_URL)
@@ -1260,6 +1311,7 @@ class CatalogHackTests(utils.TestCase):
 
         # got v2 url
         self.assertEqual(self.V2_URL, data.url)
+        self.assertEqual((2, 0), data.api_version)
 
     def test_forcing_discovery_list_returns_url(self):
         common_disc = fixture.DiscoveryList(href=self.BASE_URL)
@@ -1304,6 +1356,7 @@ class CatalogHackTests(utils.TestCase):
 
         # got v2 url
         self.assertEqual(self.V2_URL, data.url)
+        self.assertEqual((2, 0), data.api_version)
 
     def test_latest_version_gets_latest_version(self):
         common_disc = fixture.DiscoveryList(href=self.BASE_URL)
@@ -1489,6 +1542,7 @@ class CatalogHackTests(utils.TestCase):
         self.assertEqual(self.OTHER_URL, data.url)
         self.assertEqual((2, 1), data.min_microversion)
         self.assertEqual((2, 35), data.max_microversion)
+        self.assertEqual((2, 1), data.api_version)
 
     def test_get_endpoint_data_compute(self):
         common_disc = fixture.DiscoveryList(v2=False, v3=False)
@@ -1530,6 +1584,7 @@ class CatalogHackTests(utils.TestCase):
         self.assertEqual(self.OTHER_URL, data.url)
         self.assertEqual((2, 1), data.min_microversion)
         self.assertEqual((2, 35), data.max_microversion)
+        self.assertEqual((2, 1), data.api_version)
 
     def test_getting_endpoints_on_auth_interface(self):
         disc = fixture.DiscoveryList(href=self.BASE_URL)
