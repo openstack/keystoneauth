@@ -170,3 +170,15 @@ class ConfLoadingTests(utils.TestCase):
                           'region-name', 'endpoint-override', 'version',
                           'min-version', 'max-version'},
                          {opt.name for opt in opts})
+
+    def test_get_conf_options_undeprecated(self):
+        opts = loading.get_adapter_conf_options(include_deprecated=False)
+        for opt in opts:
+            if opt.name != 'valid-interfaces':
+                self.assertIsInstance(opt, cfg.StrOpt)
+            else:
+                self.assertIsInstance(opt, cfg.ListOpt)
+        self.assertEqual({'service-type', 'service-name', 'valid-interfaces',
+                          'region-name', 'endpoint-override', 'version',
+                          'min-version', 'max-version'},
+                         {opt.name for opt in opts})

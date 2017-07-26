@@ -32,7 +32,7 @@ class Adapter(base.BaseLoader):
         return []
 
     @staticmethod
-    def get_conf_options():
+    def get_conf_options(include_deprecated=True):
         """Get oslo_config options that are needed for a :py:class:`.Adapter`.
 
         These may be useful without being registered for config file generation
@@ -63,24 +63,20 @@ class Adapter(base.BaseLoader):
                                 range with min_version. Mutually exclusive with
                                 version.
 
+        :param include_deprecated: If True (the default, for backward
+                                   compatibility), deprecated options are
+                                   included in the result.  If False, they are
+                                   excluded.
         :returns: A list of oslo_config options.
         """
         cfg = _utils.get_oslo_config()
 
-        return [cfg.StrOpt('service-type',
+        opts = [cfg.StrOpt('service-type',
                            help='The default service_type for endpoint URL '
                                 'discovery.'),
                 cfg.StrOpt('service-name',
                            help='The default service_name for endpoint URL '
                                 'discovery.'),
-                cfg.StrOpt('interface',
-                           help='The default interface for endpoint URL '
-                                'discovery.',
-                           deprecated_for_removal=True,
-                           deprecated_reason='Using valid-interfaces is'
-                                             ' preferrable because it is'
-                                             ' capable of accepting a list of'
-                                             ' possible interfaces.'),
                 cfg.ListOpt('valid-interfaces',
                             help='List of interfaces, in order of preference, '
                                  'for endpoint URL.'),
@@ -108,6 +104,18 @@ class Adapter(base.BaseLoader):
                                 'range with min_version. Mutually exclusive '
                                 'with version.'),
                 ]
+        if include_deprecated:
+            opts += [
+                cfg.StrOpt('interface',
+                           help='The default interface for endpoint URL '
+                                'discovery.',
+                           deprecated_for_removal=True,
+                           deprecated_reason='Using valid-interfaces is'
+                                             ' preferrable because it is'
+                                             ' capable of accepting a list of'
+                                             ' possible interfaces.'),
+            ]
+        return opts
 
     def register_conf_options(self, conf, group):
         """Register the oslo_config options that are needed for an Adapter.
@@ -205,5 +213,5 @@ def load_from_conf_options(*args, **kwargs):
     return Adapter().load_from_conf_options(*args, **kwargs)
 
 
-def get_conf_options():
-    return Adapter.get_conf_options()
+def get_conf_options(*args, **kwargs):
+    return Adapter.get_conf_options(*args, **kwargs)
