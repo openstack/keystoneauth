@@ -513,7 +513,7 @@ class CommonIdentityTests(object):
 
         self.assertEqual(self.TEST_COMPUTE_ADMIN, data.url)
         # There's no version in the URL and no document - we have no idea
-        self.assertEqual(None, data.api_version)
+        self.assertIsNone(data.api_version)
 
     def test_endpoint_data_version_url_no_discovery(self):
         a = self.create_auth_plugin()
@@ -635,8 +635,8 @@ class CommonIdentityTests(object):
         self.assertEqual(v3_compute, v3_data.service_url)
         self.assertEqual(self.TEST_COMPUTE_ADMIN, v3_data.catalog_url)
         self.assertEqual((3, 0), v3_data.api_version)
-        self.assertEqual(None, v3_data.min_microversion)
-        self.assertEqual(None, v3_data.max_microversion)
+        self.assertIsNone(v3_data.min_microversion)
+        self.assertIsNone(v3_data.max_microversion)
 
     def test_interface_list(self):
 
@@ -725,8 +725,8 @@ class CommonIdentityTests(object):
         self.assertEqual(self.TEST_VOLUME.versions['v2'].service.public,
                          v2_data.service_url)
         self.assertEqual(self.TEST_VOLUME.catalog.public, v2_data.catalog_url)
-        self.assertEqual(None, v2_data.min_microversion)
-        self.assertEqual(None, v2_data.max_microversion)
+        self.assertIsNone(v2_data.min_microversion)
+        self.assertIsNone(v2_data.max_microversion)
 
     def test_get_versioned_data_volume_project_id_unversioned_first(self):
 
@@ -779,8 +779,8 @@ class CommonIdentityTests(object):
         self.assertEqual(self.TEST_VOLUME.versions['v2'].service.public,
                          v2_data.service_url)
         self.assertEqual(self.TEST_VOLUME.catalog.public, v2_data.catalog_url)
-        self.assertEqual(None, v2_data.min_microversion)
-        self.assertEqual(None, v2_data.max_microversion)
+        self.assertIsNone(v2_data.min_microversion)
+        self.assertIsNone(v2_data.max_microversion)
 
         # Since we fetched from the unversioned endpoint to satisfy the
         # request for v2, we should have all the relevant data cached in the
@@ -1480,7 +1480,7 @@ class CatalogHackTests(utils.TestCase):
         self.assertFalse(common_m.called)
 
         # And get no url
-        self.assertEqual(None, endpoint)
+        self.assertIsNone(endpoint)
 
         v2_m, common_m = stub_urls()
         endpoint = sess.get_endpoint(service_type=self.IDENTITY,
