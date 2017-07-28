@@ -213,7 +213,7 @@ class Adapter(base.BaseLoader):
         """
         c = conf[group]
 
-        if c.valid_interfaces and c.interface:
+        if c.valid_interfaces and hasattr(c, 'interface') and c.interface:
             raise TypeError("interface and valid_interfaces are mutually"
                             " exclusive. Please use valid_interfaces.")
         if c.valid_interfaces:
@@ -224,7 +224,7 @@ class Adapter(base.BaseLoader):
                                     " public, internal or admin".format(
                                         iface=iface))
             kwargs.setdefault('interface', c.valid_interfaces)
-        else:
+        elif hasattr(c, 'interface'):
             kwargs.setdefault('interface', c.interface)
         kwargs.setdefault('service_type', c.service_type)
         kwargs.setdefault('service_name', c.service_name)
