@@ -177,7 +177,8 @@ class Adapter(base.BaseLoader):
                 if iface not in ('public', 'internal', 'admin'):
                     raise TypeError("'{iface}' is not a valid value for"
                                     " valid_interfaces. Valid valies are"
-                                    " public, internal or admin")
+                                    " public, internal or admin".format(
+                                        iface=iface))
             kwargs.setdefault('interface', c.valid_interfaces)
         else:
             kwargs.setdefault('interface', c.interface)
