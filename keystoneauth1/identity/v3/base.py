@@ -13,7 +13,6 @@
 import abc
 import json
 
-from positional import positional
 import six
 
 from keystoneauth1 import _utils as utils
@@ -44,7 +43,6 @@ class BaseAuth(base.BaseIdentityPlugin):
                                  token. (optional) default True.
     """
 
-    @positional()
     def __init__(self, auth_url,
                  trust_id=None,
                  domain_id=None,

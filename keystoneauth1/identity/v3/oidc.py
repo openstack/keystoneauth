@@ -13,7 +13,6 @@
 import abc
 import warnings
 
-from positional import positional
 import six
 
 from keystoneauth1 import _utils as utils
@@ -288,7 +287,6 @@ class OidcPassword(_OidcBase):
 
     grant_type = "password"
 
-    @positional(4)
     def __init__(self, auth_url, identity_provider, protocol,
                  client_id, client_secret,
                  access_token_endpoint=None,
@@ -337,7 +335,6 @@ class OidcClientCredentials(_OidcBase):
 
     grant_type = 'client_credentials'
 
-    @positional(4)
     def __init__(self, auth_url, identity_provider, protocol,
                  client_id, client_secret,
                  access_token_endpoint=None,
@@ -381,7 +378,6 @@ class OidcAuthorizationCode(_OidcBase):
 
     grant_type = 'authorization_code'
 
-    @positional(4)
     def __init__(self, auth_url, identity_provider, protocol,
                  client_id, client_secret,
                  access_token_endpoint=None,
@@ -427,7 +423,6 @@ class OidcAuthorizationCode(_OidcBase):
 class OidcAccessToken(_OidcBase):
     """Implementation for OpenID Connect access token reuse."""
 
-    @positional(5)
     def __init__(self, auth_url, identity_provider, protocol,
                  access_token, **kwargs):
         """The OpenID Connect plugin based on the Access Token.

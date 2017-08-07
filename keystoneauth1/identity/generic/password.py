@@ -10,8 +10,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from positional import positional
-
 from keystoneauth1 import discover
 from keystoneauth1.identity.generic import base
 from keystoneauth1.identity import v2
@@ -29,7 +27,6 @@ class Password(base.BaseGenericPlugin):
 
     """
 
-    @positional()
     def __init__(self, auth_url, username=None, user_id=None, password=None,
                  user_domain_id=None, user_domain_name=None, **kwargs):
         super(Password, self).__init__(auth_url=auth_url, **kwargs)

@@ -13,8 +13,6 @@
 import argparse
 import os
 
-from positional import positional
-
 from keystoneauth1.loading import _utils
 from keystoneauth1.loading import base
 from keystoneauth1 import session
@@ -50,7 +48,6 @@ class Session(base.BaseLoader):
     def get_options(self):
         return []
 
-    @positional(1)
     def load_from_options(self,
                           insecure=False,
                           verify=None,

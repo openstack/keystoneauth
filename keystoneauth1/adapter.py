@@ -13,8 +13,6 @@
 import os
 import warnings
 
-from positional import positional
-
 from keystoneauth1 import session
 
 
@@ -87,7 +85,6 @@ class Adapter(object):
     client_name = None
     client_version = None
 
-    @positional()
     def __init__(self, session, service_type=None, service_name=None,
                  interface=None, region_name=None, endpoint_override=None,
                  version=None, auth=None, user_agent=None,

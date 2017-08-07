@@ -22,7 +22,6 @@ import sys
 import time
 import uuid
 
-from positional import positional
 import requests
 import six
 from six.moves import urllib
@@ -253,7 +252,6 @@ class Session(object):
 
     _DEFAULT_REDIRECT_LIMIT = 30
 
-    @positional(2)
     def __init__(self, auth=None, session=None, original_ip=None, verify=True,
                  cert=None, timeout=None, user_agent=None,
                  redirect=_DEFAULT_REDIRECT_LIMIT, additional_headers=None,
@@ -326,7 +324,6 @@ class Session(object):
             return (header[0], '{SHA1}%s' % token_hash)
         return header
 
-    @positional()
     def _http_log_request(self, url, method=None, data=None,
                           json=None, headers=None, query_params=None,
                           logger=_logger):
@@ -374,7 +371,6 @@ class Session(object):
 
         logger.debug(' '.join(string_parts))
 
-    @positional()
     def _http_log_response(self, response=None, json=None,
                            status_code=None, headers=None, text=None,
                            logger=_logger):
@@ -465,7 +461,6 @@ class Session(object):
         for h in header_names:
             headers.setdefault(h, microversion)
 
-    @positional()
     def request(self, url, method, json=None, original_ip=None,
                 user_agent=None, redirect=None, authenticated=None,
                 endpoint_filter=None, auth=None, requests_auth=None,
