@@ -1398,6 +1398,8 @@ class CatalogHackTests(utils.TestCase):
                                       max_version=(2, discover.LATEST))
 
         self.assertTrue(common_m.called)
+        self.assertEqual(self.OTHER_URL, data.service_url)
+        self.assertEqual(self.OTHER_URL, data.catalog_url)
         self.assertEqual(self.OTHER_URL, data.url)
         self.assertEqual((2, 1), data.min_microversion)
         self.assertEqual((2, 35), data.max_microversion)

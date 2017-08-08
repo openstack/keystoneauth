@@ -245,6 +245,7 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
             #               For now, just use any information the use has
             #               provided.
             endpoint_data = discover.EndpointData(
+                service_url=endpoint_override,
                 catalog_url=endpoint_override,
                 interface=interface,
                 region_name=region_name,
