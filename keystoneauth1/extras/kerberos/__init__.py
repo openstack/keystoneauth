@@ -31,12 +31,19 @@ from keystoneauth1.identity import v3
 from keystoneauth1.identity.v3 import federation
 
 
-def _requests_auth():
-    # NOTE(jamielennox): request_kerberos.OPTIONAL allows the plugin to accept
-    # unencrypted error messages where we can't verify the origin of the error
-    # because we aren't authenticated.
+def _mutual_auth(value):
+    if value is None:
+        return requests_kerberos.OPTIONAL
+    return {
+        'required': requests_kerberos.REQUIRED,
+        'optional': requests_kerberos.OPTIONAL,
+        'disabled': requests_kerberos.DISABLED,
+    }.get(value.lower(), requests_kerberos.OPTIONAL)
+
+
+def _requests_auth(mutual_authentication):
     return requests_kerberos.HTTPKerberosAuth(
-        mutual_authentication=requests_kerberos.OPTIONAL)
+        mutual_authentication=_mutual_auth(mutual_authentication))
 
 
 def _dependency_check():
@@ -51,7 +58,7 @@ packages. These can be installed with::
 
 class KerberosMethod(v3.AuthMethod):
 
-    _method_parameters = []
+    _method_parameters = ['mutual_auth']
 
     def __init__(self, *args, **kwargs):
         _dependency_check()
@@ -60,7 +67,7 @@ class KerberosMethod(v3.AuthMethod):
     def get_auth_data(self, session, auth, headers, request_kwargs, **kwargs):
         # NOTE(jamielennox): request_kwargs is passed as a kwarg however it is
         # required and always present when called from keystoneclient.
-        request_kwargs['requests_auth'] = _requests_auth()
+        request_kwargs['requests_auth'] = _requests_auth(self.mutual_auth)
         return 'kerberos', {}
 
 
@@ -75,15 +82,16 @@ class MappedKerberos(federation.FederationBaseAuth):
     use the standard keystone auth process to scope that to any given project.
     """
 
-    def __init__(self, auth_url, identity_provider, protocol, **kwargs):
+    def __init__(self, auth_url, identity_provider, protocol,
+                 mutual_auth=None, **kwargs):
         _dependency_check()
-
+        self.mutual_auth = mutual_auth
         super(MappedKerberos, self).__init__(auth_url, identity_provider,
                                              protocol, **kwargs)
 
     def get_unscoped_auth_ref(self, session, **kwargs):
         resp = session.get(self.federated_token_url,
-                           requests_auth=_requests_auth(),
+                           requests_auth=_requests_auth(self.mutual_auth),
                            authenticated=False)
 
         return access.create(body=resp.json(), resp=resp)

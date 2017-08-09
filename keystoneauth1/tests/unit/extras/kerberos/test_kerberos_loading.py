@@ -28,6 +28,7 @@ class KerberosLoadingTests(test_utils.TestCase):
                         'project-domain-name',
                         'trust-id',
                         'auth-url',
+                        'mutual-auth',
                         ]
 
         self.assertItemsEqual(allowed_opts, opts)

@@ -54,6 +54,7 @@ class KerberosMock(fixtures.Fixture):
         return self.challenge_header
 
     def _authenticate_server(self, response):
+        self.called_auth_server = True
         return response.headers.get('www-authenticate') == self.pass_header
 
     def mock_auth_success(
@@ -66,6 +67,8 @@ class KerberosMock(fixtures.Fixture):
             token_id = uuid.uuid4().hex
         if not token_body:
             token_body = ks_fixture.V3Token()
+
+        self.called_auth_server = False
 
         response_list = [{'text': 'Fail',
                           'status_code': 401,
