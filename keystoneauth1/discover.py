@@ -983,7 +983,7 @@ class EndpointData(object):
         min_version and max_version are already normalized, so will either be
         None or a tuple.
         """
-        url = urllib.parse.urlparse(self.url)
+        url = urllib.parse.urlparse(self.url.rstrip('/'))
         url_parts = url.path.split('/')
 
         # First, check to see if the catalog url ends with a project id
