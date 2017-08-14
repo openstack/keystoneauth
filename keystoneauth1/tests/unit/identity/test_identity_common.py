@@ -1119,6 +1119,8 @@ class CatalogHackTests(utils.TestCase):
     V2_URL = BASE_URL + 'v2.0'
     V3_URL = BASE_URL + 'v3'
 
+    PROJECT_ID = uuid.uuid4().hex
+
     def test_getting_endpoints(self):
         disc = fixture.DiscoveryList(href=self.BASE_URL)
         self.stub_url('GET',
@@ -1175,6 +1177,43 @@ class CatalogHackTests(utils.TestCase):
                                      version=(3, 0))
 
         self.assertEqual(self.V2_URL, endpoint)
+
+    def test_getting_endpoints_project_id_and_trailing_slash_in_disc_url(self):
+        # Test that when requesting a v3 endpoint and having a project in the
+        # session but only the v2 endpoint with a trailing slash in the
+        # catalog, we can still discover the v3 endpoint.
+        disc = fixture.DiscoveryList(href=self.BASE_URL)
+        self.stub_url('GET',
+                      ['/'],
+                      base_url=self.BASE_URL,
+                      json=disc)
+
+        # Create a project-scoped token. This will exercise the flow in the
+        # discovery URL sequence where a project ID exists in the token but
+        # there is no project ID in the URL.
+        token = fixture.V3Token(project_id=self.PROJECT_ID)
+
+        # Add only a v2 endpoint with a trailing slash
+        service = token.add_service(self.IDENTITY)
+        service.add_endpoint('public', self.V2_URL + '/')
+        service.add_endpoint('admin', self.V2_URL + '/')
+
+        # Auth with v3
+        kwargs = {'headers': {'X-Subject-Token': self.TEST_TOKEN}}
+        self.stub_url('POST',
+                      ['auth', 'tokens'],
+                      base_url=self.V3_URL,
+                      json=token, **kwargs)
+        v3_auth = identity.V3Password(self.V3_URL,
+                                      username=uuid.uuid4().hex,
+                                      password=uuid.uuid4().hex)
+        sess = session.Session(auth=v3_auth)
+
+        # Try to get a v3 endpoint
+        endpoint = sess.get_endpoint(service_type=self.IDENTITY,
+                                     interface='public',
+                                     version=(3, 0))
+        self.assertEqual(self.V3_URL, endpoint)
 
     def test_returns_original_skipping_discovery(self):
         token = fixture.V2Token()
