@@ -385,6 +385,40 @@ class CommonIdentityTests(object):
         self.assertEqual(v2_compute, url_v2)
         self.assertEqual(v3_compute, url_v3)
 
+    def test_discovering_version_no_discovery(self):
+
+        a = self.create_auth_plugin()
+        s = session.Session(auth=a)
+
+        # Grab a version that can be returned without doing discovery
+        # This tests that it doesn't make a discovery call because we don't
+        # have a reqquest mock, and this will throw an exception if it tries
+        version = s.get_api_major_version(
+            service_type='volumev2', interface='admin')
+        self.assertEqual((2, 0), version)
+
+    def test_discovering_version_with_discovery(self):
+
+        a = self.create_auth_plugin()
+        s = session.Session(auth=a)
+
+        v2_compute = self.TEST_COMPUTE_ADMIN + '/v2.0'
+        v3_compute = self.TEST_COMPUTE_ADMIN + '/v3'
+
+        disc = fixture.DiscoveryList(v2=False, v3=False)
+        disc.add_v2(v2_compute)
+        disc.add_v3(v3_compute)
+
+        self.stub_url('GET', [], base_url=self.TEST_COMPUTE_ADMIN, json=disc)
+
+        # This needs to do version discovery to find the version
+        version = s.get_api_major_version(
+            service_type='compute', interface='admin')
+        self.assertEqual((3, 0), version)
+        self.assertEqual(
+            self.requests_mock.request_history[-1].url,
+            self.TEST_COMPUTE_ADMIN)
+
     def test_direct_discovering_with_relative_link(self):
         # need to construct list this way for relative
         disc = fixture.DiscoveryList(v2=False, v3=False)
