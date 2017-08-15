@@ -372,8 +372,18 @@ def _combine_relative_url(discovery_url, version_url):
     # effect on absolute urls.
     url = urllib.parse.urljoin(discovery_url.rstrip('/') + '/', version_url)
 
-    # Parse and recombine the result to squish double //'s from the above
-    return urllib.parse.urlparse(url).geturl()
+    # Sadly version discovery documents are common with the scheme
+    # and netloc broken.
+    parsed_version_url = urllib.parse.urlparse(url)
+    parsed_discovery_url = urllib.parse.urlparse(discovery_url)
+
+    return urllib.parse.ParseResult(
+        parsed_discovery_url.scheme,
+        parsed_discovery_url.netloc,
+        parsed_version_url.path,
+        parsed_version_url.params,
+        parsed_version_url.query,
+        parsed_version_url.fragment).geturl()
 
 
 def _version_from_url(url):

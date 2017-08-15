@@ -137,21 +137,29 @@ class CommonIdentityTests(object):
         """The API version being tested."""
 
     def test_discovering(self):
+        disc = fixture.DiscoveryList(v2=False, v3=False)
+
+        disc.add_nova_microversion(
+            href=self.TEST_COMPUTE_ADMIN,
+            id='v2.1', status='CURRENT',
+            min_version='2.1', version='2.38')
+
         self.stub_url('GET', [],
                       base_url=self.TEST_COMPUTE_ADMIN,
-                      json=self.TEST_DISCOVERY)
+                      json=disc)
 
         body = 'SUCCESS'
 
         # which gives our sample values
-        self.stub_url('GET', ['path'], text=body)
+        self.stub_url('GET', ['path'],
+                      text=body, base_url=self.TEST_COMPUTE_ADMIN)
 
         a = self.create_auth_plugin()
         s = session.Session(auth=a)
 
         resp = s.get('/path', endpoint_filter={'service_type': 'compute',
                                                'interface': 'admin',
-                                               'version': self.version})
+                                               'version': '2.1'})
 
         self.assertEqual(200, resp.status_code)
         self.assertEqual(body, resp.text)
@@ -169,13 +177,21 @@ class CommonIdentityTests(object):
         self.assertEqual(new_body, resp.text)
 
     def test_discovery_uses_provided_session_cache(self):
+        disc = fixture.DiscoveryList(v2=False, v3=False)
+
+        disc.add_nova_microversion(
+            href=self.TEST_COMPUTE_ADMIN,
+            id='v2.1', status='CURRENT',
+            min_version='2.1', version='2.38')
+
         # register responses such that if the discovery URL is hit more than
         # once then the response will be invalid and not point to COMPUTE_ADMIN
-        resps = [{'json': self.TEST_DISCOVERY}, {'status_code': 500}]
+        resps = [{'json': disc}, {'status_code': 500}]
         self.requests_mock.get(self.TEST_COMPUTE_ADMIN, resps)
 
         body = 'SUCCESS'
-        self.stub_url('GET', ['path'], text=body)
+        self.stub_url('GET', ['path'],
+                      text=body, base_url=self.TEST_COMPUTE_ADMIN)
 
         cache = {}
         # now either of the two plugins I use, it should not cause a second
@@ -189,23 +205,32 @@ class CommonIdentityTests(object):
                          auth=auth,
                          endpoint_filter={'service_type': 'compute',
                                           'interface': 'admin',
-                                          'version': self.version})
+                                          'version': '2.1'})
 
             self.assertEqual(200, resp.status_code)
             self.assertEqual(body, resp.text)
         self.assertIn(self.TEST_COMPUTE_ADMIN, cache.keys())
 
     def test_discovery_uses_session_cache(self):
+        disc = fixture.DiscoveryList(v2=False, v3=False)
+
+        disc.add_nova_microversion(
+            href=self.TEST_COMPUTE_ADMIN,
+            id='v2.1', status='CURRENT',
+            min_version='2.1', version='2.38')
+
         # register responses such that if the discovery URL is hit more than
         # once then the response will be invalid and not point to COMPUTE_ADMIN
-        resps = [{'json': self.TEST_DISCOVERY}, {'status_code': 500}]
+        resps = [{'json': disc}, {'status_code': 500}]
         self.requests_mock.get(self.TEST_COMPUTE_ADMIN, resps)
 
         body = 'SUCCESS'
-        self.stub_url('GET', ['path'], text=body)
+        self.stub_url('GET', ['path'],
+                      base_url=self.TEST_COMPUTE_ADMIN,
+                      text=body)
 
         filter = {'service_type': 'compute', 'interface': 'admin',
-                  'version': self.version}
+                  'version': '2.1'}
 
         # create a session and call the endpoint, causing its cache to be set
         sess = session.Session()
@@ -224,13 +249,22 @@ class CommonIdentityTests(object):
             self.assertEqual(body, resp.text)
 
     def test_discovery_uses_plugin_cache(self):
+        disc = fixture.DiscoveryList(v2=False, v3=False)
+
+        disc.add_nova_microversion(
+            href=self.TEST_COMPUTE_ADMIN,
+            id='v2.1', status='CURRENT',
+            min_version='2.1', version='2.38')
+
         # register responses such that if the discovery URL is hit more than
         # once then the response will be invalid and not point to COMPUTE_ADMIN
-        resps = [{'json': self.TEST_DISCOVERY}, {'status_code': 500}]
+        resps = [{'json': disc}, {'status_code': 500}]
         self.requests_mock.get(self.TEST_COMPUTE_ADMIN, resps)
 
         body = 'SUCCESS'
-        self.stub_url('GET', ['path'], text=body)
+        self.stub_url('GET', ['path'],
+                      base_url=self.TEST_COMPUTE_ADMIN,
+                      text=body)
 
         # now either of the two sessions I use, it should not cause a second
         # request to the discovery url. Calling discovery directly should also
@@ -244,22 +278,31 @@ class CommonIdentityTests(object):
                             auth=auth,
                             endpoint_filter={'service_type': 'compute',
                                              'interface': 'admin',
-                                             'version': self.version})
+                                             'version': '2.1'})
 
             self.assertEqual(200, resp.status_code)
             self.assertEqual(body, resp.text)
 
     def test_discovery_uses_session_plugin_cache(self):
+        disc = fixture.DiscoveryList(v2=False, v3=False)
+
+        disc.add_nova_microversion(
+            href=self.TEST_COMPUTE_ADMIN,
+            id='v2.1', status='CURRENT',
+            min_version='2.1', version='2.38')
+
         # register responses such that if the discovery URL is hit more than
         # once then the response will be invalid and not point to COMPUTE_ADMIN
-        resps = [{'json': self.TEST_DISCOVERY}, {'status_code': 500}]
+        resps = [{'json': disc}, {'status_code': 500}]
         self.requests_mock.get(self.TEST_COMPUTE_ADMIN, resps)
 
         body = 'SUCCESS'
-        self.stub_url('GET', ['path'], text=body)
+        self.stub_url('GET', ['path'],
+                      base_url=self.TEST_COMPUTE_ADMIN,
+                      text=body)
 
         filter = {'service_type': 'compute', 'interface': 'admin',
-                  'version': self.version}
+                  'version': '2.1'}
 
         # create a plugin and call the endpoint, causing its cache to be set
         plugin = self.create_auth_plugin()
@@ -286,7 +329,7 @@ class CommonIdentityTests(object):
         sb = session.Session()
         discovery_cache = {}
 
-        expected_url = urllib.parse.urljoin(self.TEST_ROOT_URL, '/v2.0')
+        expected_url = urllib.parse.urljoin(self.TEST_COMPUTE_ADMIN, '/v2.0')
         for sess in (sa, sb):
 
             disc = discover.get_discovery(
@@ -886,6 +929,28 @@ class CommonIdentityTests(object):
 
         self.assertFalse(
             self.requests_mock.request_history[-1].url.endswith('/'))
+
+    def test_broken_discovery_endpoint(self):
+
+        # Discovery document with a bogus/broken base URL
+        disc = fixture.DiscoveryList(v2=False, v3=False)
+        disc.add_nova_microversion(
+            href='http://internal.example.com',
+            id='v2.1', status='CURRENT',
+            min_version='2.1', version='2.38')
+
+        a = self.create_auth_plugin()
+        s = session.Session(auth=a)
+
+        self.requests_mock.get(self.TEST_COMPUTE_PUBLIC, json=disc)
+
+        data = s.get_endpoint_data(service_type='compute',
+                                   interface='public',
+                                   min_version='2.1',
+                                   max_version='2.latest')
+
+        # Verify that we get the versioned url based on the catalog url
+        self.assertTrue(data.url, self.TEST_COMPUTE_PUBLIC + '/v2.1')
 
     def test_asking_for_auth_endpoint_ignores_checks(self):
         a = self.create_auth_plugin()
