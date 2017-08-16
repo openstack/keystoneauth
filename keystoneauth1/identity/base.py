@@ -157,7 +157,7 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
         return False
 
     def get_endpoint_data(self, session, service_type=None, interface=None,
-                          region_name=None, service_name=None, allow={},
+                          region_name=None, service_name=None, allow=None,
                           allow_version_hack=True, discover_versions=True,
                           skip_discovery=False, min_version=None,
                           max_version=None, endpoint_override=None, **kwargs):
@@ -224,6 +224,8 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
         :return: Valid EndpointData or None if not available.
         :rtype: `keystoneauth1.discover.EndpointData` or None
         """
+        allow = allow or {}
+
         min_version, max_version = discover._normalize_version_args(
             None, min_version, max_version)
 
@@ -303,7 +305,7 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
 
     def get_endpoint(self, session, service_type=None, interface=None,
                      region_name=None, service_name=None, version=None,
-                     allow={}, allow_version_hack=True,
+                     allow=None, allow_version_hack=True,
                      skip_discovery=False,
                      min_version=None, max_version=None,
                      **kwargs):

@@ -471,7 +471,7 @@ class Session(object):
                 endpoint_filter=None, auth=None, requests_auth=None,
                 raise_exc=True, allow_reauth=True, log=True,
                 endpoint_override=None, connect_retries=0, logger=_logger,
-                allow={}, client_name=None, client_version=None,
+                allow=None, client_name=None, client_version=None,
                 microversion=None, microversion_service_type=None,
                 **kwargs):
         """Send an HTTP request with the specified characteristics.
