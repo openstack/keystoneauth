@@ -13,8 +13,6 @@
 import itertools
 import os
 
-from positional import positional
-
 from keystoneauth1.loading import _utils
 
 
@@ -62,7 +60,6 @@ class Opt(object):
         appropriate) set the string that should be used to prompt with.
     """
 
-    @positional()
     def __init__(self,
                  name,
                  type=str,

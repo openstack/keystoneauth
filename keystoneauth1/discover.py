@@ -24,7 +24,6 @@ raw data specified in version discovery responses.
 import copy
 import re
 
-from positional import positional
 import six
 from six.moves import urllib
 
@@ -57,7 +56,6 @@ def _int_or_latest(val):
     return LATEST if val == 'latest' or val == LATEST else int(val)
 
 
-@positional()
 def get_version_data(session, url, authenticated=None):
     """Retrieve raw version data from a url.
 
@@ -395,7 +393,6 @@ class Discover(object):
     DEPRECATED_STATUSES = ('deprecated',)
     EXPERIMENTAL_STATUSES = ('experimental',)
 
-    @positional()
     def __init__(self, session, url, authenticated=None):
         self._url = url
         self._data = get_version_data(session, url,
@@ -441,7 +438,6 @@ class Discover(object):
 
         return versions
 
-    @positional()
     def version_data(self, reverse=False, **kwargs):
         """Get normalized version data.
 
@@ -673,7 +669,6 @@ class EndpointData(object):
     possibilities.
     """
 
-    @positional()
     def __init__(self,
                  catalog_url=None,
                  service_url=None,
@@ -739,7 +734,6 @@ class EndpointData(object):
     def url(self):
         return self.service_url or self.catalog_url
 
-    @positional(3)
     def get_current_versioned_data(self, session, allow=None, cache=None,
                                    project_id=None):
         """Run version discovery on the current endpoint.
@@ -774,7 +768,6 @@ class EndpointData(object):
             discover_versions=True,
             min_version=min_version, max_version=max_version)
 
-    @positional(3)
     def get_versioned_data(self, session, allow=None, cache=None,
                            allow_version_hack=True, project_id=None,
                            discover_versions=True,
@@ -913,7 +906,6 @@ class EndpointData(object):
                                        self._saved_project_id)
         self.service_url = url
 
-    @positional(1)
     def _run_discovery(self, session, cache, min_version, max_version,
                        project_id, allow_version_hack, discover_versions):
         tried = set()
@@ -1103,7 +1095,6 @@ class EndpointData(object):
         return _VERSION_HACKS.get_discover_hack(self.service_type, self.url)
 
 
-@positional()
 def get_discovery(session, url, cache=None, authenticated=False):
     """Return the discovery object for a URL.
 

@@ -19,7 +19,6 @@
 import abc
 import copy
 
-from positional import positional
 import six
 
 from keystoneauth1 import discover
@@ -133,7 +132,6 @@ class ServiceCatalog(object):
             interface = [interface]
         return [self.normalize_interface(i) for i in interface]
 
-    @positional()
     def get_endpoints_data(self, service_type=None, interface=None,
                            region_name=None, service_name=None,
                            service_id=None, endpoint_id=None):
@@ -222,7 +220,6 @@ class ServiceCatalog(object):
 
         return ret
 
-    @positional()
     def get_endpoints(self, service_type=None, interface=None,
                       region_name=None, service_name=None,
                       service_id=None, endpoint_id=None):
@@ -246,7 +243,6 @@ class ServiceCatalog(object):
             endpoints[service_type] = self._denormalize_endpoints(data)
         return endpoints
 
-    @positional()
     def get_endpoint_data_list(self, service_type=None, interface='public',
                                region_name=None, service_name=None,
                                service_id=None, endpoint_id=None):
@@ -280,7 +276,6 @@ class ServiceCatalog(object):
                                             endpoint_id=endpoint_id)
         return [endpoint for data in endpoints.values() for endpoint in data]
 
-    @positional()
     def get_urls(self, service_type=None, interface='public',
                  region_name=None, service_name=None,
                  service_id=None, endpoint_id=None):
@@ -313,7 +308,6 @@ class ServiceCatalog(object):
                                                 endpoint_id=endpoint_id)
         return tuple([endpoint.url for endpoint in endpoints])
 
-    @positional()
     def url_for(self, service_type=None, interface='public',
                 region_name=None, service_name=None,
                 service_id=None, endpoint_id=None):
@@ -343,7 +337,6 @@ class ServiceCatalog(object):
                                       service_id=service_id,
                                       endpoint_id=endpoint_id).url
 
-    @positional()
     def endpoint_data_for(self, service_type=None, interface='public',
                           region_name=None, service_name=None,
                           service_id=None, endpoint_id=None):

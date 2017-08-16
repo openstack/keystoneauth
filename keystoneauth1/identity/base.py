@@ -16,7 +16,6 @@ import hashlib
 import json
 import threading
 
-from positional import positional
 import six
 
 from keystoneauth1 import _utils as utils
@@ -398,7 +397,6 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
         except exceptions.ServiceProviderNotFound:
             return None
 
-    @positional()
     def get_discovery(self, session, url, authenticated=None):
         """Return the discovery object for a URL.
 
