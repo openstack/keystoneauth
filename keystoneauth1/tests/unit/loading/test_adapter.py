@@ -10,6 +10,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import uuid
+
 from oslo_config import cfg
 from oslo_config import fixture as config
 
@@ -182,3 +184,15 @@ class ConfLoadingTests(utils.TestCase):
                           'region-name', 'endpoint-override', 'version',
                           'min-version', 'max-version'},
                          {opt.name for opt in opts})
+
+    def test_deprecated(self):
+        def new_deprecated():
+            return cfg.DeprecatedOpt(uuid.uuid4().hex, group=uuid.uuid4().hex)
+
+        opt_names = ['service-type', 'valid-interfaces', 'endpoint-override']
+        depr = dict([(n, [new_deprecated()]) for n in opt_names])
+        opts = loading.get_adapter_conf_options(deprecated_opts=depr)
+
+        for opt in opts:
+            if opt.name in opt_names:
+                self.assertIn(depr[opt.name][0], opt.deprecated_opts)
