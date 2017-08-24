@@ -88,7 +88,7 @@ class Adapter(object):
     def __init__(self, session, service_type=None, service_name=None,
                  interface=None, region_name=None, endpoint_override=None,
                  version=None, auth=None, user_agent=None,
-                 connect_retries=None, logger=None, allow={},
+                 connect_retries=None, logger=None, allow=None,
                  additional_headers=None, client_name=None,
                  client_version=None, allow_version_hack=None,
                  global_request_id=None,
