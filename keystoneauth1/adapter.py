@@ -243,6 +243,25 @@ class Adapter(object):
 
         return self.session.get_endpoint_data(auth or self.auth, **kwargs)
 
+    def get_api_major_version(self, auth=None, **kwargs):
+        """Get the major API version as provided by the auth plugin.
+
+        :param auth: The auth plugin to use for token. Overrides the plugin on
+                     the session. (optional)
+        :type auth: keystoneauth1.plugin.BaseAuthPlugin
+
+        :raises keystoneauth1.exceptions.auth_plugins.MissingAuthPlugin: if a
+            plugin is not available.
+
+        :return: The major version of the API of the service discovered.
+        :rtype: tuple or None
+        """
+        self._set_endpoint_filter_kwargs(kwargs)
+        if self.endpoint_override:
+            kwargs['endpoint_override'] = self.endpoint_override
+
+        return self.session.get_api_major_version(auth or self.auth, **kwargs)
+
     def invalidate(self, auth=None):
         """Invalidate an authentication plugin."""
         return self.session.invalidate(auth or self.auth)

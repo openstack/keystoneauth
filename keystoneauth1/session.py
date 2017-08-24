@@ -958,6 +958,22 @@ class Session(object):
         auth = self._auth_required(auth, 'determine endpoint URL')
         return auth.get_endpoint_data(self, **kwargs)
 
+    def get_api_major_version(self, auth=None, **kwargs):
+        """Get the major API version as provided by the auth plugin.
+
+        :param auth: The auth plugin to use for token. Overrides the plugin on
+                     the session. (optional)
+        :type auth: keystoneauth1.plugin.BaseAuthPlugin
+
+        :raises keystoneauth1.exceptions.auth_plugins.MissingAuthPlugin: if a
+            plugin is not available.
+
+        :return: The major version of the API of the service discovered.
+        :rtype: tuple or None
+        """
+        auth = self._auth_required(auth, 'determine endpoint URL')
+        return auth.get_api_major_version(self, **kwargs)
+
     def get_auth_connection_params(self, auth=None, **kwargs):
         """Return auth connection params as provided by the auth plugin.
 
