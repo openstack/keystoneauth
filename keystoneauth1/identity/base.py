@@ -448,7 +448,7 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
         :rtype: tuple or None
 
         .. note:: Implementation notes follow. Users should not need to wrap
-                  their head around these implementation note.
+                  their head around these implementation notes.
                   `get_api_major_version` should do what is expected with the
                   least possible cost while still consistently returning a
                   value if possible.
