@@ -117,7 +117,7 @@ class Adapter(object):
         self.auth = auth
         self.connect_retries = connect_retries
         self.logger = logger
-        self.allow = allow
+        self.allow = allow or {}
         self.additional_headers = additional_headers or {}
         self.allow_version_hack = allow_version_hack
         self.min_version = min_version
