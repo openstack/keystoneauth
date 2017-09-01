@@ -283,7 +283,7 @@ class CatalogHackTests(utils.TestCase):
 class DiscoverUtils(utils.TestCase):
 
     def test_version_number(self):
-        def assertVersion(inp, out):
+        def assertVersion(out, inp):
             self.assertEqual(out, discover.normalize_version_number(inp))
 
         def versionRaises(inp):
@@ -291,24 +291,24 @@ class DiscoverUtils(utils.TestCase):
                               discover.normalize_version_number,
                               inp)
 
-        assertVersion('v1.2', (1, 2))
-        assertVersion('v11', (11, 0))
-        assertVersion('1.2', (1, 2))
-        assertVersion('1.5.1', (1, 5, 1))
-        assertVersion('1', (1, 0))
-        assertVersion(1, (1, 0))
-        assertVersion(5.2, (5, 2))
-        assertVersion('3.20', (3, 20))
+        assertVersion((1, 2), 'v1.2')
+        assertVersion((11, 0), 'v11')
+        assertVersion((1, 2), '1.2')
+        assertVersion((1, 5, 1), '1.5.1')
+        assertVersion((1, 0), '1')
+        assertVersion((1, 0), 1)
+        assertVersion((5, 2), 5.2)
+        assertVersion((3, 20), '3.20')
         assertVersion((6, 1), (6, 1))
-        assertVersion([1, 40], (1, 40))
-        assertVersion((1,), (1, 0))
-        assertVersion(['1'], (1, 0))
-        assertVersion('latest', (discover.LATEST, discover.LATEST))
-        assertVersion(['latest'], (discover.LATEST, discover.LATEST))
-        assertVersion(discover.LATEST, (discover.LATEST, discover.LATEST))
-        assertVersion((discover.LATEST,), (discover.LATEST, discover.LATEST))
-        assertVersion('10.latest', (10, discover.LATEST))
-        assertVersion((10, 'latest'), (10, discover.LATEST))
+        assertVersion((1, 40), [1, 40])
+        assertVersion((1, 0), (1,))
+        assertVersion((1, 0), ['1'])
+        assertVersion((discover.LATEST, discover.LATEST), 'latest')
+        assertVersion((discover.LATEST, discover.LATEST), ['latest'])
+        assertVersion((discover.LATEST, discover.LATEST), discover.LATEST)
+        assertVersion((discover.LATEST, discover.LATEST), (discover.LATEST,))
+        assertVersion((10, discover.LATEST), '10.latest')
+        assertVersion((10, discover.LATEST), (10, 'latest'))
         assertVersion((10, discover.LATEST), (10, discover.LATEST))
 
         versionRaises(None)
@@ -368,16 +368,16 @@ class DiscoverUtils(utils.TestCase):
         normalize_raises(None, 'v1.2', 1)
 
     def test_version_to_string(self):
-        def assert_string(inp, out):
+        def assert_string(out, inp):
             self.assertEqual(out, discover.version_to_string(inp))
 
-        assert_string((discover.LATEST,), 'latest')
-        assert_string((discover.LATEST, discover.LATEST), 'latest')
-        assert_string((discover.LATEST, discover.LATEST, discover.LATEST),
-                      'latest')
-        assert_string((1,), '1')
-        assert_string((1, 2), '1.2')
-        assert_string((1, discover.LATEST), '1.latest')
+        assert_string('latest', (discover.LATEST,))
+        assert_string('latest', (discover.LATEST, discover.LATEST))
+        assert_string('latest',
+                      (discover.LATEST, discover.LATEST, discover.LATEST))
+        assert_string('1', (1,))
+        assert_string('1.2', (1, 2))
+        assert_string('1.latest', (1, discover.LATEST))
 
     def test_version_between(self):
         def good(minver, maxver, cand):
