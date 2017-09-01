@@ -35,7 +35,7 @@ Features
 
   Clients are not expected to have any knowledge of an identity token or any
   other form of identification credential. Service, endpoint, major version
-  discovery and microversion support discovery are handled by the Session and
+  discovery, and microversion support discovery are handled by the Session and
   plugins. Discovery information is automatically cached in memory, so the user
   need not worry about excessive use of discovery metadata.
 
@@ -112,7 +112,7 @@ managed for them.
 Major Version Discovery and Microversion Support
 ------------------------------------------------
 
-In OpenStack the root URLs of available services are distributed to the user
+In OpenStack, the root URLs of available services are distributed to the user
 in an object called the Service Catalog, which is part of the token they
 receive. Clients are expected to use the URLs from the Service Catalog rather
 than have them provided. The root URL of a given service is referred to as the
@@ -362,8 +362,8 @@ or not.
 process, so calling it should incur no undue expense. By default it will make
 at least one version discovery call so that it can fetch microversion metadata.
 If the user knows a service does not support microversions and is merely
-curious as to which major version was discovered, `discover_versions` can be
-set to `False` to prevent fetching microversion metadata.
+curious as to which major version was discovered, ``discover_versions`` can be
+set to ``False`` to prevent fetching microversion metadata.
 
 Requesting a Microversion
 -------------------------
