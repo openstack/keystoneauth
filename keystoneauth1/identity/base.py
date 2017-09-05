@@ -43,7 +43,6 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
         self.auth_ref = None
         self.reauthenticate = reauthenticate
 
-        self._discovery_cache = {}
         self._lock = threading.Lock()
 
     @abc.abstractmethod
