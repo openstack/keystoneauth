@@ -110,7 +110,11 @@ class Adapter(base.BaseLoader):
                            deprecated_opts=deprecated_opts.get(
                                'endpoint-override'),
                            help='Always use this endpoint URL for requests '
-                                'for this client.'),
+                                'for this client. NOTE: The unversioned '
+                                'endpoint should be specified here; to '
+                                'request a particular API version, use the '
+                                '`version`, `min-version`, and/or '
+                                '`max-version` options.'),
                 cfg.StrOpt('version',
                            deprecated_opts=deprecated_opts.get('version'),
                            help='Minimum Major API version within a given '
