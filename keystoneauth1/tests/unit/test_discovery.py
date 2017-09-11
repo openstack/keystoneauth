@@ -640,30 +640,34 @@ class VersionDataTests(utils.TestCase):
             self.assertIn(v['version'], ((2, 0), (3, 0)))
             self.assertEqual(v['raw_status'], 'stable')
 
-        for version in (disc.data_for('v3.0'),
-                        disc.data_for('3.latest'),
-                        disc.data_for('latest'),
-                        disc.versioned_data_for(
-                            min_version='v3.0', max_version='v3.latest'),
-                        disc.versioned_data_for(min_version='3'),
-                        disc.versioned_data_for(min_version='3.latest'),
-                        disc.versioned_data_for(min_version='latest'),
-                        disc.versioned_data_for(min_version='3.latest',
-                                                max_version='latest'),
-                        disc.versioned_data_for(min_version='latest',
-                                                max_version='latest'),
-                        disc.versioned_data_for(min_version=2),
-                        disc.versioned_data_for(min_version='2.latest')):
+        valid_v3_versions = (
+            disc.data_for('v3.0'),
+            disc.data_for('3.latest'),
+            disc.data_for('latest'),
+            disc.versioned_data_for(min_version='v3.0',
+                                    max_version='v3.latest'),
+            disc.versioned_data_for(min_version='3'),
+            disc.versioned_data_for(min_version='3.latest'),
+            disc.versioned_data_for(min_version='latest'),
+            disc.versioned_data_for(min_version='3.latest',
+                                    max_version='latest'),
+            disc.versioned_data_for(min_version='latest',
+                                    max_version='latest'),
+            disc.versioned_data_for(min_version=2),
+            disc.versioned_data_for(min_version='2.latest'))
+        for version in valid_v3_versions:
             self.assertEqual((3, 0), version['version'])
             self.assertEqual('stable', version['raw_status'])
             self.assertEqual(V3_URL, version['url'])
 
-        for version in (disc.data_for(2),
-                        disc.data_for('2.latest'),
-                        disc.versioned_data_for(
-                            min_version=2, max_version=(2, discover.LATEST)),
-                        disc.versioned_data_for(
-                            min_version='2.latest', max_version='2.latest')):
+        valid_v2_versions = (
+            disc.data_for(2),
+            disc.data_for('2.latest'),
+            disc.versioned_data_for(min_version=2,
+                                    max_version=(2, discover.LATEST)),
+            disc.versioned_data_for(min_version='2.latest',
+                                    max_version='2.latest'))
+        for version in valid_v2_versions:
             self.assertEqual((2, 0), version['version'])
             self.assertEqual('stable', version['raw_status'])
             self.assertEqual(V2_URL, version['url'])
