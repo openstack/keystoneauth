@@ -466,7 +466,7 @@ class OidcAccessToken(_OidcBase):
         environment variables.
 
         :param session: a session object to send out HTTP requests.
-        :type session: keystoneclient.session.Session
+        :type session: keystoneauth1.session.Session
 
         :returns: a token data representation
         :rtype: :py:class:`keystoneauth1.access.AccessInfoV3`

@@ -120,7 +120,7 @@ class BaseAuthPlugin(object):
         """Return any additional connection parameters required for the plugin.
 
         :param session: The session object that the auth_plugin belongs to.
-        :type session: keystoneclient.session.Session
+        :type session: keystoneauth1.session.Session
 
         :returns: Headers that are set to authenticate a message or None for
                   failure. Note that when checking this value that the empty
