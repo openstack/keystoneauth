@@ -15,10 +15,10 @@ exceptions to an instance or subclass of ClientException.
 Testing
 =======
 
-keystoneauth uses testtools and testr for its unittest suite
-and its test runner. Basic workflow around our use of tox and testr can
+keystoneauth uses testtools and stestr for its unittest suite
+and its test runner. Basic workflow around our use of tox and stestr can
 be found at https://wiki.openstack.org/testr. If you'd like to learn more
 in depth:
 
-  https://testtools.readthedocs.org/
-  https://testrepository.readthedocs.org/
+  https://testtools.readthedocs.io/en/latest/
+  https://stestr.readthedocs.io/en/latest/
