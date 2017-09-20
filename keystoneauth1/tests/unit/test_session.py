@@ -956,6 +956,60 @@ class SessionAuthTests(utils.TestCase):
         self.assertNotIn(list(response.keys())[0], self.logger.output)
         self.assertNotIn(list(response.values())[0], self.logger.output)
 
+    def test_split_loggers(self):
+
+        def get_logger_io(name):
+            logger_name = 'keystoneauth.session.{name}'.format(name=name)
+            logger = logging.getLogger(logger_name)
+            logger.setLevel(logging.DEBUG)
+
+            io = six.StringIO()
+            handler = logging.StreamHandler(io)
+            logger.addHandler(handler)
+            return io
+
+        io = {}
+        for name in ('request', 'body', 'response', 'request-id'):
+            io[name] = get_logger_io(name)
+
+        auth = AuthPlugin()
+        sess = client_session.Session(auth=auth, split_loggers=True)
+        response_key = uuid.uuid4().hex
+        response_val = uuid.uuid4().hex
+        response = {response_key: response_val}
+        request_id = uuid.uuid4().hex
+
+        self.stub_url(
+            'GET',
+            json=response,
+            headers={
+                'Content-Type': 'application/json',
+                'X-OpenStack-Request-ID': request_id,
+            })
+
+        resp = sess.get(self.TEST_URL)
+
+        self.assertEqual(response, resp.json())
+
+        request_output = io['request'].getvalue().strip()
+        response_output = io['response'].getvalue().strip()
+        body_output = io['body'].getvalue().strip()
+        id_output = io['request-id'].getvalue().strip()
+
+        self.assertIn('curl -g -i -X GET {url}'.format(url=self.TEST_URL),
+                      request_output)
+        self.assertEqual('[200] Content-Type: application/json '
+                         'X-OpenStack-Request-ID: '
+                         '{id}'.format(id=request_id), response_output)
+        self.assertEqual(
+            'GET call to {url} used request id {id}'.format(
+                url=self.TEST_URL, id=request_id),
+            id_output)
+        self.assertEqual(
+            '{{"{key}": "{val}"}}'.format(
+                key=response_key, val=response_val),
+            body_output)
+
 
 class AdapterTest(utils.TestCase):
 
