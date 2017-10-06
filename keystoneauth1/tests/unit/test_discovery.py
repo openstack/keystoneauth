@@ -16,11 +16,14 @@ import re
 
 from testtools import matchers
 
+from keystoneauth1 import adapter
 from keystoneauth1 import discover
 from keystoneauth1 import exceptions
 from keystoneauth1 import fixture
+from keystoneauth1 import noauth
 from keystoneauth1 import session
 from keystoneauth1.tests.unit import utils
+from keystoneauth1 import token_endpoint
 
 
 BASE_HOST = 'http://keystone.example.com'
@@ -586,6 +589,92 @@ class VersionDataTests(utils.TestCase):
 
         # Badly-formatted next_min_version
         test_exc({'next_min_version': 'bogus', 'not_before': '2019-07-01'})
+
+    def test_endpoint_data_noauth_discover(self):
+        mock = self.requests_mock.get(
+            V3_URL, status_code=200, json=V3_VERSION_ENTRY)
+        plugin = noauth.NoAuth()
+        data = plugin.get_endpoint_data(self.session, endpoint_override=V3_URL)
+
+        self.assertEqual(data.api_version, (3, 0))
+        self.assertEqual(data.url, V3_URL)
+        self.assertEqual(
+            plugin.get_api_major_version(
+                self.session, endpoint_override=V3_URL),
+            (3, 0))
+        self.assertEqual(
+            plugin.get_endpoint(self.session, endpoint_override=V3_URL),
+            V3_URL)
+
+        self.assertTrue(mock.called_once)
+
+    def test_endpoint_data_noauth_no_discover(self):
+        plugin = noauth.NoAuth()
+        data = plugin.get_endpoint_data(
+            self.session, endpoint_override=V3_URL, discover_versions=False)
+
+        self.assertEqual(data.api_version, (3, 0))
+        self.assertEqual(data.url, V3_URL)
+        self.assertEqual(
+            plugin.get_api_major_version(
+                self.session, endpoint_override=V3_URL),
+            (3, 0))
+        self.assertEqual(
+            plugin.get_endpoint(self.session, endpoint_override=V3_URL),
+            V3_URL)
+
+    def test_endpoint_data_noauth_adapter(self):
+        mock = self.requests_mock.get(
+            V3_URL, status_code=200, json=V3_VERSION_ENTRY)
+
+        client = adapter.Adapter(
+            session.Session(noauth.NoAuth()),
+            endpoint_override=V3_URL)
+        data = client.get_endpoint_data()
+
+        self.assertEqual(data.api_version, (3, 0))
+        self.assertEqual(data.url, V3_URL)
+        self.assertEqual(client.get_api_major_version(), (3, 0))
+        self.assertEqual(client.get_endpoint(), V3_URL)
+
+        self.assertTrue(mock.called_once)
+
+    def test_endpoint_data_token_endpoint_discover(self):
+        mock = self.requests_mock.get(
+            V3_URL, status_code=200, json=V3_VERSION_ENTRY)
+        plugin = token_endpoint.Token(endpoint=V3_URL, token='bogus')
+        data = plugin.get_endpoint_data(self.session)
+
+        self.assertEqual(data.api_version, (3, 0))
+        self.assertEqual(data.url, V3_URL)
+        self.assertEqual(plugin.get_api_major_version(self.session), (3, 0))
+        self.assertEqual(plugin.get_endpoint(self.session), V3_URL)
+
+        self.assertTrue(mock.called_once)
+
+    def test_endpoint_data_token_endpoint_no_discover(self):
+        plugin = token_endpoint.Token(endpoint=V3_URL, token='bogus')
+        data = plugin.get_endpoint_data(self.session, discover_versions=False)
+
+        self.assertEqual(data.api_version, (3, 0))
+        self.assertEqual(data.url, V3_URL)
+        self.assertEqual(plugin.get_api_major_version(self.session), (3, 0))
+        self.assertEqual(plugin.get_endpoint(self.session), V3_URL)
+
+    def test_endpoint_data_token_endpoint_adapter(self):
+        mock = self.requests_mock.get(
+            V3_URL, status_code=200, json=V3_VERSION_ENTRY)
+        plugin = token_endpoint.Token(endpoint=V3_URL, token='bogus')
+
+        client = adapter.Adapter(session.Session(plugin))
+        data = client.get_endpoint_data()
+
+        self.assertEqual(data.api_version, (3, 0))
+        self.assertEqual(data.url, V3_URL)
+        self.assertEqual(client.get_api_major_version(), (3, 0))
+        self.assertEqual(client.get_endpoint(), V3_URL)
+
+        self.assertTrue(mock.called_once)
 
     def test_data_for_url(self):
         mock = self.requests_mock.get(V3_URL,
