@@ -1073,3 +1073,20 @@ class EndpointDataTests(utils.TestCase):
         mock_get_disc.assert_has_calls(
             [mock.call('sess', url, cache='cache', authenticated=False)
              for url in ('url1', 'url2', 'url3')])
+
+    def test_endpoint_data_str(self):
+        """Validate EndpointData.__str__."""
+        # Populate a few fields to make sure they come through.
+        epd = discover.EndpointData(catalog_url='abc', service_type='123',
+                                    api_version=(2, 3))
+        exp = (
+            'EndpointData{api_version=(2, 3), catalog_url=abc,'
+            ' endpoint_id=None, interface=None, major_version=None,'
+            ' max_microversion=None, min_microversion=None,'
+            ' next_min_version=None, not_before=None, raw_endpoint=None,'
+            ' region_name=None, service_id=None, service_name=None,'
+            ' service_type=123, service_url=None, url=abc}')
+        # Works with str()
+        self.assertEqual(exp, str(epd))
+        # Works with implicit stringification
+        self.assertEqual(exp, "%s" % epd)

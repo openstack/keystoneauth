@@ -734,6 +734,16 @@ class EndpointData(object):
         new_data._saved_project_id = self._saved_project_id
         return new_data
 
+    def __str__(self):
+        """Produce a string like EndpointData{key=val, ...}, for debugging."""
+        str_attrs = (
+            'api_version', 'catalog_url', 'endpoint_id', 'interface',
+            'major_version', 'max_microversion', 'min_microversion',
+            'next_min_version', 'not_before', 'raw_endpoint', 'region_name',
+            'service_id', 'service_name', 'service_type', 'service_url', 'url')
+        return "%s{%s}" % (self.__class__.__name__, ', '.join(
+            ["%s=%s" % (attr, getattr(self, attr)) for attr in str_attrs]))
+
     @property
     def url(self):
         return self.service_url or self.catalog_url
