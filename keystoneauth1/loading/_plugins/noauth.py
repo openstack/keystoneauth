@@ -17,11 +17,12 @@ from keystoneauth1 import noauth
 class NoAuth(loading.BaseLoader):
     """Use no tokens to perform requests.
 
-    This must be used together with adapter.Adapter.endpoint_override
-    to instantiate clients for services deployed in noauth/standalone mode.
+    This can be used to instantiate clients for services deployed in
+    noauth/standalone mode.
 
     There is no fetching a service catalog or determining scope information
-    and so it cannot be used by clients that expect use this scope information.
+    and so it cannot be used by clients that expect to use this scope
+    information.
 
     """
 
@@ -30,4 +31,11 @@ class NoAuth(loading.BaseLoader):
         return noauth.NoAuth
 
     def get_options(self):
-        return []
+        options = super(NoAuth, self).get_options()
+
+        options.extend([
+            loading.Opt('endpoint',
+                        help='The endpoint that will always be used'),
+        ])
+
+        return options
