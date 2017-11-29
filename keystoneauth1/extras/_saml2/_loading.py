@@ -29,10 +29,14 @@ class Saml2Password(loading.BaseFederationLoader):
 
         options.extend([
             loading.Opt('identity-provider-url',
+                        required=True,
                         help=('An Identity Provider URL, where the SAML2 '
                               'authentication request will be sent.')),
-            loading.Opt('username', help='Username'),
-            loading.Opt('password', secret=True, help='Password')
+            loading.Opt('username', help='Username', required=True),
+            loading.Opt('password',
+                        secret=True,
+                        help='Password',
+                        required=True)
         ])
 
         return options
@@ -53,14 +57,20 @@ class ADFSPassword(loading.BaseFederationLoader):
 
         options.extend([
             loading.Opt('identity-provider-url',
+                        required=True,
                         help=('An Identity Provider URL, where the SAML '
                               'authentication request will be sent.')),
             loading.Opt('service-provider-endpoint',
+                        required=True,
                         help="Service Provider's Endpoint"),
             loading.Opt('service-provider-entity-id',
+                        required=True,
                         help="Service Provider's SAML Entity ID"),
-            loading.Opt('username', help='Username'),
-            loading.Opt('password', secret=True, help='Password')
+            loading.Opt('username', help='Username', required=True),
+            loading.Opt('password',
+                        secret=True,
+                        required=True,
+                        help='Password')
         ])
 
         return options
