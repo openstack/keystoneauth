@@ -34,4 +34,15 @@ class NoAuthTest(utils.TestCase):
         self.assertIsNone(a.get_endpoint(s))
 
     def test_noauth_options(self):
-        self.assertEqual([], loader.NoAuth().get_options())
+        opts = loader.NoAuth().get_options()
+        self.assertEqual(['endpoint'], [o.name for o in opts])
+
+    def test_get_endpoint(self):
+        a = noauth.NoAuth(endpoint=self.TEST_URL)
+        s = session.Session(auth=a)
+        self.assertEqual(self.TEST_URL, a.get_endpoint(s))
+
+    def test_get_endpoint_with_override(self):
+        a = noauth.NoAuth(endpoint=self.TEST_URL)
+        s = session.Session(auth=a)
+        self.assertEqual('foo', a.get_endpoint(s, endpoint_override='foo'))
