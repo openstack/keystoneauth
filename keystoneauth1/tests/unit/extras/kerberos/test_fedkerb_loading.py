@@ -21,7 +21,8 @@ class FedKerbLoadingTests(test_utils.TestCase):
         opts = [o.name for o in
                 loading.get_plugin_loader('v3fedkerb').get_options()]
 
-        allowed_opts = ['domain-id',
+        allowed_opts = ['system-scope',
+                        'domain-id',
                         'domain-name',
                         'identity-provider',
                         'project-id',

@@ -30,6 +30,7 @@ class PasswordTests(utils.TestCase):
                         'user-id',
                         'password',
 
+                        'system-scope',
                         'domain-id',
                         'domain-name',
                         'project-id',
@@ -70,6 +71,7 @@ class TokenTests(utils.TestCase):
         opts = [o.name for o in generic.Token().get_options()]
 
         allowed_opts = ['token',
+                        'system-scope',
                         'domain-id',
                         'domain-name',
                         'project-id',

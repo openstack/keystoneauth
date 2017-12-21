@@ -219,7 +219,7 @@ class AccessInfo(object):
 
         :returns: bool
         """
-        return self.project_scoped or self.domain_scoped
+        return self.project_scoped or self.domain_scoped or self.system_scoped
 
     @property
     def project_scoped(self):
@@ -232,6 +232,14 @@ class AccessInfo(object):
     @property
     def domain_scoped(self):
         """Return true if the auth token was scoped to a domain.
+
+        :returns: bool
+        """
+        raise NotImplementedError()
+
+    @property
+    def system_scoped(self):
+        """Return true if the auth token was scoped to the system.
 
         :returns: bool
         """
@@ -492,6 +500,10 @@ class AccessInfoV2(AccessInfo):
         return False
 
     @property
+    def system_scoped(self):
+        return False
+
+    @property
     def _trust(self):
         return self._data['access']['trust']
 
@@ -647,6 +659,10 @@ class AccessInfoV3(AccessInfo):
     def username(self):
         return self._user['name']
 
+    @_missingproperty
+    def system(self):
+        return self._data['token']['system']
+
     @property
     def _domain(self):
         return self._data['token']['domain']
@@ -689,6 +705,10 @@ class AccessInfoV3(AccessInfo):
             return bool(self._domain)
         except KeyError:
             return False
+
+    @_missingproperty
+    def system_scoped(self):
+        return self._data['token']['system'].get('all', False)
 
     @property
     def _trust(self):

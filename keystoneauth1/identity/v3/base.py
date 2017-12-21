@@ -31,6 +31,7 @@ class BaseAuth(base.BaseIdentityPlugin):
 
     :param string auth_url: Identity service endpoint for authentication.
     :param string trust_id: Trust ID for trust scoping.
+    :param string system_scope: System information to scope to.
     :param string domain_id: Domain ID for domain scoping.
     :param string domain_name: Domain name for domain scoping.
     :param string project_id: Project ID for project scoping.
@@ -45,6 +46,7 @@ class BaseAuth(base.BaseIdentityPlugin):
 
     def __init__(self, auth_url,
                  trust_id=None,
+                 system_scope=None,
                  domain_id=None,
                  domain_name=None,
                  project_id=None,
@@ -56,6 +58,7 @@ class BaseAuth(base.BaseIdentityPlugin):
         super(BaseAuth, self).__init__(auth_url=auth_url,
                                        reauthenticate=reauthenticate)
         self.trust_id = trust_id
+        self.system_scope = system_scope
         self.domain_id = domain_id
         self.domain_name = domain_name
         self.project_id = project_id
@@ -78,7 +81,7 @@ class BaseAuth(base.BaseIdentityPlugin):
         """Return true if parameters can be used to create a scoped token."""
         return (self.domain_id or self.domain_name or
                 self.project_id or self.project_name or
-                self.trust_id)
+                self.trust_id or self.system_scope)
 
 
 class Auth(BaseAuth):
@@ -153,6 +156,15 @@ class Auth(BaseAuth):
             body['auth']['scope'] = {'OS-TRUST:trust': {'id': self.trust_id}}
         elif self.unscoped:
             body['auth']['scope'] = 'unscoped'
+        elif self.system_scope:
+            # NOTE(lbragstad): Right now it's only possible to have role
+            # assignments on the entire system. In the future that might change
+            # so that users and groups can have roles on parts of the system,
+            # like a specific service in a specific region. If that happens,
+            # this will have to be accounted for here. Until then we'll only
+            # support scoping to the entire system.
+            if self.system_scope == 'all':
+                body['auth']['scope'] = {'system': {'all': True}}
 
         # NOTE(jamielennox): we add nocatalog here rather than in token_url
         # directly as some federation plugins require the base token_url

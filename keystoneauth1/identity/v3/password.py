@@ -62,6 +62,7 @@ class Password(base.AuthConstructor):
     :param string user_domain_id: User's domain ID for authentication.
     :param string user_domain_name: User's domain name for authentication.
     :param string trust_id: Trust ID for trust scoping.
+    :param string system_scope: System information to scope to.
     :param string domain_id: Domain ID for domain scoping.
     :param string domain_name: Domain name for domain scoping.
     :param string project_id: Project ID for project scoping.
