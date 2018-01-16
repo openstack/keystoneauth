@@ -10,6 +10,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from keystoneauth1.identity.v3.application_credential import *  # noqa
 from keystoneauth1.identity.v3.base import *  # noqa
 from keystoneauth1.identity.v3.federation import *  # noqa
 from keystoneauth1.identity.v3.k2k import *  # noqa
@@ -20,7 +21,10 @@ from keystoneauth1.identity.v3.totp import *  # noqa
 from keystoneauth1.identity.v3.tokenless_auth import *  # noqa
 
 
-__all__ = ('Auth',
+__all__ = ('ApplicationCredential',
+           'ApplicationCredentialMethod',
+
+           'Auth',
            'AuthConstructor',
            'AuthMethod',
            'BaseAuth',

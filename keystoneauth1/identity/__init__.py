@@ -55,6 +55,9 @@ V3TOTP = v3.TOTP
 V3TokenlessAuth = v3.TokenlessAuth
 """See :class:`keystoneauth1.identity.v3.TokenlessAuth`"""
 
+V3ApplicationCredential = v3.ApplicationCredential
+"""See :class:`keystoneauth1.identity.v3.ApplicationCredential`"""
+
 __all__ = ('BaseIdentityPlugin',
            'Password',
            'Token',
@@ -66,4 +69,5 @@ __all__ = ('BaseIdentityPlugin',
            'V3OidcAuthorizationCode',
            'V3OidcAccessToken',
            'V3TOTP',
-           'V3TokenlessAuth')
+           'V3TokenlessAuth',
+           'V3ApplicationCredential')
