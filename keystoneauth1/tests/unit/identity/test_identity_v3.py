@@ -33,6 +33,9 @@ class V3IdentityPlugin(utils.TestCase):
 
     TEST_PASS = 'password'
 
+    TEST_APP_CRED_ID = 'appcredid'
+    TEST_APP_CRED_SECRET = 'secret'
+
     TEST_SERVICE_CATALOG = [{
         "endpoints": [{
             "url": "http://cdn.admin-nets.local:8774/v1.0/",
@@ -185,6 +188,35 @@ class V3IdentityPlugin(utils.TestCase):
             "links": {
                 "self": "https://identity:5000/v3/projects",
             }
+        }
+        self.TEST_APP_CRED_TOKEN_RESPONSE = {
+            "token": {
+                "methods": [
+                    "application_credential"
+                ],
+
+                "expires_at": "2020-01-01T00:00:10.000123Z",
+                "project": {
+                    "domain": {
+                        "id": self.TEST_DOMAIN_ID,
+                        "name": self.TEST_DOMAIN_NAME
+                    },
+                    "id": self.TEST_TENANT_ID,
+                    "name": self.TEST_TENANT_NAME
+                },
+                "user": {
+                    "domain": {
+                        "id": self.TEST_DOMAIN_ID,
+                        "name": self.TEST_DOMAIN_NAME
+                    },
+                    "id": self.TEST_USER,
+                    "name": self.TEST_USER
+                },
+                "issued_at": "2013-05-29T16:55:21.468960Z",
+                "catalog": self.TEST_SERVICE_CATALOG,
+                "service_providers": self.TEST_SERVICE_PROVIDERS,
+                "application_credential_restricted": True
+            },
         }
 
     def stub_auth(self, subject_token=None, **kwargs):
@@ -369,6 +401,22 @@ class V3IdentityPlugin(utils.TestCase):
                         username=self.TEST_USER, password=self.TEST_PASS,
                         domain_id='x', trust_id='x')
         self.assertRaises(exceptions.AuthorizationFailure, a.get_auth_ref, s)
+
+    def test_application_credential_method(self):
+        self.stub_auth(json=self.TEST_APP_CRED_TOKEN_RESPONSE)
+        ac = v3.ApplicationCredential(
+            self.TEST_URL, application_credential_id=self.TEST_APP_CRED_ID,
+            application_credential_secret=self.TEST_APP_CRED_SECRET)
+        req = {'auth': {'identity':
+               {'methods': ['application_credential'],
+                'application_credential': {
+                    'id': self.TEST_APP_CRED_ID,
+                    'secret': self.TEST_APP_CRED_SECRET}}}}
+        s = session.Session(auth=ac)
+        self.assertEqual({'X-Auth-Token': self.TEST_TOKEN},
+                         s.get_auth_headers())
+        self.assertRequestBodyIs(json=req)
+        self.assertEqual(s.auth.auth_ref.auth_token, self.TEST_TOKEN)
 
     def _do_service_url_test(self, base_url, endpoint_filter):
         self.stub_auth(json=self.TEST_RESPONSE_DICT)

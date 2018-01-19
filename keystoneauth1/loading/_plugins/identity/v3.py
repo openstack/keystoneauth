@@ -254,3 +254,43 @@ class TokenlessAuth(loading.BaseLoader):
             raise exceptions.OptionError(m)
 
         return super(TokenlessAuth, self).load_from_options(**kwargs)
+
+
+class ApplicationCredential(loading.BaseV3Loader):
+
+    @property
+    def plugin_class(self):
+        return identity.V3ApplicationCredential
+
+    def get_options(self):
+        options = super(ApplicationCredential, self).get_options()
+        _add_common_identity_options(options)
+
+        options.extend([
+            loading.Opt('application_credential_secret', secret=True,
+                        required=True,
+                        help="Application credential auth secret"),
+        ]),
+        options.extend([
+            loading.Opt('application_credential_id',
+                        help='Application credential ID'),
+        ]),
+        options.extend([
+            loading.Opt('application_credential_name',
+                        help='Application credential name'),
+        ])
+
+        return options
+
+    def load_from_options(self, **kwargs):
+        _assert_identity_options(kwargs)
+        if (not kwargs.get('application_credential_id') and
+                not kwargs.get('application_credential_name')):
+            m = ('You must provide either an application credential ID or an '
+                 'application credential name and user.')
+            raise exceptions.OptionError(m)
+        if not kwargs.get('application_credential_secret'):
+            m = ('You must provide an auth secret.')
+            raise exceptions.OptionError(m)
+
+        return super(ApplicationCredential, self).load_from_options(**kwargs)
