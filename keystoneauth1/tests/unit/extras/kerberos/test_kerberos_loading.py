@@ -20,7 +20,8 @@ class KerberosLoadingTests(test_utils.TestCase):
         opts = [o.name for o in
                 loading.get_plugin_loader('v3kerberos').get_options()]
 
-        allowed_opts = ['domain-id',
+        allowed_opts = ['system-scope',
+                        'domain-id',
                         'domain-name',
                         'project-id',
                         'project-name',

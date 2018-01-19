@@ -74,6 +74,7 @@ class BaseV3Loader(BaseIdentityLoader):
         options = super(BaseV3Loader, self).get_options()
 
         options.extend([
+            opts.Opt('system-scope', help='Scope for system operations'),
             opts.Opt('domain-id', help='Domain ID to scope to'),
             opts.Opt('domain-name', help='Domain name to scope to'),
             opts.Opt('project-id', help='Project ID to scope to'),
@@ -136,6 +137,7 @@ class BaseGenericLoader(BaseIdentityLoader):
         options = super(BaseGenericLoader, self).get_options()
 
         options.extend([
+            opts.Opt('system-scope', help='Scope for system operations'),
             opts.Opt('domain-id', help='Domain ID to scope to'),
             opts.Opt('domain-name', help='Domain name to scope to'),
             opts.Opt('project-id', help='Project ID to scope to',

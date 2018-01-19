@@ -265,6 +265,14 @@ class Token(dict):
         self.root.setdefault('domain', {})['name'] = value
 
     @property
+    def system(self):
+        return self.root.get('system', {})
+
+    @system.setter
+    def system(self, value):
+        return self.root.setdefault('system', value)
+
+    @property
     def trust_id(self):
         return self.root.get('OS-TRUST:trust', {}).get('id')
 
@@ -363,12 +371,13 @@ class Token(dict):
     def validate(self):
         project = self.root.get('project')
         domain = self.root.get('domain')
+        system = self.root.get('system')
         trust = self.root.get('OS-TRUST:trust')
         catalog = self.root.get('catalog')
         roles = self.root.get('roles')
         scoped = project or domain or trust
 
-        if sum((bool(project), bool(domain), bool(trust))) > 1:
+        if sum((bool(project), bool(domain), bool(trust), bool(system))) > 1:
             msg = 'You cannot scope to multiple targets'
             raise exception.FixtureValidationError(msg)
 
@@ -411,6 +420,13 @@ class Token(dict):
     def set_domain_scope(self, id=None, name=None):
         self.domain_id = id or uuid.uuid4().hex
         self.domain_name = name or uuid.uuid4().hex
+
+    def set_system_scope(self):
+        # NOTE(lbragstad): In the future it might be possible to scope a token
+        # to a subset of the entire system (e.g. a specific service, region, or
+        # service within a region). Until then, the only system scope is the
+        # entire system.
+        self.system = {'all': True}
 
     def set_trust_scope(self, id=None, impersonation=False,
                         trustee_user_id=None, trustor_user_id=None):
