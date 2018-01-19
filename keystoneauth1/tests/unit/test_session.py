@@ -1307,7 +1307,7 @@ class AdapterTest(utils.TestCase):
 
         adap.get(url)
 
-        agent = 'ksatest/1.2.3 one/1.1.1 two/2.2.2 testclient/4.5.6'
+        agent = 'ksatest/1.2.3 testclient/4.5.6 one/1.1.1 two/2.2.2'
         self.assertEqual(agent + ' ' + client_session.DEFAULT_USER_AGENT,
                          self.requests_mock.last_request.headers['User-Agent'])
 
