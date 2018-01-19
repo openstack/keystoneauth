@@ -59,6 +59,8 @@ this V3 defines a number of different
   a V3 identity service using Time-Based One-Time Password (TOTP).
 - :py:class:`~keystoneauth1.identity.v3.TokenlessAuth`: Authenticate against
   a V3 identity service using tokenless authentication.
+- :py:class:`~keystoneauth1.identity.v3.ApplicationCredentialMethod`:
+  Authenticate against a V3 identity service using an application credential.
 - :py:class:`~keystoneauth1.extras.kerberos.KerberosMethod`: Authenticate
   against a V3 identity service using Kerberos.
 
@@ -177,6 +179,29 @@ access token's key and secret. For example::
     ...                     access_key=access_token_key,
     ...                     access_secret=access_token_secret)
     >>> s = session.Session(auth=a)
+
+
+Application Credentials
+=======================
+
+There is a specific authentication method for interacting with Identity servers
+that support application credential authentication. Since application
+credentials are associated to a user on a specific project, some parameters are
+not required as they would be with traditional password authentication. The
+following method can be used to authenticate for a token using an application
+credential::
+
+- :py:class:`~keystoneauth1.identity.v3.ApplicationCredential`:
+
+The following example shows the method usage with a session::
+
+    >>> from keystoneauth1 import session
+    >>> from keystone.identity import v3
+    >>> auth = v3.ApplicationCredential(
+            application_credential_secret='application_credential_secret',
+            application_credential_id='c2872b920853478292623be94b657090'
+        )
+    >>> sess = session.Session(auth=auth)
 
 
 Tokenless Auth
