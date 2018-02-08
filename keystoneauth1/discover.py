@@ -1008,7 +1008,7 @@ class EndpointData(object):
         catalog_discovery = versioned_discovery = None
 
         # Next, check to see if the url indicates a version and if that
-        # version either matches our version request or is withing the
+        # version either matches our version request or is within the
         # range requested. If so, we can start by trying the given url
         # as it has a high potential for success.
         try:
