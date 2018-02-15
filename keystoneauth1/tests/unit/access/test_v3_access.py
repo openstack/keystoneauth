@@ -10,9 +10,9 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import datetime
 import uuid
 
-import datetime
 from oslo_utils import timeutils
 
 from keystoneauth1 import access

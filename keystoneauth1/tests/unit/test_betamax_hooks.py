@@ -10,8 +10,9 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import betamax
 import json
+
+import betamax
 import mock
 from requests import models
 import testtools
