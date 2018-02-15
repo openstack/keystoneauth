@@ -39,6 +39,10 @@ Features
   plugins. Discovery information is automatically cached in memory, so the user
   need not worry about excessive use of discovery metadata.
 
+- Safe logging of HTTP interactions
+
+  Clients need to be able to enable logging of the HTTP interactions, but some
+  things, such as the token or secrets, need to be ommitted.
 
 Sessions for Users
 ==================
@@ -433,8 +437,163 @@ expects ``volume``.
                                         'min_version': '3',
                                         'max_version': 'latest'})
 
+Logging
+=======
+
+The logging system uses standard `python logging`_ rooted on the
+``keystoneauth`` namespace as would be expected. There are two possibilities
+of where log messages about HTTP interactions will go.
+
+By default, all messages will go to the ``keystoneauth.session`` logger.
+
+If the ``split_loggers`` option on the :class:`keystoneauth1.session.Session`
+constructor is set to ``True``, the HTTP content will be split across four
+subloggers to allow for fine-grained control of what is logged and how:
+
+keystoneauth.session.request-id
+  Emits a log entry at the ``DEBUG`` level for every http request
+  including information about the URL, ``service-type`` and ``request-id``.
+
+keystoneauth.session.request
+  Emits a log entry at the ``DEBUG`` level for every http request including a
+  curl formatted string of the request.
+
+keystoneauth.session.response
+  Emits a log entry at the ``DEBUG`` level for every http response received,
+  including the status code, and the headers received.
+
+keystoneauth.session.body
+  Emits a log entry at the ``DEBUG`` level containing the contents of the
+  response body if the ``content-type`` is either ``text`` or ``json``.
+
+Using loggers
+-------------
+
+A full description of how to consume `python logging`_ is out of scope of this
+document, but a few simple examples are provided.
+
+If you would like to configure logging to log keystoneuath at the ``INFO``
+level with no ``DEBUG`` messages:
+
+.. code-block:: python
+
+  import keystoneauth1
+  import logging
+
+  logger = logging.getLogger('keystoneauth')
+  logger.addHandler(logging.StreamHandler())
+  logger.setLevel(logging.INFO)
+
+If you would like to get a full HTTP debug trace including bodies:
+
+.. code-block:: python
+
+  import keystoneauth1
+  import logging
+
+  logger = logging.getLogger('keystoneauth')
+  logger.addHandler(logging.StreamHandler())
+  logger.setLevel(logging.DEBUG)
+
+If you would like to get a full HTTP debug trace bug with no bodies:
+
+.. code-block:: python
+
+  import keystoneauth1
+  import keystoneauth1.session
+  import logging
+
+  logger = logging.getLogger('keystoneauth')
+  logger.addHandler(logging.StreamHandler())
+  logger.setLevel(logging.DEBUG)
+  body_logger = logging.getLogger('keystoneauth.session.body')
+  body_logger.setLevel(logging.WARN)
+  session = keystoneauth1.session.Session(split_loggers=True)
+
+Finally, if you would like to log request-ids and response headers to one file,
+request commands, response headers and response bodies to a different file,
+and everything else to the console:
+
+.. code-block:: python
+
+  import keystoneauth1
+  import keystoneauth1.session
+  import logging
+
+  # Create a handler that outputs only outputs INFO level messages to stdout
+  stream_handler = logging.StreamHandler()
+  stream_handler.setLevel(logging.INFO)
+
+  # Configure the default behavior of all keystoneauth logging to log at the
+  # INFO level.
+  logger = logging.getLogger('keystoneauth')
+  logger.setLevel(logging.INFO)
+
+  # Emit INFO messages from all keystoneauth loggers to stdout
+  logger.addHandler(stream_handler)
+
+  # Create an output formatter that includes logger name and timestamp.
+  formatter = logging.Formatter('%(asctime)s %(name)s %(message)s')
+
+  # Create a file output for request ids and response headers
+  request_handler = logging.FileHandler('request.log')
+  request_handler.setFormatter(formatter)
+
+  # Create a file output for request commands, response headers and bodies
+  body_handler = logging.FileHandler('response-body.log')
+  body_handler.setFormatter(formatter)
+
+  # Log all HTTP interactions at the DEBUG level
+  session_logger = logging.getLogger('keystoneauth.session')
+  session_logger.setLevel(logging.DEBUG)
+
+  # Emit request ids to the request log
+  request_id_logger = logging.getLogger('keystoneauth.session.request-id')
+  request_id_logger.addHandler(request_handler)
+
+  # Emit response headers to both the request log and the body log
+  header_logger = logging.getLogger('keystoneauth.session.response')
+  header_logger.addHandler(request_handler)
+  header_logger.addHandler(body_handler)
+
+  # Emit request commands to the body log
+  request_logger = logging.getLogger('keystoneauth.session.request')
+  request_logger.addHandler(body_handler)
+
+  # Emit bodies only to the body log
+  body_logger = logging.getLogger('keystoneauth.session.body')
+  body_logger.addHandler(body_handler)
+
+  session = keystoneauth1.session.Session(split_loggers=True)
+
+The above will produce messages like the following in request.log:
+
+::
+
+  2017-09-19 22:10:09,466 keystoneauth.session.request-id  GET call to volumev2 for http://cloud.example.com/volume/v2/137155c35fb34172a284a3c2540c92ab/volumes/detail used request id req-f4f2058a-9308-4c4a-94e6-5ee1cd6c78bd
+  2017-09-19 22:10:09,751 keystoneauth.session.response    [200] Date: Tue, 19 Sep 2017 22:10:09 GMT Server: Apache/2.4.18 (Ubuntu) x-compute-request-id: req-2e9181d2-9f3e-404e-a12f-1f1566736ab3 Content-Type: application/json Content-Length: 15 x-openstack-request-id: req-2e9181d2-9f3e-404e-a12f-1f1566736ab3 Connection: close
+
+And content like the following into response-body.log:
+
+::
+
+  2017-09-19 22:10:09,490 keystoneauth.session.request     curl -g -i -X GET http://cloud.example.com/volume/v2/137155c35fb34172a284a3c2540c92ab/volumes/detail?marker=34cd00cf-bf67-4667-a900-5ce233e383d5 -H "User-Agent: os-client-config/1.28.0 shade/1.23.1 keystoneauth1/3.2.0 python-requests/2.18.4 CPython/2.7.12" -H "X-Auth-Token: {SHA1}a1d03d2a4cbee590a55f1786d452e1027d5fd781"
+  2017-09-19 22:10:09,751 keystoneauth.session.response    [200] Date: Tue, 19 Sep 2017 22:10:09 GMT Server: Apache/2.4.18 (Ubuntu) x-compute-request-id: req-2e9181d2-9f3e-404e-a12f-1f1566736ab3 Content-Type: application/json Content-Length: 15 x-openstack-request-id: req-2e9181d2-9f3e-404e-a12f-1f1566736ab3 Connection: close
+  2017-09-19 22:10:09,751 keystoneauth.session.body        {"volumes": []}
+
+User Provided Loggers
+---------------------
+
+The HTTP methods (request, get, post, put, etc) on
+`keystoneauth1.session.Session` and `keystoneauth1.adapter.Adapter` all support
+a ``logger`` parameter. A user can provide their own `logger`_ which will
+override the session loggers mentioned above. If a single logger is provided
+in this manner, request, response and body content will all be logged to that
+logger at the ``DEBUG`` level, and the strings ``REQ:``, ``RESP:`` and
+``RESP BODY:`` will be pre-pended as appropriate.
 
 .. _API-WG Specs: http://specs.openstack.org/openstack/api-wg/
 .. _Consuming the Catalog: http://specs.openstack.org/openstack/api-wg/guidelines/consuming-catalog.html
 .. _Microversions: http://specs.openstack.org/openstack/api-wg/guidelines/microversion_specification.html#version-discovery
-
+.. _python logging: https://docs.python.org/3/library/logging.html
+.. _logger: https://docs.python.org/3/library/logging.html#logging.Logger

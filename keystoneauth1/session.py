@@ -50,8 +50,6 @@ DEFAULT_USER_AGENT = 'keystoneauth1/%s %s %s/%s' % (
 # here and we'll add it to the list as required.
 _LOG_CONTENT_TYPES = set(['application/json'])
 
-_logger = utils.get_logger(__name__)
-
 
 def _construct_session(session_obj=None):
     # NOTE(morganfainberg): if the logic in this function changes be sure to
@@ -244,6 +242,8 @@ class Session(object):
                                  that do not share an auth plugin, it can
                                  be provided here. (optional, defaults to
                                  None which means automatically manage)
+    :param bool split_loggers: Split the logging of requests across multiple
+                               loggers instead of just one. Defaults to False.
     """
 
     user_agent = None
@@ -256,7 +256,7 @@ class Session(object):
                  cert=None, timeout=None, user_agent=None,
                  redirect=_DEFAULT_REDIRECT_LIMIT, additional_headers=None,
                  app_name=None, app_version=None, additional_user_agent=None,
-                 discovery_cache=None):
+                 discovery_cache=None, split_loggers=None):
 
         self.auth = auth
         self.session = _construct_session(session)
@@ -273,6 +273,7 @@ class Session(object):
         if discovery_cache is None:
             discovery_cache = {}
         self._discovery_cache = discovery_cache
+        self._split_loggers = split_loggers
 
         if timeout is not None:
             self.timeout = float(timeout)
@@ -324,16 +325,33 @@ class Session(object):
             return (header[0], '{SHA1}%s' % token_hash)
         return header
 
+    def _get_split_loggers(self, split_loggers):
+        if split_loggers is None:
+            split_loggers = self._split_loggers
+        if split_loggers is None:
+            split_loggers = False
+        return split_loggers
+
     def _http_log_request(self, url, method=None, data=None,
                           json=None, headers=None, query_params=None,
-                          logger=_logger):
+                          logger=None, split_loggers=None):
+        string_parts = []
+
+        if self._get_split_loggers(split_loggers):
+            logger = utils.get_logger(__name__ + '.request')
+        else:
+            # Only a single logger was passed in, use string prefixing.
+            string_parts.append('REQ:')
+            if not logger:
+                logger = utils.get_logger(__name__)
+
         if not logger.isEnabledFor(logging.DEBUG):
             # NOTE(morganfainberg): This whole debug section is expensive,
             # there is no need to do the work if we're not going to emit a
             # debug log.
             return
 
-        string_parts = ['REQ: curl -g -i']
+        string_parts.append('curl -g -i')
 
         # NOTE(jamielennox): None means let requests do its default validation
         # so we need to actually check that this is False.
@@ -356,7 +374,8 @@ class Session(object):
             string_parts.append(url)
 
         if headers:
-            for header in headers.items():
+            # Sort headers so that testing can work consistently.
+            for header in sorted(headers.items()):
                 string_parts.append('-H "%s: %s"'
                                     % self._process_header(header))
         if json:
@@ -373,7 +392,18 @@ class Session(object):
 
     def _http_log_response(self, response=None, json=None,
                            status_code=None, headers=None, text=None,
-                           logger=_logger):
+                           logger=None, split_loggers=True):
+        string_parts = []
+        body_parts = []
+        if self._get_split_loggers(split_loggers):
+            logger = utils.get_logger(__name__ + '.response')
+            body_logger = utils.get_logger(__name__ + '.body')
+        else:
+            # Only a single logger was passed in, use string prefixing.
+            string_parts.append('RESP:')
+            body_parts.append('RESP BODY:')
+            body_logger = logger
+
         if not logger.isEnabledFor(logging.DEBUG):
             return
 
@@ -382,6 +412,19 @@ class Session(object):
                 status_code = response.status_code
             if not headers:
                 headers = response.headers
+
+        if status_code:
+            string_parts.append('[%s]' % status_code)
+        if headers:
+            # Sort headers so that testing can work consistently.
+            for header in sorted(headers.items()):
+                string_parts.append('%s: %s' % self._process_header(header))
+        logger.debug(' '.join(string_parts))
+
+        if not body_logger.isEnabledFor(logging.DEBUG):
+            return
+
+        if response is not None:
             if not text:
                 # NOTE(samueldmq): If the response does not provide enough info
                 # about the content type to decide whether it is useful and
@@ -406,17 +449,9 @@ class Session(object):
         if json:
             text = self._json.encode(json)
 
-        string_parts = ['RESP:']
-
-        if status_code:
-            string_parts.append('[%s]' % status_code)
-        if headers:
-            for header in headers.items():
-                string_parts.append('%s: %s' % self._process_header(header))
         if text:
-            string_parts.append('\nRESP BODY: %s\n' % text)
-
-        logger.debug(' '.join(string_parts))
+            body_parts.append(text)
+            body_logger.debug(' '.join(body_parts))
 
     @staticmethod
     def _set_microversion_headers(
@@ -465,7 +500,7 @@ class Session(object):
                 user_agent=None, redirect=None, authenticated=None,
                 endpoint_filter=None, auth=None, requests_auth=None,
                 raise_exc=True, allow_reauth=True, log=True,
-                endpoint_override=None, connect_retries=0, logger=_logger,
+                endpoint_override=None, connect_retries=0, logger=None,
                 allow=None, client_name=None, client_version=None,
                 microversion=None, microversion_service_type=None,
                 **kwargs):
@@ -560,6 +595,14 @@ class Session(object):
 
         :returns: The response to the request.
         """
+        # If a logger is passed in, use it and do not log requests, responses
+        # and bodies separately.
+        if logger:
+            split_loggers = False
+        else:
+            split_loggers = None
+        logger = logger or utils.get_logger(__name__)
+
         headers = kwargs.setdefault('headers', dict())
         if microversion:
             self._set_microversion_headers(
@@ -671,7 +714,7 @@ class Session(object):
                                    data=kwargs.get('data'),
                                    headers=headers,
                                    query_params=query_params,
-                                   logger=logger)
+                                   logger=logger, split_loggers=split_loggers)
 
         # Force disable requests redirect handling. We will manage this below.
         kwargs['allow_redirects'] = False
@@ -681,7 +724,7 @@ class Session(object):
 
         send = functools.partial(self._send_request,
                                  url, method, redirect, log, logger,
-                                 connect_retries)
+                                 split_loggers, connect_retries)
 
         try:
             connection_params = self.get_auth_connection_params(auth=auth)
@@ -713,13 +756,29 @@ class Session(object):
             request_id = (resp.headers.get('x-openstack-request-id') or
                           resp.headers.get('x-compute-request-id'))
             if request_id:
-                logger.debug('%(method)s call to %(service_name)s for '
-                             '%(url)s used request id '
-                             '%(response_request_id)s',
-                             {'method': resp.request.method,
-                              'service_name': service_name,
-                              'url': resp.url,
-                              'response_request_id': request_id})
+                if self._get_split_loggers(split_loggers):
+                    id_logger = utils.get_logger(__name__ + '.request-id')
+                else:
+                    id_logger = logger
+                if service_name:
+                    id_logger.debug(
+                        '%(method)s call to %(service_name)s for '
+                        '%(url)s used request id '
+                        '%(response_request_id)s', {
+                            'method': resp.request.method,
+                            'service_name': service_name,
+                            'url': resp.url,
+                            'response_request_id': request_id
+                        })
+                else:
+                    id_logger.debug(
+                        '%(method)s call to '
+                        '%(url)s used request id '
+                        '%(response_request_id)s', {
+                            'method': resp.request.method,
+                            'url': resp.url,
+                            'response_request_id': request_id
+                        })
 
         # handle getting a 401 Unauthorized response by invalidating the plugin
         # and then retrying the request. This is only tried once.
@@ -738,7 +797,7 @@ class Session(object):
 
         return resp
 
-    def _send_request(self, url, method, redirect, log, logger,
+    def _send_request(self, url, method, redirect, log, logger, split_loggers,
                       connect_retries, connect_retry_delay=0.5, **kwargs):
         # NOTE(jamielennox): We handle redirection manually because the
         # requests lib follows some browser patterns where it will redirect
@@ -784,13 +843,15 @@ class Session(object):
             time.sleep(connect_retry_delay)
 
             return self._send_request(
-                url, method, redirect, log, logger,
+                url, method, redirect, log, logger, split_loggers,
                 connect_retries=connect_retries - 1,
                 connect_retry_delay=connect_retry_delay * 2,
                 **kwargs)
 
         if log:
-            self._http_log_response(response=resp, logger=logger)
+            self._http_log_response(
+                response=resp, logger=logger,
+                split_loggers=split_loggers)
 
         if resp.status_code in self._REDIRECT_STATUSES:
             # be careful here in python True == 1 and False == 0
@@ -812,7 +873,7 @@ class Session(object):
                 # NOTE(jamielennox): We don't pass through connect_retry_delay.
                 # This request actually worked so we can reset the delay count.
                 new_resp = self._send_request(
-                    location, method, redirect, log, logger,
+                    location, method, redirect, log, logger, split_loggers,
                     connect_retries=connect_retries,
                     **kwargs)
 
