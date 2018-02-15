@@ -11,6 +11,7 @@
 # under the License.
 
 import abc
+
 import six
 
 from keystoneauth1 import _utils as utils

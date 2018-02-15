@@ -11,9 +11,9 @@
 # under the License.
 
 import json
-import mock
 import re
 
+import mock
 from testtools import matchers
 
 from keystoneauth1 import adapter

@@ -10,11 +10,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import testtools
-
 import betamax
 from betamax import exceptions
 import mock
+import testtools
 
 from keystoneauth1.fixture import keystoneauth_betamax
 from keystoneauth1.fixture import serializer
