@@ -10,7 +10,7 @@ bandit>=1.1.0 # Apache-2.0
 coverage!=4.4,>=4.0 # Apache-2.0
 fixtures>=3.0.0 # Apache-2.0/BSD
 mock>=2.0.0 # BSD
-oslo.config>=5.1.0 # Apache-2.0
+oslo.config>=5.2.0 # Apache-2.0
 openstackdocstheme>=1.18.1 # Apache-2.0
 oslo.utils>=3.33.0 # Apache-2.0
 oslotest>=3.2.0 # Apache-2.0
@@ -18,8 +18,8 @@ os-testr>=1.0.0 # Apache-2.0
 betamax>=0.7.0 # Apache-2.0
 reno>=2.5.0 # Apache-2.0
 requests-mock>=1.1.0 # Apache-2.0
-sphinx!=1.6.6,>=1.6.2 # BSD
+sphinx!=1.6.6,!=1.6.7,>=1.6.2 # BSD
 stestr>=1.0.0 # Apache-2.0
 testresources>=2.0.0 # Apache-2.0/BSD
 testtools>=2.2.0 # MIT
-PyYAML>=3.10 # MIT
+PyYAML>=3.12 # MIT
