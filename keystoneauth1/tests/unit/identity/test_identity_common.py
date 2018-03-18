@@ -1928,3 +1928,27 @@ class GenericAuthPluginTests(utils.TestCase):
                               endpoint_filter=self.ENDPOINT_FILTER)
 
         self.assertIn(name, str(e))
+
+
+class DiscoveryFailures(utils.TestCase):
+    TEST_ROOT_URL = 'http://127.0.0.1:5000/'
+
+    def test_connection_error(self):
+        self.requests_mock.get(self.TEST_ROOT_URL,
+                               exc=exceptions.ConnectionError)
+        sess = session.Session()
+        p = identity.generic.password.Password(self.TEST_ROOT_URL)
+        self.assertRaises(exceptions.DiscoveryFailure, p.get_auth_ref, sess)
+
+    def test_client_exception(self):
+        self.requests_mock.get(self.TEST_ROOT_URL,
+                               exc=exceptions.ClientException)
+        sess = session.Session()
+        p = identity.generic.password.Password(self.TEST_ROOT_URL)
+        self.assertRaises(exceptions.ClientException, p.get_auth_ref, sess)
+
+    def test_ssl_error(self):
+        self.requests_mock.get(self.TEST_ROOT_URL, exc=exceptions.SSLError)
+        sess = session.Session()
+        p = identity.generic.password.Password(self.TEST_ROOT_URL)
+        self.assertRaises(exceptions.DiscoveryFailure, p.get_auth_ref, sess)

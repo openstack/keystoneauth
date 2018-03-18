@@ -138,7 +138,8 @@ class BaseGenericPlugin(base.BaseIdentityPlugin):
                                       authenticated=False)
         except (exceptions.DiscoveryFailure,
                 exceptions.HttpError,
-                exceptions.ConnectionError):
+                exceptions.SSLError,
+                exceptions.ConnectionError) as e:
             LOG.warning('Failed to discover available identity versions when '
                         'contacting %s. Attempting to parse version from URL.',
                         self.auth_url)
@@ -153,6 +154,11 @@ class BaseGenericPlugin(base.BaseIdentityPlugin):
                 plugin = self.create_plugin(session, (2, 0), self.auth_url)
             elif path.startswith('/v3'):
                 plugin = self.create_plugin(session, (3, 0), self.auth_url)
+            else:
+                raise exceptions.DiscoveryFailure(
+                    'Could not find versioned identity endpoints when '
+                    'attempting to authenticate. Please check that your '
+                    'auth_url is correct. %s' % e)
 
         else:
             # NOTE(jamielennox): version_data is always in oldest to newest
@@ -191,8 +197,9 @@ class BaseGenericPlugin(base.BaseIdentityPlugin):
             return plugin
 
         # so there were no URLs that i could use for auth of any version.
-        raise exceptions.DiscoveryFailure('Could not determine a suitable URL '
-                                          'for the plugin')
+        raise exceptions.DiscoveryFailure(
+            'Could not find versioned identity endpoints when attempting '
+            'to authenticate. Please check that your auth_url is correct.')
 
     def get_auth_ref(self, session, **kwargs):
         if not self._plugin:
