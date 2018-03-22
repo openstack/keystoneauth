@@ -5,3 +5,9 @@
       - osc-tox-unit-tips
       - shade-functional-tips
       - shade-tox-tips
+    check:
+      jobs:
+        - openstack-tox-lower-constraints
+    gate:
+      jobs:
+        - openstack-tox-lower-constraints
