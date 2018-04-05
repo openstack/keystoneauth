@@ -579,6 +579,292 @@ class CommonIdentityTests(object):
         # We should have gotten the version from the URL
         self.assertEqual((3, 0), data.api_version)
 
+    def test_get_all_version_data_all_interfaces(self):
+
+        for interface in ('public', 'internal', 'admin'):
+            # The version discovery dict will not have a project_id
+            disc = fixture.DiscoveryList(v2=False, v3=False)
+            disc.add_nova_microversion(
+                href=getattr(self.TEST_VOLUME.versions['v3'].discovery,
+                             interface),
+                id='v3.0', status='CURRENT',
+                min_version='3.0', version='3.20')
+
+            # Adding a v2 version to a service named volumev3 is not
+            # an error. The service itself is cinder and has more than
+            # one major version.
+            disc.add_nova_microversion(
+                href=getattr(self.TEST_VOLUME.versions['v2'].discovery,
+                             interface),
+                id='v2.0', status='SUPPORTED')
+
+            self.stub_url(
+                'GET', [],
+                base_url=getattr(self.TEST_VOLUME.unversioned,
+                                 interface) + '/',
+                json=disc)
+
+        for url in (
+                self.TEST_COMPUTE_PUBLIC,
+                self.TEST_COMPUTE_INTERNAL,
+                self.TEST_COMPUTE_ADMIN):
+
+            disc = fixture.DiscoveryList(v2=False, v3=False)
+            disc.add_microversion(
+                href=url, id='v2')
+            disc.add_microversion(
+                href=url, id='v2.1',
+                min_version='2.1', max_version='2.35')
+
+            self.stub_url('GET', [], base_url=url, json=disc)
+
+        a = self.create_auth_plugin()
+        s = session.Session(auth=a)
+
+        identity_endpoint = 'http://127.0.0.1:35357/{}/'.format(self.version)
+        data = s.get_all_version_data(interface=None)
+        self.assertEqual({
+            'RegionOne': {
+                'admin': {
+                    'block-storage': [{
+                        'collection': None,
+                        'max_microversion': None,
+                        'min_microversion': None,
+                        'next_min_version': None,
+                        'not_before': None,
+                        'raw_status': 'SUPPORTED',
+                        'status': 'SUPPORTED',
+                        'url': 'https://block-storage.example.com/admin/v2',
+                        'version': '2.0'
+                    }, {
+                        'collection': None,
+                        'max_microversion': '3.20',
+                        'min_microversion': '3.0',
+                        'next_min_version': None,
+                        'not_before': None,
+                        'raw_status': 'CURRENT',
+                        'status': 'CURRENT',
+                        'url': 'https://block-storage.example.com/admin/v3',
+                        'version': '3.0'
+                    }],
+                    'compute': [{
+                        'collection': None,
+                        'max_microversion': None,
+                        'min_microversion': None,
+                        'next_min_version': None,
+                        'not_before': None,
+                        'raw_status': 'stable',
+                        'status': 'CURRENT',
+                        'url': 'https://compute.example.com/nova/admin',
+                        'version': '2.0'
+                    }, {
+                        'collection': None,
+                        'max_microversion': '2.35',
+                        'min_microversion': '2.1',
+                        'next_min_version': None,
+                        'not_before': None,
+                        'raw_status': 'stable',
+                        'status': 'CURRENT',
+                        'url': 'https://compute.example.com/nova/admin',
+                        'version': '2.1'}],
+                    'identity': [{
+                        'collection': None,
+                        'max_microversion': None,
+                        'min_microversion': None,
+                        'next_min_version': None,
+                        'not_before': None,
+                        'raw_status': None,
+                        'status': 'CURRENT',
+                        'url': identity_endpoint,
+                        'version': self.discovery_version,
+                    }]
+                },
+                'internal': {
+                    'baremetal': [{
+                        'collection': None,
+                        'max_microversion': None,
+                        'min_microversion': None,
+                        'next_min_version': None,
+                        'not_before': None,
+                        'raw_status': None,
+                        'status': 'CURRENT',
+                        'url': 'https://baremetal.example.com/internal/',
+                        'version': None
+                    }],
+                    'block-storage': [{
+                        'collection': None,
+                        'max_microversion': None,
+                        'min_microversion': None,
+                        'next_min_version': None,
+                        'not_before': None,
+                        'raw_status': 'SUPPORTED',
+                        'status': 'SUPPORTED',
+                        'url': 'https://block-storage.example.com/internal/v2',
+                        'version': '2.0'
+                    }, {
+                        'collection': None,
+                        'max_microversion': '3.20',
+                        'min_microversion': '3.0',
+                        'next_min_version': None,
+                        'not_before': None,
+                        'raw_status': 'CURRENT',
+                        'status': 'CURRENT',
+                        'url': 'https://block-storage.example.com/internal/v3',
+                        'version': '3.0'
+                    }],
+                    'compute': [{
+                        'collection': None,
+                        'max_microversion': None,
+                        'min_microversion': None,
+                        'next_min_version': None,
+                        'not_before': None,
+                        'raw_status': 'stable',
+                        'status': 'CURRENT',
+                        'url': 'https://compute.example.com/nova/internal',
+                        'version': '2.0'
+                    }, {
+                        'collection': None,
+                        'max_microversion': '2.35',
+                        'min_microversion': '2.1',
+                        'next_min_version': None,
+                        'not_before': None,
+                        'raw_status': 'stable',
+                        'status': 'CURRENT',
+                        'url': 'https://compute.example.com/nova/internal',
+                        'version': '2.1'
+                    }]
+                },
+                'public': {
+                    'block-storage': [{
+                        'collection': None,
+                        'max_microversion': None,
+                        'min_microversion': None,
+                        'next_min_version': None,
+                        'not_before': None,
+                        'raw_status': 'SUPPORTED',
+                        'status': 'SUPPORTED',
+                        'url': 'https://block-storage.example.com/public/v2',
+                        'version': '2.0'
+                    }, {
+                        'collection': None,
+                        'max_microversion': '3.20',
+                        'min_microversion': '3.0',
+                        'next_min_version': None,
+                        'not_before': None,
+                        'raw_status': 'CURRENT',
+                        'status': 'CURRENT',
+                        'url': 'https://block-storage.example.com/public/v3',
+                        'version': '3.0'
+                    }],
+                    'compute': [{
+                        'collection': None,
+                        'max_microversion': None,
+                        'min_microversion': None,
+                        'next_min_version': None,
+                        'not_before': None,
+                        'raw_status': 'stable',
+                        'status': 'CURRENT',
+                        'url': 'https://compute.example.com/nova/public',
+                        'version': '2.0'
+                    }, {
+                        'collection': None,
+                        'max_microversion': '2.35',
+                        'min_microversion': '2.1',
+                        'next_min_version': None,
+                        'not_before': None,
+                        'raw_status': 'stable',
+                        'status': 'CURRENT',
+                        'url': 'https://compute.example.com/nova/public',
+                        'version': '2.1',
+                    }]
+                }
+            }
+        }, data)
+
+    def test_get_all_version_data(self):
+
+        cinder_disc = fixture.DiscoveryList(v2=False, v3=False)
+
+        # The version discovery dict will not have a project_id
+        cinder_disc.add_nova_microversion(
+            href=self.TEST_VOLUME.versions['v3'].discovery.public,
+            id='v3.0', status='CURRENT',
+            min_version='3.0', version='3.20')
+
+        # Adding a v2 version to a service named volumev3 is not
+        # an error. The service itself is cinder and has more than
+        # one major version.
+        cinder_disc.add_nova_microversion(
+            href=self.TEST_VOLUME.versions['v2'].discovery.public,
+            id='v2.0', status='SUPPORTED')
+
+        self.stub_url(
+            'GET', [],
+            base_url=self.TEST_VOLUME.unversioned.public + '/',
+            json=cinder_disc)
+
+        nova_disc = fixture.DiscoveryList(v2=False, v3=False)
+        nova_disc.add_microversion(
+            href=self.TEST_COMPUTE_PUBLIC, id='v2')
+        nova_disc.add_microversion(
+            href=self.TEST_COMPUTE_PUBLIC, id='v2.1',
+            min_version='2.1', max_version='2.35')
+
+        self.stub_url(
+            'GET', [], base_url=self.TEST_COMPUTE_PUBLIC, json=nova_disc)
+        a = self.create_auth_plugin()
+        s = session.Session(auth=a)
+
+        data = s.get_all_version_data(interface='public')
+        self.assertEqual({
+            'RegionOne': {
+                'public': {
+                    'block-storage': [{
+                        'collection': None,
+                        'max_microversion': None,
+                        'min_microversion': None,
+                        'next_min_version': None,
+                        'not_before': None,
+                        'raw_status': 'SUPPORTED',
+                        'status': 'SUPPORTED',
+                        'url': 'https://block-storage.example.com/public/v2',
+                        'version': '2.0'
+                    }, {
+                        'collection': None,
+                        'max_microversion': '3.20',
+                        'min_microversion': '3.0',
+                        'next_min_version': None,
+                        'not_before': None,
+                        'raw_status': 'CURRENT',
+                        'status': 'CURRENT',
+                        'url': 'https://block-storage.example.com/public/v3',
+                        'version': '3.0'
+                    }],
+                    'compute': [{
+                        'collection': None,
+                        'max_microversion': None,
+                        'min_microversion': None,
+                        'next_min_version': None,
+                        'not_before': None,
+                        'raw_status': 'stable',
+                        'status': 'CURRENT',
+                        'url': 'https://compute.example.com/nova/public',
+                        'version': '2.0'
+                    }, {
+                        'collection': None,
+                        'max_microversion': '2.35',
+                        'min_microversion': '2.1',
+                        'next_min_version': None,
+                        'not_before': None,
+                        'raw_status': 'stable',
+                        'status': 'CURRENT',
+                        'url': 'https://compute.example.com/nova/public',
+                        'version': '2.1'
+                    }],
+                }
+            }
+        }, data)
+
     def test_endpoint_data_no_version_no_discovery(self):
         a = self.create_auth_plugin()
         s = session.Session(auth=a)
@@ -1095,6 +1381,10 @@ class V3(CommonIdentityTests, utils.TestCase):
     def version(self):
         return 'v3'
 
+    @property
+    def discovery_version(self):
+        return '3.0'
+
     def get_auth_data(self, **kwargs):
         kwargs.setdefault('project_id', self.PROJECT_ID)
         token = fixture.V3Token(**kwargs)
@@ -1150,6 +1440,10 @@ class V2(CommonIdentityTests, utils.TestCase):
     def version(self):
         return 'v2.0'
 
+    @property
+    def discovery_version(self):
+        return '2.0'
+
     def create_auth_plugin(self, **kwargs):
         kwargs.setdefault('auth_url', self.TEST_URL)
         kwargs.setdefault('username', self.TEST_USER)
@@ -1173,7 +1467,8 @@ class V2(CommonIdentityTests, utils.TestCase):
         region = 'RegionOne'
 
         svc = token.add_service('identity')
-        svc.add_endpoint(self.TEST_ADMIN_URL, region=region)
+        svc.add_endpoint(admin=self.TEST_ADMIN_URL, region=region,
+                         public=None, internal=None)
 
         svc = token.add_service('compute')
         svc.add_endpoint(public=self.TEST_COMPUTE_PUBLIC,

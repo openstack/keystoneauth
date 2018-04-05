@@ -555,6 +555,37 @@ class Discover(object):
         versions.sort(key=lambda v: v['version'], reverse=reverse)
         return versions
 
+    def version_string_data(self, reverse=False, **kwargs):
+        """Get normalized version data with versions as strings.
+
+        Return version data in a structured way.
+
+        :param bool reverse: Reverse the list. reverse=true will mean the
+                             returned list is sorted from newest to oldest
+                             version.
+        :returns: A list of version data dictionaries sorted by version number.
+                  Each data element in the returned list is a dictionary
+                  consisting of:
+
+          :version string: The normalized version of the endpoint.
+          :url str: The url for the endpoint.
+          :collection: The URL for the discovery document.  May be None.
+          :min_microversion str: The minimum microversion supported by the
+                                 endpoint.  May be None.
+          :max_microversion str: The maximum microversion supported by the
+                                 endpoint.  May be None.
+          :status str: A canonicalized version of the status. Valid values
+                       are CURRENT, SUPPORTED, DEPRECATED and EXPERIMENTAL
+          :raw_status str: The status as provided by the server
+        :rtype: list(dict)
+        """
+        version_data = self.version_data(reverse=reverse, **kwargs)
+        for version in version_data:
+            for key in ('version', 'min_microversion', 'max_microversion'):
+                if version[key]:
+                    version[key] = version_to_string(version[key])
+        return version_data
+
     def data_for(self, version, **kwargs):
         """Return endpoint data for a version.
 
@@ -868,6 +899,85 @@ class EndpointData(object):
             discover_versions=discover_versions, min_version=min_version,
             max_version=max_version)
         return new_data
+
+    def get_all_version_string_data(self, session, project_id=None):
+        """Return version data for all versions discovery can find.
+
+        :param string project_id: ID of the currently scoped project. Used for
+                                  removing project_id components of URLs from
+                                  the catalog. (optional)
+        :returns: A list of version data dictionaries sorted by version number.
+                  Each data element in the returned list is a dictionary
+                  consisting of:
+
+          :version string: The normalized version of the endpoint.
+          :url str: The url for the endpoint.
+          :collection: The URL for the discovery document.  May be None.
+          :min_microversion: The minimum microversion supported by the
+                             endpoint.  May be None.
+          :max_microversion: The maximum microversion supported by the
+                             endpoint.  May be None.
+          :status str: A canonicalized version of the status. Valid values
+                       are CURRENT, SUPPORTED, DEPRECATED and EXPERIMENTAL
+          :raw_status str: The status as provided by the server
+        :rtype: list(dict)
+        """
+        versions = []
+        for vers_url in self._get_discovery_url_choices(project_id=project_id):
+            try:
+                d = get_discovery(session, vers_url)
+            except Exception as e:
+                # Ignore errors here - we're just searching for one of the
+                # URLs that will give us data.
+                _LOGGER.debug(
+                    "Failed attempt at discovery on %s: %s", vers_url, str(e))
+                continue
+            for version in d.version_string_data():
+                versions.append(version)
+            break
+        return versions or self._infer_version_data(project_id)
+
+    def _infer_version_data(self, project_id=None):
+        """Return version data dict for when discovery fails.
+
+        :param string project_id: ID of the currently scoped project. Used for
+                                  removing project_id components of URLs from
+                                  the catalog. (optional)
+        :returns: A list of version data dictionaries sorted by version number.
+                  Each data element in the returned list is a dictionary
+                  consisting of:
+          :version string: The normalized version of the endpoint.
+          :url str: The url for the endpoint.
+          :collection: The URL for the discovery document.  May be None.
+          :min_microversion: The minimum microversion supported by the
+                             endpoint.  May be None.
+          :max_microversion: The maximum microversion supported by the
+                             endpoint.  May be None.
+          :status str: A canonicalized version of the status. Valid values
+                       are CURRENT, SUPPORTED, DEPRECATED and EXPERIMENTAL
+          :raw_status str: The status as provided by the server
+        :rtype: list(dict)
+        """
+        version = self.api_version
+        if version:
+            version = version_to_string(self.api_version)
+
+        url = self.url.rstrip("/")
+        if project_id and url.endswith(project_id):
+            url, _ = self.url.rsplit('/', 1)
+        url += "/"
+
+        return [{
+            'version': version,
+            'collection': None,
+            'max_microversion': None,
+            'min_microversion': None,
+            'next_min_version': None,
+            'not_before': None,
+            'status': 'CURRENT',
+            'raw_status': None,
+            'url': url,
+        }]
 
     def _set_version_info(self, session, allow=None, cache=None,
                           allow_version_hack=True, project_id=None,

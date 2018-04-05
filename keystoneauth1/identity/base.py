@@ -507,6 +507,62 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
             return None
         return data.api_version
 
+    def get_all_version_data(self, session, interface='public',
+                             region_name=None, **kwargs):
+        """Get version data for all services in the catalog.
+
+        :param session: A session object that can be used for communication.
+        :type session: keystoneauth1.session.Session
+        :param interface:
+            Type of endpoint to get version data for. Can be a single value
+            or a list of values. A value of None indicates that all interfaces
+            should be queried. (optional, defaults to public)
+        :param string region_name:
+            Region of endpoints to get version data for. A valueof None
+            indicates that all regions should be queried. (optional, defaults
+            to None)
+        :returns: A dictionary keyed by region_name with values containing
+            dictionaries keyed by interface with values being a list of
+            version data dictionaries. Each version data dictionary consists
+            of:
+
+          :version string: The normalized version of the endpoint.
+          :url str: The url for the endpoint.
+          :collection: The URL for the discovery document.  May be None.
+          :min_microversion: The minimum microversion supported by the
+                             endpoint.  May be None.
+          :max_microversion: The maximum microversion supported by the
+                             endpoint.  May be None.
+          :status str: A canonicalized version of the status. Valid values
+                       are CURRENT, SUPPORTED, DEPRECATED and EXPERIMENTAL
+          :raw_status str: The status as provided by the server
+        """
+        service_types = discover._SERVICE_TYPES
+        catalog = self.get_access(session).service_catalog
+        version_data = {}
+        endpoints_data = catalog.get_endpoints_data(
+            interface=interface, region_name=region_name)
+
+        for service_type, services in endpoints_data.items():
+            if service_types.is_known(service_type):
+                service_type = service_types.get_service_type(service_type)
+            for service in services:
+                versions = service.get_all_version_string_data(
+                    session=session,
+                    project_id=self.get_project_id(session),
+                )
+
+                if service.region_name not in version_data:
+                    version_data[service.region_name] = {}
+                regions = version_data[service.region_name]
+
+                interface = service.interface.rstrip('URL')
+                if interface not in regions:
+                    regions[interface] = {}
+                regions[interface][service_type] = versions
+
+        return version_data
+
     def get_user_id(self, session, **kwargs):
         return self.get_access(session).user_id
 

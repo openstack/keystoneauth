@@ -1048,6 +1048,42 @@ class Session(object):
         auth = self._auth_required(auth, 'determine endpoint URL')
         return auth.get_api_major_version(self, **kwargs)
 
+    def get_all_version_data(self, auth=None, interface=None,
+                             region_name=None, **kwargs):
+        """Get version data for all services in the catalog.
+
+        :param auth:
+            The auth plugin to use for token. Overrides the plugin on
+            the session. (optional)
+        :type auth: keystoneauth1.plugin.BaseAuthPlugin
+        :param interface:
+            Type of endpoint to get version data for. Can be a single value
+            or a list of values. A value of None indicates that all interfaces
+            should be queried. (optional, defaults to public)
+        :param string region_name:
+            Region of endpoints to get version data for. A valueof None
+            indicates that all regions should be queried. (optional, defaults
+            to None)
+        :returns: A dictionary keyed by region_name with values containing
+            dictionaries keyed by interface with values being a list of
+            version data dictionaries. Each version data dictionary consists
+            of:
+
+          :version string: The normalized version of the endpoint.
+          :url str: The url for the endpoint.
+          :collection: The URL for the discovery document.  May be None.
+          :min_microversion: The minimum microversion supported by the
+                             endpoint.  May be None.
+          :max_microversion: The maximum microversion supported by the
+                             endpoint.  May be None.
+          :status str: A canonicalized version of the status. Valid values
+                       are CURRENT, SUPPORTED, DEPRECATED and EXPERIMENTAL
+          :raw_status str: The status as provided by the server
+        """
+        auth = self._auth_required(auth, 'determine endpoint URL')
+        return auth.get_all_version_data(
+            self, interface=interface, region_name=region_name, **kwargs)
+
     def get_auth_connection_params(self, auth=None, **kwargs):
         """Return auth connection params as provided by the auth plugin.
 
@@ -1147,7 +1183,6 @@ class Session(object):
         """
         auth = self._auth_required(auth, 'get project_id')
         return auth.get_project_id(self)
-
 
 REQUESTS_VERSION = tuple(int(v) for v in requests.__version__.split('.'))
 
