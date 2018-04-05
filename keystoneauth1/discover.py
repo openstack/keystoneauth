@@ -129,6 +129,26 @@ def get_version_data(session, url, authenticated=None):
                                       'returned: %s' % err_text)
 
 
+def normalize_status(raw_status):
+    """Turn a status into a canonical status value.
+
+    If the status from the version discovery document does not match one
+    of the known values, it will be set to 'UNKNOWN'.
+
+    :param str raw_status: Status value from a discovery document.
+
+    :returns: A canonicalized version of the status. Valid values
+              are CURRENT, SUPPORTED, DEPRECATED, EXPERIMENTAL and UNKNOWN
+    :rtype: str
+    """
+    status = raw_status.upper()
+    if status == 'STABLE':
+        status = 'CURRENT'
+    if status not in ('CURRENT', 'SUPPORTED', 'DEPRECATED', 'EXPERIMENTAL'):
+        status = 'UNKNOWN'
+    return status
+
+
 def normalize_version_number(version):
     """Turn a version representation into a tuple.
 
@@ -459,6 +479,8 @@ class Discover(object):
                              endpoint.  May be None.
           :max_microversion: The maximum microversion supported by the
                              endpoint.  May be None.
+          :status str: A canonicalized version of the status. Valid values
+                       are CURRENT, SUPPORTED, DEPRECATED and EXPERIMENTAL
           :raw_status str: The status as provided by the server
         :rtype: list(dict)
         """
@@ -525,6 +547,7 @@ class Discover(object):
                              'max_microversion': max_microversion,
                              'next_min_version': next_min_version,
                              'not_before': not_before,
+                             'status': normalize_status(v['status']),
                              'raw_status': v['status']})
 
         versions.sort(key=lambda v: v['version'], reverse=reverse)
@@ -688,7 +711,8 @@ class EndpointData(object):
                  min_microversion=None,
                  max_microversion=None,
                  next_min_version=None,
-                 not_before=None):
+                 not_before=None,
+                 status=None):
         self.catalog_url = catalog_url
         self.service_url = service_url
         self.service_type = service_type
@@ -703,6 +727,7 @@ class EndpointData(object):
         self.max_microversion = max_microversion
         self.next_min_version = next_min_version
         self.not_before = not_before
+        self.status = status
         self._saved_project_id = None
         self._catalog_matches_version = False
         self._catalog_matches_exactly = False
@@ -727,7 +752,9 @@ class EndpointData(object):
             min_microversion=self.min_microversion,
             max_microversion=self.max_microversion,
             next_min_version=self.next_min_version,
-            not_before=self.not_before)
+            not_before=self.not_before,
+            status=self.status,
+        )
         # Save cached discovery object - but we don't want to
         # actually provide a constructor argument
         new_data._disc = self._disc
@@ -900,6 +927,7 @@ class EndpointData(object):
         self.next_min_version = discovered_data['next_min_version']
         self.not_before = discovered_data['not_before']
         self.api_version = discovered_data['version']
+        self.status = discovered_data['status']
 
         # TODO(mordred): these next two things should be done by Discover
         # in versioned_data_for.
