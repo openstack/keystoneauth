@@ -168,7 +168,8 @@ class ServiceCatalog(object):
 
         for service in self.normalize_catalog():
 
-            if service_type and service_type != service['type']:
+            if service_type and not discover._SERVICE_TYPES.is_match(
+                    service_type, service['type']):
                 continue
 
             if (service_name and service['name'] and
@@ -203,7 +204,7 @@ class ServiceCatalog(object):
                         raw_endpoint=endpoint['raw_endpoint']))
 
         if not interfaces:
-            return matching_endpoints
+            return self._endpoints_by_type(service_type, matching_endpoints)
 
         ret = {}
         for matched_service_type, endpoints in matching_endpoints.items():
@@ -218,7 +219,68 @@ class ServiceCatalog(object):
                               if i in matches_by_interface.keys()][0]
             ret[matched_service_type] = matches_by_interface[best_interface]
 
-        return ret
+        return self._endpoints_by_type(service_type, ret)
+
+    def _endpoints_by_type(self, requested, endpoints):
+        """Get the approrpriate endpoints from the list of given endpoints.
+
+        Per the service type alias rules:
+
+        If a user requests a service by its proper name and that matches, win.
+
+        If a user requests a service by its proper name and only a single alias
+        matches, win.
+
+        If a user requests a service by its proper name and more than one alias
+        matches, choose the first alias from the list given.
+
+        Do the "first alias" match after the other filters, as they might limit
+        the number of choices for us otherwise.
+
+        :param str requested:
+            The service_type as requested by the user.
+        :param dict sc:
+            A dictionary keyed by found service_type. Values are opaque to
+            this method.
+
+        :returns:
+            Dict of service_type/endpoints filtered for the appropriate
+            service_type based on alias matching rules.
+        """
+        if not requested or not discover._SERVICE_TYPES.is_known(requested):
+            # The user did not request a service we have any alias information
+            # about, or did not request a service, which means that we cannot
+            # further filter the list.
+            return endpoints
+
+        if len(endpoints) < 2:
+            # There is at most one type found from the initial pass through
+            # the catalog. Nothing further to do.
+            return endpoints
+
+        # At this point, the user has requested a type, we do know things
+        # about aliases for that type, and we've found more than one match.
+        # We must filter out additional types, otherwise clouds that register
+        # the same endpoint twice as part of a migration will confuse users.
+
+        # Only return the one the user requested if there's an exact match
+        # and there is data for it. There might not be data for this match
+        # if there are other filters that excluded it from consideration
+        # after we accepted it as an alias.
+        if endpoints.get(requested):
+            return {requested: endpoints[requested]}
+
+        # We've matched something that isn't exactly what the user requested.
+        # Look at the possible types for this service in order or priority and
+        # return the first match.
+        for alias in discover._SERVICE_TYPES.get_all_types(requested):
+            if endpoints.get(alias):
+                # Return the first one found in the order listed.
+                return {alias: endpoints[alias]}
+
+        # We should never get here - it's a programming logic error on our
+        # part if we do. Raise this so that we can panic in unit tests.
+        raise ValueError("Programming error choosing an endpoint.")
 
     def get_endpoints(self, service_type=None, interface=None,
                       region_name=None, service_name=None,

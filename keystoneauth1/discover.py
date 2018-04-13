@@ -24,6 +24,7 @@ raw data specified in version discovery responses.
 import copy
 import re
 
+import os_service_types
 import six
 from six.moves import urllib
 
@@ -34,6 +35,7 @@ from keystoneauth1 import exceptions
 _LOGGER = utils.get_logger(__name__)
 
 LATEST = float('inf')
+_SERVICE_TYPES = os_service_types.ServiceTypes()
 
 
 def _str_or_latest(val):

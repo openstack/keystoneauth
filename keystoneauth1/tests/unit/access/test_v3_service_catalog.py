@@ -56,6 +56,27 @@ class ServiceCatalogTest(utils.TestCase):
             admin='http://glance.south.host/glanceapi/admin',
             region='South')
 
+        s = self.AUTH_RESPONSE_BODY.add_service('block-storage', name='cinder')
+        s.add_standard_endpoints(
+            public='http://cinder.north.host/cinderapi/public',
+            internal='http://cinder.north.host/cinderapi/internal',
+            admin='http://cinder.north.host/cinderapi/admin',
+            region='North')
+
+        s = self.AUTH_RESPONSE_BODY.add_service('volumev2', name='cinder')
+        s.add_standard_endpoints(
+            public='http://cinder.south.host/cinderapi/public/v2',
+            internal='http://cinder.south.host/cinderapi/internal/v2',
+            admin='http://cinder.south.host/cinderapi/admin/v2',
+            region='South')
+
+        s = self.AUTH_RESPONSE_BODY.add_service('volumev3', name='cinder')
+        s.add_standard_endpoints(
+            public='http://cinder.south.host/cinderapi/public/v3',
+            internal='http://cinder.south.host/cinderapi/internal/v3',
+            admin='http://cinder.south.host/cinderapi/admin/v3',
+            region='South')
+
         self.north_endpoints = {'public':
                                 'http://glance.north.host/glanceapi/public',
                                 'internal':
@@ -96,6 +117,66 @@ class ServiceCatalogTest(utils.TestCase):
         self.assertEqual(public_ep['compute'][0]['region'], 'North')
         self.assertEqual(public_ep['compute'][0]['url'],
                          "https://compute.north.host/novapi/public")
+
+    def test_service_catalog_alias_find_official(self):
+        auth_ref = access.create(auth_token=uuid.uuid4().hex,
+                                 body=self.AUTH_RESPONSE_BODY)
+        sc = auth_ref.service_catalog
+
+        # Tests that we find the block-storage endpoint when we request
+        # the volume endpoint.
+        public_ep = sc.get_endpoints(service_type='volume',
+                                     interface='public',
+                                     region_name='North')
+        self.assertEqual(public_ep['block-storage'][0]['region'], 'North')
+        self.assertEqual(public_ep['block-storage'][0]['url'],
+                         "http://cinder.north.host/cinderapi/public")
+
+    def test_service_catalog_alias_find_exact_match(self):
+        auth_ref = access.create(auth_token=uuid.uuid4().hex,
+                                 body=self.AUTH_RESPONSE_BODY)
+        sc = auth_ref.service_catalog
+
+        # Tests that we find the volumev3 endpoint when we request it.
+        public_ep = sc.get_endpoints(service_type='volumev3',
+                                     interface='public')
+        self.assertEqual(public_ep['volumev3'][0]['region'], 'South')
+        self.assertEqual(public_ep['volumev3'][0]['url'],
+                         "http://cinder.south.host/cinderapi/public/v3")
+
+    def test_service_catalog_alias_find_best_match(self):
+        auth_ref = access.create(auth_token=uuid.uuid4().hex,
+                                 body=self.AUTH_RESPONSE_BODY)
+        sc = auth_ref.service_catalog
+
+        # Tests that we find the volumev3 endpoint when we request
+        # block-storage when only volumev2 and volumev3 are present since
+        # volumev3 comes first in the list.
+        public_ep = sc.get_endpoints(service_type='block-storage',
+                                     interface='public',
+                                     region_name='South')
+        self.assertEqual(public_ep['volumev3'][0]['region'], 'South')
+        self.assertEqual(public_ep['volumev3'][0]['url'],
+                         "http://cinder.south.host/cinderapi/public/v3")
+
+    def test_service_catalog_alias_all_by_name(self):
+        auth_ref = access.create(auth_token=uuid.uuid4().hex,
+                                 body=self.AUTH_RESPONSE_BODY)
+        sc = auth_ref.service_catalog
+
+        # Tests that we find all the cinder endpoints since we request
+        # them by name and that no filtering related to aliases happens.
+        public_ep = sc.get_endpoints(service_name='cinder',
+                                     interface='public')
+        self.assertEqual(public_ep['volumev2'][0]['region'], 'South')
+        self.assertEqual(public_ep['volumev2'][0]['url'],
+                         "http://cinder.south.host/cinderapi/public/v2")
+        self.assertEqual(public_ep['volumev3'][0]['region'], 'South')
+        self.assertEqual(public_ep['volumev3'][0]['url'],
+                         "http://cinder.south.host/cinderapi/public/v3")
+        self.assertEqual(public_ep['block-storage'][0]['region'], 'North')
+        self.assertEqual(public_ep['block-storage'][0]['url'],
+                         "http://cinder.north.host/cinderapi/public")
 
     def test_service_catalog_regions(self):
         self.AUTH_RESPONSE_BODY['token']['region_name'] = "North"

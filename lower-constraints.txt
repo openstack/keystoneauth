@@ -37,6 +37,7 @@ oauthlib==0.6.2
 openstack-requirements==1.2.0
 openstackdocstheme==1.18.1
 os-client-config==1.29.0
+os-service-types==1.2.0
 os-testr==1.0.0
 oslo.config==5.2.0
 oslo.i18n==3.20.0
