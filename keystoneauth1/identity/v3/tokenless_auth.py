@@ -109,8 +109,8 @@ class TokenlessAuth(plugin.BaseAuthPlugin):
         :return: A valid endpoint URL or None if not available.
         :rtype: string or None
         """
-        if (service_type is plugin.AUTH_INTERFACE
-                or service_type.lower() == 'identity'):
+        if (service_type is plugin.AUTH_INTERFACE or
+                service_type.lower() == 'identity'):
             return self.auth_url
 
         return None

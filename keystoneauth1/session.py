@@ -498,8 +498,8 @@ class Session(object):
         # TODO(mordred) cinder uses volume in its microversion header. This
         # logic should be handled in the future by os-service-types but for
         # now hard-code for cinder.
-        if (service_type.startswith('volume')
-                or service_type == 'block-storage'):
+        if (service_type.startswith('volume') or
+                service_type == 'block-storage'):
             service_type = 'volume'
         headers.setdefault('OpenStack-API-Version',
                            '{service_type} {microversion}'.format(
