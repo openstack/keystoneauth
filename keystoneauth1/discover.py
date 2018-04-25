@@ -131,26 +131,6 @@ def get_version_data(session, url, authenticated=None):
                                       'returned: %s' % err_text)
 
 
-def normalize_status(raw_status):
-    """Turn a status into a canonical status value.
-
-    If the status from the version discovery document does not match one
-    of the known values, it will be set to 'UNKNOWN'.
-
-    :param str raw_status: Status value from a discovery document.
-
-    :returns: A canonicalized version of the status. Valid values
-              are CURRENT, SUPPORTED, DEPRECATED, EXPERIMENTAL and UNKNOWN
-    :rtype: str
-    """
-    status = raw_status.upper()
-    if status == 'STABLE':
-        status = 'CURRENT'
-    if status not in ('CURRENT', 'SUPPORTED', 'DEPRECATED', 'EXPERIMENTAL'):
-        status = 'UNKNOWN'
-    return status
-
-
 def normalize_version_number(version):
     """Turn a version representation into a tuple.
 
@@ -411,6 +391,35 @@ def _version_from_url(url):
     return None
 
 
+class Status(object):
+    CURRENT = 'CURRENT'
+    SUPPORTED = 'SUPPORTED'
+    DEPRECATED = 'DEPRECATED'
+    EXPERIMENTAL = 'EXPERIMENTAL'
+    UNKNOWN = 'UNKNOWN'
+    KNOWN = (CURRENT, SUPPORTED, DEPRECATED, EXPERIMENTAL)
+
+    @classmethod
+    def normalize(cls, raw_status):
+        """Turn a status into a canonical status value.
+
+        If the status from the version discovery document does not match one
+        of the known values, it will be set to 'UNKNOWN'.
+
+        :param str raw_status: Status value from a discovery document.
+
+        :returns: A canonicalized version of the status. Valid values
+                  are CURRENT, SUPPORTED, DEPRECATED, EXPERIMENTAL and UNKNOWN
+        :rtype: str
+        """
+        status = raw_status.upper()
+        if status == 'STABLE':
+            status = 'CURRENT'
+        if status not in cls.KNOWN:
+            status = cls.UNKNOWN
+        return status
+
+
 class Discover(object):
 
     CURRENT_STATUSES = ('stable', 'current', 'supported')
@@ -537,7 +546,7 @@ class Discover(object):
                             max_microversion=max_microversion,
                             next_min_version=next_min_version,
                             not_before=not_before,
-                            status=normalize_status(v['status']),
+                            status=Status.normalize(v['status']),
                             raw_status=v['status']))
 
         versions.sort(key=lambda v: v['version'], reverse=reverse)

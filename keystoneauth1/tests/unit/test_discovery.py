@@ -480,6 +480,18 @@ class VersionDataTests(utils.TestCase):
 
             self.assertTrue(mock.called_once)
 
+    def test_version_data_unknown(self):
+        discovery_fixture = fixture.V3Discovery(V3_URL)
+        discovery_fixture.status = 'hungry'
+        discovery_doc = _create_single_version(discovery_fixture)
+
+        self.requests_mock.get(V3_URL, status_code=200, json=discovery_doc)
+
+        disc = discover.Discover(self.session, V3_URL)
+        clean_data = disc.version_data(allow_unknown=True)
+
+        self.assertEqual(discover.Status.UNKNOWN, clean_data[0]['status'])
+
     def test_version_data_individual(self):
         mock = self.requests_mock.get(V3_URL,
                                       status_code=200,
