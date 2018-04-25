@@ -497,6 +497,7 @@ class VersionDataTests(utils.TestCase):
 
         for v in clean_data:
             self.assertEqual(v['version'], (3, 0))
+            self.assertEqual(v['status'], 'CURRENT')
             self.assertEqual(v['raw_status'], 'stable')
             self.assertEqual(v['url'], V3_URL)
 
@@ -536,6 +537,7 @@ class VersionDataTests(utils.TestCase):
                             'collection': None,
                             'version': (2, 2),
                             'url': V3_URL,
+                            'status': 'CURRENT',
                             'raw_status': 'CURRENT',
                         },
                         **versions_out
@@ -808,6 +810,7 @@ class VersionDataTests(utils.TestCase):
                 'not_before': None,
                 'version': (1, 0),
                 'url': v1_url,
+                'status': 'CURRENT',
                 'raw_status': 'CURRENT',
             },
             {
@@ -818,6 +821,7 @@ class VersionDataTests(utils.TestCase):
                 'not_before': None,
                 'version': (2, 0),
                 'url': v2_url,
+                'status': 'CURRENT',
                 'raw_status': 'CURRENT',
             },
             {
@@ -828,6 +832,7 @@ class VersionDataTests(utils.TestCase):
                 'not_before': u'2019-12-31',
                 'version': (3, 0),
                 'url': v3_url,
+                'status': 'CURRENT',
                 'raw_status': 'CURRENT',
             },
         ])
@@ -893,6 +898,7 @@ class VersionDataTests(utils.TestCase):
                 'not_before': None,
                 'version': (1, 0),
                 'url': v1_url,
+                'status': 'SUPPORTED',
                 'raw_status': 'SUPPORTED',
             },
             {
@@ -903,6 +909,7 @@ class VersionDataTests(utils.TestCase):
                 'not_before': None,
                 'version': (1, 1),
                 'url': v1_url,
+                'status': 'CURRENT',
                 'raw_status': 'CURRENT',
             },
             {
@@ -913,6 +920,7 @@ class VersionDataTests(utils.TestCase):
                 'not_before': None,
                 'version': (2, 0),
                 'url': v2_url,
+                'status': 'SUPPORTED',
                 'raw_status': 'SUPPORTED',
             },
             {
@@ -923,6 +931,7 @@ class VersionDataTests(utils.TestCase):
                 'not_before': None,
                 'version': (2, 1),
                 'url': v2_url,
+                'status': 'SUPPORTED',
                 'raw_status': 'SUPPORTED',
             },
             {
@@ -933,6 +942,7 @@ class VersionDataTests(utils.TestCase):
                 'not_before': None,
                 'version': (2, 2),
                 'url': v2_url,
+                'status': 'CURRENT',
                 'raw_status': 'CURRENT',
             },
         ])
