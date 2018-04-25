@@ -414,7 +414,7 @@ class Status(object):
         """
         status = raw_status.upper()
         if status == 'STABLE':
-            status = 'CURRENT'
+            status = cls.CURRENT
         if status not in cls.KNOWN:
             status = cls.UNKNOWN
         return status
