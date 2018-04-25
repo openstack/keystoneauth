@@ -133,7 +133,7 @@ V3_AUTH_RESPONSE = json.dumps({
 CINDER_EXAMPLES = {
     "versions": [
         {
-            "status": "CURRENT",
+            "status": discover.Status.CURRENT,
             "updated": "2012-01-04T11:33:21Z",
             "id": "v1.0",
             "links": [
@@ -144,7 +144,7 @@ CINDER_EXAMPLES = {
             ]
         },
         {
-            "status": "CURRENT",
+            "status": discover.Status.CURRENT,
             "updated": "2012-11-21T11:33:21Z",
             "id": "v2.0",
             "links": [
@@ -155,7 +155,7 @@ CINDER_EXAMPLES = {
             ]
         },
         {
-            "status": "CURRENT",
+            "status": discover.Status.CURRENT,
             "updated": "2012-11-21T11:33:21Z",
             "id": "v3.0",
             "version": "3.27",
@@ -179,7 +179,7 @@ CINDER_EXAMPLES = {
 GLANCE_EXAMPLES = {
     "versions": [
         {
-            "status": "CURRENT",
+            "status": discover.Status.CURRENT,
             "id": "v2.2",
             "links": [
                 {
@@ -189,7 +189,7 @@ GLANCE_EXAMPLES = {
             ]
         },
         {
-            "status": "SUPPORTED",
+            "status": discover.Status.SUPPORTED,
             "id": "v2.1",
             "links": [
                 {
@@ -199,7 +199,7 @@ GLANCE_EXAMPLES = {
             ]
         },
         {
-            "status": "SUPPORTED",
+            "status": discover.Status.SUPPORTED,
             "id": "v2.0",
             "links": [
                 {
@@ -209,7 +209,7 @@ GLANCE_EXAMPLES = {
             ]
         },
         {
-            "status": "CURRENT",
+            "status": discover.Status.CURRENT,
             "id": "v1.1",
             "links": [
                 {
@@ -219,7 +219,7 @@ GLANCE_EXAMPLES = {
             ]
         },
         {
-            "status": "SUPPORTED",
+            "status": discover.Status.SUPPORTED,
             "id": "v1.0",
             "links": [
                 {
@@ -509,7 +509,7 @@ class VersionDataTests(utils.TestCase):
 
         for v in clean_data:
             self.assertEqual(v['version'], (3, 0))
-            self.assertEqual(v['status'], 'CURRENT')
+            self.assertEqual(v['status'], discover.Status.CURRENT)
             self.assertEqual(v['raw_status'], 'stable')
             self.assertEqual(v['url'], V3_URL)
 
@@ -523,7 +523,7 @@ class VersionDataTests(utils.TestCase):
                 "versions": [
                     dict(
                         {
-                            "status": "CURRENT",
+                            "status": discover.Status.CURRENT,
                             "id": "v2.2",
                             "links": [
                                 {
@@ -549,8 +549,8 @@ class VersionDataTests(utils.TestCase):
                             'collection': None,
                             'version': (2, 2),
                             'url': V3_URL,
-                            'status': 'CURRENT',
-                            'raw_status': 'CURRENT',
+                            'status': discover.Status.CURRENT,
+                            'raw_status': discover.Status.CURRENT,
                         },
                         **versions_out
                     )
@@ -799,7 +799,7 @@ class VersionDataTests(utils.TestCase):
         self.assertEqual(3, len(raw_data))
 
         for v in raw_data:
-            self.assertEqual(v['status'], 'CURRENT')
+            self.assertEqual(v['status'], discover.Status.CURRENT)
             if v['id'] == 'v1.0':
                 self.assertEqual(v['updated'], '2012-01-04T11:33:21Z')
             elif v['id'] == 'v2.0':
@@ -822,8 +822,8 @@ class VersionDataTests(utils.TestCase):
                 'not_before': None,
                 'version': (1, 0),
                 'url': v1_url,
-                'status': 'CURRENT',
-                'raw_status': 'CURRENT',
+                'status': discover.Status.CURRENT,
+                'raw_status': discover.Status.CURRENT,
             },
             {
                 'collection': None,
@@ -833,8 +833,8 @@ class VersionDataTests(utils.TestCase):
                 'not_before': None,
                 'version': (2, 0),
                 'url': v2_url,
-                'status': 'CURRENT',
-                'raw_status': 'CURRENT',
+                'status': discover.Status.CURRENT,
+                'raw_status': discover.Status.CURRENT,
             },
             {
                 'collection': BASE_URL,
@@ -844,8 +844,8 @@ class VersionDataTests(utils.TestCase):
                 'not_before': u'2019-12-31',
                 'version': (3, 0),
                 'url': v3_url,
-                'status': 'CURRENT',
-                'raw_status': 'CURRENT',
+                'status': discover.Status.CURRENT,
+                'raw_status': discover.Status.CURRENT,
             },
         ])
 
@@ -853,7 +853,7 @@ class VersionDataTests(utils.TestCase):
                         disc.versioned_data_for(min_version='v2.0',
                                                 max_version='v2.latest')):
             self.assertEqual((2, 0), version['version'])
-            self.assertEqual('CURRENT', version['raw_status'])
+            self.assertEqual(discover.Status.CURRENT, version['raw_status'])
             self.assertEqual(v2_url, version['url'])
 
         for version in (disc.data_for(1),
@@ -861,7 +861,7 @@ class VersionDataTests(utils.TestCase):
                             min_version=(1,),
                             max_version=(1, discover.LATEST))):
             self.assertEqual((1, 0), version['version'])
-            self.assertEqual('CURRENT', version['raw_status'])
+            self.assertEqual(discover.Status.CURRENT, version['raw_status'])
             self.assertEqual(v1_url, version['url'])
 
         self.assertIsNone(disc.url_for('v4'))
@@ -892,9 +892,9 @@ class VersionDataTests(utils.TestCase):
 
         for v in raw_data:
             if v['id'] in ('v2.2', 'v1.1'):
-                self.assertEqual(v['status'], 'CURRENT')
+                self.assertEqual(v['status'], discover.Status.CURRENT)
             elif v['id'] in ('v2.1', 'v2.0', 'v1.0'):
-                self.assertEqual(v['status'], 'SUPPORTED')
+                self.assertEqual(v['status'], discover.Status.SUPPORTED)
             else:
                 self.fail("Invalid version found")
 
@@ -910,8 +910,8 @@ class VersionDataTests(utils.TestCase):
                 'not_before': None,
                 'version': (1, 0),
                 'url': v1_url,
-                'status': 'SUPPORTED',
-                'raw_status': 'SUPPORTED',
+                'status': discover.Status.SUPPORTED,
+                'raw_status': discover.Status.SUPPORTED,
             },
             {
                 'collection': None,
@@ -921,8 +921,8 @@ class VersionDataTests(utils.TestCase):
                 'not_before': None,
                 'version': (1, 1),
                 'url': v1_url,
-                'status': 'CURRENT',
-                'raw_status': 'CURRENT',
+                'status': discover.Status.CURRENT,
+                'raw_status': discover.Status.CURRENT,
             },
             {
                 'collection': None,
@@ -932,8 +932,8 @@ class VersionDataTests(utils.TestCase):
                 'not_before': None,
                 'version': (2, 0),
                 'url': v2_url,
-                'status': 'SUPPORTED',
-                'raw_status': 'SUPPORTED',
+                'status': discover.Status.SUPPORTED,
+                'raw_status': discover.Status.SUPPORTED,
             },
             {
                 'collection': None,
@@ -943,8 +943,8 @@ class VersionDataTests(utils.TestCase):
                 'not_before': None,
                 'version': (2, 1),
                 'url': v2_url,
-                'status': 'SUPPORTED',
-                'raw_status': 'SUPPORTED',
+                'status': discover.Status.SUPPORTED,
+                'raw_status': discover.Status.SUPPORTED,
             },
             {
                 'collection': None,
@@ -954,8 +954,8 @@ class VersionDataTests(utils.TestCase):
                 'not_before': None,
                 'version': (2, 2),
                 'url': v2_url,
-                'status': 'CURRENT',
-                'raw_status': 'CURRENT',
+                'status': discover.Status.CURRENT,
+                'raw_status': discover.Status.CURRENT,
             },
         ])
 
@@ -965,7 +965,9 @@ class VersionDataTests(utils.TestCase):
                                 min_version=ver,
                                 max_version=(2, discover.LATEST))):
                 self.assertEqual((2, 2), version['version'])
-                self.assertEqual('CURRENT', version['raw_status'])
+                self.assertEqual(
+                    discover.Status.CURRENT, version['raw_status']
+                )
                 self.assertEqual(v2_url, version['url'])
                 self.assertEqual(v2_url, disc.url_for(ver))
 
@@ -975,7 +977,9 @@ class VersionDataTests(utils.TestCase):
                                 min_version=ver,
                                 max_version=(1, discover.LATEST))):
                 self.assertEqual((1, 1), version['version'])
-                self.assertEqual('CURRENT', version['raw_status'])
+                self.assertEqual(
+                    discover.Status.CURRENT, version['raw_status']
+                )
                 self.assertEqual(v1_url, version['url'])
                 self.assertEqual(v1_url, disc.url_for(ver))
 
