@@ -523,19 +523,7 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
             to None)
         :returns: A dictionary keyed by region_name with values containing
             dictionaries keyed by interface with values being a list of
-            version data dictionaries. Each version data dictionary consists
-            of:
-
-          :version string: The normalized version of the endpoint.
-          :url str: The url for the endpoint.
-          :collection: The URL for the discovery document.  May be None.
-          :min_microversion: The minimum microversion supported by the
-                             endpoint.  May be None.
-          :max_microversion: The maximum microversion supported by the
-                             endpoint.  May be None.
-          :status str: A canonicalized version of the status. Valid values
-                       are CURRENT, SUPPORTED, DEPRECATED and EXPERIMENTAL
-          :raw_status str: The status as provided by the server
+            :class:`~keystoneauth1.discover.VersionData`.
         """
         service_types = discover._SERVICE_TYPES
         catalog = self.get_access(session).service_catalog
