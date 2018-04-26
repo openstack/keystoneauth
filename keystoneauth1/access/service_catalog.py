@@ -128,7 +128,7 @@ class ServiceCatalog(object):
     def _get_interface_list(self, interface):
         if not interface:
             return []
-        if not isinstance(interface, list):
+        if not isinstance(interface, (list, tuple, set)):
             interface = [interface]
         return [self.normalize_interface(i) for i in interface]
 
