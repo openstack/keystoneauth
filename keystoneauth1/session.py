@@ -157,7 +157,7 @@ def _determine_calling_package():
 
 
 def _determine_user_agent():
-    """Attempt to programatically generate a user agent string.
+    """Attempt to programmatically generate a user agent string.
 
     First, look at the name of the process. Return this unless it is in
     the `ignored` list.  Otherwise, look at the function call stack and
