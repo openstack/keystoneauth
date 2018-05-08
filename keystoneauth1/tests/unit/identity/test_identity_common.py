@@ -1053,7 +1053,7 @@ class CommonIdentityTests(object):
 
         # We should only try to fetch the versioned discovery url once
         self.requests_mock.get(
-            self.TEST_VOLUME.versions['v3'].discovery.public, resps)
+            self.TEST_VOLUME.versions['v3'].discovery.public + '/', resps)
 
         data = a.get_endpoint_data(session=s,
                                    service_type='volumev3',
@@ -1128,7 +1128,7 @@ class CommonIdentityTests(object):
 
         # Fetch v2.0 first - since that doesn't match endpoint optimization,
         # it should fetch the unversioned endpoint
-        v2_data = s.get_endpoint_data(service_type='volumev3',
+        v2_data = s.get_endpoint_data(service_type='block-storage',
                                       interface='public',
                                       min_version='2.0',
                                       max_version='2.latest',
@@ -1179,10 +1179,10 @@ class CommonIdentityTests(object):
         self.requests_mock.get(
             self.TEST_VOLUME.unversioned.public + '/', json=disc)
 
-        # We're requesting version 2 of volumev3 to make sure we
+        # We're requesting version 2 of block-storage to make sure we
         # trigger the logic constructing the unversioned endpoint from the
         # versioned endpoint in the catalog
-        s.get_endpoint_data(service_type='volumev3',
+        s.get_endpoint_data(service_type='block-storage',
                             interface='public',
                             min_version='2.0',
                             max_version='2.latest',
@@ -1413,6 +1413,15 @@ class V3(CommonIdentityTests, utils.TestCase):
             internal=self.TEST_VOLUME.versions['v3'].service.internal,
             region=region)
 
+        # Add block-storage as a versioned endpoint so that we can test
+        # versioned to unversioned inference.
+        svc = token.add_service('block-storage')
+        svc.add_standard_endpoints(
+            admin=self.TEST_VOLUME.versions['v3'].service.admin,
+            public=self.TEST_VOLUME.versions['v3'].service.public,
+            internal=self.TEST_VOLUME.versions['v3'].service.internal,
+            region=region)
+
         svc = token.add_service('baremetal')
         svc.add_standard_endpoints(
             internal=self.TEST_BAREMETAL_INTERNAL,
@@ -1484,6 +1493,15 @@ class V2(CommonIdentityTests, utils.TestCase):
             region=region)
 
         svc = token.add_service('volumev3')
+        svc.add_endpoint(
+            admin=self.TEST_VOLUME.versions['v3'].service.admin,
+            public=self.TEST_VOLUME.versions['v3'].service.public,
+            internal=self.TEST_VOLUME.versions['v3'].service.internal,
+            region=region)
+
+        # Add block-storage as a versioned endpoint so that we can test
+        # versioned to unversioned inferance.
+        svc = token.add_service('block-storage')
         svc.add_endpoint(
             admin=self.TEST_VOLUME.versions['v3'].service.admin,
             public=self.TEST_VOLUME.versions['v3'].service.public,

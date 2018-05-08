@@ -220,7 +220,28 @@ def normalize_version_number(version):
     raise TypeError('Invalid version specified: %s' % version)
 
 
-def _normalize_version_args(version, min_version, max_version):
+def _normalize_version_args(
+        version, min_version, max_version, service_type=None):
+    # The sins of our fathers become the blood on our hands.
+    # If a user requests an old-style service type such as volumev2, then they
+    # are inherently requesting the major API version 2. It's not a good
+    # interface, but it's the one that was imposed on the world years ago
+    # because the client libraries all hid the version discovery document.
+    # In order to be able to ensure that a user who requests volumev2 does not
+    # get a block-storage endpoint that only provides v3 of the block-storage
+    # service, we need to pull the version out of the service_type. The
+    # service-types-authority will prevent the growth of new monstrosities such
+    # as this, but in order to move forward without breaking people, we have
+    # to just cry in the corner while striking ourselves with thorned branches.
+    # That said, for sure only do this hack for officially known service_types.
+    if (service_type and
+            _SERVICE_TYPES.is_known(service_type) and
+            service_type[-1].isdigit() and
+            service_type[-2] == 'v'):
+        implied_version = normalize_version_number(service_type[-1])
+    else:
+        implied_version = None
+
     if version and (min_version or max_version):
         raise ValueError(
             "version is mutually exclusive with min_version and max_version")
@@ -229,6 +250,12 @@ def _normalize_version_args(version, min_version, max_version):
         # Explode this into min_version and max_version
         min_version = normalize_version_number(version)
         max_version = (min_version[0], LATEST)
+        if implied_version:
+            if min_version[0] != implied_version[0]:
+                raise exceptions.ImpliedVersionMismatch(
+                    service_type=service_type,
+                    implied=implied_version,
+                    given=version_to_string(version))
         return min_version, max_version
 
     if min_version == 'latest':
@@ -257,6 +284,27 @@ def _normalize_version_args(version, min_version, max_version):
     if None not in (min_version, max_version) and max_version < min_version:
         raise ValueError("min_version cannot be greater than max_version")
 
+    if implied_version:
+        if min_version:
+            if min_version[0] != implied_version[0]:
+                raise exceptions.ImpliedMinVersionMismatch(
+                    service_type=service_type,
+                    implied=implied_version,
+                    given=version_to_string(min_version))
+        else:
+            min_version = implied_version
+
+        # If 'latest' is provided with a versioned service-type like
+        # volumev2 - the user wants the latest of volumev2, not the latest
+        # of block-storage.
+        if max_version and max_version[0] != LATEST:
+            if max_version[0] != implied_version[0]:
+                raise exceptions.ImpliedMaxVersionMismatch(
+                    service_type=service_type,
+                    implied=implied_version,
+                    given=version_to_string(max_version))
+        else:
+            max_version = (implied_version[0], LATEST)
     return min_version, max_version
 
 

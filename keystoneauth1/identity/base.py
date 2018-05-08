@@ -226,7 +226,7 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
         allow = allow or {}
 
         min_version, max_version = discover._normalize_version_args(
-            None, min_version, max_version)
+            None, min_version, max_version, service_type=service_type)
 
         # NOTE(jamielennox): if you specifically ask for requests to be sent to
         # the auth url then we can ignore many of the checks. Typically if you
@@ -365,7 +365,7 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
         # Explode `version` into min_version and max_version - everything below
         # here uses the latter rather than the former.
         min_version, max_version = discover._normalize_version_args(
-            version, min_version, max_version)
+            version, min_version, max_version, service_type=service_type)
         # Set discover_versions to False since we're only going to return
         # a URL. Fetching the microversion data would be needlessly
         # expensive in the common case. However, discover_versions=False
@@ -487,7 +487,7 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
         # Explode `version` into min_version and max_version - everything below
         # here uses the latter rather than the former.
         min_version, max_version = discover._normalize_version_args(
-            version, min_version, max_version)
+            version, min_version, max_version, service_type=service_type)
         # Using functools.partial here just to reduce copy-pasta of params
         get_endpoint_data = functools.partial(
             self.get_endpoint_data,
