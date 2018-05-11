@@ -1048,7 +1048,7 @@ class Session(object):
         auth = self._auth_required(auth, 'determine endpoint URL')
         return auth.get_api_major_version(self, **kwargs)
 
-    def get_all_version_data(self, auth=None, interface=None,
+    def get_all_version_data(self, auth=None, interface='public',
                              region_name=None, **kwargs):
         """Get version data for all services in the catalog.
 
