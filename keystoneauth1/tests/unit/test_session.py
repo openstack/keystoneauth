@@ -17,6 +17,7 @@ import sys
 import uuid
 
 import mock
+from oslo_utils import encodeutils
 import requests
 import requests.auth
 import six
@@ -987,7 +988,12 @@ class SessionAuthTests(utils.TestCase):
                 'X-OpenStack-Request-ID': request_id,
             })
 
-        resp = sess.get(self.TEST_URL)
+        resp = sess.get(
+            self.TEST_URL,
+            headers={
+                encodeutils.safe_encode('x-bytes-header'):
+                encodeutils.safe_encode('bytes-value')
+            })
 
         self.assertEqual(response, resp.json())
 
@@ -998,6 +1004,7 @@ class SessionAuthTests(utils.TestCase):
 
         self.assertIn('curl -g -i -X GET {url}'.format(url=self.TEST_URL),
                       request_output)
+        self.assertIn('-H "x-bytes-header: bytes-value"', request_output)
         self.assertEqual('[200] Content-Type: application/json '
                          'X-OpenStack-Request-ID: '
                          '{id}'.format(id=request_id), response_output)

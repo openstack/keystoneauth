@@ -79,6 +79,26 @@ def _mv_legacy_headers_for_service(mv_service_type):
     return headers
 
 
+def _sanitize_headers(headers):
+    """Ensure headers are strings and not bytes."""
+    str_dict = {}
+    for k, v in headers.items():
+        if six.PY3:
+            # requests expects headers to be str type in python3, which means
+            # if we get a bytes we need to decode it into a str
+            k = k.decode('ASCII') if isinstance(k, six.binary_type) else k
+            if v is not None:
+                v = v.decode('ASCII') if isinstance(v, six.binary_type) else v
+        else:
+            # requests expects headers to be str type in python2, which means
+            # if we get a unicode we need to encode it to ASCII into a str
+            k = k.encode('ASCII') if isinstance(k, six.text_type) else k
+            if v is not None:
+                v = v.encode('ASCII') if isinstance(v, six.text_type) else v
+        str_dict[k] = v
+    return str_dict
+
+
 class _JSONEncoder(json.JSONEncoder):
 
     def default(self, o):
@@ -710,6 +730,10 @@ class Session(object):
 
         for k, v in self.additional_headers.items():
             headers.setdefault(k, v)
+
+        # Bug #1766235: some headers may be bytes
+        headers = _sanitize_headers(headers)
+        kwargs['headers'] = headers
 
         kwargs.setdefault('verify', self.verify)
 
