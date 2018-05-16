@@ -70,7 +70,14 @@ class ConfLoadingTests(utils.TestCase):
         def new_deprecated():
             return cfg.DeprecatedOpt(uuid.uuid4().hex, group=uuid.uuid4().hex)
 
-        opt_names = ['cafile', 'certfile', 'keyfile', 'insecure', 'timeout']
+        opt_names = [
+            'cafile',
+            'certfile',
+            'keyfile',
+            'insecure',
+            'timeout',
+            'collect-timing',
+        ]
         depr = dict([(n, [new_deprecated()]) for n in opt_names])
         opts = loading.get_session_conf_options(deprecated_opts=depr)
 
