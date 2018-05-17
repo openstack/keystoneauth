@@ -203,6 +203,24 @@ def _determine_user_agent():
     return name
 
 
+class RequestTiming(object):
+    """Contains timing information for an HTTP interaction."""
+
+    #: HTTP method used for the call (GET, POST, etc)
+    method = None
+
+    #: URL against which the call was made
+    url = None
+
+    #: Elapsed time information
+    elapsed = None  # type: datetime.timedelta
+
+    def __init__(self, method, url, elapsed):
+        self.method = method
+        self.url = url
+        self.elapsed = elapsed
+
+
 class Session(object):
     """Maintains client communication state and common functionality.
 
@@ -264,6 +282,9 @@ class Session(object):
                                  None which means automatically manage)
     :param bool split_loggers: Split the logging of requests across multiple
                                loggers instead of just one. Defaults to False.
+    :param bool collect_timing: Whether or not to collect per-method timing
+                                information for each API call. (optional,
+                                defaults to False)
     """
 
     user_agent = None
@@ -276,7 +297,8 @@ class Session(object):
                  cert=None, timeout=None, user_agent=None,
                  redirect=_DEFAULT_REDIRECT_LIMIT, additional_headers=None,
                  app_name=None, app_version=None, additional_user_agent=None,
-                 discovery_cache=None, split_loggers=None):
+                 discovery_cache=None, split_loggers=None,
+                 collect_timing=False):
 
         self.auth = auth
         self.session = _construct_session(session)
@@ -296,6 +318,8 @@ class Session(object):
         # NOTE(mordred) split_loggers kwarg default is None rather than False
         # so we can distinguish between the value being set or not.
         self._split_loggers = split_loggers
+        self._collect_timing = collect_timing
+        self._api_times = []
 
         if timeout is not None:
             self.timeout = float(timeout)
@@ -832,6 +856,19 @@ class Session(object):
                          resp.status_code)
             raise exceptions.from_response(resp, method, url)
 
+        if self._collect_timing:
+            for h in resp.history:
+                self._api_times.append(RequestTiming(
+                    method=h.request.method,
+                    url=h.request.url,
+                    elapsed=h.elapsed,
+                ))
+            self._api_times.append(RequestTiming(
+                method=resp.request.method,
+                url=resp.request.url,
+                elapsed=resp.elapsed,
+            ))
+
         return resp
 
     def _send_request(self, url, method, redirect, log, logger, split_loggers,
@@ -1195,6 +1232,18 @@ class Session(object):
         """
         auth = self._auth_required(auth, 'get project_id')
         return auth.get_project_id(self)
+
+    def get_timings(self):
+        """Return collected API timing information.
+
+        :returns: List of `RequestTiming` objects.
+        """
+        return self._api_times
+
+    def reset_timings(self):
+        """Clear API timing information."""
+        self._api_times = []
+
 
 REQUESTS_VERSION = tuple(int(v) for v in requests.__version__.split('.'))
 

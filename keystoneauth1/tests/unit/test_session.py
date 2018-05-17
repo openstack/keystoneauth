@@ -10,6 +10,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import datetime
 import itertools
 import json
 import logging
@@ -1016,6 +1017,26 @@ class SessionAuthTests(utils.TestCase):
             '{{"{key}": "{val}"}}'.format(
                 key=response_key, val=response_val),
             body_output)
+
+    def test_collect_timing(self):
+        auth = AuthPlugin()
+        sess = client_session.Session(auth=auth, collect_timing=True)
+        response = {uuid.uuid4().hex: uuid.uuid4().hex}
+
+        self.stub_url('GET',
+                      json=response,
+                      headers={'Content-Type': 'application/json'})
+
+        resp = sess.get(self.TEST_URL)
+
+        self.assertEqual(response, resp.json())
+        timings = sess.get_timings()
+        self.assertEqual(timings[0].method, 'GET')
+        self.assertEqual(timings[0].url, self.TEST_URL)
+        self.assertIsInstance(timings[0].elapsed, datetime.timedelta)
+        sess.reset_timings()
+        timings = sess.get_timings()
+        self.assertEqual(len(timings), 0)
 
 
 class AdapterTest(utils.TestCase):

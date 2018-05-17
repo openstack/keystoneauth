@@ -118,12 +118,19 @@ class Session(base.BaseLoader):
             metavar='<seconds>',
             help='Set request timeout (in seconds).')
 
+        session_group.add_argument(
+            '--collect-timing',
+            default=False,
+            action='store_true',
+            help='Collect per-API call timing information.')
+
     def load_from_argparse_arguments(self, namespace, **kwargs):
         kwargs.setdefault('insecure', namespace.insecure)
         kwargs.setdefault('cacert', namespace.os_cacert)
         kwargs.setdefault('cert', namespace.os_cert)
         kwargs.setdefault('key', namespace.os_key)
         kwargs.setdefault('timeout', namespace.timeout)
+        kwargs.setdefault('collect_timing', namespace.collect_timing)
 
         return self.load_from_options(**kwargs)
 
@@ -139,6 +146,7 @@ class Session(base.BaseLoader):
             :keyfile: The key for the client certificate.
             :insecure: Whether to ignore SSL verification.
             :timeout: The max time to wait for HTTP connections.
+            :collect-timing: Whether to collect API timing information.
 
         :param dict deprecated_opts: Deprecated options that should be included
              in the definition of new options. This should be a dict from the
@@ -175,6 +183,11 @@ class Session(base.BaseLoader):
                 cfg.IntOpt('timeout',
                            deprecated_opts=deprecated_opts.get('timeout'),
                            help='Timeout value for http requests'),
+                cfg.BoolOpt('collect-timing',
+                            deprecated_opts=deprecated_opts.get(
+                                'collect-timing'),
+                            default=False,
+                            help='Collect per-API call timing information.'),
                 ]
 
     def register_conf_options(self, conf, group, deprecated_opts=None):
@@ -186,6 +199,7 @@ class Session(base.BaseLoader):
             :keyfile: The key for the client certificate.
             :insecure: Whether to ignore SSL verification.
             :timeout: The max time to wait for HTTP connections.
+            :collect-timing: Whether to collect API timing information.
 
         :param oslo_config.Cfg conf: config object to register with.
         :param string group: The ini group to register options in.
@@ -227,6 +241,7 @@ class Session(base.BaseLoader):
         kwargs.setdefault('cert', c.certfile)
         kwargs.setdefault('key', c.keyfile)
         kwargs.setdefault('timeout', c.timeout)
+        kwargs.setdefault('collect_timing', c.collect_timing)
 
         return self.load_from_options(**kwargs)
 
