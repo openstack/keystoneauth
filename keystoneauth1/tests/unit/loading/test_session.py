@@ -77,6 +77,7 @@ class ConfLoadingTests(utils.TestCase):
             'insecure',
             'timeout',
             'collect-timing',
+            'split-loggers',
         ]
         depr = dict([(n, [new_deprecated()]) for n in opt_names])
         opts = loading.get_session_conf_options(deprecated_opts=depr)

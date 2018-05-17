@@ -147,6 +147,7 @@ class Session(base.BaseLoader):
             :insecure: Whether to ignore SSL verification.
             :timeout: The max time to wait for HTTP connections.
             :collect-timing: Whether to collect API timing information.
+            :split-loggers: Whether to log requests to multiple loggers.
 
         :param dict deprecated_opts: Deprecated options that should be included
              in the definition of new options. This should be a dict from the
@@ -188,6 +189,11 @@ class Session(base.BaseLoader):
                                 'collect-timing'),
                             default=False,
                             help='Collect per-API call timing information.'),
+                cfg.BoolOpt('split-loggers',
+                            deprecated_opts=deprecated_opts.get(
+                                'split-loggers'),
+                            default=False,
+                            help='Log requests to multiple loggers.')
                 ]
 
     def register_conf_options(self, conf, group, deprecated_opts=None):
@@ -200,6 +206,7 @@ class Session(base.BaseLoader):
             :insecure: Whether to ignore SSL verification.
             :timeout: The max time to wait for HTTP connections.
             :collect-timing: Whether to collect API timing information.
+            :split-loggers: Whether to log requests to multiple loggers.
 
         :param oslo_config.Cfg conf: config object to register with.
         :param string group: The ini group to register options in.
@@ -242,6 +249,7 @@ class Session(base.BaseLoader):
         kwargs.setdefault('key', c.keyfile)
         kwargs.setdefault('timeout', c.timeout)
         kwargs.setdefault('collect_timing', c.collect_timing)
+        kwargs.setdefault('split_loggers', c.split_loggers)
 
         return self.load_from_options(**kwargs)
 
