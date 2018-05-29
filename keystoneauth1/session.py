@@ -560,6 +560,7 @@ class Session(object):
                 endpoint_override=None, connect_retries=0, logger=None,
                 allow=None, client_name=None, client_version=None,
                 microversion=None, microversion_service_type=None,
+                status_code_retries=0, retriable_status_codes=None,
                 **kwargs):
         """Send an HTTP request with the specified characteristics.
 
@@ -638,6 +639,14 @@ class Session(object):
                        provided or does not have a service_type, microversion
                        is given and microversion_service_type is not provided,
                        an exception will be raised.
+        :param int status_code_retries: the maximum number of retries that
+                                        should be attempted for retriable
+                                        HTTP status codes (optional, defaults
+                                        to 0 - never retry).
+        :param list retriable_status_codes: list of HTTP status codes that
+                                            should be retried (optional,
+                                            defaults to HTTP 503, has no effect
+                                            when status_code_retries is 0).
         :param kwargs: any other parameter that can be passed to
                        :meth:`requests.Session.request` (such as `headers`).
                        Except:
@@ -659,6 +668,8 @@ class Session(object):
         else:
             split_loggers = None
         logger = logger or utils.get_logger(__name__)
+        # HTTP 503 - Service Unavailable
+        retriable_status_codes = retriable_status_codes or [503]
 
         headers = kwargs.setdefault('headers', dict())
         if microversion:
@@ -785,7 +796,8 @@ class Session(object):
 
         send = functools.partial(self._send_request,
                                  url, method, redirect, log, logger,
-                                 split_loggers, connect_retries)
+                                 split_loggers, connect_retries,
+                                 status_code_retries, retriable_status_codes)
 
         try:
             connection_params = self.get_auth_connection_params(auth=auth)
@@ -872,7 +884,9 @@ class Session(object):
         return resp
 
     def _send_request(self, url, method, redirect, log, logger, split_loggers,
-                      connect_retries, connect_retry_delay=0.5, **kwargs):
+                      connect_retries, status_code_retries,
+                      retriable_status_codes, connect_retry_delay=0.5,
+                      status_code_retry_delay=0.5, **kwargs):
         # NOTE(jamielennox): We handle redirection manually because the
         # requests lib follows some browser patterns where it will redirect
         # POSTs as GETs for certain statuses which is not want we want for an
@@ -918,6 +932,8 @@ class Session(object):
 
             return self._send_request(
                 url, method, redirect, log, logger, split_loggers,
+                status_code_retries=status_code_retries,
+                retriable_status_codes=retriable_status_codes,
                 connect_retries=connect_retries - 1,
                 connect_retry_delay=connect_retry_delay * 2,
                 **kwargs)
@@ -949,12 +965,32 @@ class Session(object):
                 new_resp = self._send_request(
                     location, method, redirect, log, logger, split_loggers,
                     connect_retries=connect_retries,
+                    status_code_retries=status_code_retries,
+                    retriable_status_codes=retriable_status_codes,
                     **kwargs)
 
                 if not isinstance(new_resp.history, list):
                     new_resp.history = list(new_resp.history)
                 new_resp.history.insert(0, resp)
                 resp = new_resp
+        elif (resp.status_code in retriable_status_codes and
+              status_code_retries > 0):
+
+            logger.info('Retriable status code %(code)s. Retrying in '
+                        '%(delay).1fs.',
+                        {'code': resp.status_code,
+                         'delay': status_code_retry_delay})
+            time.sleep(status_code_retry_delay)
+
+            # NOTE(jamielennox): We don't pass through connect_retry_delay.
+            # This request actually worked so we can reset the delay count.
+            return self._send_request(
+                url, method, redirect, log, logger, split_loggers,
+                connect_retries=connect_retries,
+                status_code_retries=status_code_retries - 1,
+                retriable_status_codes=retriable_status_codes,
+                status_code_retry_delay=status_code_retry_delay * 2,
+                **kwargs)
 
         return resp
 

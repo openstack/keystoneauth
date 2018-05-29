@@ -80,6 +80,14 @@ class Adapter(object):
                                  a per-request feature, a user may know they
                                  want to default to sending a specific value.
                                  (optional)
+    :param int status_code_retries: the maximum number of retries that
+                                    should be attempted for retriable
+                                    HTTP status codes (optional, defaults
+                                    to 0 - never retry).
+    :param list retriable_status_codes: list of HTTP status codes that
+                                        should be retried (optional,
+                                        defaults to HTTP 503, has no effect
+                                        when status_code_retries is 0).
     """
 
     client_name = None
@@ -93,7 +101,8 @@ class Adapter(object):
                  client_version=None, allow_version_hack=None,
                  global_request_id=None,
                  min_version=None, max_version=None,
-                 default_microversion=None):
+                 default_microversion=None, status_code_retries=None,
+                 retriable_status_codes=None):
         if version and (min_version or max_version):
             raise TypeError(
                 "version is mutually exclusive with min_version and"
@@ -120,6 +129,8 @@ class Adapter(object):
         self.min_version = min_version
         self.max_version = max_version
         self.default_microversion = default_microversion
+        self.status_code_retries = status_code_retries
+        self.retriable_status_codes = retriable_status_codes
 
         self.global_request_id = global_request_id
 
@@ -159,6 +170,11 @@ class Adapter(object):
             kwargs.setdefault('user_agent', self.user_agent)
         if self.connect_retries is not None:
             kwargs.setdefault('connect_retries', self.connect_retries)
+        if self.status_code_retries is not None:
+            kwargs.setdefault('status_code_retries', self.status_code_retries)
+        if self.retriable_status_codes:
+            kwargs.setdefault('retriable_status_codes',
+                              self.retriable_status_codes)
         if self.logger:
             kwargs.setdefault('logger', self.logger)
         if self.allow:

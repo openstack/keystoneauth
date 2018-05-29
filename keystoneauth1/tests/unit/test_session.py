@@ -440,6 +440,62 @@ class SessionTests(utils.TestCase):
         self.assertThat(self.requests_mock.request_history,
                         matchers.HasLength(retries + 1))
 
+    def test_http_503_retries(self):
+        self.stub_url('GET', status_code=503)
+
+        session = client_session.Session()
+        retries = 3
+
+        with mock.patch('time.sleep') as m:
+            self.assertRaises(exceptions.ServiceUnavailable,
+                              session.get,
+                              self.TEST_URL, status_code_retries=retries)
+
+            self.assertEqual(retries, m.call_count)
+            # 3 retries finishing with 2.0 means 0.5, 1.0 and 2.0
+            m.assert_called_with(2.0)
+
+        # we count retries so there will be one initial request + 3 retries
+        self.assertThat(self.requests_mock.request_history,
+                        matchers.HasLength(retries + 1))
+
+    def test_http_status_retries(self):
+        self.stub_url('GET', status_code=409)
+
+        session = client_session.Session()
+        retries = 3
+
+        with mock.patch('time.sleep') as m:
+            self.assertRaises(exceptions.Conflict,
+                              session.get,
+                              self.TEST_URL, status_code_retries=retries,
+                              retriable_status_codes=[503, 409])
+
+            self.assertEqual(retries, m.call_count)
+            # 3 retries finishing with 2.0 means 0.5, 1.0 and 2.0
+            m.assert_called_with(2.0)
+
+        # we count retries so there will be one initial request + 3 retries
+        self.assertThat(self.requests_mock.request_history,
+                        matchers.HasLength(retries + 1))
+
+    def test_http_status_retries_another_code(self):
+        self.stub_url('GET', status_code=404)
+
+        session = client_session.Session()
+        retries = 3
+
+        with mock.patch('time.sleep') as m:
+            self.assertRaises(exceptions.NotFound,
+                              session.get,
+                              self.TEST_URL, status_code_retries=retries,
+                              retriable_status_codes=[503, 409])
+
+            self.assertFalse(m.called)
+
+        self.assertThat(self.requests_mock.request_history,
+                        matchers.HasLength(1))
+
     def test_uses_tcp_keepalive_by_default(self):
         session = client_session.Session()
         requests_session = session.session
@@ -1210,6 +1266,39 @@ class AdapterTest(utils.TestCase):
 
         with mock.patch('time.sleep') as m:
             self.assertRaises(exceptions.ConnectionError,
+                              adpt.get, self.TEST_URL)
+            self.assertEqual(retries, m.call_count)
+
+        # we count retries so there will be one initial request + 2 retries
+        self.assertThat(self.requests_mock.request_history,
+                        matchers.HasLength(retries + 1))
+
+    def test_adapter_http_503_retries(self):
+        retries = 2
+        sess = client_session.Session()
+        adpt = adapter.Adapter(sess, status_code_retries=retries)
+
+        self.stub_url('GET', status_code=503)
+
+        with mock.patch('time.sleep') as m:
+            self.assertRaises(exceptions.ServiceUnavailable,
+                              adpt.get, self.TEST_URL)
+            self.assertEqual(retries, m.call_count)
+
+        # we count retries so there will be one initial request + 2 retries
+        self.assertThat(self.requests_mock.request_history,
+                        matchers.HasLength(retries + 1))
+
+    def test_adapter_http_status_retries(self):
+        retries = 2
+        sess = client_session.Session()
+        adpt = adapter.Adapter(sess, status_code_retries=retries,
+                               retriable_status_codes=[503, 409])
+
+        self.stub_url('GET', status_code=409)
+
+        with mock.patch('time.sleep') as m:
+            self.assertRaises(exceptions.Conflict,
                               adpt.get, self.TEST_URL)
             self.assertEqual(retries, m.call_count)
 
