@@ -1580,6 +1580,33 @@ class AdapterTest(utils.TestCase):
         validate({'default_microversion': '1.2'}, {'microversion': '1.5'},
                  {'microversion': '1.5'})
 
+    def test_raise_exc_override(self):
+        sess = client_session.Session()
+        url = 'http://url'
+
+        def validate(adap_kwargs, get_kwargs, exp_kwargs):
+            with mock.patch.object(sess, 'request') as m:
+                adapter.Adapter(sess, **adap_kwargs).get(url, **get_kwargs)
+                m.assert_called_once_with(url, 'GET', endpoint_filter={},
+                                          **exp_kwargs)
+
+        # No raise_exc in Adapter or get()
+        validate({}, {}, {})
+
+        # Set in Adapter, unset in get()
+        validate({'raise_exc': True}, {}, {'raise_exc': True})
+        validate({'raise_exc': False}, {}, {'raise_exc': False})
+
+        # Unset in Adapter, set in get()
+        validate({}, {'raise_exc': True}, {'raise_exc': True})
+        validate({}, {'raise_exc': False}, {'raise_exc': False})
+
+        # Setting in get() overrides the one in Adapter
+        validate({'raise_exc': True}, {'raise_exc': False},
+                 {'raise_exc': False})
+        validate({'raise_exc': False}, {'raise_exc': True},
+                 {'raise_exc': True})
+
 
 class TCPKeepAliveAdapterTest(utils.TestCase):
 

@@ -88,6 +88,10 @@ class Adapter(object):
                                         should be retried (optional,
                                         defaults to HTTP 503, has no effect
                                         when status_code_retries is 0).
+    :param bool raise_exc: If True, requests returning failing HTTP responses
+                           will raise an exception; if False, the response is
+                           returned. This can be overridden on a per-request
+                           basis via the kwarg of the same name.
     """
 
     client_name = None
@@ -102,7 +106,7 @@ class Adapter(object):
                  global_request_id=None,
                  min_version=None, max_version=None,
                  default_microversion=None, status_code_retries=None,
-                 retriable_status_codes=None):
+                 retriable_status_codes=None, raise_exc=None):
         if version and (min_version or max_version):
             raise TypeError(
                 "version is mutually exclusive with min_version and"
@@ -131,6 +135,7 @@ class Adapter(object):
         self.default_microversion = default_microversion
         self.status_code_retries = status_code_retries
         self.retriable_status_codes = retriable_status_codes
+        self.raise_exc = raise_exc
 
         self.global_request_id = global_request_id
 
@@ -201,6 +206,9 @@ class Adapter(object):
         if self.global_request_id is not None:
             kwargs.setdefault('headers', {}).setdefault(
                 "X-OpenStack-Request-ID", self.global_request_id)
+
+        if self.raise_exc is not None:
+            kwargs.setdefault('raise_exc', self.raise_exc)
 
         return self.session.request(url, method, **kwargs)
 
