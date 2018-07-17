@@ -491,6 +491,40 @@ class VersionDataTests(utils.TestCase):
 
             self.assertTrue(mock.called_once)
 
+    def test_version_data_override_version_url(self):
+        # if the request url is versioned already, just return it.
+        self.requests_mock.get(
+            V3_URL, status_code=200,
+            json={'version': fixture.V3Discovery('http://override/identity/v3')
+                  }
+        )
+
+        disc = discover.Discover(self.session, V3_URL)
+        version_data = disc.version_data()
+
+        for v in version_data:
+            self.assertEqual(v['version'], (3, 0))
+            self.assertEqual(v['status'], discover.Status.CURRENT)
+            self.assertEqual(v['raw_status'], 'stable')
+            self.assertEqual(v['url'], V3_URL)
+
+        # if the request url is not versioned, just add version info to it.(
+        # do not changed the url's netloc or path)
+        self.requests_mock.get(
+            BASE_URL, status_code=200,
+            json={'version': fixture.V3Discovery('http://override/identity/v3')
+                  }
+        )
+
+        disc = discover.Discover(self.session, BASE_URL)
+        version_data = disc.version_data()
+
+        for v in version_data:
+            self.assertEqual(v['version'], (3, 0))
+            self.assertEqual(v['status'], discover.Status.CURRENT)
+            self.assertEqual(v['raw_status'], 'stable')
+            self.assertEqual(v['url'], V3_URL)
+
     def test_version_data_unknown(self):
         discovery_fixture = fixture.V3Discovery(V3_URL)
         discovery_fixture.status = 'hungry'
