@@ -329,7 +329,7 @@ class CommonIdentityTests(object):
         sb = session.Session()
         discovery_cache = {}
 
-        expected_url = urllib.parse.urljoin(self.TEST_COMPUTE_ADMIN, '/v2.0')
+        expected_url = self.TEST_COMPUTE_ADMIN + '/v2.0'
         for sess in (sa, sb):
 
             disc = discover.get_discovery(

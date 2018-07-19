@@ -367,10 +367,28 @@ def _combine_relative_url(discovery_url, version_url):
     parsed_version_url = urllib.parse.urlparse(url)
     parsed_discovery_url = urllib.parse.urlparse(discovery_url)
 
+    # The services can override the version_url with some config options.(for
+    # example, In Keystone, Cinder and Glance, the option is "public_endpoint",
+    # and "compute_link_prefix", "network_link_prefix" in Nova and Neutron.
+    # In this case, it's hard to distinguish which part in version_url is
+    # useful for discovery_url , so here we just get the version from
+    # version_url and then add it into the discovery_url if needed.
+    path = parsed_version_url.path
+    if parsed_discovery_url.netloc != parsed_version_url.netloc:
+        version = version_url.rstrip('/').split('/')[-1]
+        url_path = parsed_discovery_url.path.rstrip('/')
+        if not url_path.endswith(version):
+            path = url_path + '/' + version
+            if version_url.endswith('/'):
+                # add '/' back to keep backward compatibility.
+                path = path + '/'
+        else:
+            path = parsed_discovery_url.path
+
     return urllib.parse.ParseResult(
         parsed_discovery_url.scheme,
         parsed_discovery_url.netloc,
-        parsed_version_url.path,
+        path,
         parsed_version_url.params,
         parsed_version_url.query,
         parsed_version_url.fragment).geturl()
