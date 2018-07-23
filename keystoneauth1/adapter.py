@@ -267,6 +267,29 @@ class Adapter(object):
 
         return self.session.get_endpoint_data(auth or self.auth, **kwargs)
 
+    def get_all_version_data(
+            self,
+            interface='public',
+            region_name=None):
+        """Get data about all versions of a service.
+
+        :param interface:
+            Type of endpoint to get version data for. Can be a single value
+            or a list of values. A value of None indicates that all interfaces
+            should be queried. (optional, defaults to public)
+        :param string region_name:
+            Region of endpoints to get version data for. A valueof None
+            indicates that all regions should be queried. (optional, defaults
+            to None)
+        :returns: A dictionary keyed by region_name with values containing
+            dictionaries keyed by interface with values being a list of
+            :class:`~keystoneauth1.discover.VersionData`.
+        """
+        return self.session.get_all_version_data(
+            interface=interface,
+            region_name=region_name,
+            service_type=self.service_type)
+
     def get_api_major_version(self, auth=None, **kwargs):
         """Get the major API version as provided by the auth plugin.
 
