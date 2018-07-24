@@ -1146,7 +1146,8 @@ class Session(object):
         return auth.get_api_major_version(self, **kwargs)
 
     def get_all_version_data(self, auth=None, interface='public',
-                             region_name=None, **kwargs):
+                             region_name=None, service_type=None,
+                             **kwargs):
         """Get version data for all services in the catalog.
 
         :param auth:
@@ -1161,13 +1162,20 @@ class Session(object):
             Region of endpoints to get version data for. A valueof None
             indicates that all regions should be queried. (optional, defaults
             to None)
+        :param string service_type:
+            Limit the version data to a single service. (optional, defaults
+            to None)
         :returns: A dictionary keyed by region_name with values containing
             dictionaries keyed by interface with values being a list of
             `~keystoneauth1.discover.VersionData`.
         """
         auth = self._auth_required(auth, 'determine endpoint URL')
         return auth.get_all_version_data(
-            self, interface=interface, region_name=region_name, **kwargs)
+            self,
+            interface=interface,
+            region_name=region_name,
+            service_type=service_type,
+            **kwargs)
 
     def get_auth_connection_params(self, auth=None, **kwargs):
         """Return auth connection params as provided by the auth plugin.

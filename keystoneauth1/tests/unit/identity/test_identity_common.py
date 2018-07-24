@@ -19,6 +19,7 @@ from six.moves import urllib
 
 from keystoneauth1 import _utils
 from keystoneauth1 import access
+from keystoneauth1 import adapter
 from keystoneauth1 import discover
 from keystoneauth1 import exceptions
 from keystoneauth1 import fixture
@@ -860,6 +861,148 @@ class CommonIdentityTests(object):
                         'status': 'CURRENT',
                         'url': 'https://compute.example.com/nova/public',
                         'version': '2.1'
+                    }],
+                }
+            }
+        }, data)
+
+    def test_get_all_version_data_by_service_type(self):
+        nova_disc = fixture.DiscoveryList(v2=False, v3=False)
+        nova_disc.add_microversion(
+            href=self.TEST_COMPUTE_PUBLIC, id='v2')
+        nova_disc.add_microversion(
+            href=self.TEST_COMPUTE_PUBLIC, id='v2.1',
+            min_version='2.1', max_version='2.35')
+
+        self.stub_url(
+            'GET', [], base_url=self.TEST_COMPUTE_PUBLIC, json=nova_disc)
+        a = self.create_auth_plugin()
+        s = session.Session(auth=a)
+
+        data = s.get_all_version_data(
+            interface='public',
+            service_type='compute')
+        self.assertEqual({
+            'RegionOne': {
+                'public': {
+                    'compute': [{
+                        'collection': None,
+                        'max_microversion': None,
+                        'min_microversion': None,
+                        'next_min_version': None,
+                        'not_before': None,
+                        'raw_status': 'stable',
+                        'status': 'CURRENT',
+                        'url': 'https://compute.example.com/nova/public',
+                        'version': '2.0'
+                    }, {
+                        'collection': None,
+                        'max_microversion': '2.35',
+                        'min_microversion': '2.1',
+                        'next_min_version': None,
+                        'not_before': None,
+                        'raw_status': 'stable',
+                        'status': 'CURRENT',
+                        'url': 'https://compute.example.com/nova/public',
+                        'version': '2.1'
+                    }],
+                }
+            }
+        }, data)
+
+    def test_get_all_version_data_adapter(self):
+        nova_disc = fixture.DiscoveryList(v2=False, v3=False)
+        nova_disc.add_microversion(
+            href=self.TEST_COMPUTE_PUBLIC, id='v2')
+        nova_disc.add_microversion(
+            href=self.TEST_COMPUTE_PUBLIC, id='v2.1',
+            min_version='2.1', max_version='2.35')
+
+        self.stub_url(
+            'GET', [], base_url=self.TEST_COMPUTE_PUBLIC, json=nova_disc)
+        s = session.Session(auth=self.create_auth_plugin())
+        a = adapter.Adapter(session=s, service_type='compute')
+
+        data = a.get_all_version_data()
+        self.assertEqual({
+            'RegionOne': {
+                'public': {
+                    'compute': [{
+                        'collection': None,
+                        'max_microversion': None,
+                        'min_microversion': None,
+                        'next_min_version': None,
+                        'not_before': None,
+                        'raw_status': 'stable',
+                        'status': 'CURRENT',
+                        'url': 'https://compute.example.com/nova/public',
+                        'version': '2.0'
+                    }, {
+                        'collection': None,
+                        'max_microversion': '2.35',
+                        'min_microversion': '2.1',
+                        'next_min_version': None,
+                        'not_before': None,
+                        'raw_status': 'stable',
+                        'status': 'CURRENT',
+                        'url': 'https://compute.example.com/nova/public',
+                        'version': '2.1'
+                    }],
+                }
+            }
+        }, data)
+
+    def test_get_all_version_data_service_alias(self):
+
+        cinder_disc = fixture.DiscoveryList(v2=False, v3=False)
+
+        # The version discovery dict will not have a project_id
+        cinder_disc.add_nova_microversion(
+            href=self.TEST_VOLUME.versions['v3'].discovery.public,
+            id='v3.0', status='CURRENT',
+            min_version='3.0', version='3.20')
+
+        # Adding a v2 version to a service named volumev3 is not
+        # an error. The service itself is cinder and has more than
+        # one major version.
+        cinder_disc.add_nova_microversion(
+            href=self.TEST_VOLUME.versions['v2'].discovery.public,
+            id='v2.0', status='SUPPORTED')
+
+        self.stub_url(
+            'GET', [],
+            base_url=self.TEST_VOLUME.unversioned.public + '/',
+            json=cinder_disc)
+
+        a = self.create_auth_plugin()
+        s = session.Session(auth=a)
+
+        data = s.get_all_version_data(
+            interface='public',
+            service_type='block-store')
+        self.assertEqual({
+            'RegionOne': {
+                'public': {
+                    'block-storage': [{
+                        'collection': None,
+                        'max_microversion': None,
+                        'min_microversion': None,
+                        'next_min_version': None,
+                        'not_before': None,
+                        'raw_status': 'SUPPORTED',
+                        'status': 'SUPPORTED',
+                        'url': 'https://block-storage.example.com/public/v2',
+                        'version': '2.0'
+                    }, {
+                        'collection': None,
+                        'max_microversion': '3.20',
+                        'min_microversion': '3.0',
+                        'next_min_version': None,
+                        'not_before': None,
+                        'raw_status': 'CURRENT',
+                        'status': 'CURRENT',
+                        'url': 'https://block-storage.example.com/public/v3',
+                        'version': '3.0'
                     }],
                 }
             }
