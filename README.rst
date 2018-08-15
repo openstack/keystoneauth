@@ -33,3 +33,4 @@ Further information:
 * Documentation: https://docs.openstack.org/keystoneauth/latest/
 * Source: https://git.openstack.org/cgit/openstack/keystoneauth
 * Bugs: https://bugs.launchpad.net/keystoneauth
+* Release notes: https://docs.openstack.org/releasenotes/keystoneauth/
