@@ -324,7 +324,7 @@ class SessionTests(utils.TestCase):
         # Assert that response headers contains actual values and
         # only debug logs has been masked
         for k, v in security_headers.items():
-            self.assertIn('%s: {SHA1}' % k, self.logger.output)
+            self.assertIn('%s: {SHA256}' % k, self.logger.output)
             self.assertEqual(v, resp.headers[k])
             self.assertNotIn(v, self.logger.output)
 
