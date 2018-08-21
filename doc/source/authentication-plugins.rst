@@ -116,8 +116,6 @@ The following V3 plugins are provided to support federation:
   Kerberos.
 - :py:class:`~keystoneauth1.extras._saml2.v3.Password`: SAML2 password
   authentication.
-- :py:class:`~keystoneauth1.identity.v3.Keystone2Keystone`: Keystone to
-  Keystone Federation.
 - :py:class:`~keystoneauth1.identity.v3:OpenIDConnectAccessToken`: Plugin to
   reuse an existing OpenID Connect access token.
 - :py:class:`~keystoneauth1.identity.v3:OpenIDConnectAuthorizationCode`: OpenID
@@ -126,6 +124,27 @@ The following V3 plugins are provided to support federation:
   Connect Client Credentials grant type.
 - :py:class:`~keystoneauth1.identity.v3:OpenIDConnectPassword`: OpenID Connect
   Resource Owner Password Credentials grant type.
+- :py:class:`~keystoneauth1.identity.v3.Keystone2Keystone`: Keystone to
+  Keystone Federation.
+
+The Keystone2Keystone plugin is special as it takes a Password auth for one
+keystone instance acting as an Identity Provider as input in order to create a
+session on the keystone acting as a Service Provider, for example:
+
+.. code-block:: python
+
+    from keystoneauth1 import session
+    from keystoneauth1.identity import v3
+    from keystoneauth1.identity.v3 import k2k
+
+    pwauth = v3.Password(auth_url='http://my.keystone.com:5000/v3',
+                         username='username',
+                         password='password',
+                         project_id='projectid',
+                         user_domain_name='Default')
+    k2kauth = k2k.Keystone2Keystone(pwauth, 'mysp',
+                                    project_id='federated_projectid')
+    k2ksession = session.Session(auth=k2kauth)
 
 
 Version Independent Identity Plugins
