@@ -560,6 +560,72 @@ class VersionDataTests(utils.TestCase):
 
         self.assertTrue(mock.called_once)
 
+    def test_version_data_ironic_microversions(self):
+        """Validate detection of Ironic microversion ranges."""
+        ironic_url = 'https://bare-metal.example.com/v1/'
+        self.requests_mock.get(
+            ironic_url, status_code=200,
+            json={
+                'id': 'v1',
+                'links': [{
+                    "href": ironic_url,
+                    "rel": "self"}],
+                'version': '1.40',
+                'min_version': '1.10',
+            },
+            # Keep headers so we can verify that body trumps headers
+            headers={
+                'X-OpenStack-Ironic-API-Minimum-Version': '1.3',
+                'X-OpenStack-Ironic-API-Maximum-Version': '1.21',
+            })
+
+        self.assertEqual(
+            [
+                {
+                    'collection': None,
+                    'version': (1, 0),
+                    'url': ironic_url,
+                    'status': discover.Status.CURRENT,
+                    'raw_status': discover.Status.CURRENT,
+                    'min_microversion': (1, 10),
+                    'max_microversion': (1, 40),
+                    'next_min_version': None,
+                    'not_before': None,
+                },
+            ],
+            discover.Discover(self.session, ironic_url).version_data())
+
+    def test_version_data_legacy_ironic_microversions(self):
+        """Validate detection of legacy Ironic microversion ranges."""
+        ironic_url = 'https://bare-metal.example.com/v1/'
+        self.requests_mock.get(
+            ironic_url, status_code=200,
+            json={
+                'id': 'v1',
+                'links': [{
+                    "href": ironic_url,
+                    "rel": "self"}]},
+            headers={
+                'X-OpenStack-Ironic-API-Minimum-Version': '1.3',
+                'X-OpenStack-Ironic-API-Maximum-Version': '1.21',
+            })
+
+        self.assertEqual(
+            [
+                {
+                    'collection': None,
+                    'version': (1, 0),
+                    'url': ironic_url,
+                    'status': discover.Status.CURRENT,
+                    'raw_status': discover.Status.CURRENT,
+                    'min_microversion': (1, 3),
+                    'max_microversion': (1, 21),
+                    'next_min_version': None,
+                    'not_before': None,
+                },
+            ],
+            discover.Discover(self.session, ironic_url).version_data())
+
     def test_version_data_microversions(self):
         """Validate [min_|max_]version conversion to {min|max}_microversion."""
         def setup_mock(versions_in):

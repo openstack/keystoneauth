@@ -119,6 +119,28 @@ def get_version_data(session, url, authenticated=None):
         except KeyError:
             pass
 
+        # Older Ironic does not actually return a discovery document for the
+        # single version discovery endpoint, which confuses the single-version
+        # fallback logic. While there are no known other services returning
+        # min/max ranges using headers instead of body, this is done in a
+        # non-Ironic specific manner just in case.
+        # The existence of this support should not be an indication to any
+        # OpenStack services that they should ADD this.
+        if 'id' in body_resp:
+            body_resp['status'] = Status.CURRENT
+            for header in resp.headers:
+                # We lose the case-insensitive quality here
+                header = header.lower()
+                if not header.startswith('x-openstack'):
+                    continue
+                # Once the body starts having these values, stop overriding
+                # with the header values
+                if header.endswith('api-minimum-version'):
+                    body_resp.setdefault('min_version', resp.headers[header])
+                if header.endswith('api-maximum-version'):
+                    body_resp.setdefault('version', resp.headers[header])
+            return [body_resp]
+
         # Otherwise if we query an endpoint like /v2.0 then we will get back
         # just the one available version.
         try:
@@ -742,7 +764,7 @@ class Discover(object):
         # so that they know what version they got. We can return the first
         # entry from version_data, because the user hasn't requested anything
         # different.
-        if no_version and url:
+        if no_version and url and len(version_data) > 0:
             return version_data[0]
 
         # We couldn't find a match.
@@ -1121,6 +1143,9 @@ class EndpointData(object):
                     " and {max_version}".format(
                         min_version=version_to_string(min_version),
                         max_version=version_to_string(max_version)))
+            else:
+                raise exceptions.DiscoveryFailure(
+                    "No version data found remotely at all")
 
         self.min_microversion = discovered_data['min_microversion']
         self.max_microversion = discovered_data['max_microversion']
