@@ -5,6 +5,12 @@
       - osc-tox-unit-tips
       - shade-functional-tips
       - shade-tox-tips
+      - openstack-python-jobs
+      - openstack-python35-jobs
+      - publish-openstack-sphinx-docs
+      - check-requirements
+      - lib-forward-testing
+      - release-notes-jobs
     check:
       jobs:
         - openstack-tox-lower-constraints
