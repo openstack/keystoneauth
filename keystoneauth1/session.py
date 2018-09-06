@@ -318,7 +318,7 @@ class Session(object):
         secure_headers = ('authorization', 'x-auth-token',
                           'x-subject-token', 'x-service-token')
         if header[0].lower() in secure_headers:
-            token_hasher = hashlib.sha1()
+            token_hasher = hashlib.sha1()  # nosec log hashing
             token_hasher.update(header[1].encode('utf-8'))
             token_hash = token_hasher.hexdigest()
             return (header[0], '{SHA1}%s' % token_hash)
