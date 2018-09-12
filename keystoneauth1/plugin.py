@@ -149,7 +149,9 @@ class BaseAuthPlugin(object):
         endpoint_data = self.get_endpoint_data(
             session, endpoint_override=endpoint_override,
             discover_versions=False, **kwargs)
-        return endpoint_data.api_version
+        if endpoint_data:
+            return endpoint_data.api_version
+        return None
 
     def get_endpoint(self, session, **kwargs):
         """Return an endpoint for the client.

@@ -560,6 +560,29 @@ class VersionDataTests(utils.TestCase):
 
         self.assertTrue(mock.called_once)
 
+    def test_version_data_legacy_ironic_no_override(self):
+        """Validate detection of legacy Ironic microversion ranges."""
+        ironic_url = 'https://bare-metal.example.com/v1/'
+        self.requests_mock.get(
+            ironic_url, status_code=200,
+            json={
+                'id': 'v1',
+                'links': [{
+                    "href": ironic_url,
+                    "rel": "self"}]},
+            headers={
+                'X-OpenStack-Ironic-API-Minimum-Version': '1.3',
+                'X-OpenStack-Ironic-API-Maximum-Version': '1.21',
+            })
+
+        plugin = noauth.NoAuth()
+        a = adapter.Adapter(
+            self.session,
+            auth=plugin,
+            service_type='baremetal')
+
+        self.assertIsNone(a.get_api_major_version())
+
     def test_version_data_ironic_microversions(self):
         """Validate detection of Ironic microversion ranges."""
         ironic_url = 'https://bare-metal.example.com/v1/'
