@@ -341,6 +341,31 @@ class CommonIdentityTests(object):
 
         self.assertIn(self.TEST_COMPUTE_ADMIN, discovery_cache.keys())
 
+    def test_discovery_trailing_slash(self):
+        # The discovery cache should treat root urls the same whether they have
+        # a slash or not. If the url is called a second time (meaning the cache
+        # didn't work, we'll hit the 500 error.
+        self.requests_mock.get(
+            'https://example.com', [
+                {'json': self.TEST_DISCOVERY},
+                {'status_code': 500}
+            ])
+
+        sess = session.Session()
+        discovery_cache = {}
+
+        expected_url = 'https://example.com/v2.0'
+
+        for test_endpoint in ('https://example.com', 'https://example.com/'):
+            disc = discover.get_discovery(
+                sess, test_endpoint, cache=discovery_cache)
+            url = disc.url_for(('2', '0'))
+
+            self.assertEqual(expected_url, url)
+
+        self.assertIn('https://example.com', discovery_cache.keys())
+        self.assertNotIn('https://example.com/', discovery_cache.keys())
+
     def test_discovering_with_no_data(self):
         # which returns discovery information pointing to TEST_URL but there is
         # no data there.

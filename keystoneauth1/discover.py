@@ -1415,6 +1415,18 @@ def get_discovery(session, url, cache=None, authenticated=False):
     if session.auth and hasattr(session.auth, '_discovery_cache'):
         caches.append(session.auth._discovery_cache)
 
+    # https://example.com and https://example.com/ should be treated the same
+    # for caching purposes.
+    parsed_url = urllib.parse.urlparse(url)
+    if parsed_url.path in ('', '/'):
+        url = urllib.parse.ParseResult(
+            parsed_url.scheme,
+            parsed_url.netloc,
+            '',
+            parsed_url.params,
+            parsed_url.query,
+            parsed_url.fragment).geturl()
+
     for cache in caches:
         disc = cache.get(url)
 
