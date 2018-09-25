@@ -34,64 +34,64 @@ class Adapter(object):
     :param str service_name: The default service_name for URL discovery.
     :param str interface: The default interface for URL discovery.
     :param str region_name: The default region_name for URL discovery.
-    :param str endpoint_override: Always use this endpoint URL for requests
-                                  for this client.
-    :param version: The minimum version restricted to a given Major API.
-                    Mutually exclusive with min_version and max_version.
-                    (optional)
+    :param str endpoint_override:
+        Always use this endpoint URL for requests for this client.
+    :param version:
+        The minimum version restricted to a given Major API.
+        Mutually exclusive with min_version and max_version.
+        (optional)
     :param auth: An auth plugin to use instead of the session one.
     :type auth: keystoneauth1.plugin.BaseAuthPlugin
     :param str user_agent: The User-Agent string to set.
-    :param int connect_retries: the maximum number of retries that should
-                                be attempted for connection errors.
-                                Default None - use session default which
-                                is don't retry.
-    :param logger: A logging object to use for requests that pass through this
-                   adapter.
+    :param int connect_retries:
+        The maximum number of retries that should be attempted for
+        connection errors. Default None - use session default which
+        is don't retry.
+    :param logger:
+        A logging object to use for requests that pass through this
+        adapter.
     :type logger: logging.Logger
-    :param dict allow: Extra filters to pass when discovering API versions.
-                       (optional)
-    :param dict additional_headers: Additional headers that should be attached
-                                    to every request passing through the
-                                    adapter. Headers of the same name specified
-                                    per request will take priority.
-    :param str client_name: The name of the client that created the adapter.
-                            This will be used to create the user_agent.
-    :param str client_version: The version of the client that created the
-                               adapter. This will be used to create the
-                               user_agent.
-    :param bool allow_version_hack: Allow keystoneauth to hack up catalog
-                                    URLS to support older schemes.
-                                    (optional, default True)
-    :param str global_request_id: A global_request_id (in the form of
-                                  ``req-$uuid``) that will be passed on all
-                                  requests. Enables cross project request id
-                                  tracking.
-    :param min_version: The minimum major version of a given API, intended to
-                        be used as the lower bound of a range with
-                        max_version. Mutually exclusive with version.
-                        If min_version is given with no max_version it is as
-                        if max version is 'latest'. (optional)
-    :param max_version: The maximum major version of a given API, intended to
-                        be used as the upper bound of a range with min_version.
-                        Mutually exclusive with version. (optional)
-    :param default_microversion: The default microversion value to send
-                                 with API requests. While microversions are
-                                 a per-request feature, a user may know they
-                                 want to default to sending a specific value.
-                                 (optional)
-    :param int status_code_retries: the maximum number of retries that
-                                    should be attempted for retriable
-                                    HTTP status codes (optional, defaults
-                                    to 0 - never retry).
-    :param list retriable_status_codes: list of HTTP status codes that
-                                        should be retried (optional,
-                                        defaults to HTTP 503, has no effect
-                                        when status_code_retries is 0).
-    :param bool raise_exc: If True, requests returning failing HTTP responses
-                           will raise an exception; if False, the response is
-                           returned. This can be overridden on a per-request
-                           basis via the kwarg of the same name.
+    :param dict allow:
+        Extra filters to pass when discovering API versions.  (optional)
+    :param dict additional_headers:
+        Additional headers that should be attached to every request
+        passing through the adapter. Headers of the same name specified
+        per request will take priority.
+    :param str client_name:
+        The name of the client that created the adapter. This will be
+        used to create the user_agent.
+    :param str client_version:
+        The version of the client that created the adapter. This will
+        be used to create the user_agent.
+    :param bool allow_version_hack:
+        Allow keystoneauth to hack up catalog URLS to support older schemes.
+        (optional, default True)
+    :param str global_request_id:
+        A global_request_id (in the form of ``req-$uuid``) that will be
+        passed on all requests. Enables cross project request id tracking.
+    :param min_version:
+        The minimum major version of a given API, intended to be used as
+        the lower bound of a range with max_version. Mutually exclusive with
+        version. If min_version is given with no max_version it is as
+        if max version is 'latest'. (optional)
+    :param max_version:
+        The maximum major version of a given API, intended to be used as
+        the upper bound of a range with min_version. Mutually exclusive with
+        version. (optional)
+    :param default_microversion:
+        The default microversion value to send with API requests. While
+        microversions are a per-request feature, a user may know they
+        want to default to sending a specific value.  (optional)
+    :param int status_code_retries:
+        The maximum number of retries that should be attempted for retriable
+        HTTP status codes (optional, defaults to 0 - never retry).
+    :param list retriable_status_codes:
+        List of HTTP status codes that should be retried (optional,
+        defaults to HTTP 503, has no effect when status_code_retries is 0).
+    :param bool raise_exc:
+        If True, requests returning failing HTTP responses will raise an
+        exception; if False, the response is returned. This can be
+        overridden on a per-request basis via the kwarg of the same name.
     """
 
     client_name = None
