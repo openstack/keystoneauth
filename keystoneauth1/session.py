@@ -99,6 +99,18 @@ def _sanitize_headers(headers):
     return str_dict
 
 
+class NoOpSemaphore(object):
+    """Empty context manager for use as a default semaphore."""
+
+    def __enter__(self):
+        """Enter the context manager and do nothing."""
+        pass
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        """Exit the context manager and do nothing."""
+        pass
+
+
 class _JSONEncoder(json.JSONEncoder):
 
     def default(self, o):
@@ -285,6 +297,9 @@ class Session(object):
     :param bool collect_timing: Whether or not to collect per-method timing
                                 information for each API call. (optional,
                                 defaults to False)
+    :param rate_semaphore: Semaphore to be used to control concurrency
+                           and rate limiting of requests. (optional,
+                           defaults to no concurrency or rate control)
     """
 
     user_agent = None
@@ -298,7 +313,7 @@ class Session(object):
                  redirect=_DEFAULT_REDIRECT_LIMIT, additional_headers=None,
                  app_name=None, app_version=None, additional_user_agent=None,
                  discovery_cache=None, split_loggers=None,
-                 collect_timing=False):
+                 collect_timing=False, rate_semaphore=None):
 
         self.auth = auth
         self.session = _construct_session(session)
@@ -320,6 +335,7 @@ class Session(object):
         self._split_loggers = split_loggers
         self._collect_timing = collect_timing
         self._api_times = []
+        self._rate_semaphore = rate_semaphore or NoOpSemaphore()
 
         if timeout is not None:
             self.timeout = float(timeout)
@@ -561,7 +577,7 @@ class Session(object):
                 allow=None, client_name=None, client_version=None,
                 microversion=None, microversion_service_type=None,
                 status_code_retries=0, retriable_status_codes=None,
-                **kwargs):
+                rate_semaphore=None, **kwargs):
         """Send an HTTP request with the specified characteristics.
 
         Wrapper around `requests.Session.request` to handle tasks such as
@@ -647,6 +663,9 @@ class Session(object):
                                             should be retried (optional,
                                             defaults to HTTP 503, has no effect
                                             when status_code_retries is 0).
+        :param rate_semaphore: Semaphore to be used to control concurrency
+                               and rate limiting of requests. (optional,
+                               defaults to no concurrency or rate control)
         :param kwargs: any other parameter that can be passed to
                        :meth:`requests.Session.request` (such as `headers`).
                        Except:
@@ -670,6 +689,7 @@ class Session(object):
         logger = logger or utils.get_logger(__name__)
         # HTTP 503 - Service Unavailable
         retriable_status_codes = retriable_status_codes or [503]
+        rate_semaphore = rate_semaphore or self._rate_semaphore
 
         headers = kwargs.setdefault('headers', dict())
         if microversion:
@@ -797,7 +817,8 @@ class Session(object):
         send = functools.partial(self._send_request,
                                  url, method, redirect, log, logger,
                                  split_loggers, connect_retries,
-                                 status_code_retries, retriable_status_codes)
+                                 status_code_retries, retriable_status_codes,
+                                 rate_semaphore)
 
         try:
             connection_params = self.get_auth_connection_params(auth=auth)
@@ -885,8 +906,9 @@ class Session(object):
 
     def _send_request(self, url, method, redirect, log, logger, split_loggers,
                       connect_retries, status_code_retries,
-                      retriable_status_codes, connect_retry_delay=0.5,
-                      status_code_retry_delay=0.5, **kwargs):
+                      retriable_status_codes, rate_semaphore,
+                      connect_retry_delay=0.5, status_code_retry_delay=0.5,
+                      **kwargs):
         # NOTE(jamielennox): We handle redirection manually because the
         # requests lib follows some browser patterns where it will redirect
         # POSTs as GETs for certain statuses which is not want we want for an
@@ -900,7 +922,8 @@ class Session(object):
 
         try:
             try:
-                resp = self.session.request(method, url, **kwargs)
+                with rate_semaphore:
+                    resp = self.session.request(method, url, **kwargs)
             except requests.exceptions.SSLError as e:
                 msg = 'SSL exception connecting to %(url)s: %(error)s' % {
                     'url': url, 'error': e}
@@ -934,6 +957,7 @@ class Session(object):
                 url, method, redirect, log, logger, split_loggers,
                 status_code_retries=status_code_retries,
                 retriable_status_codes=retriable_status_codes,
+                rate_semaphore=rate_semaphore,
                 connect_retries=connect_retries - 1,
                 connect_retry_delay=connect_retry_delay * 2,
                 **kwargs)
@@ -964,6 +988,7 @@ class Session(object):
                 # This request actually worked so we can reset the delay count.
                 new_resp = self._send_request(
                     location, method, redirect, log, logger, split_loggers,
+                    rate_semaphore=rate_semaphore,
                     connect_retries=connect_retries,
                     status_code_retries=status_code_retries,
                     retriable_status_codes=retriable_status_codes,
@@ -989,6 +1014,7 @@ class Session(object):
                 connect_retries=connect_retries,
                 status_code_retries=status_code_retries - 1,
                 retriable_status_codes=retriable_status_codes,
+                rate_semaphore=rate_semaphore,
                 status_code_retry_delay=status_code_retry_delay * 2,
                 **kwargs)
 
