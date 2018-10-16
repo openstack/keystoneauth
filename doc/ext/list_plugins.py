@@ -16,9 +16,11 @@ from docutils import nodes
 from docutils.parsers import rst
 from docutils.parsers.rst import directives
 from docutils.statemachine import ViewList
+from sphinx.util import logging
 from sphinx.util.nodes import nested_parse_with_titles
-
 from stevedore import extension
+
+LOG = logging.getLogger(__name__)
 
 
 class ListAuthPluginsDirective(rst.Directive):
@@ -32,12 +34,8 @@ class ListAuthPluginsDirective(rst.Directive):
 
     has_content = True
 
-    @property
-    def app(self):
-        return self.state.document.settings.env.app
-
     def report_load_failure(mgr, ep, err):
-        self.app.warn(u'Failed to load %s: %s' % (ep.module_name, err))
+        LOG.warning(u'Failed to load %s: %s' % (ep.module_name, err))
 
     def display_plugin(self, ext):
         overline_style = self.options.get('overline-style', '')
@@ -89,5 +87,5 @@ class ListAuthPluginsDirective(rst.Directive):
 
 
 def setup(app):
-    app.info('loading keystoneauth1 plugins')
+    LOG.info('loading keystoneauth1 plugins')
     app.add_directive('list-auth-plugins', ListAuthPluginsDirective)
