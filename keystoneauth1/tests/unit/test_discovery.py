@@ -590,11 +590,18 @@ class VersionDataTests(utils.TestCase):
             ironic_url, status_code=200,
             json={
                 'id': 'v1',
+                'version': {
+                    'id': 'v1',
+                    'links': [{
+                        "href": ironic_url,
+                        "rel": "self"}],
+                    'version': '1.40',
+                    'min_version': '1.10',
+                    'status': 'CURRENT',
+                },
                 'links': [{
                     "href": ironic_url,
                     "rel": "self"}],
-                'version': '1.40',
-                'min_version': '1.10',
             },
             # Keep headers so we can verify that body trumps headers
             headers={

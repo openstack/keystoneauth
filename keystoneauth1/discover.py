@@ -119,6 +119,13 @@ def get_version_data(session, url, authenticated=None):
         except KeyError:
             pass
 
+        # Otherwise if we query an endpoint like /v2.0 then we will get back
+        # just the one available version.
+        try:
+            return [body_resp['version']]
+        except KeyError:
+            pass
+
         # Older Ironic does not actually return a discovery document for the
         # single version discovery endpoint, which confuses the single-version
         # fallback logic. While there are no known other services returning
@@ -140,13 +147,6 @@ def get_version_data(session, url, authenticated=None):
                 if header.endswith('api-maximum-version'):
                     body_resp.setdefault('version', resp.headers[header])
             return [body_resp]
-
-        # Otherwise if we query an endpoint like /v2.0 then we will get back
-        # just the one available version.
-        try:
-            return [body_resp['version']]
-        except KeyError:
-            pass
 
     err_text = resp.text[:50] + '...' if len(resp.text) > 50 else resp.text
     raise exceptions.DiscoveryFailure('Invalid Response - Bad version data '
