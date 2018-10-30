@@ -1437,7 +1437,7 @@ def get_discovery(session, url, cache=None, authenticated=False):
 
     # Whether we get one from fetching or from cache, set it in the
     # caches. This assures that if we combine sessions and auth plugins
-    # that we don't make unnecesary calls.
+    # that we don't make unnecessary calls.
     if disc:
         for cache in caches:
             cache[url] = disc
