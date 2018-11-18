@@ -592,8 +592,8 @@ in this manner, request, response and body content will all be logged to that
 logger at the ``DEBUG`` level, and the strings ``REQ:``, ``RESP:`` and
 ``RESP BODY:`` will be pre-pended as appropriate.
 
-.. _API-WG Specs: http://specs.openstack.org/openstack/api-wg/
-.. _Consuming the Catalog: http://specs.openstack.org/openstack/api-wg/guidelines/consuming-catalog.html
-.. _Microversions: http://specs.openstack.org/openstack/api-wg/guidelines/microversion_specification.html#version-discovery
+.. _API-WG Specs: https://specs.openstack.org/openstack/api-wg/
+.. _Consuming the Catalog: https://specs.openstack.org/openstack/api-wg/guidelines/consuming-catalog.html
+.. _Microversions: https://specs.openstack.org/openstack/api-wg/guidelines/microversion_specification.html#version-discovery
 .. _python logging: https://docs.python.org/3/library/logging.html
 .. _logger: https://docs.python.org/3/library/logging.html#logging.Logger
