@@ -1257,3 +1257,8 @@ class EndpointDataTests(utils.TestCase):
         self.assertEqual(exp, str(epd))
         # Works with implicit stringification
         self.assertEqual(exp, "%s" % epd)
+
+    def test_project_id_int_fallback(self):
+        bad_url = "https://compute.example.com/v2/123456"
+        epd = discover.EndpointData(catalog_url=bad_url)
+        self.assertEqual((2, 0), epd.api_version)

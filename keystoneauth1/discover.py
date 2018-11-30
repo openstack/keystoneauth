@@ -473,6 +473,12 @@ def _version_from_url(url):
     url = urllib.parse.urlparse(url)
     for part in reversed(url.path.split('/')):
         try:
+            # All integer project ids can parse as valid versions. In URLs
+            # all known instances of versions start with a v. So check to make
+            # sure the url part starts with 'v', then check that it parses
+            # as a valid version.
+            if part[0] != 'v':
+                continue
             return normalize_version_number(part)
         except Exception:
             pass
