@@ -61,8 +61,10 @@ class Token(dict):
                  project_id=None, project_name=None, project_domain_id=None,
                  project_domain_name=None, domain_id=None, domain_name=None,
                  trust_id=None, trust_impersonation=None, trustee_user_id=None,
-                 trustor_user_id=None, oauth_access_token_id=None,
-                 oauth_consumer_id=None, audit_id=None, audit_chain_id=None,
+                 trustor_user_id=None, application_credential_id=None,
+                 application_credential_access_rules=None,
+                 oauth_access_token_id=None, oauth_consumer_id=None,
+                 audit_id=None, audit_chain_id=None,
                  is_admin_project=None, project_is_domain=None):
         super(Token, self).__init__()
 
@@ -111,6 +113,11 @@ class Token(dict):
                                  impersonation=trust_impersonation,
                                  trustee_user_id=trustee_user_id,
                                  trustor_user_id=trustor_user_id)
+
+        if application_credential_id:
+            self.set_application_credential(
+                application_credential_id,
+                access_rules=application_credential_access_rules)
 
         if oauth_access_token_id or oauth_consumer_id:
             self.set_oauth(access_token_id=oauth_access_token_id,
@@ -309,6 +316,26 @@ class Token(dict):
         trust.setdefault('trustor_user', {})['id'] = value
 
     @property
+    def application_credential_id(self):
+        return self.root.get('application_credential', {}).get('id')
+
+    @application_credential_id.setter
+    def application_credential_id(self, value):
+        application_credential = self.root.setdefault(
+            'application_credential', {})
+        application_credential.setdefault('id', value)
+
+    @property
+    def application_credential_access_rules(self):
+        return self.root.get('application_credential', {}).get('access_rules')
+
+    @application_credential_access_rules.setter
+    def application_credential_access_rules(self, value):
+        application_credential = self.root.setdefault(
+            'application_credential', {})
+        application_credential.setdefault('access_rules', value)
+
+    @property
     def oauth_access_token_id(self):
         return self.root.get('OS-OAUTH1', {}).get('access_token_id')
 
@@ -438,6 +465,12 @@ class Token(dict):
     def set_oauth(self, access_token_id=None, consumer_id=None):
         self.oauth_access_token_id = access_token_id or uuid.uuid4().hex
         self.oauth_consumer_id = consumer_id or uuid.uuid4().hex
+
+    def set_application_credential(self, application_credential_id,
+                                   access_rules=None):
+        self.application_credential_id = application_credential_id
+        if access_rules is not None:
+            self.application_credential_access_rules = access_rules
 
     @property
     def service_providers(self):

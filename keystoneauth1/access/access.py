@@ -741,6 +741,10 @@ class AccessInfoV3(AccessInfo):
     def application_credential_id(self):
         return self._data['token']['application_credential']['id']
 
+    @_missingproperty
+    def application_credential_access_rules(self):
+        return self._data['token']['application_credential']['access_rules']
+
     @property
     def _oauth(self):
         return self._data['token']['OS-OAUTH1']
