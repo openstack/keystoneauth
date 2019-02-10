@@ -734,6 +734,14 @@ class AccessInfoV3(AccessInfo):
         return self._trust['trustor_user']['id']
 
     @property
+    def application_credential(self):
+        return self._data['token']['application_credential']
+
+    @_missingproperty
+    def application_credential_id(self):
+        return self._data['token']['application_credential']['id']
+
+    @property
     def _oauth(self):
         return self._data['token']['OS-OAUTH1']
 
