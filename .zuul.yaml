@@ -7,6 +7,7 @@
       - openstack-python-jobs
       - openstack-python35-jobs
       - openstack-python36-jobs
+      - openstack-python37-jobs
       - openstacksdk-functional-tips
       - openstacksdk-tox-tips
       - osc-tox-unit-tips
