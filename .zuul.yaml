@@ -12,5 +12,3 @@
       - osc-tox-unit-tips
       - publish-openstack-docs-pti
       - release-notes-jobs-python3
-      - shade-functional-tips
-      - shade-tox-tips
