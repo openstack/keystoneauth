@@ -13,6 +13,7 @@
 import os
 import warnings
 
+from keystoneauth1 import _fair_semaphore
 from keystoneauth1 import session
 
 
@@ -92,6 +93,16 @@ class Adapter(object):
         If True, requests returning failing HTTP responses will raise an
         exception; if False, the response is returned. This can be
         overridden on a per-request basis via the kwarg of the same name.
+    :param float rate_limit:
+        A client-side rate limit to impose on requests made through this
+        adapter in requests per second. For instance, a rate_limit of 2
+        means to allow no more than 2 requests per second, and a rate_limit
+        of 0.5 means to allow no more than 1 request every two seconds.
+        (optional, defaults to None, which means no rate limiting will be
+        applied).
+    :param int concurrency:
+        How many simultaneous http requests this Adapter can be used for.
+        (optional, defaults to None, which means no limit).
     """
 
     client_name = None
@@ -106,7 +117,9 @@ class Adapter(object):
                  global_request_id=None,
                  min_version=None, max_version=None,
                  default_microversion=None, status_code_retries=None,
-                 retriable_status_codes=None, raise_exc=None):
+                 retriable_status_codes=None, raise_exc=None,
+                 rate_limit=None, concurrency=None,
+                 ):
         if version and (min_version or max_version):
             raise TypeError(
                 "version is mutually exclusive with min_version and"
@@ -143,6 +156,15 @@ class Adapter(object):
             self.client_name = client_name
         if client_version:
             self.client_version = client_version
+
+        rate_delay = 0.0
+        if rate_limit:
+            # 1 / rate converts from requests per second to delay
+            # between requests needed to achieve that rate.
+            rate_delay = 1.0 / rate_limit
+
+        self._rate_semaphore = _fair_semaphore.FairSemaphore(
+            concurrency, rate_delay)
 
     def _set_endpoint_filter_kwargs(self, kwargs):
         if self.service_type:
@@ -209,6 +231,8 @@ class Adapter(object):
 
         if self.raise_exc is not None:
             kwargs.setdefault('raise_exc', self.raise_exc)
+
+        kwargs.setdefault('rate_semaphore', self._rate_semaphore)
 
         return self.session.request(url, method, **kwargs)
 
