@@ -217,6 +217,8 @@ class Adapter(object):
                 kwargs.setdefault('client_name', self.client_name)
             if self.client_version:
                 kwargs.setdefault('client_version', self.client_version)
+            if self._rate_semaphore:
+                kwargs.setdefault('rate_semaphore', self._rate_semaphore)
 
         else:
             warnings.warn('Using keystoneclient sessions has been deprecated. '
@@ -231,8 +233,6 @@ class Adapter(object):
 
         if self.raise_exc is not None:
             kwargs.setdefault('raise_exc', self.raise_exc)
-
-        kwargs.setdefault('rate_semaphore', self._rate_semaphore)
 
         return self.session.request(url, method, **kwargs)
 
