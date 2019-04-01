@@ -240,6 +240,7 @@ authentication plugins that are available in `keystoneauth` are:
 - token: :py:class:`keystoneauth1.identity.generic.Token`
 - v2password: :py:class:`keystoneauth1.identity.v2.Password`
 - v2token: :py:class:`keystoneauth1.identity.v2.Token`
+- v3applicationcredential: :py:class:`keystoneauth1.identity.v3.ApplicationCredential`
 - v3password: :py:class:`keystoneauth1.identity.v3.Password`
 - v3token: :py:class:`keystoneauth1.identity.v3.Token`
 - v3fedkerb: :py:class:`keystoneauth1.extras.kerberos.MappedKerberos`
