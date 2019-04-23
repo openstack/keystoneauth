@@ -31,6 +31,6 @@ Further information:
 
 * Free software: Apache license
 * Documentation: https://docs.openstack.org/keystoneauth/latest/
-* Source: https://git.openstack.org/cgit/openstack/keystoneauth
+* Source: https://opendev.org/openstack/keystoneauth
 * Bugs: https://bugs.launchpad.net/keystoneauth
 * Release notes: https://docs.openstack.org/releasenotes/keystoneauth/
