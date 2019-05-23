@@ -208,7 +208,7 @@ that support application credential authentication. Since application
 credentials are associated to a user on a specific project, some parameters are
 not required as they would be with traditional password authentication. The
 following method can be used to authenticate for a token using an application
-credential::
+credential:
 
 - :py:class:`~keystoneauth1.identity.v3.ApplicationCredential`:
 
