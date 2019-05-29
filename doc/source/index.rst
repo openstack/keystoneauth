@@ -31,11 +31,11 @@ Release Notes
 Contributing
 ============
 
-Code is hosted `on GitHub`_. Submit bugs to the Keystone project on
+Code is hosted `on opendev.org`_. Submit bugs to the Keystone project on
 `Launchpad`_. Submit code to the ``openstack/keystoneauth`` project
 using `Gerrit`_.
 
-.. _on GitHub: https://github.com/openstack/keystoneauth
+.. _on opendev.org: https://opendev.org/openstack/keystoneauth
 .. _Launchpad: https://launchpad.net/keystoneauth
 .. _Gerrit: https://docs.openstack.org/infra/manual/developers.html#development-workflow
 
