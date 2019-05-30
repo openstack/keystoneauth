@@ -542,6 +542,105 @@ class SessionTests(utils.TestCase):
                    'value': 'new_name'}])
         self.assertContentTypeIs('application/json-patch+json')
 
+    def test_api_sig_error_message_single(self):
+        title = 'this error is bogus!'
+        detail = 'it is a totally made up error'
+        error_message = {
+            'errors': [
+                {
+                    'request_id': uuid.uuid4().hex,
+                    'code': 'phoney.bologna.error',
+                    'status': 500,
+                    'title': title,
+                    'detail': detail,
+                    'links': [
+                        {
+                            'rel': 'help',
+                            'href': 'https://openstack.org'
+                        }
+                    ]
+                }
+            ]
+        }
+        payload = json.dumps(error_message)
+        self.stub_url('GET', status_code=9000, text=payload,
+                      headers={'Content-Type': 'application/json'})
+        session = client_session.Session()
+
+        # The exception should contain the information from the error response
+        msg = '{} (HTTP 9000)'.format(title)
+        try:
+            session.get(self.TEST_URL)
+        except exceptions.HttpError as ex:
+            self.assertEqual(ex.message, msg)
+            self.assertEqual(ex.details, detail)
+
+    def test_api_sig_error_message_multiple(self):
+        title = 'this error is the first error!'
+        detail = 'it is a totally made up error'
+        error_message = {
+            'errors': [
+                {
+                    'request_id': uuid.uuid4().hex,
+                    'code': 'phoney.bologna.error',
+                    'status': 500,
+                    'title': title,
+                    'detail': detail,
+                    'links': [
+                        {
+                            'rel': 'help',
+                            'href': 'https://openstack.org'
+                        }
+                    ]
+                },
+                {
+                    'request_id': uuid.uuid4().hex,
+                    'code': 'phoney.bologna.error',
+                    'status': 500,
+                    'title': 'some other error',
+                    'detail': detail,
+                    'links': [
+                        {
+                            'rel': 'help',
+                            'href': 'https://openstack.org'
+                        }
+                    ]
+                }
+            ]
+        }
+        payload = json.dumps(error_message)
+        self.stub_url('GET', status_code=9000, text=payload,
+                      headers={'Content-Type': 'application/json'})
+        session = client_session.Session()
+
+        # The exception should contain the information from the error response
+        msg = ('Multiple error responses, showing first only: {} (HTTP 9000)'
+               .format(title))
+        try:
+            session.get(self.TEST_URL)
+        except exceptions.HttpError as ex:
+            self.assertEqual(ex.message, msg)
+            self.assertEqual(ex.details, detail)
+
+    def test_api_sig_error_message_empty(self):
+        error_message = {
+            'errors': [
+            ]
+        }
+        payload = json.dumps(error_message)
+        self.stub_url('GET', status_code=9000, text=payload,
+                      headers={'Content-Type': 'application/json'})
+        session = client_session.Session()
+
+        # The exception should contain the information from the error response
+        msg = 'HTTP Error (HTTP 9000)'
+
+        try:
+            session.get(self.TEST_URL)
+        except exceptions.HttpError as ex:
+            self.assertEqual(ex.message, msg)
+            self.assertIsNone(ex.details)
+
 
 class RedirectTests(utils.TestCase):
 

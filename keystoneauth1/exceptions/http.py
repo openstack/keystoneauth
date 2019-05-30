@@ -413,6 +413,30 @@ def from_response(response, method, url):
                 error = body["error"]
                 kwargs["message"] = error.get("message")
                 kwargs["details"] = error.get("details")
+            elif (isinstance(body, dict) and
+                  isinstance(body.get("errors"), list)):
+                # if the error response follows the API SIG guidelines, it
+                # will return a list of errors. in this case, only the first
+                # error is shown, but if there are multiple the user will be
+                # alerted to that fact.
+                errors = body["errors"]
+                if len(errors) == 0:
+                    # just in case we get an empty array
+                    kwargs["message"] = None
+                    kwargs["details"] = None
+                else:
+                    if len(errors) > 1:
+                        # if there is more than one error, let the user know
+                        # that multiple were seen.
+                        msg_hdr = ("Multiple error responses, "
+                                   "showing first only: ")
+                    else:
+                        msg_hdr = ""
+
+                    kwargs["message"] = "{}{}".format(msg_hdr,
+                                                      errors[0].get("title"))
+                    kwargs["details"] = errors[0].get("detail")
+
     elif content_type.startswith("text/"):
         kwargs["details"] = response.text
 
