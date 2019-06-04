@@ -436,6 +436,8 @@ def from_response(response, method, url):
                     kwargs["message"] = "{}{}".format(msg_hdr,
                                                       errors[0].get("title"))
                     kwargs["details"] = errors[0].get("detail")
+            else:
+                kwargs["message"] = "Unrecognized schema in response body."
 
     elif content_type.startswith("text/"):
         kwargs["details"] = response.text

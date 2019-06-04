@@ -641,6 +641,19 @@ class SessionTests(utils.TestCase):
             self.assertEqual(ex.message, msg)
             self.assertIsNone(ex.details)
 
+    def test_error_message_unknown_schema(self):
+        error_message = 'Uh oh, things went bad!'
+        payload = json.dumps(error_message)
+        self.stub_url('GET', status_code=9000, text=payload,
+                      headers={'Content-Type': 'application/json'})
+        session = client_session.Session()
+
+        msg = 'Unrecognized schema in response body. (HTTP 9000)'
+        try:
+            session.get(self.TEST_URL)
+        except exceptions.HttpError as ex:
+            self.assertEqual(ex.message, msg)
+
 
 class RedirectTests(utils.TestCase):
 
