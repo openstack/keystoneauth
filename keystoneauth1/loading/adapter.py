@@ -135,6 +135,16 @@ class Adapter(base.BaseLoader):
                                 'intended to be used as the upper bound of a '
                                 'range with min_version. Mutually exclusive '
                                 'with version.'),
+                cfg.IntOpt('connect-retries',
+                           deprecated_opts=deprecated_opts.get(
+                               'connect-retries'),
+                           help='The maximum number of retries that should be '
+                                'attempted for connection errors.'),
+                cfg.IntOpt('status-code-retries',
+                           deprecated_opts=deprecated_opts.get(
+                               'status-code-retries'),
+                           help='The maximum number of retries that should be '
+                                'attempted for retriable HTTP status codes.'),
                 ]
         if include_deprecated:
             opts += [
@@ -154,29 +164,33 @@ class Adapter(base.BaseLoader):
         """Register the oslo_config options that are needed for an Adapter.
 
         The options that are set are:
-            :service_type:      The default service_type for URL discovery.
-            :service_name:      The default service_name for URL discovery.
-            :interface:         The default interface for URL discovery.
-                                (deprecated)
-            :valid_interfaces:  List of acceptable interfaces for URL
-                                discovery. Can be a list of any of
-                                'public', 'internal' or 'admin'.
-            :region_name:       The default region_name for URL discovery.
-            :endpoint_override: Always use this endpoint URL for requests
-                                for this client.
-            :version:           The minimum version restricted to a given Major
-                                API. Mutually exclusive with min_version and
-                                max_version.
-            :min_version:       The minimum major version of a given API,
-                                intended to be used as the lower bound of a
-                                range with max_version. Mutually exclusive with
-                                version. If min_version is given with no
-                                max_version it is as if max version is
-                                'latest'.
-            :max_version:       The maximum major version of a given API,
-                                intended to be used as the upper bound of a
-                                range with min_version. Mutually exclusive with
-                                version.
+            :service_type:        The default service_type for URL discovery.
+            :service_name:        The default service_name for URL discovery.
+            :interface:           The default interface for URL discovery.
+                                  (deprecated)
+            :valid_interfaces:    List of acceptable interfaces for URL
+                                  discovery. Can be a list of any of
+                                  'public', 'internal' or 'admin'.
+            :region_name:         The default region_name for URL discovery.
+            :endpoint_override:   Always use this endpoint URL for requests
+                                  for this client.
+            :version:             The minimum version restricted to a given
+                                  Major API. Mutually exclusive with
+                                  min_version and max_version.
+            :min_version:         The minimum major version of a given API,
+                                  intended to be used as the lower bound of a
+                                  range with max_version. Mutually exclusive
+                                  with version. If min_version is given with no
+                                  max_version it is as if max version is
+                                  'latest'.
+            :max_version:         The maximum major version of a given API,
+                                  intended to be used as the upper bound of a
+                                  range with min_version. Mutually exclusive
+                                  with version.
+            :connect_retries:     The maximum number of retries that should be
+                                  attempted for connection errors.
+            :status_code_retries: The maximum number of retries that should be
+                                  attempted for retriable HTTP status codes.
 
         :param oslo_config.Cfg conf: config object to register with.
         :param string group: The ini group to register options in.
@@ -256,6 +270,8 @@ def process_conf_options(confgrp, kwargs):
         raise TypeError(
             "version is mutually exclusive with min_version and"
             " max_version")
+    kwargs.setdefault('connect_retries', confgrp.connect_retries)
+    kwargs.setdefault('status_code_retries', confgrp.status_code_retries)
 
 
 def register_argparse_arguments(*args, **kwargs):

@@ -154,29 +154,47 @@ class ConfLoadingTests(utils.TestCase):
             loading.load_adapter_from_conf_options,
             self.conf_fx.conf, self.GROUP, session='session', auth='auth')
 
+    def test_load_retries(self):
+        self.conf_fx.config(
+            service_type='type', service_name='name',
+            connect_retries=3, status_code_retries=5,
+            group=self.GROUP)
+        adap = loading.load_adapter_from_conf_options(
+            self.conf_fx.conf, self.GROUP, session='session', auth='auth')
+        self.assertEqual('type', adap.service_type)
+        self.assertEqual('name', adap.service_name)
+        self.assertEqual(3, adap.connect_retries)
+        self.assertEqual(5, adap.status_code_retries)
+
     def test_get_conf_options(self):
         opts = loading.get_adapter_conf_options()
         for opt in opts:
-            if opt.name != 'valid-interfaces':
+            if opt.name.endswith('-retries'):
+                self.assertIsInstance(opt, cfg.IntOpt)
+            elif opt.name != 'valid-interfaces':
                 self.assertIsInstance(opt, cfg.StrOpt)
             else:
                 self.assertIsInstance(opt, cfg.ListOpt)
         self.assertEqual({'service-type', 'service-name',
                           'interface', 'valid-interfaces',
                           'region-name', 'endpoint-override', 'version',
-                          'min-version', 'max-version'},
+                          'min-version', 'max-version', 'connect-retries',
+                          'status-code-retries'},
                          {opt.name for opt in opts})
 
     def test_get_conf_options_undeprecated(self):
         opts = loading.get_adapter_conf_options(include_deprecated=False)
         for opt in opts:
-            if opt.name != 'valid-interfaces':
+            if opt.name.endswith('-retries'):
+                self.assertIsInstance(opt, cfg.IntOpt)
+            elif opt.name != 'valid-interfaces':
                 self.assertIsInstance(opt, cfg.StrOpt)
             else:
                 self.assertIsInstance(opt, cfg.ListOpt)
         self.assertEqual({'service-type', 'service-name', 'valid-interfaces',
                           'region-name', 'endpoint-override', 'version',
-                          'min-version', 'max-version'},
+                          'min-version', 'max-version', 'connect-retries',
+                          'status-code-retries'},
                          {opt.name for opt in opts})
 
     def test_deprecated(self):
