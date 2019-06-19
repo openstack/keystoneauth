@@ -440,6 +440,24 @@ class SessionTests(utils.TestCase):
         self.assertThat(self.requests_mock.request_history,
                         matchers.HasLength(retries + 1))
 
+    def test_connect_retries_interval_limit(self):
+        self.stub_url('GET', exc=requests.exceptions.Timeout())
+
+        session = client_session.Session()
+        retries = 20
+
+        with mock.patch('time.sleep') as m:
+            self.assertRaises(exceptions.ConnectTimeout,
+                              session.get,
+                              self.TEST_URL, connect_retries=retries)
+
+            self.assertEqual(retries, m.call_count)
+            # The interval maxes out at 60
+            m.assert_called_with(60.0)
+
+        self.assertThat(self.requests_mock.request_history,
+                        matchers.HasLength(retries + 1))
+
     def test_http_503_retries(self):
         self.stub_url('GET', status_code=503)
 
@@ -495,6 +513,26 @@ class SessionTests(utils.TestCase):
 
         self.assertThat(self.requests_mock.request_history,
                         matchers.HasLength(1))
+
+    def test_http_status_retries_inverval_limit(self):
+        self.stub_url('GET', status_code=409)
+
+        session = client_session.Session()
+        retries = 20
+
+        with mock.patch('time.sleep') as m:
+            self.assertRaises(exceptions.Conflict,
+                              session.get,
+                              self.TEST_URL, status_code_retries=retries,
+                              retriable_status_codes=[503, 409])
+
+            self.assertEqual(retries, m.call_count)
+            # The interval maxes out at 60
+            m.assert_called_with(60.0)
+
+        # we count retries so there will be one initial request + 3 retries
+        self.assertThat(self.requests_mock.request_history,
+                        matchers.HasLength(retries + 1))
 
     def test_uses_tcp_keepalive_by_default(self):
         session = client_session.Session()
