@@ -50,6 +50,8 @@ DEFAULT_USER_AGENT = 'keystoneauth1/%s %s %s/%s' % (
 # here and we'll add it to the list as required.
 _LOG_CONTENT_TYPES = set(['application/json'])
 
+_MAX_RETRY_INTERVAL = 60.0
+
 
 def _construct_session(session_obj=None):
     # NOTE(morganfainberg): if the logic in this function changes be sure to
@@ -953,13 +955,16 @@ class Session(object):
                         {'e': e, 'delay': connect_retry_delay})
             time.sleep(connect_retry_delay)
 
+            connect_retry_delay = min(connect_retry_delay * 2,
+                                      _MAX_RETRY_INTERVAL)
+
             return self._send_request(
                 url, method, redirect, log, logger, split_loggers,
                 status_code_retries=status_code_retries,
                 retriable_status_codes=retriable_status_codes,
                 rate_semaphore=rate_semaphore,
                 connect_retries=connect_retries - 1,
-                connect_retry_delay=connect_retry_delay * 2,
+                connect_retry_delay=connect_retry_delay,
                 **kwargs)
 
         if log:
@@ -1007,6 +1012,9 @@ class Session(object):
                          'delay': status_code_retry_delay})
             time.sleep(status_code_retry_delay)
 
+            status_code_retry_delay = min(status_code_retry_delay * 2,
+                                          _MAX_RETRY_INTERVAL)
+
             # NOTE(jamielennox): We don't pass through connect_retry_delay.
             # This request actually worked so we can reset the delay count.
             return self._send_request(
@@ -1015,7 +1023,7 @@ class Session(object):
                 status_code_retries=status_code_retries - 1,
                 retriable_status_codes=retriable_status_codes,
                 rate_semaphore=rate_semaphore,
-                status_code_retry_delay=status_code_retry_delay * 2,
+                status_code_retry_delay=status_code_retry_delay,
                 **kwargs)
 
         return resp
