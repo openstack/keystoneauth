@@ -52,6 +52,10 @@ _LOG_CONTENT_TYPES = set(['application/json'])
 
 _MAX_RETRY_INTERVAL = 60.0
 
+# NOTE(efried): This is defined in oslo_middleware.request_id.INBOUND_HEADER,
+# but it didn't seem worth adding oslo_middleware to requirements just for that
+_REQUEST_ID_HEADER = 'X-Openstack-Request-Id'
+
 
 def _construct_session(session_obj=None):
     # NOTE(morganfainberg): if the logic in this function changes be sure to
@@ -579,7 +583,7 @@ class Session(object):
                 allow=None, client_name=None, client_version=None,
                 microversion=None, microversion_service_type=None,
                 status_code_retries=0, retriable_status_codes=None,
-                rate_semaphore=None, **kwargs):
+                rate_semaphore=None, global_request_id=None, **kwargs):
         """Send an HTTP request with the specified characteristics.
 
         Wrapper around `requests.Session.request` to handle tasks such as
@@ -668,6 +672,7 @@ class Session(object):
         :param rate_semaphore: Semaphore to be used to control concurrency
                                and rate limiting of requests. (optional,
                                defaults to no concurrency or rate control)
+        :param global_request_id: Value for the X-Openstack-Request-Id header.
         :param kwargs: any other parameter that can be passed to
                        :meth:`requests.Session.request` (such as `headers`).
                        Except:
@@ -784,6 +789,12 @@ class Session(object):
         if json is not None:
             headers.setdefault('Content-Type', 'application/json')
             kwargs['data'] = self._json.encode(json)
+
+        if global_request_id is not None:
+            # NOTE(efried): This does *not* setdefault. If a global_request_id
+            # kwarg was explicitly specified, it should override any value
+            # previously configured (e.g. in Adapter.global_request_id).
+            headers[_REQUEST_ID_HEADER] = global_request_id
 
         for k, v in self.additional_headers.items():
             headers.setdefault(k, v)

@@ -1296,19 +1296,25 @@ class AdapterTest(utils.TestCase):
         self.assertRequestHeaderEqual('User-Agent', self.USER_AGENT)
 
     def test_setting_global_id_on_request(self):
-        global_id = "req-%s" % uuid.uuid4()
+        global_id_adpt = "req-%s" % uuid.uuid4()
+        global_id_req = "req-%s" % uuid.uuid4()
         response = uuid.uuid4().hex
         self.stub_url('GET', text=response)
-        adpt = adapter.Adapter(client_session.Session(),
-                               auth=CalledAuthPlugin(),
-                               service_type=self.SERVICE_TYPE,
-                               service_name=self.SERVICE_NAME,
-                               interface=self.INTERFACE,
-                               region_name=self.REGION_NAME,
-                               user_agent=self.USER_AGENT,
-                               version=self.VERSION,
-                               allow=self.ALLOW,
-                               global_request_id=global_id)
+
+        def mk_adpt(**kwargs):
+            return adapter.Adapter(client_session.Session(),
+                                   auth=CalledAuthPlugin(),
+                                   service_type=self.SERVICE_TYPE,
+                                   service_name=self.SERVICE_NAME,
+                                   interface=self.INTERFACE,
+                                   region_name=self.REGION_NAME,
+                                   user_agent=self.USER_AGENT,
+                                   version=self.VERSION,
+                                   allow=self.ALLOW,
+                                   **kwargs)
+
+        # No global_request_id
+        adpt = mk_adpt()
         resp = adpt.get('/')
         self.assertEqual(resp.text, response)
 
@@ -1316,7 +1322,21 @@ class AdapterTest(utils.TestCase):
         self.assertEqual(self.ALLOW,
                          adpt.auth.endpoint_arguments['allow'])
         self.assertTrue(adpt.auth.get_token_called)
-        self.assertRequestHeaderEqual('X-OpenStack-Request-ID', global_id)
+        self.assertRequestHeaderEqual('X-OpenStack-Request-ID', None)
+
+        # global_request_id only on the request
+        adpt.get('/', global_request_id=global_id_req)
+        self.assertRequestHeaderEqual('X-OpenStack-Request-ID', global_id_req)
+
+        # global_request_id only on the adapter
+        adpt = mk_adpt(global_request_id=global_id_adpt)
+        adpt.get('/')
+        self.assertRequestHeaderEqual('X-OpenStack-Request-ID', global_id_adpt)
+
+        # global_request_id on the adapter *and* the request (the request takes
+        # precedence)
+        adpt.get('/', global_request_id=global_id_req)
+        self.assertRequestHeaderEqual('X-OpenStack-Request-ID', global_id_req)
 
     def test_setting_variables_on_get_endpoint(self):
         adpt = self._create_loaded_adapter()
