@@ -41,6 +41,9 @@ try:
 except ImportError:
     osprofiler_web = None
 
+from  openstackoid import keystoneauth1 as oid_keystoneauth1
+
+
 DEFAULT_USER_AGENT = 'keystoneauth1/%s %s %s/%s' % (
     keystoneauth1.__version__, requests.utils.default_user_agent(),
     platform.python_implementation(), platform.python_version())
