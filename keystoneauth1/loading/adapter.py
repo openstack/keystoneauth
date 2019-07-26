@@ -140,11 +140,27 @@ class Adapter(base.BaseLoader):
                                'connect-retries'),
                            help='The maximum number of retries that should be '
                                 'attempted for connection errors.'),
+                cfg.FloatOpt('connect-retry-delay',
+                             deprecated_opts=deprecated_opts.get(
+                                 'connect-retry-delay'),
+                             help='Delay (in seconds) between two retries '
+                                  'for connection errors. If not set, '
+                                  'exponential retry starting with 0.5 '
+                                  'seconds up to a maximum of 60 seconds '
+                                  'is used.'),
                 cfg.IntOpt('status-code-retries',
                            deprecated_opts=deprecated_opts.get(
                                'status-code-retries'),
                            help='The maximum number of retries that should be '
                                 'attempted for retriable HTTP status codes.'),
+                cfg.FloatOpt('status-code-retry-delay',
+                             deprecated_opts=deprecated_opts.get(
+                                 'status-code-retry-delay'),
+                             help='Delay (in seconds) between two retries '
+                                  'for retriable status codes. If not set, '
+                                  'exponential retry starting with 0.5 '
+                                  'seconds up to a maximum of 60 seconds '
+                                  'is used.'),
                 ]
         if include_deprecated:
             opts += [
@@ -271,7 +287,10 @@ def process_conf_options(confgrp, kwargs):
             "version is mutually exclusive with min_version and"
             " max_version")
     kwargs.setdefault('connect_retries', confgrp.connect_retries)
+    kwargs.setdefault('connect_retry_delay', confgrp.connect_retry_delay)
     kwargs.setdefault('status_code_retries', confgrp.status_code_retries)
+    kwargs.setdefault('status_code_retry_delay',
+                      confgrp.status_code_retry_delay)
 
 
 def register_argparse_arguments(*args, **kwargs):

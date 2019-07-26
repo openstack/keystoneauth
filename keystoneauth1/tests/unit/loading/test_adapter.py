@@ -158,19 +158,24 @@ class ConfLoadingTests(utils.TestCase):
         self.conf_fx.config(
             service_type='type', service_name='name',
             connect_retries=3, status_code_retries=5,
+            connect_retry_delay=0.5, status_code_retry_delay=2.0,
             group=self.GROUP)
         adap = loading.load_adapter_from_conf_options(
             self.conf_fx.conf, self.GROUP, session='session', auth='auth')
         self.assertEqual('type', adap.service_type)
         self.assertEqual('name', adap.service_name)
         self.assertEqual(3, adap.connect_retries)
+        self.assertEqual(0.5, adap.connect_retry_delay)
         self.assertEqual(5, adap.status_code_retries)
+        self.assertEqual(2.0, adap.status_code_retry_delay)
 
     def test_get_conf_options(self):
         opts = loading.get_adapter_conf_options()
         for opt in opts:
             if opt.name.endswith('-retries'):
                 self.assertIsInstance(opt, cfg.IntOpt)
+            elif opt.name.endswith('-retry-delay'):
+                self.assertIsInstance(opt, cfg.FloatOpt)
             elif opt.name != 'valid-interfaces':
                 self.assertIsInstance(opt, cfg.StrOpt)
             else:
@@ -179,7 +184,8 @@ class ConfLoadingTests(utils.TestCase):
                           'interface', 'valid-interfaces',
                           'region-name', 'endpoint-override', 'version',
                           'min-version', 'max-version', 'connect-retries',
-                          'status-code-retries'},
+                          'status-code-retries', 'connect-retry-delay',
+                          'status-code-retry-delay'},
                          {opt.name for opt in opts})
 
     def test_get_conf_options_undeprecated(self):
@@ -187,6 +193,8 @@ class ConfLoadingTests(utils.TestCase):
         for opt in opts:
             if opt.name.endswith('-retries'):
                 self.assertIsInstance(opt, cfg.IntOpt)
+            elif opt.name.endswith('-retry-delay'):
+                self.assertIsInstance(opt, cfg.FloatOpt)
             elif opt.name != 'valid-interfaces':
                 self.assertIsInstance(opt, cfg.StrOpt)
             else:
@@ -194,7 +202,8 @@ class ConfLoadingTests(utils.TestCase):
         self.assertEqual({'service-type', 'service-name', 'valid-interfaces',
                           'region-name', 'endpoint-override', 'version',
                           'min-version', 'max-version', 'connect-retries',
-                          'status-code-retries'},
+                          'status-code-retries', 'connect-retry-delay',
+                          'status-code-retry-delay'},
                          {opt.name for opt in opts})
 
     def test_deprecated(self):

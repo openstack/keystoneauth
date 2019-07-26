@@ -103,6 +103,14 @@ class Adapter(object):
     :param int concurrency:
         How many simultaneous http requests this Adapter can be used for.
         (optional, defaults to None, which means no limit).
+    :param float connect_retry_delay:
+        Delay (in seconds) between two connect retries (if enabled).
+        By default exponential retry starting with 0.5 seconds up to
+        a maximum of 60 seconds is used.
+    :param float status_code_retry_delay:
+        Delay (in seconds) between two status code retries (if enabled).
+        By default exponential retry starting with 0.5 seconds up to
+        a maximum of 60 seconds is used.
     """
 
     client_name = None
@@ -119,6 +127,7 @@ class Adapter(object):
                  default_microversion=None, status_code_retries=None,
                  retriable_status_codes=None, raise_exc=None,
                  rate_limit=None, concurrency=None,
+                 connect_retry_delay=None, status_code_retry_delay=None,
                  ):
         if version and (min_version or max_version):
             raise TypeError(
@@ -148,6 +157,8 @@ class Adapter(object):
         self.default_microversion = default_microversion
         self.status_code_retries = status_code_retries
         self.retriable_status_codes = retriable_status_codes
+        self.connect_retry_delay = connect_retry_delay
+        self.status_code_retry_delay = status_code_retry_delay
         self.raise_exc = raise_exc
 
         self.global_request_id = global_request_id
@@ -195,10 +206,10 @@ class Adapter(object):
             kwargs.setdefault('auth', self.auth)
         if self.user_agent:
             kwargs.setdefault('user_agent', self.user_agent)
-        if self.connect_retries is not None:
-            kwargs.setdefault('connect_retries', self.connect_retries)
-        if self.status_code_retries is not None:
-            kwargs.setdefault('status_code_retries', self.status_code_retries)
+        for arg in ('connect_retries', 'status_code_retries',
+                    'connect_retry_delay', 'status_code_retry_delay'):
+            if getattr(self, arg) is not None:
+                kwargs.setdefault(arg, getattr(self, arg))
         if self.retriable_status_codes:
             kwargs.setdefault('retriable_status_codes',
                               self.retriable_status_codes)

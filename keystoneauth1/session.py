@@ -51,6 +51,7 @@ DEFAULT_USER_AGENT = 'keystoneauth1/%s %s %s/%s' % (
 _LOG_CONTENT_TYPES = set(['application/json'])
 
 _MAX_RETRY_INTERVAL = 60.0
+_EXPONENTIAL_DELAY_START = 0.5
 
 # NOTE(efried): This is defined in oslo_middleware.request_id.INBOUND_HEADER,
 # but it didn't seem worth adding oslo_middleware to requirements just for that
@@ -237,6 +238,29 @@ class RequestTiming(object):
         self.method = method
         self.url = url
         self.elapsed = elapsed
+
+
+class _Retries(object):
+    __slots__ = ('_fixed_delay', '_current')
+
+    def __init__(self, fixed_delay=None):
+        self._fixed_delay = fixed_delay
+        self.reset()
+
+    def __next__(self):
+        value = self._current
+        if not self._fixed_delay:
+            self._current = min(value * 2, _MAX_RETRY_INTERVAL)
+        return value
+
+    def reset(self):
+        if self._fixed_delay:
+            self._current = self._fixed_delay
+        else:
+            self._current = _EXPONENTIAL_DELAY_START
+
+    # Python 2 compatibility
+    next = __next__
 
 
 class Session(object):
@@ -583,7 +607,9 @@ class Session(object):
                 allow=None, client_name=None, client_version=None,
                 microversion=None, microversion_service_type=None,
                 status_code_retries=0, retriable_status_codes=None,
-                rate_semaphore=None, global_request_id=None, **kwargs):
+                rate_semaphore=None, global_request_id=None,
+                connect_retry_delay=None, status_code_retry_delay=None,
+                **kwargs):
         """Send an HTTP request with the specified characteristics.
 
         Wrapper around `requests.Session.request` to handle tasks such as
@@ -673,6 +699,16 @@ class Session(object):
                                and rate limiting of requests. (optional,
                                defaults to no concurrency or rate control)
         :param global_request_id: Value for the X-Openstack-Request-Id header.
+        :param float connect_retry_delay: Delay (in seconds) between two
+                                          connect retries (if enabled).
+                                          By default exponential retry starting
+                                          with 0.5 seconds up to a maximum of
+                                          60 seconds is used.
+        :param float status_code_retry_delay: Delay (in seconds) between two
+                                              status code retries (if enabled).
+                                              By default exponential retry
+                                              starting with 0.5 seconds up to
+                                              a maximum of 60 seconds is used.
         :param kwargs: any other parameter that can be passed to
                        :meth:`requests.Session.request` (such as `headers`).
                        Except:
@@ -827,11 +863,15 @@ class Session(object):
         if redirect is None:
             redirect = self.redirect
 
+        connect_retry_delays = _Retries(connect_retry_delay)
+        status_code_retry_delays = _Retries(status_code_retry_delay)
+
         send = functools.partial(self._send_request,
                                  url, method, redirect, log, logger,
                                  split_loggers, connect_retries,
                                  status_code_retries, retriable_status_codes,
-                                 rate_semaphore)
+                                 rate_semaphore, connect_retry_delays,
+                                 status_code_retry_delays)
 
         try:
             connection_params = self.get_auth_connection_params(auth=auth)
@@ -920,7 +960,7 @@ class Session(object):
     def _send_request(self, url, method, redirect, log, logger, split_loggers,
                       connect_retries, status_code_retries,
                       retriable_status_codes, rate_semaphore,
-                      connect_retry_delay=0.5, status_code_retry_delay=0.5,
+                      connect_retry_delays, status_code_retry_delays,
                       **kwargs):
         # NOTE(jamielennox): We handle redirection manually because the
         # requests lib follows some browser patterns where it will redirect
@@ -962,12 +1002,10 @@ class Session(object):
             if connect_retries <= 0:
                 raise
 
+            delay = next(connect_retry_delays)
             logger.info('Failure: %(e)s. Retrying in %(delay).1fs.',
-                        {'e': e, 'delay': connect_retry_delay})
-            time.sleep(connect_retry_delay)
-
-            connect_retry_delay = min(connect_retry_delay * 2,
-                                      _MAX_RETRY_INTERVAL)
+                        {'e': e, 'delay': delay})
+            time.sleep(delay)
 
             return self._send_request(
                 url, method, redirect, log, logger, split_loggers,
@@ -975,7 +1013,8 @@ class Session(object):
                 retriable_status_codes=retriable_status_codes,
                 rate_semaphore=rate_semaphore,
                 connect_retries=connect_retries - 1,
-                connect_retry_delay=connect_retry_delay,
+                connect_retry_delays=connect_retry_delays,
+                status_code_retry_delays=status_code_retry_delays,
                 **kwargs)
 
         if log:
@@ -1000,14 +1039,18 @@ class Session(object):
                 logger.warning("Failed to redirect request to %s as new "
                                "location was not provided.", resp.url)
             else:
-                # NOTE(jamielennox): We don't pass through connect_retry_delay.
+                # NOTE(jamielennox): We don't keep increasing delays.
                 # This request actually worked so we can reset the delay count.
+                connect_retry_delays.reset()
+                status_code_retry_delays.reset()
                 new_resp = self._send_request(
                     location, method, redirect, log, logger, split_loggers,
                     rate_semaphore=rate_semaphore,
                     connect_retries=connect_retries,
                     status_code_retries=status_code_retries,
                     retriable_status_codes=retriable_status_codes,
+                    connect_retry_delays=connect_retry_delays,
+                    status_code_retry_delays=status_code_retry_delays,
                     **kwargs)
 
                 if not isinstance(new_resp.history, list):
@@ -1017,24 +1060,23 @@ class Session(object):
         elif (resp.status_code in retriable_status_codes and
               status_code_retries > 0):
 
+            delay = next(status_code_retry_delays)
             logger.info('Retriable status code %(code)s. Retrying in '
                         '%(delay).1fs.',
-                        {'code': resp.status_code,
-                         'delay': status_code_retry_delay})
-            time.sleep(status_code_retry_delay)
+                        {'code': resp.status_code, 'delay': delay})
+            time.sleep(delay)
 
-            status_code_retry_delay = min(status_code_retry_delay * 2,
-                                          _MAX_RETRY_INTERVAL)
-
-            # NOTE(jamielennox): We don't pass through connect_retry_delay.
+            # NOTE(jamielennox): We don't keep increasing connection delays.
             # This request actually worked so we can reset the delay count.
+            connect_retry_delays.reset()
             return self._send_request(
                 url, method, redirect, log, logger, split_loggers,
                 connect_retries=connect_retries,
                 status_code_retries=status_code_retries - 1,
                 retriable_status_codes=retriable_status_codes,
                 rate_semaphore=rate_semaphore,
-                status_code_retry_delay=status_code_retry_delay,
+                connect_retry_delays=connect_retry_delays,
+                status_code_retry_delays=status_code_retry_delays,
                 **kwargs)
 
         return resp
