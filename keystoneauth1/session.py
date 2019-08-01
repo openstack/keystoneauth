@@ -347,6 +347,13 @@ class Session(object):
 
         self.auth = auth
         self.session = _construct_session(session)
+        # NOTE(mwhahaha): keep a reference to the session object so we can
+        # clean it up when this object goes away. We don't want to close the
+        # session if it was passed into us as it may be reused externally.
+        # See LP#1838704
+        self._session = None
+        if not session:
+            self._session = self.session
         self.original_ip = original_ip
         self.verify = verify
         self.cert = cert
@@ -374,6 +381,17 @@ class Session(object):
             self.user_agent = "%s %s" % (user_agent, DEFAULT_USER_AGENT)
 
         self._json = _JSONEncoder()
+
+    def __del__(self):
+        """Clean up resources on delete."""
+        if self._session:
+            # If we created a requests.Session, try to close it out correctly
+            try:
+                self._session.close()
+            except Exception:
+                pass
+            finally:
+                self._session = None
 
     @property
     def adapters(self):

@@ -930,6 +930,14 @@ class SessionAuthTests(utils.TestCase):
 
         self.assertRequestHeaderEqual('X-Auth-Token', None)
 
+    def test_object_delete(self):
+        auth = AuthPlugin()
+        sess = client_session.Session(auth=auth)
+        mock_close = mock.Mock()
+        sess._session.close = mock_close
+        del sess
+        mock_close.assert_called_once()
+
     def test_service_type_urls(self):
         service_type = 'compute'
         interface = 'public'
