@@ -1,0 +1,9 @@
+---
+fixes:
+  - >
+    [`bug 1838704 <https://bugs.launchpad.net/keystone/+bug/1838704>`_]
+    When consuming keystoneauth1.session.Session, if a requests session is not
+    provided one is created. The Session used for requests may result in a
+    ResourceWarning being generated if it is not properly closed. The code
+    has been updated to close the session correctly when the Session object
+    is deleted.
