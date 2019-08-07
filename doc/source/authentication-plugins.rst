@@ -55,6 +55,9 @@ this V3 defines a number of different
   against a V3 identity service using a username and password.
 - :py:class:`~keystoneauth1.identity.v3.TokenMethod`: Authenticate against
   a V3 identity service using an existing token.
+- :py:class:`~keystoneauth1.identity.v3.ReceiptMethod`: Authenticate against
+  a V3 identity service using an existing auth-receipt. This method has to be
+  used in conjunction with at least one other method.
 - :py:class:`~keystoneauth1.identity.v3.TOTPMethod`: Authenticate against
   a V3 identity service using Time-Based One-Time Password (TOTP).
 - :py:class:`~keystoneauth1.identity.v3.TokenlessAuth`: Authenticate against
@@ -77,7 +80,19 @@ passed to the :py:class:`~keystoneauth1.identity.v3.Auth` plugin::
     ...                project_id='projectid')
     >>> sess = session.Session(auth=auth)
 
-As in the majority of cases you will only want to use one
+You can even add additional methods to an existing auth instance after it
+has been created::
+
+    >>> totp = v3.TOTPMethod(username='user',
+    ...                      passcode='123456',
+    ...                      user_domain_name='default')
+    >>> auth.add_method(totp)
+
+Or use the :py:class:`~keystoneauth1.identity.v3.MultiFactor` helper
+plugin to do it all simply in one go, an example of whichs exists in the
+section below.
+
+For the common cases where you will only want to use one
 :py:class:`~keystoneauth1.identity.v3.AuthMethod` there are also helper
 authentication plugins for the various
 :py:class:`~keystoneauth1.identity.v3.AuthMethod` which can be used more
@@ -106,6 +121,110 @@ This will have exactly the same effect as using the single
 
 V3 identity plugins must use an `auth_url` that points to the root of a V3
 identity server URL, i.e.: ``http://hostname:5000/v3``.
+
+Multi-Factor with V3 Identity Plugins
+-------------------------------------
+
+The basic example of multi-factor authentication is when you supply all the
+needed auth methods up front.
+
+This can be done by building an Auth class with method instances:
+
+.. code-block:: python
+
+    from keystoneauth1 import session
+    from keystoneauth1.identity import v3
+
+    auth = v3.Auth(
+        auth_url='http://my.keystone.com:5000/v3',
+        auth_methods=[
+            v3.PasswordMethod(
+                username='user',
+                password='password',
+                user_domain_id="default",
+            ),
+            v3.TOTPMethod(
+                username='user',
+                passcode='123456',
+                user_domain_id="default",
+            )
+        ],
+        project_id='projectid',
+    )
+    sess = session.Session(auth=auth)
+
+Or by letting the helper plugin do it for you:
+
+.. code-block:: python
+
+    from keystoneauth1 import session
+    from keystoneauth1.identity import v3
+
+    auth = v3.MultiFactor(
+        auth_url='http://my.keystone.com:5000/v3',
+        auth_methods=['v3password', 'v3totp'],
+        username='user',
+        password='password',
+        passcode='123456',
+        user_domain_id="default",
+        project_id='projectid',
+    )
+    sess = session.Session(auth=auth)
+
+**Note:** The :py:class:`~keystoneauth1.identity.v3.MultiFactor` helper
+does not support auth receipts as an option in auth_methods, but one can
+be added with `auth.add_method`.
+
+When you supply just one method when multiple are needed, a
+:py:class:`~keystoneauth1.exceptions.auth.MissingAuthMethods` error will
+be raised. This can be caught, and you can infer based on the error what
+the missing methods were, and from it extract the receipt to continue
+authentication:
+
+.. code-block:: python
+
+    auth = v3.Password(auth_url='http://my.keystone.com:5000/v3',
+                       username='username',
+                       password='password',
+                       project_id='projectid',
+                       user_domain_id='default')
+    sess = session.Session(auth=auth)
+    try:
+       sess.get_token()
+    except exceptions.MissingAuthMethods as e:
+        receipt = e.receipt
+        methods = e.methods
+        required_methods = e.required_auth_methods
+
+Once you know what auth methods are needed to continue, you can extend
+the existing auth plugin with additional methods:
+
+.. code-block:: python
+
+    auth.add_method(
+        v3.TOTPMethod(
+            username='user',
+            passcode='123456',
+            user_domain_id='default',
+        )
+    )
+    sess.get_token()
+
+Or if you do not have the existing auth method, but have the receipt
+you can continue as well:
+
+.. code-block:: python
+
+    auth = v3.TOTP(
+        auth_url='http://my.keystone.com:5000/v3',
+        username='user',
+        passcode='123456',
+        user_domain_id='default',
+        project_id='projectid',
+    )
+    auth.add_method(v3.ReceiptMethod(receipt=receipt))
+    sess = session.Session(auth=auth)
+    sess.get_token()
 
 Federation
 ==========

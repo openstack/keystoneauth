@@ -218,6 +218,22 @@ class V3IdentityPlugin(utils.TestCase):
                 "application_credential_restricted": True
             },
         }
+        self.TEST_RECEIPT_RESPONSE = {
+            "receipt": {
+                "methods": ["password"],
+                "expires_at": "2020-01-01T00:00:10.000123Z",
+                "user": {
+                    "domain": {
+                        "id": self.TEST_DOMAIN_ID,
+                        "name": self.TEST_DOMAIN_NAME,
+                    },
+                    "id": self.TEST_USER,
+                    "name": self.TEST_USER,
+                },
+                "issued_at": "2013-05-29T16:55:21.468960Z",
+            },
+            "required_auth_methods": [["password", "totp"]],
+        }
 
     def stub_auth(self, subject_token=None, **kwargs):
         if not subject_token:
@@ -225,6 +241,19 @@ class V3IdentityPlugin(utils.TestCase):
 
         self.stub_url('POST', ['auth', 'tokens'],
                       headers={'X-Subject-Token': subject_token}, **kwargs)
+
+    def stub_receipt(self, receipt=None, receipt_data=None, **kwargs):
+        if not receipt:
+            receipt = self.TEST_RECEIPT
+
+        if not receipt_data:
+            receipt_data = self.TEST_RECEIPT_RESPONSE
+
+        self.stub_url('POST', ['auth', 'tokens'],
+                      headers={'Openstack-Auth-Receipt': receipt},
+                      status_code=401,
+                      json=receipt_data,
+                      **kwargs)
 
     def test_authenticate_with_username_password(self):
         self.stub_auth(json=self.TEST_RESPONSE_DICT)
@@ -678,3 +707,92 @@ class V3IdentityPlugin(utils.TestCase):
         s = session.Session()
         self.assertEqual(self.TEST_TOKEN, a.get_token(s))  # updates expired
         self.assertEqual(initial_cache_id, a.get_cache_id())
+
+    def test_receipt_response_is_handled(self):
+        self.stub_receipt()
+
+        a = v3.Password(
+            self.TEST_URL,
+            username=self.TEST_USER,
+            password=self.TEST_PASS,
+            user_domain_id=self.TEST_DOMAIN_ID,
+            project_id=self.TEST_TENANT_ID,
+        )
+
+        s = session.Session(a)
+        self.assertRaises(exceptions.MissingAuthMethods,
+                          s.get_auth_headers, None)
+
+    def test_authenticate_with_receipt_and_totp(self):
+        self.stub_auth(json=self.TEST_RESPONSE_DICT)
+        passcode = "123456"
+        auth = v3.TOTP(
+            self.TEST_URL,
+            username=self.TEST_USER,
+            passcode=passcode
+        )
+        auth.add_method(v3.ReceiptMethod(receipt=self.TEST_RECEIPT))
+        self.assertFalse(auth.has_scope_parameters)
+        s = session.Session(auth=auth)
+
+        self.assertEqual({"X-Auth-Token": self.TEST_TOKEN},
+                         s.get_auth_headers())
+
+        # NOTE(adriant): Here we are confirming the receipt data isn't in the
+        # body or listed as a method
+        req = {
+            "auth": {
+                "identity": {
+                    "methods": ["totp"],
+                    "totp": {"user": {
+                        "name": self.TEST_USER, "passcode": passcode}},
+                }
+            }
+        }
+
+        self.assertRequestBodyIs(json=req)
+        self.assertRequestHeaderEqual("Openstack-Auth-Receipt",
+                                      self.TEST_RECEIPT)
+        self.assertRequestHeaderEqual("Content-Type", "application/json")
+        self.assertRequestHeaderEqual("Accept", "application/json")
+        self.assertEqual(s.auth.auth_ref.auth_token, self.TEST_TOKEN)
+
+    def test_authenticate_with_multi_factor(self):
+        self.stub_auth(json=self.TEST_RESPONSE_DICT)
+        passcode = "123456"
+        auth = v3.MultiFactor(
+            self.TEST_URL,
+            auth_methods=['v3password', 'v3totp'],
+            username=self.TEST_USER,
+            password=self.TEST_PASS,
+            passcode=passcode,
+            user_domain_id=self.TEST_DOMAIN_ID,
+            project_id=self.TEST_TENANT_ID,
+        )
+        self.assertTrue(auth.has_scope_parameters)
+        s = session.Session(auth=auth)
+
+        self.assertEqual({"X-Auth-Token": self.TEST_TOKEN},
+                         s.get_auth_headers())
+
+        req = {
+            "auth": {
+                "identity": {
+                    "methods": ["password", "totp"],
+                    "totp": {"user": {
+                        "name": self.TEST_USER, "passcode": passcode,
+                        'domain': {'id': self.TEST_DOMAIN_ID}
+                    }},
+                    'password': {'user': {
+                        'name': self.TEST_USER, 'password': self.TEST_PASS,
+                        'domain': {'id': self.TEST_DOMAIN_ID}
+                    }},
+                },
+                'scope': {'project': {'id': self.TEST_TENANT_ID}}
+            }
+        }
+
+        self.assertRequestBodyIs(json=req)
+        self.assertRequestHeaderEqual("Content-Type", "application/json")
+        self.assertRequestHeaderEqual("Accept", "application/json")
+        self.assertEqual(s.auth.auth_ref.auth_token, self.TEST_TOKEN)

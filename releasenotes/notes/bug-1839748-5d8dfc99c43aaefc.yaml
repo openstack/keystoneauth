@@ -1,0 +1,10 @@
+---
+features:
+  - |
+    [`bug 1839748 <https://bugs.launchpad.net/keystoneauth/+bug/1839748>`_]
+    Keystoneauth now supports MFA authentication and Auth Receipts.
+    Responses from Keystone containing and auth receipt will now
+    raise a ``MissingAuthMethods`` exception which will contain the
+    auth receipt itself, and information about the missing methods.
+    There are now also ways to easily do more than one method when
+    authenticating to Keystone and those have been documented.
