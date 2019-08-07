@@ -235,6 +235,11 @@ class Token(dict):
         self.root.setdefault('serviceCatalog', []).append(service)
         return service
 
+    def remove_service(self, type):
+        self.root['serviceCatalog'] = [
+            f for f in self.root.setdefault('serviceCatalog', [])
+            if f['type'] != type]
+
     def set_scope(self, id=None, name=None):
         self.tenant_id = id or uuid.uuid4().hex
         self.tenant_name = name or uuid.uuid4().hex

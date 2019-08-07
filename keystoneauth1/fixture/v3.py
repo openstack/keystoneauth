@@ -434,6 +434,12 @@ class Token(dict):
         self.root.setdefault('catalog', []).append(service)
         return service
 
+    def remove_service(self, type):
+        self.root.setdefault('catalog', [])
+        self.root['catalog'] = [
+            f for f in self.root.setdefault('catalog', [])
+            if f['type'] != type]
+
     def set_project_scope(self, id=None, name=None, domain_id=None,
                           domain_name=None, is_domain=None):
         self.project_id = id or uuid.uuid4().hex

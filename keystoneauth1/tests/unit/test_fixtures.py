@@ -107,6 +107,9 @@ class V2TokenTests(utils.TestCase):
         self.assertEqual(region, service['region'])
         self.assertEqual(endpoint_id, service['id'])
 
+        token.remove_service(type=service_type)
+        self.assertEqual(0, len(token['access']['serviceCatalog']))
+
     def test_token_bind(self):
         name1 = uuid.uuid4().hex
         data1 = uuid.uuid4().hex
@@ -289,6 +292,9 @@ class V3TokenTests(utils.TestCase):
             endpoint = {'interface': interface, 'url': url,
                         'region': region, 'region_id': region}
             self.assertIn(endpoint, service['endpoints'])
+
+        token.remove_service(type=service_type)
+        self.assertEqual(0, len(token['token']['catalog']))
 
     def test_empty_default_service_providers(self):
         token = fixture.V3Token()
