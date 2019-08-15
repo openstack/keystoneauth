@@ -202,7 +202,11 @@ class TOTP(loading.BaseV3Loader):
         _add_common_identity_options(options)
 
         options.extend([
-            loading.Opt('passcode', secret=True, help="User's TOTP passcode"),
+            loading.Opt(
+                'passcode',
+                secret=True,
+                prompt='TOTP passcode: ',
+                help="User's TOTP passcode"),
         ])
 
         return options
@@ -294,3 +298,43 @@ class ApplicationCredential(loading.BaseV3Loader):
             raise exceptions.OptionError(m)
 
         return super(ApplicationCredential, self).load_from_options(**kwargs)
+
+
+class MultiFactor(loading.BaseV3Loader):
+
+    def __init__(self, *args, **kwargs):
+        self._methods = None
+        return super(MultiFactor, self).__init__(*args, **kwargs)
+
+    @property
+    def plugin_class(self):
+        return identity.V3MultiFactor
+
+    def get_options(self):
+        options = super(MultiFactor, self).get_options()
+
+        options.extend([
+            loading.Opt(
+                'auth_methods',
+                required=True,
+                help="Methods to authenticate with."),
+        ])
+
+        if self._methods:
+            options_dict = {o.name: o for o in options}
+            for method in self._methods:
+                method_opts = loading.get_plugin_options(method)
+                for opt in method_opts:
+                    options_dict[opt.name] = opt
+            options = list(options_dict.values())
+        return options
+
+    def load_from_options(self, **kwargs):
+        _assert_identity_options(kwargs)
+
+        if 'auth_methods' not in kwargs:
+            raise exceptions.OptionError("methods is a required option.")
+
+        self._methods = kwargs['auth_methods']
+
+        return super(MultiFactor, self).load_from_options(**kwargs)

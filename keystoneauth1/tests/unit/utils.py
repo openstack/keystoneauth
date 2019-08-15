@@ -30,6 +30,7 @@ class TestCase(testtools.TestCase):
     TEST_ROLE_ID = uuid.uuid4().hex
     TEST_TENANT_ID = uuid.uuid4().hex
     TEST_TENANT_NAME = uuid.uuid4().hex
+    TEST_RECEIPT = uuid.uuid4().hex
     TEST_TOKEN = uuid.uuid4().hex
     TEST_TRUST_ID = uuid.uuid4().hex
     TEST_USER = uuid.uuid4().hex

@@ -110,6 +110,10 @@ class Auth(BaseAuth):
         super(Auth, self).__init__(auth_url=auth_url, **kwargs)
         self.auth_methods = auth_methods
 
+    def add_method(self, method):
+        """Add an additional initialized AuthMethod instance."""
+        self.auth_methods.append(method)
+
     def get_auth_ref(self, session, **kwargs):
         headers = {'Accept': 'application/json'}
         body = {'auth': {'identity': {}}}
@@ -117,12 +121,14 @@ class Auth(BaseAuth):
         rkwargs = {}
 
         for method in self.auth_methods:
-            name, auth_data = method.get_auth_data(session,
-                                                   self,
-                                                   headers,
-                                                   request_kwargs=rkwargs)
-            ident.setdefault('methods', []).append(name)
-            ident[name] = auth_data
+            name, auth_data = method.get_auth_data(
+                session, self, headers, request_kwargs=rkwargs)
+            # NOTE(adriant): Methods like ReceiptMethod don't
+            # want anything added to the request data, so they
+            # explicitly return None, which we check for.
+            if name:
+                ident.setdefault('methods', []).append(name)
+                ident[name] = auth_data
 
         if not ident:
             raise exceptions.AuthorizationFailure(

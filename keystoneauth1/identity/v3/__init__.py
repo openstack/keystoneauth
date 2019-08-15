@@ -14,8 +14,10 @@ from keystoneauth1.identity.v3.application_credential import *  # noqa
 from keystoneauth1.identity.v3.base import *  # noqa
 from keystoneauth1.identity.v3.federation import *  # noqa
 from keystoneauth1.identity.v3.k2k import *  # noqa
+from keystoneauth1.identity.v3.multi_factor import *  # noqa
 from keystoneauth1.identity.v3.oidc import *  # noqa
 from keystoneauth1.identity.v3.password import *  # noqa
+from keystoneauth1.identity.v3.receipt import *  # noqa
 from keystoneauth1.identity.v3.token import *  # noqa
 from keystoneauth1.identity.v3.totp import *  # noqa
 from keystoneauth1.identity.v3.tokenless_auth import *  # noqa
@@ -47,4 +49,8 @@ __all__ = ('ApplicationCredential',
            'TOTPMethod',
            'TOTP',
 
-           'TokenlessAuth')
+           'TokenlessAuth',
+
+           'ReceiptMethod',
+
+           'MultiFactor', )

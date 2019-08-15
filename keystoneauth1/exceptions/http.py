@@ -21,6 +21,7 @@
 import inspect
 import sys
 
+from keystoneauth1.exceptions import auth
 from keystoneauth1.exceptions import base
 
 
@@ -441,6 +442,11 @@ def from_response(response, method, url):
 
     elif content_type.startswith("text/"):
         kwargs["details"] = response.text
+
+    # we check explicity for 401 in case of auth receipts
+    if (response.status_code == 401
+            and "Openstack-Auth-Receipt" in response.headers):
+        return auth.MissingAuthMethods(response)
 
     try:
         cls = _code_map[response.status_code]
