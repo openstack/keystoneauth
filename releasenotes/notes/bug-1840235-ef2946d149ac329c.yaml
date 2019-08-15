@@ -1,0 +1,11 @@
+---
+features:
+  - |
+    [`feature bug 1840235 <https://bugs.launchpad.net/keystoneauth/+bug/1840235>`_]
+    Adds ``connect_retries`` to Session.__init__(), that can then be used
+    by projects when creating session objects, to set the required number of
+    retries for new connection requests. This would specifically help avoid
+    a scalability issue that results in number of  ConnectTimeout errors when
+    doing endpoint discovery and fetching roles using an auth plugin under
+    heavy load. This still allows for it to be overridden per service with
+    the adapter interface.

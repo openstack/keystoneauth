@@ -421,24 +421,66 @@ class SessionTests(utils.TestCase):
         self.assertIn('--cacert', self.logger.output)
         self.assertIn(path_to_certs, self.logger.output)
 
-    def test_connect_retries(self):
+    def _connect_retries_check(self, session, expected_retries=0,
+                               call_args=None):
+        call_args = call_args or {}
+
         self.stub_url('GET', exc=requests.exceptions.Timeout())
 
-        session = client_session.Session()
-        retries = 3
+        call_args['url'] = self.TEST_URL
 
         with mock.patch('time.sleep') as m:
             self.assertRaises(exceptions.ConnectTimeout,
                               session.get,
-                              self.TEST_URL, connect_retries=retries)
+                              **call_args)
 
-            self.assertEqual(retries, m.call_count)
+            self.assertEqual(expected_retries, m.call_count)
             # 3 retries finishing with 2.0 means 0.5, 1.0 and 2.0
             m.assert_called_with(2.0)
 
         # we count retries so there will be one initial request + 3 retries
         self.assertThat(self.requests_mock.request_history,
-                        matchers.HasLength(retries + 1))
+                        matchers.HasLength(expected_retries + 1))
+
+    def test_session_connect_retries(self):
+        retries = 3
+        session = client_session.Session(connect_retries=retries)
+        self._connect_retries_check(session=session, expected_retries=retries)
+
+    def test_call_args_connect_retries_session_init(self):
+        session = client_session.Session()
+        retries = 3
+        call_args = {'connect_retries': retries}
+        self._connect_retries_check(session=session,
+                                    expected_retries=retries,
+                                    call_args=call_args)
+
+    def test_call_args_connect_retries_overrides_session_retries(self):
+        session_retries = 6
+        call_arg_retries = 3
+        call_args = {'connect_retries': call_arg_retries}
+        session = client_session.Session(connect_retries=session_retries)
+        self._connect_retries_check(session=session,
+                                    expected_retries=call_arg_retries,
+                                    call_args=call_args)
+
+    def test_override_session_connect_retries_for_request(self):
+        session_retries = 1
+        session = client_session.Session(connect_retries=session_retries)
+
+        self.stub_url('GET', exc=requests.exceptions.Timeout())
+        call_args = {'connect_retries': 0}
+
+        with mock.patch('time.sleep') as m:
+            self.assertRaises(
+                exceptions.ConnectTimeout,
+                session.request,
+                self.TEST_URL,
+                'GET',
+                **call_args
+            )
+
+            self.assertEqual(0, m.call_count)
 
     def test_connect_retries_interval_limit(self):
         self.stub_url('GET', exc=requests.exceptions.Timeout())
