@@ -427,7 +427,7 @@ class ServiceCatalog(object):
         endpoint_data_list = self.get_endpoint_data_list(
             service_type=service_type,
             interface=interface,
-            region_name=region_name,
+            region_name=None,
             service_name=service_name,
             service_id=service_id,
             endpoint_id=endpoint_id)
