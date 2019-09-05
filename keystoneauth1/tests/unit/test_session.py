@@ -1199,7 +1199,6 @@ class SessionAuthTests(utils.TestCase):
         self.assertIn(list(response.keys())[0], output)
         self.assertIn(list(response.values())[0], output)
 
-        self.assertNotIn(self.TEST_URL, self.logger.output)
         self.assertNotIn(list(response.keys())[0], self.logger.output)
         self.assertNotIn(list(response.values())[0], self.logger.output)
 
@@ -1550,7 +1549,6 @@ class AdapterTest(utils.TestCase):
         self.assertIn(list(response.keys())[0], output)
         self.assertIn(list(response.values())[0], output)
 
-        self.assertNotIn(self.TEST_URL, self.logger.output)
         self.assertNotIn(list(response.keys())[0], self.logger.output)
         self.assertNotIn(list(response.values())[0], self.logger.output)
 
