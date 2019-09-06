@@ -4,7 +4,7 @@
 
 # All additions to this file must have significant justification.
 
-# NOTE(morgan) At no time may any olso library be added to the keystoneauth
+# NOTE(morgan) At no time may any oslo library be added to the keystoneauth
 # requirements. The requirements for keystoneauth are very tightly controlled
 # to ensure we are not pulling in a ton of transient dependencies. This is
 # important from the standpoint of ensuring keystoneauth can be used outside
