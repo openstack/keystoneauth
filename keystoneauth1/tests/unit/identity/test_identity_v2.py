@@ -12,6 +12,7 @@
 
 import copy
 import json
+import time
 import uuid
 
 from keystoneauth1 import _utils as ksa_utils
@@ -84,7 +85,8 @@ class V2IdentityPlugin(utils.TestCase):
         self.TEST_RESPONSE_DICT = {
             "access": {
                 "token": {
-                    "expires": "2020-01-01T00:00:10.000123Z",
+                    "expires": "%i-02-01T00:00:10.000123Z" %
+                    (1 + time.gmtime().tm_year),
                     "id": self.TEST_TOKEN,
                     "tenant": {
                         "id": self.TEST_TENANT_ID
