@@ -12,6 +12,7 @@
 
 import copy
 import json
+import time
 import uuid
 
 from keystoneauth1 import _utils as ksa_utils
@@ -135,6 +136,7 @@ class V3IdentityPlugin(utils.TestCase):
         self.TEST_DISCOVERY_RESPONSE = {
             'versions': {'values': [fixture.V3Discovery(self.TEST_URL)]}}
 
+        nextyear = 1 + time.gmtime().tm_year
         self.TEST_RESPONSE_DICT = {
             "token": {
                 "methods": [
@@ -142,7 +144,7 @@ class V3IdentityPlugin(utils.TestCase):
                     "password"
                 ],
 
-                "expires_at": "2020-01-01T00:00:10.000123Z",
+                "expires_at": "%i-02-01T00:00:10.000123Z" % nextyear,
                 "project": {
                     "domain": {
                         "id": self.TEST_DOMAIN_ID,
@@ -195,7 +197,7 @@ class V3IdentityPlugin(utils.TestCase):
                     "application_credential"
                 ],
 
-                "expires_at": "2020-01-01T00:00:10.000123Z",
+                "expires_at": "%i-02-01T00:00:10.000123Z" % nextyear,
                 "project": {
                     "domain": {
                         "id": self.TEST_DOMAIN_ID,
