@@ -288,7 +288,7 @@ class OidcPassword(_OidcBase):
 
     grant_type = "password"
 
-    @positional(4)
+    @positional(4)  # nosec
     def __init__(self, auth_url, identity_provider, protocol,
                  client_id, client_secret,
                  access_token_endpoint=None,
@@ -337,7 +337,7 @@ class OidcClientCredentials(_OidcBase):
 
     grant_type = 'client_credentials'
 
-    @positional(4)
+    @positional(4)  # nosec
     def __init__(self, auth_url, identity_provider, protocol,
                  client_id, client_secret,
                  access_token_endpoint=None,
@@ -381,7 +381,7 @@ class OidcAuthorizationCode(_OidcBase):
 
     grant_type = 'authorization_code'
 
-    @positional(4)
+    @positional(4)  # nosec
     def __init__(self, auth_url, identity_provider, protocol,
                  client_id, client_secret,
                  access_token_endpoint=None,
