@@ -287,7 +287,7 @@ class OidcPassword(_OidcBase):
 
     grant_type = "password"
 
-    def __init__(self, auth_url, identity_provider, protocol,
+    def __init__(self, auth_url, identity_provider, protocol,  # nosec
                  client_id, client_secret,
                  access_token_endpoint=None,
                  discovery_endpoint=None,
@@ -335,7 +335,7 @@ class OidcClientCredentials(_OidcBase):
 
     grant_type = 'client_credentials'
 
-    def __init__(self, auth_url, identity_provider, protocol,
+    def __init__(self, auth_url, identity_provider, protocol,  # nosec
                  client_id, client_secret,
                  access_token_endpoint=None,
                  discovery_endpoint=None,
@@ -378,7 +378,7 @@ class OidcAuthorizationCode(_OidcBase):
 
     grant_type = 'authorization_code'
 
-    def __init__(self, auth_url, identity_provider, protocol,
+    def __init__(self, auth_url, identity_provider, protocol,  # nosec
                  client_id, client_secret,
                  access_token_endpoint=None,
                  discovery_endpoint=None,
