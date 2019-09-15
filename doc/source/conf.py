@@ -208,10 +208,10 @@ htmlhelp_basename = 'keystoneauthdoc'
 # (source start file, target name, title, author, documentclass [howto/manual])
 # .
 latex_documents = [
-    ('index', 'keystoneauth1.tex',
-     'keystoneauth1 Documentation',
-     'Nebula Inc, based on work by Rackspace and Jacob Kaplan-Moss',
-     'manual'),
+    ('index', 'doc-keystoneauth.tex',
+     u'keystoneauth1 Documentation',
+     u'Openstack Developers',
+     'manual', True),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -232,6 +232,17 @@ latex_documents = [
 #latex_use_modindex = True
 
 ksc = 'https://docs.openstack.org/python-keystoneclient/latest/'
+
+# Disable usage of xindy https://bugzilla.redhat.com/show_bug.cgi?id=1643664
+latex_use_xindy = False
+
+latex_domain_indices = False
+
+latex_elements = {
+    'makeindex': '',
+    'printindex': '',
+    'preamble': r'\setcounter{tocdepth}{3}',
+}
 
 intersphinx_mapping = {
     'python': ('http://docs.python.org/', None),
