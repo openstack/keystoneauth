@@ -6,7 +6,8 @@ within the OpenStack ecosystem. It is designed for use in conjunction with the
 existing OpenStack clients and for simplifying the process of writing new
 clients.
 
-Contents:
+Contents
+--------
 
 .. toctree::
    :maxdepth: 1
@@ -21,15 +22,14 @@ Contents:
    api/modules
 
 Release Notes
-=============
+-------------
 
-.. toctree::
-   :maxdepth: 1
+`Release Notes`_
 
-   history
+.. _Release Notes: https://docs.openstack.org/releasenotes/keystoneauth/
 
 Contributing
-============
+------------
 
 Code is hosted `on opendev.org`_. Submit bugs to the Keystone project on
 `Launchpad`_. Submit code to the ``openstack/keystoneauth`` project
@@ -42,7 +42,7 @@ using `Gerrit`_.
 Run tests with ``tox``.
 
 Indices and tables
-==================
+------------------
 
 * :ref:`genindex`
 * :ref:`modindex`
