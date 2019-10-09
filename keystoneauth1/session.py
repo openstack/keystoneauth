@@ -330,6 +330,9 @@ class Session(object):
     :param rate_semaphore: Semaphore to be used to control concurrency
                            and rate limiting of requests. (optional,
                            defaults to no concurrency or rate control)
+    :param int connect_retries: the maximum number of retries that should
+                                be attempted for connection errors.
+                                (optional, defaults to 0 - never retry).
     """
 
     user_agent = None
@@ -343,7 +346,8 @@ class Session(object):
                  redirect=_DEFAULT_REDIRECT_LIMIT, additional_headers=None,
                  app_name=None, app_version=None, additional_user_agent=None,
                  discovery_cache=None, split_loggers=None,
-                 collect_timing=False, rate_semaphore=None):
+                 collect_timing=False, rate_semaphore=None,
+                 connect_retries=0):
 
         self.auth = auth
         self.session = _construct_session(session)
@@ -371,6 +375,7 @@ class Session(object):
         # so we can distinguish between the value being set or not.
         self._split_loggers = split_loggers
         self._collect_timing = collect_timing
+        self._connect_retries = connect_retries
         self._api_times = []
         self._rate_semaphore = rate_semaphore or NoOpSemaphore()
 
@@ -621,7 +626,7 @@ class Session(object):
                 user_agent=None, redirect=None, authenticated=None,
                 endpoint_filter=None, auth=None, requests_auth=None,
                 raise_exc=True, allow_reauth=True, log=True,
-                endpoint_override=None, connect_retries=0, logger=None,
+                endpoint_override=None, connect_retries=None, logger=None,
                 allow=None, client_name=None, client_version=None,
                 microversion=None, microversion_service_type=None,
                 status_code_retries=0, retriable_status_codes=None,
@@ -654,7 +659,7 @@ class Session(object):
                                   for forever/never. (optional)
         :param int connect_retries: the maximum number of retries that should
                                     be attempted for connection errors.
-                                    (optional, defaults to 0 - never retry).
+                                    (optional, defaults to None - never retry).
         :param bool authenticated: True if a token should be attached to this
                                    request, False if not or None for attach if
                                    an auth_plugin is available.
@@ -748,6 +753,8 @@ class Session(object):
         else:
             split_loggers = None
         logger = logger or utils.get_logger(__name__)
+        if connect_retries is None:
+            connect_retries = self._connect_retries
         # HTTP 503 - Service Unavailable
         retriable_status_codes = retriable_status_codes or [503]
         rate_semaphore = rate_semaphore or self._rate_semaphore
