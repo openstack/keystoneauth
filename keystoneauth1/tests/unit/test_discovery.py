@@ -1241,6 +1241,29 @@ class EndpointDataTests(utils.TestCase):
             [mock.call('sess', url, cache='cache', authenticated=False)
              for url in ('url1', 'url2', 'url3')])
 
+    def test_run_discovery_auth(self):
+        url = 'https://example.com'
+        headers = {'Accept': 'application/json'}
+
+        session = mock.Mock()
+        session.get.side_effect = [
+            exceptions.Unauthorized('unauthorized'),
+            # Throw a different exception the second time so that we can
+            # catch it in the test and verify the retry.
+            exceptions.BadRequest('bad request'),
+        ]
+
+        try:
+            discover.get_version_data(session, url)
+        except exceptions.BadRequest:
+            pass
+        # Only one call with 'url'
+        self.assertEqual(2, session.get.call_count)
+        session.get.assert_has_calls([
+            mock.call(url, headers=headers, authenticated=None),
+            mock.call(url, headers=headers, authenticated=True),
+        ])
+
     def test_endpoint_data_str(self):
         """Validate EndpointData.__str__."""
         # Populate a few fields to make sure they come through.

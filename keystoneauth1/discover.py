@@ -98,13 +98,23 @@ def get_version_data(session, url, authenticated=None):
     """
     headers = {'Accept': 'application/json'}
 
-    resp = session.get(url, headers=headers, authenticated=authenticated)
+    try:
+        resp = session.get(url, headers=headers, authenticated=authenticated)
+    except exceptions.Unauthorized:
+        resp = session.get(url, headers=headers, authenticated=True)
 
     try:
         body_resp = resp.json()
     except ValueError:
         pass
     else:
+        # Swift returns the list of containers for an account on an
+        # authenticated GET from /, not a version document. To our knowledge
+        # it's the only thing returning a [] here - and that's ok.
+        if isinstance(body_resp, list):
+            raise exceptions.DiscoveryFailure(
+                'Invalid Response - List returned instead of dict')
+
         # In the event of querying a root URL we will get back a list of
         # available versions.
         try:

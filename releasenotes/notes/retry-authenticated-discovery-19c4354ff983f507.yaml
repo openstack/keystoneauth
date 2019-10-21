@@ -1,0 +1,14 @@
+---
+fixes:
+  - |
+    Retry version discovery with auth token when the initial request
+    throws 401 Unauthorized. There are some services that are erroneously
+    defaulting to authenticated discovery, and this allows discovery
+    to work properly on them.
+upgrade:
+  - |
+    If keystoneauth and openstacksdk are both in use and keystoneauth
+    is upgraded to this release **before** upgrading openstacksdk to
+    ``0.36.1`` or later, creation of ServerGroup objects with policies
+    and use of Ansible Inventory could be adversely affected. See
+    https://review.opendev.org/#/c/685999/ for more details.
