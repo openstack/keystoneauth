@@ -222,8 +222,7 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
                 "OpenID-Connect authentication response from %s is %s",
                 access_token_endpoint, sanitized_response
             )
-        access_token = response[self.access_token_type]
-        return access_token
+        return response[self.access_token_type]
 
     def _get_keystone_token(self, session, access_token):
         r"""Exchange an access token for a keystone token.
@@ -319,7 +318,7 @@ class OidcPassword(_OidcBase):
                  access_token_endpoint=None,
                  discovery_endpoint=None,
                  access_token_type='access_token',
-                 username=None, password=None,
+                 username=None, password=None, idp_otp_key=None,
                  **kwargs):
         """The OpenID Password plugin expects the following.
 
@@ -341,6 +340,7 @@ class OidcPassword(_OidcBase):
             **kwargs)
         self.username = username
         self.password = password
+        self.idp_otp_key = idp_otp_key
 
     def get_payload(self, session):
         """Get an authorization grant for the "password" grant type.
@@ -355,7 +355,40 @@ class OidcPassword(_OidcBase):
                    'password': self.password,
                    'scope': self.scope,
                    'client_id': self.client_id}
+
+        self.manage_otp_from_session_or_request_to_the_user(payload, session)
+
         return payload
+
+    def manage_otp_from_session_or_request_to_the_user(self, payload, session):
+        """Get the OTP code from the session or else request to the user.
+
+        When the OS_IDP_OTP_KEY environment variable is set, this method will
+        verify if there is an OTP value in the current session, if it exists,
+        we use it (the OTP from session) to send to the Identity Provider when
+        retrieving the access token. If there is no OTP in the current session,
+        we ask the user to enter it (the OTP), and we add it to the session to
+        execute the authentication flow.
+
+        The OTP is being stored in the session because in some flows, the CLI
+        is doing the authentication process two times, so saving the OTP
+        in the session, allow us to use the same OTP in a short time interval,
+        avoiding to request it to the user twice in a row.
+
+        :param payload:
+        :param session:
+        :return:
+        """
+        if not self.idp_otp_key:
+            return
+
+        otp_from_session = getattr(session, 'otp', None)
+        if otp_from_session:
+            payload[self.idp_otp_key] = otp_from_session
+        else:
+            payload[self.idp_otp_key] = input(
+                "Please, enter the generated OTP code: ")
+            setattr(session, 'otp', payload[self.idp_otp_key])
 
 
 class OidcClientCredentials(_OidcBase):

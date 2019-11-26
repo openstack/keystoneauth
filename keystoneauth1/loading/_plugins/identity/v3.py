@@ -151,6 +151,10 @@ class OpenIDConnectPassword(_OpenIDConnectBase):
             loading.Opt('username', help='Username', required=True),
             loading.Opt('password', secret=True,
                         help='Password', required=True),
+            loading.Opt('idp_otp_key',
+                        help='A key to be used in the Identity Provider access'
+                             ' token endpoint to pass the OTP value. '
+                             'E.g. totp'),
         ])
 
         return options

@@ -300,6 +300,33 @@ session on the keystone acting as a Service Provider, for example:
     k2ksession = session.Session(auth=k2kauth)
 
 
+The `OpenIDConnectPassword` plugin also supports OTP. This option is required
+in cases when the Identity Provider requires more than a password to
+authenticate the user. As the OTP usually is a short-lived code that
+continually changes, then, when this option is active, the user will be
+requested to input the OTP code when executing the authentication process.
+
+To enable this option, the user will need to export the environment variable
+"OS_IDP_OTP_KEY" with the OTP key used by the Identity Provider's
+authentication API.
+
+E.g.: If the Identity Provider's authentication API requires some JSON like:
+
+.. code-block:: json
+
+    {
+        "username": "user1",
+        "password": "passwd",
+        "totp": "763907"
+    }
+
+Then, you will use the "totp" value in your "OS_IDP_OTP_KEY", something like
+"export OS_IDP_OTP_KEY=totp".
+
+After the configuration of the "OS_IDP_OTP_KEY" environment variable,
+every time that you will log in through the python openstack-client, a prompt
+will be displayed requesting to you to input your OTP code.
+
 Version Independent Identity Plugins
 ------------------------------------
 

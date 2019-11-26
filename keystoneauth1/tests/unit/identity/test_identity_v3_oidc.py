@@ -10,6 +10,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from unittest import mock
 import urllib
 import uuid
 import warnings
@@ -22,6 +23,7 @@ from keystoneauth1.tests.unit import utils
 
 
 KEYSTONE_TOKEN_VALUE = uuid.uuid4().hex
+BUILTIN_INPUT = "builtins.input"
 
 
 class BaseOIDCTests(object):
@@ -321,6 +323,32 @@ class OIDCPasswordTests(BaseOIDCTests, utils.TestCase):
 
         response = self.plugin.get_unscoped_auth_ref(self.session)
         self.assertEqual(KEYSTONE_TOKEN_VALUE, response.auth_token)
+
+    @mock.patch(BUILTIN_INPUT)
+    def test_otp_while_generating_the_access_token(self, mock_input):
+        """Test the configured otp in the access token flow."""
+        self.plugin.idp_otp_key = "totp"
+        otp = 123
+        new_otp = 111
+        access_token = \
+            oidc_fixtures.ACCESS_TOKEN_VIA_PASSWORD_RESP["access_token"]
+
+        mock_input.return_value = otp
+
+        self.requests_mock.post(
+            self.ACCESS_TOKEN_ENDPOINT,
+            json=oidc_fixtures.ACCESS_TOKEN_VIA_PASSWORD_RESP)
+
+        # Verify if the OTP is set in the session and if the request is OK
+        payload = self.plugin.get_payload(self.session)
+        resp = self.plugin._get_access_token(self.session, payload)
+        self.assertEqual(resp, access_token)
+        self.assertEqual(self.session.otp, otp)
+
+        # Verify if the OTP is obtained from the session.
+        mock_input.return_value = new_otp
+        payload = self.plugin.get_payload(self.session)
+        self.assertEqual(payload[self.plugin.idp_otp_key], otp)
 
 
 class OIDCAuthorizationGrantTests(BaseOIDCTests, utils.TestCase):
