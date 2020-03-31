@@ -19,6 +19,8 @@ main client (keystoneauth or other). Because of this there may be dependencies
 from this module on libraries that are only available in testing.
 """
 
+# flake8: noqa: F405
+
 from keystoneauth1.fixture.discovery import *  # noqa
 from keystoneauth1.fixture import exception
 from keystoneauth1.fixture.plugin import *  # noqa

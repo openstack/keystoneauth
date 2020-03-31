@@ -13,7 +13,7 @@
 import textwrap
 
 import mock
-import pep8
+import pycodestyle
 import testtools
 
 from keystoneauth1.hacking import checks
@@ -22,16 +22,16 @@ from keystoneauth1.tests.unit import keystoneauth_fixtures
 
 class TestCheckOsloNamespaceImports(testtools.TestCase):
 
-    # We are patching pep8 so that only the check under test is actually
+    # We are patching pycodestyle so that only the check under test is actually
     # installed.
-    @mock.patch('pep8._checks',
+    @mock.patch('pycodestyle._checks',
                 {'physical_line': {}, 'logical_line': {}, 'tree': {}})
     def run_check(self, code):
-        pep8.register_check(checks.check_oslo_namespace_imports)
+        pycodestyle.register_check(checks.check_oslo_namespace_imports)
 
         lines = textwrap.dedent(code).strip().splitlines(True)
 
-        checker = pep8.Checker(lines=lines)
+        checker = pycodestyle.Checker(lines=lines)
         checker.check_all()
         checker.report._deferred_print.sort()
         return checker.report._deferred_print

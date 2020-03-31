@@ -113,9 +113,9 @@ class ConfTests(utils.TestCase):
         self.assertEqual(auth_type, e.name)
 
     def test_loading_with_no_data(self):
-        l = loading.load_auth_from_conf_options(self.conf_fixture.conf,
-                                                self.GROUP)
-        self.assertIsNone(l)
+        lo = loading.load_auth_from_conf_options(self.conf_fixture.conf,
+                                                 self.GROUP)
+        self.assertIsNone(lo)
 
     @mock.patch('stevedore.DriverManager')
     def test_other_params(self, m):

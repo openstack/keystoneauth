@@ -77,10 +77,10 @@ def _response_xml(response, name):
 
 
 def _str_from_xml(xml, path):
-    l = xml.xpath(path, namespaces=_XML_NAMESPACES)
-    if len(l) != 1:
+    li = xml.xpath(path, namespaces=_XML_NAMESPACES)
+    if len(li) != 1:
         raise IndexError('%s should provide a single element list' % path)
-    return l[0]
+    return li[0]
 
 
 class _SamlAuth(requests.auth.AuthBase):

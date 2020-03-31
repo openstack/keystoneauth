@@ -213,7 +213,7 @@ class BaseGenericPlugin(base.BaseIdentityPlugin):
         # implementation to respond with a dict without the subclass modifying
         # it to add their own data in case the subclass doesn't support caching
         if not _implemented:
-            raise NotImplemented()
+            raise NotImplementedError()
 
         return {'auth_url': self.auth_url,
                 'project_id': self._project_id,

@@ -21,7 +21,10 @@ errors so that core devs don't have to.
 
 import re
 
+from hacking import core
 
+
+@core.flake8ext
 def check_oslo_namespace_imports(logical_line, blank_before, filename):
     oslo_namespace_imports = re.compile(
         r"(((from)|(import))\s+oslo\.)|(from\s+oslo\s+import\s+)")
@@ -31,7 +34,3 @@ def check_oslo_namespace_imports(logical_line, blank_before, filename):
             logical_line.replace('oslo.', 'oslo_'),
             logical_line)
         yield(0, msg)
-
-
-def factory(register):
-    register(check_oslo_namespace_imports)

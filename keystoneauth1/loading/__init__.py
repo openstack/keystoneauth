@@ -10,6 +10,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+# flake8: noqa: F405
+
 from keystoneauth1.loading import adapter
 from keystoneauth1.loading.base import *  # noqa
 from keystoneauth1.loading import cli

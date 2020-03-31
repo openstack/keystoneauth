@@ -55,14 +55,14 @@ class LoadingTests(utils.TestCase):
 
         Plugin, Loader = utils.create_plugin(opts=opts)
 
-        l = Loader()
+        lo = Loader()
         v = uuid.uuid4().hex
 
-        p1 = l.load_from_options(b=v)
+        p1 = lo.load_from_options(b=v)
         self.assertEqual(v, p1['b'])
 
         e = self.assertRaises(exceptions.MissingRequiredOptions,
-                              l.load_from_options,
+                              lo.load_from_options,
                               a=v)
 
         self.assertEqual(1, len(e.options))

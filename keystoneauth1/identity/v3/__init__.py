@@ -10,6 +10,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+# flake8: noqa: F405
+
 from keystoneauth1.identity.v3.application_credential import *  # noqa
 from keystoneauth1.identity.v3.base import *  # noqa
 from keystoneauth1.identity.v3.federation import *  # noqa
