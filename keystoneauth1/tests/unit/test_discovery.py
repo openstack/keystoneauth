@@ -12,8 +12,8 @@
 
 import json
 import re
+from unittest import mock
 
-import mock
 from testtools import matchers
 
 from keystoneauth1 import adapter
