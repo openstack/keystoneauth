@@ -173,9 +173,13 @@ class Auth(BaseAuth):
             if self.system_scope == 'all':
                 body['auth']['scope'] = {'system': {'all': True}}
 
+        token_url = self.token_url
+
+        if not self.auth_url.rstrip('/').endswith('v3'):
+            token_url = '%s/v3/auth/tokens' % self.auth_url.rstrip('/')
+
         # NOTE(jamielennox): we add nocatalog here rather than in token_url
         # directly as some federation plugins require the base token_url
-        token_url = self.token_url
         if not self.include_catalog:
             token_url += '?nocatalog'
 
