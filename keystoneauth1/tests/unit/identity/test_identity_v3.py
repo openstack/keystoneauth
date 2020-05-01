@@ -798,3 +798,27 @@ class V3IdentityPlugin(utils.TestCase):
         self.assertRequestHeaderEqual("Content-Type", "application/json")
         self.assertRequestHeaderEqual("Accept", "application/json")
         self.assertEqual(s.auth.auth_ref.auth_token, self.TEST_TOKEN)
+
+    def test_authenticate_with_unversioned_endpoint(self):
+        self.stub_auth(json=self.TEST_RESPONSE_DICT)
+        # We use the root url here because it doesn't reference the API version
+        # (e.g., '/v3'). We want to make sure the authentication plugin handles
+        # this and appends /v3 if it's not present.
+        a = v3.Password(self.TEST_ROOT_URL,
+                        username=self.TEST_USER,
+                        password=self.TEST_PASS)
+        self.assertFalse(a.has_scope_parameters)
+        s = session.Session(auth=a)
+
+        self.assertEqual({'X-Auth-Token': self.TEST_TOKEN},
+                         s.get_auth_headers())
+
+        req = {'auth': {'identity':
+               {'methods': ['password'],
+                'password': {'user': {'name': self.TEST_USER,
+                                      'password': self.TEST_PASS}}}}}
+
+        self.assertRequestBodyIs(json=req)
+        self.assertRequestHeaderEqual('Content-Type', 'application/json')
+        self.assertRequestHeaderEqual('Accept', 'application/json')
+        self.assertEqual(s.auth.auth_ref.auth_token, self.TEST_TOKEN)

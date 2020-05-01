@@ -1,0 +1,6 @@
+---
+fixes:
+  - |
+    [`bug 1876317 <https://bugs.launchpad.net/keystoneauth/+bug/1876317>`_]
+    The v3 authentication plugins now attempt to add /v3 to the token path if
+    it's not present on the authentication URL.
