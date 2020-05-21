@@ -101,7 +101,7 @@ add_module_names = True
 #show_authors = False
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+pygments_style = 'native'
 
 # A list of ignored prefixes for module index sorting.
 modindex_common_prefix = ['keystoneauth1.']
@@ -237,6 +237,8 @@ intersphinx_mapping = {
 }
 
 # -- Options for openstackdocstheme -------------------------------------------
-repository_name = 'openstack/keystoneauth'
-bug_project = 'keystoneauth'
-bug_tag = 'doc'
+openstackdocs_repo_name = 'openstack/keystoneauth'
+openstackdocs_pdf_link = True
+openstackdocs_auto_name = False
+openstackdocs_bug_project = 'keystoneauth'
+openstackdocs_bug_tag = 'doc'
