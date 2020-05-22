@@ -76,8 +76,8 @@ class LoadingTests(utils.TestCase):
         loaders = loading.get_available_plugin_loaders()
         self.assertThat(len(loaders), matchers.GreaterThan(0))
 
-        for l in loaders.values():
-            self.assertIsInstance(l, loading.BaseLoader)
+        for loader in loaders.values():
+            self.assertIsInstance(loader, loading.BaseLoader)
 
     def test_loading_getter(self):
 
