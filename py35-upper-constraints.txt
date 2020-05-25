@@ -1,0 +1,7 @@
+oslo.i18n===3.25.1
+debtcollector===1.22.0
+oslotest===3.9.0
+reno===2.11.3
+mox3===0.28.0
+oslo.config===7.0.0
+oslo.utils===3.42.1
