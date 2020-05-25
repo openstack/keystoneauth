@@ -1,0 +1,7 @@
+---
+features:
+  - |
+    A new ``http_basic`` auth plugin is added which enables HTTP Basic
+    authentication for standalone services. Like the ``noauth`` plugin, the
+    ``endpoint`` needs to be specified explicitly, along with the
+    ``username`` and ``password``.

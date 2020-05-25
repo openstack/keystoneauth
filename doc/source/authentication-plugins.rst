@@ -226,6 +226,34 @@ you can continue as well:
     sess = session.Session(auth=auth)
     sess.get_token()
 
+Standalone Plugins
+------------------
+
+Services can be deployed in a standalone environment where there is no integration
+with an identity service. The following plugins are provided to support standalone
+services:
+
+- :py:class:`~keystoneauth1.http_basic.HTTPBasicAuth`: HTTP Basic authentication
+- :py:class:`~keystoneauth1.noauth.NoAuth`: No authentication
+
+Standalone plugins must be given an `endpoint` that points to the URL of the one
+service being used, since there is no service catalog to look up endpoints::
+
+    from keystoneauth1 import session
+    from keystoneauth1 import noauth
+    auth = noauth.NoAuth(endpoint='http://hostname:6385/')
+    sess = session.Session(auth=auth)
+
+:py:class:`~keystoneauth1.http_basic.HTTPBasicAuth` also requres a `username` and
+`password`::
+
+    from keystoneauth1 import session
+    from keystoneauth1 import http_basic
+    auth = http_basic.HTTPBasicAuth(endpoint='http://hostname:6385/',
+                                    username='myUser',
+                                    password='myPassword')
+    sess = session.Session(auth=auth)
+
 Federation
 ==========
 
@@ -374,6 +402,8 @@ possible to specify a plugin to load via name. The authentication options that
 are available are then specific to the plugin that you specified. Currently the
 authentication plugins that are available in `keystoneauth` are:
 
+- http_basic: :py:class:`keystoneauth1.http_basic.HTTPBasicAuth`
+- none: :py:class:`keystoneauth1.noauth.NoAuth`
 - password: :py:class:`keystoneauth1.identity.generic.Password`
 - token: :py:class:`keystoneauth1.identity.generic.Token`
 - v2password: :py:class:`keystoneauth1.identity.v2.Password`
