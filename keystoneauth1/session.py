@@ -753,6 +753,14 @@ class Session(object):
         else:
             split_loggers = None
         logger = logger or utils.get_logger(__name__)
+        # NOTE(gmann): Convert r initlize the headers to
+        # CaseInsensitiveDict to make sure headers are
+        # case insensitive.
+        if kwargs.get('headers'):
+            kwargs['headers'] = requests.structures.CaseInsensitiveDict(
+                kwargs['headers'])
+        else:
+            kwargs['headers'] = requests.structures.CaseInsensitiveDict()
         if connect_retries is None:
             connect_retries = self._connect_retries
         # HTTP 503 - Service Unavailable

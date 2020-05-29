@@ -13,6 +13,8 @@
 import os
 import warnings
 
+import requests
+
 from keystoneauth1 import _fair_semaphore
 from keystoneauth1 import session
 
@@ -198,7 +200,14 @@ class Adapter(object):
     def request(self, url, method, **kwargs):
         endpoint_filter = kwargs.setdefault('endpoint_filter', {})
         self._set_endpoint_filter_kwargs(endpoint_filter)
-
+        # NOTE(gmann): Convert r initlize the headers to
+        # CaseInsensitiveDict to make sure headers are
+        # case insensitive.
+        if kwargs.get('headers'):
+            kwargs['headers'] = requests.structures.CaseInsensitiveDict(
+                kwargs['headers'])
+        else:
+            kwargs['headers'] = requests.structures.CaseInsensitiveDict()
         if self.endpoint_override:
             kwargs.setdefault('endpoint_override', self.endpoint_override)
 
