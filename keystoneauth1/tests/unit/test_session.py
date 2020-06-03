@@ -1822,7 +1822,7 @@ class AdapterTest(utils.TestCase):
             with mock.patch.object(sess, 'request') as m:
                 adapter.Adapter(sess, **adap_kwargs).get(url, **get_kwargs)
                 m.assert_called_once_with(url, 'GET', endpoint_filter={},
-                                          rate_semaphore=mock.ANY,
+                                          headers={}, rate_semaphore=mock.ANY,
                                           **exp_kwargs)
 
         # No default_microversion in Adapter, no microversion in get()
@@ -1846,7 +1846,7 @@ class AdapterTest(utils.TestCase):
             with mock.patch.object(sess, 'request') as m:
                 adapter.Adapter(sess, **adap_kwargs).get(url, **get_kwargs)
                 m.assert_called_once_with(url, 'GET', endpoint_filter={},
-                                          rate_semaphore=mock.ANY,
+                                          headers={}, rate_semaphore=mock.ANY,
                                           **exp_kwargs)
 
         # No raise_exc in Adapter or get()
