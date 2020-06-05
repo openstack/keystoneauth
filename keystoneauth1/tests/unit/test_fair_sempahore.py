@@ -12,8 +12,8 @@
 
 from threading import Thread
 from timeit import default_timer as timer
+from unittest import mock
 
-import mock
 from six.moves import queue
 import testtools
 

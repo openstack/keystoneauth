@@ -11,9 +11,9 @@
 # under the License.
 
 import json
+from unittest import mock
 
 import betamax
-import mock
 from requests import models
 import testtools
 

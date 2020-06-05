@@ -13,10 +13,10 @@
 """A fixture to wrap the session constructor for use with Betamax."""
 
 from functools import partial
+from unittest import mock
 
 import betamax
 import fixtures
-import mock
 import requests
 
 from keystoneauth1.fixture import hooks

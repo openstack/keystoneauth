@@ -15,9 +15,9 @@ import itertools
 import json
 import logging
 import sys
+from unittest import mock
 import uuid
 
-import mock
 from oslo_utils import encodeutils
 import requests
 import requests.auth
@@ -978,7 +978,7 @@ class SessionAuthTests(utils.TestCase):
         mock_close = mock.Mock()
         sess._session.close = mock_close
         del sess
-        mock_close.assert_called_once()
+        self.assertEqual(1, mock_close.call_count)
 
     def test_service_type_urls(self):
         service_type = 'compute'

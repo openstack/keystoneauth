@@ -11,9 +11,9 @@
 # under the License.
 
 import functools
+from unittest import mock
 import uuid
 
-import mock
 
 from keystoneauth1 import loading
 from keystoneauth1.loading import base
