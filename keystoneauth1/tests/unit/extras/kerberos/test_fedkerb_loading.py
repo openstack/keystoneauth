@@ -35,7 +35,7 @@ class FedKerbLoadingTests(test_utils.TestCase):
                         'mutual-auth',
                         ]
 
-        self.assertItemsEqual(allowed_opts, opts)
+        self.assertCountEqual(allowed_opts, opts)
 
     def create(self, **kwargs):
         loader = loading.get_plugin_loader('v3fedkerb')

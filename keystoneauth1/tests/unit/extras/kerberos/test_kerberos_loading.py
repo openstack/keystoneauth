@@ -32,4 +32,4 @@ class KerberosLoadingTests(test_utils.TestCase):
                         'mutual-auth',
                         ]
 
-        self.assertItemsEqual(allowed_opts, opts)
+        self.assertCountEqual(allowed_opts, opts)
