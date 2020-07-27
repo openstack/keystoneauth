@@ -76,7 +76,15 @@ class ListAuthPluginsDirective(rst.Directive):
         for name in sorted(mgr.names()):
             for line in self.display_plugin(mgr[name]):
                 for l in line.splitlines():
-                    result.append(l, mgr[name].entry_point.module_name)
+                    ep = mgr[name]
+                    try:
+                        module_name = ep.entry_point.module_name
+                    except AttributeError:
+                        try:
+                            module_name = ep.entry_point.module
+                        except AttributeError:
+                            module_name = ep.entry_point.value
+                    result.append(l, module_name)
 
         # Parse what we have into a new section.
         node = nodes.section()
