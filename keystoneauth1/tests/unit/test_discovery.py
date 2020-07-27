@@ -748,23 +748,45 @@ class VersionDataTests(utils.TestCase):
 
     def test_endpoint_data_noauth_discover(self):
         mock = self.requests_mock.get(
+            BASE_URL, status_code=200, json=V3_VERSION_LIST)
+        self.requests_mock.get(
             V3_URL, status_code=200, json=V3_VERSION_ENTRY)
-        plugin = noauth.NoAuth()
-        data = plugin.get_endpoint_data(self.session, endpoint_override=V3_URL)
+
+        plugin = noauth.NoAuth(endpoint=BASE_URL)
+        data = plugin.get_endpoint_data(self.session)
 
         self.assertEqual(data.api_version, (3, 0))
         self.assertEqual(data.url, V3_URL)
-        self.assertEqual(
-            plugin.get_api_major_version(
-                self.session, endpoint_override=V3_URL),
-            (3, 0))
-        self.assertEqual(
-            plugin.get_endpoint(self.session, endpoint_override=V3_URL),
-            V3_URL)
+        self.assertEqual(plugin.get_api_major_version(self.session), (3, 0))
+        self.assertEqual(plugin.get_endpoint(self.session), BASE_URL)
 
         self.assertTrue(mock.called_once)
 
+    def test_endpoint_data_noauth_versioned_discover(self):
+        self.requests_mock.get(
+            BASE_URL, status_code=200, json=V3_VERSION_LIST)
+        self.requests_mock.get(
+            V3_URL, status_code=200, json=V3_VERSION_ENTRY)
+
+        plugin = noauth.NoAuth(endpoint=V3_URL)
+        data = plugin.get_endpoint_data(self.session)
+
+        self.assertEqual(data.api_version, (3, 0))
+        self.assertEqual(data.url, V3_URL)
+        self.assertEqual(plugin.get_api_major_version(self.session), (3, 0))
+        self.assertEqual(plugin.get_endpoint(self.session), V3_URL)
+
     def test_endpoint_data_noauth_no_discover(self):
+        plugin = noauth.NoAuth(endpoint=V3_URL)
+        data = plugin.get_endpoint_data(
+            self.session, discover_versions=False)
+
+        self.assertEqual(data.api_version, (3, 0))
+        self.assertEqual(data.url, V3_URL)
+        self.assertEqual(plugin.get_api_major_version(self.session), (3, 0))
+        self.assertEqual(plugin.get_endpoint(self.session), V3_URL)
+
+    def test_endpoint_data_noauth_override_no_discover(self):
         plugin = noauth.NoAuth()
         data = plugin.get_endpoint_data(
             self.session, endpoint_override=V3_URL, discover_versions=False)
@@ -772,12 +794,22 @@ class VersionDataTests(utils.TestCase):
         self.assertEqual(data.api_version, (3, 0))
         self.assertEqual(data.url, V3_URL)
         self.assertEqual(
-            plugin.get_api_major_version(
-                self.session, endpoint_override=V3_URL),
-            (3, 0))
-        self.assertEqual(
             plugin.get_endpoint(self.session, endpoint_override=V3_URL),
             V3_URL)
+
+    def test_endpoint_data_http_basic_discover(self):
+        self.requests_mock.get(
+            BASE_URL, status_code=200, json=V3_VERSION_LIST)
+        self.requests_mock.get(
+            V3_URL, status_code=200, json=V3_VERSION_ENTRY)
+
+        plugin = http_basic.HTTPBasicAuth(endpoint=V3_URL)
+        data = plugin.get_endpoint_data(self.session)
+
+        self.assertEqual(data.api_version, (3, 0))
+        self.assertEqual(data.url, V3_URL)
+        self.assertEqual(plugin.get_api_major_version(self.session), (3, 0))
+        self.assertEqual(plugin.get_endpoint(self.session), V3_URL)
 
     def test_endpoint_data_http_basic_no_discover(self):
         plugin = http_basic.HTTPBasicAuth(endpoint=V3_URL)
@@ -786,13 +818,8 @@ class VersionDataTests(utils.TestCase):
 
         self.assertEqual(data.api_version, (3, 0))
         self.assertEqual(data.url, V3_URL)
-        self.assertEqual(
-            plugin.get_api_major_version(
-                self.session, endpoint_override=V3_URL),
-            (3, 0))
-        self.assertEqual(
-            plugin.get_endpoint(self.session, endpoint_override=V3_URL),
-            V3_URL)
+        self.assertEqual(plugin.get_api_major_version(self.session), (3, 0))
+        self.assertEqual(plugin.get_endpoint(self.session), V3_URL)
 
     def test_endpoint_data_http_basic_override_no_discover(self):
         plugin = http_basic.HTTPBasicAuth()
@@ -810,6 +837,22 @@ class VersionDataTests(utils.TestCase):
             V3_URL)
 
     def test_endpoint_data_noauth_adapter(self):
+        self.requests_mock.get(
+            BASE_URL, status_code=200, json=V3_VERSION_LIST)
+        self.requests_mock.get(
+            V3_URL, status_code=200, json=V3_VERSION_ENTRY)
+
+        client = adapter.Adapter(
+            session.Session(noauth.NoAuth()),
+            endpoint_override=BASE_URL)
+        data = client.get_endpoint_data()
+
+        self.assertEqual(data.api_version, (3, 0))
+        self.assertEqual(data.url, V3_URL)
+        self.assertEqual(client.get_api_major_version(), (3, 0))
+        self.assertEqual(client.get_endpoint(), BASE_URL)
+
+    def test_endpoint_data_noauth_versioned_adapter(self):
         mock = self.requests_mock.get(
             V3_URL, status_code=200, json=V3_VERSION_ENTRY)
 
