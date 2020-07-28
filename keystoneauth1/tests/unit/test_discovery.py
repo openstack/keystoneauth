@@ -20,6 +20,7 @@ from keystoneauth1 import adapter
 from keystoneauth1 import discover
 from keystoneauth1 import exceptions
 from keystoneauth1 import fixture
+from keystoneauth1 import http_basic
 from keystoneauth1 import noauth
 from keystoneauth1 import session
 from keystoneauth1.tests.unit import utils
@@ -765,6 +766,36 @@ class VersionDataTests(utils.TestCase):
 
     def test_endpoint_data_noauth_no_discover(self):
         plugin = noauth.NoAuth()
+        data = plugin.get_endpoint_data(
+            self.session, endpoint_override=V3_URL, discover_versions=False)
+
+        self.assertEqual(data.api_version, (3, 0))
+        self.assertEqual(data.url, V3_URL)
+        self.assertEqual(
+            plugin.get_api_major_version(
+                self.session, endpoint_override=V3_URL),
+            (3, 0))
+        self.assertEqual(
+            plugin.get_endpoint(self.session, endpoint_override=V3_URL),
+            V3_URL)
+
+    def test_endpoint_data_http_basic_no_discover(self):
+        plugin = http_basic.HTTPBasicAuth(endpoint=V3_URL)
+        data = plugin.get_endpoint_data(
+            self.session, discover_versions=False)
+
+        self.assertEqual(data.api_version, (3, 0))
+        self.assertEqual(data.url, V3_URL)
+        self.assertEqual(
+            plugin.get_api_major_version(
+                self.session, endpoint_override=V3_URL),
+            (3, 0))
+        self.assertEqual(
+            plugin.get_endpoint(self.session, endpoint_override=V3_URL),
+            V3_URL)
+
+    def test_endpoint_data_http_basic_override_no_discover(self):
+        plugin = http_basic.HTTPBasicAuth()
         data = plugin.get_endpoint_data(
             self.session, endpoint_override=V3_URL, discover_versions=False)
 

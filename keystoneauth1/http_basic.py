@@ -17,7 +17,7 @@ from keystoneauth1 import plugin
 AUTH_HEADER_NAME = 'Authorization'
 
 
-class HTTPBasicAuth(plugin.BaseAuthPlugin):
+class HTTPBasicAuth(plugin.FixedEndpointPlugin):
     """A provider that will always use HTTP Basic authentication.
 
     This is useful to unify session/adapter loading for services
@@ -25,8 +25,7 @@ class HTTPBasicAuth(plugin.BaseAuthPlugin):
     """
 
     def __init__(self, endpoint=None, username=None, password=None):
-        super(HTTPBasicAuth, self).__init__()
-        self.endpoint = endpoint
+        super(HTTPBasicAuth, self).__init__(endpoint)
         self.username = username
         self.password = password
 
@@ -44,12 +43,3 @@ class HTTPBasicAuth(plugin.BaseAuthPlugin):
             return None
         auth = 'Basic %s' % token
         return {AUTH_HEADER_NAME: auth}
-
-    def get_endpoint(self, session, **kwargs):
-        """Return the supplied endpoint.
-
-        Using this plugin the same endpoint is returned regardless of the
-        parameters passed to the plugin. endpoint_override overrides the
-        endpoint specified when constructing the plugin.
-        """
-        return kwargs.get('endpoint_override') or self.endpoint
