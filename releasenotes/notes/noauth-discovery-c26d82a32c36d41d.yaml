@@ -1,0 +1,5 @@
+---
+fixes:
+  - |
+    Fixes ``get_api_major_version`` for non-keystone authentication methods
+    when the provided endpoint is not versioned.
