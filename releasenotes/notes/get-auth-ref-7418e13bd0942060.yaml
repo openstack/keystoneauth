@@ -1,0 +1,5 @@
+---
+fixes:
+  - |
+    Fixes missing ``get_auth_ref`` call for the ``none`` and ``http_basic``
+    authentication plugins. The implementation simply returns ``None``.

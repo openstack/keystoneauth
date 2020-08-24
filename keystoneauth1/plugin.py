@@ -61,6 +61,17 @@ class BaseAuthPlugin(object):
         """
         return None
 
+    def get_auth_ref(self, session, **kwargs):
+        """Return the authentication reference of an auth plugin.
+
+        There are no required kwargs. They are passed directly to the auth
+        plugin and they are implementation specific.
+
+        :param session: A session object to be used for communication
+        :type session: keystoneauth1.session.session
+        """
+        return None
+
     def get_headers(self, session, **kwargs):
         """Fetch authentication headers for message.
 
