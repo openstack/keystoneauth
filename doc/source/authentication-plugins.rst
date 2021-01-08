@@ -321,11 +321,21 @@ Simple Plugins
 --------------
 
 In addition to the Identity plugins a simple plugin that will always use the
-same provided token and endpoint is available. This is useful in situations
-where you have an token or in testing when you specifically know the endpoint
-you want to communicate with.
+same provided token and endpoint is available. This is useful for situations
+where you have a token and want to bypass authentication to obtain a new token
+for subsequent requests. Testing, proxies, and service-to-service
+authentication on behalf of a user are good examples use cases for this
+authentication plugin.
 
 It can be found at :py:class:`keystoneauth1.token_endpoint.Token`.
+
+For example::
+
+    >>> from keystoneauth1 import token_endpoint
+    >>> from keystoneauth1 import session
+    >>> a = token_endpoint.Token('http://my.keystone.com:5000/v3',
+    ...                          token=token)
+    >>> s = session.Session(auth=a)
 
 
 V3 OAuth 1.0a Plugins
