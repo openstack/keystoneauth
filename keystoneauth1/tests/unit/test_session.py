@@ -164,6 +164,17 @@ class SessionTests(utils.TestCase):
         self.assertEqual(headers['OpenStack-API-Version'], 'volume 2.30')
         self.assertEqual(len(headers.keys()), 1)
 
+        # shared file system service-type - shared-file-system microversion
+        # (with service type aliases)
+        for service_type in ['sharev2', 'shared-file-system']:
+            headers = {}
+            client_session.Session._set_microversion_headers(
+                headers, (2, 30), None, {'service_type': service_type})
+            self.assertEqual(headers['X-OpenStack-Manila-API-Version'], '2.30')
+            self.assertEqual(headers['OpenStack-API-Version'],
+                             'shared-file-system 2.30')
+            self.assertEqual(len(headers.keys()), 2)
+
         # Headers already exist - no change
         headers = {
             'OpenStack-API-Version': 'compute 2.30',

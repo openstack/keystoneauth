@@ -83,6 +83,8 @@ def _mv_legacy_headers_for_service(mv_service_type):
         headers.append("X-OpenStack-Nova-API-Version")
     elif mv_service_type == "baremetal":
         headers.append("X-OpenStack-Ironic-API-Version")
+    elif mv_service_type in ["sharev2", "shared-file-system"]:
+        headers.append("X-OpenStack-Manila-API-Version")
     return headers
 
 
@@ -614,6 +616,14 @@ class Session(object):
         if (service_type.startswith('volume') or
                 service_type == 'block-storage'):
             service_type = 'volume'
+        elif service_type.startswith('share'):
+            # NOTE(gouthamr) manila doesn't honor the "OpenStack-API-Version"
+            # header yet, but sending it does no harm - when the service
+            # honors this header, it'll use the standardized name in the
+            # service-types-authority and not the legacy name in the cloud's
+            # service catalog
+            service_type = 'shared-file-system'
+
         headers.setdefault('OpenStack-API-Version',
                            '{service_type} {microversion}'.format(
                                service_type=service_type,
