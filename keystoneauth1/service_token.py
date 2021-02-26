@@ -20,6 +20,7 @@ __all__ = ('ServiceTokenAuthWrapper',)
 class ServiceTokenAuthWrapper(plugin.BaseAuthPlugin):
 
     def __init__(self, user_auth, service_auth):
+        super(ServiceTokenAuthWrapper, self).__init__()
         self.user_auth = user_auth
         self.service_auth = service_auth
 
