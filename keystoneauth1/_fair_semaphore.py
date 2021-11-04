@@ -10,11 +10,9 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import queue
 import threading
 import time
-
-
-from six.moves import queue
 
 
 class FairSemaphore(object):

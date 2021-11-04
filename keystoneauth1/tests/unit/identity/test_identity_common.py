@@ -12,10 +12,8 @@
 
 import abc
 import collections
+import urllib
 import uuid
-
-import six
-from six.moves import urllib
 
 from keystoneauth1 import _utils
 from keystoneauth1 import access
@@ -76,8 +74,7 @@ class FakeServiceEndpoints(object):
         return url
 
 
-@six.add_metaclass(abc.ABCMeta)
-class CommonIdentityTests(object):
+class CommonIdentityTests(metaclass=abc.ABCMeta):
 
     PROJECT_ID = uuid.uuid4().hex
     TEST_ROOT_URL = 'http://127.0.0.1:5000/'

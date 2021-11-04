@@ -10,11 +10,11 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import queue
 from threading import Thread
 from timeit import default_timer as timer
 from unittest import mock
 
-from six.moves import queue
 import testtools
 
 from keystoneauth1 import _fair_semaphore

@@ -11,6 +11,7 @@
 # under the License.
 
 import datetime
+import io
 import itertools
 import json
 import logging
@@ -21,7 +22,6 @@ import uuid
 from oslo_utils import encodeutils
 import requests
 import requests.auth
-import six
 from testtools import matchers
 
 from keystoneauth1 import adapter
@@ -1258,8 +1258,8 @@ class SessionAuthTests(utils.TestCase):
         logger.setLevel(logging.DEBUG)
         logger.propagate = False
 
-        io = six.StringIO()
-        handler = logging.StreamHandler(io)
+        string_io = io.StringIO()
+        handler = logging.StreamHandler(string_io)
         logger.addHandler(handler)
 
         auth = AuthPlugin()
@@ -1273,7 +1273,7 @@ class SessionAuthTests(utils.TestCase):
         resp = sess.get(self.TEST_URL, logger=logger)
 
         self.assertEqual(response, resp.json())
-        output = io.getvalue()
+        output = string_io.getvalue()
 
         self.assertIn(self.TEST_URL, output)
         self.assertIn(list(response.keys())[0], output)
@@ -1289,14 +1289,14 @@ class SessionAuthTests(utils.TestCase):
             logger = logging.getLogger(logger_name)
             logger.setLevel(logging.DEBUG)
 
-            io = six.StringIO()
-            handler = logging.StreamHandler(io)
+            string_io = io.StringIO()
+            handler = logging.StreamHandler(string_io)
             logger.addHandler(handler)
-            return io
+            return string_io
 
-        io = {}
+        io_dict = {}
         for name in ('request', 'body', 'response', 'request-id'):
-            io[name] = get_logger_io(name)
+            io_dict[name] = get_logger_io(name)
 
         auth = AuthPlugin()
         sess = client_session.Session(auth=auth, split_loggers=True)
@@ -1322,10 +1322,10 @@ class SessionAuthTests(utils.TestCase):
 
         self.assertEqual(response, resp.json())
 
-        request_output = io['request'].getvalue().strip()
-        response_output = io['response'].getvalue().strip()
-        body_output = io['body'].getvalue().strip()
-        id_output = io['request-id'].getvalue().strip()
+        request_output = io_dict['request'].getvalue().strip()
+        response_output = io_dict['response'].getvalue().strip()
+        body_output = io_dict['body'].getvalue().strip()
+        id_output = io_dict['request-id'].getvalue().strip()
 
         self.assertIn('curl -g -i -X GET {url}'.format(url=self.TEST_URL),
                       request_output)
@@ -1607,8 +1607,8 @@ class AdapterTest(utils.TestCase):
         logger.setLevel(logging.DEBUG)
         logger.propagate = False
 
-        io = six.StringIO()
-        handler = logging.StreamHandler(io)
+        string_io = io.StringIO()
+        handler = logging.StreamHandler(string_io)
         logger.addHandler(handler)
 
         auth = AuthPlugin()
@@ -1623,7 +1623,7 @@ class AdapterTest(utils.TestCase):
         resp = adpt.get(self.TEST_URL, logger=logger)
 
         self.assertEqual(response, resp.json())
-        output = io.getvalue()
+        output = string_io.getvalue()
 
         self.assertIn(self.TEST_URL, output)
         self.assertIn(list(response.keys())[0], output)

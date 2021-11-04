@@ -10,10 +10,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import urllib
 import uuid
 import warnings
-
-from six.moves import urllib
 
 from keystoneauth1 import exceptions
 from keystoneauth1.identity.v3 import oidc

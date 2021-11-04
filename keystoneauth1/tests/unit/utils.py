@@ -13,12 +13,12 @@
 import json as jsonutils
 import logging
 import time
+import urllib.parse
 import uuid
 
 import fixtures
 import requests
 from requests_mock.contrib import fixture
-from six.moves.urllib import parse as urlparse
 import testtools
 
 
@@ -80,9 +80,11 @@ class TestCase(testtools.TestCase):
 
         The qs parameter should be of the format \'foo=bar&abc=xyz\'
         """
-        expected = urlparse.parse_qs(qs, keep_blank_values=True)
-        parts = urlparse.urlparse(self.requests_mock.last_request.url)
-        querystring = urlparse.parse_qs(parts.query, keep_blank_values=True)
+        expected = urllib.parse.parse_qs(qs, keep_blank_values=True)
+        parts = urllib.parse.urlparse(self.requests_mock.last_request.url)
+        querystring = urllib.parse.parse_qs(
+            parts.query, keep_blank_values=True,
+        )
         self.assertEqual(expected, querystring)
 
     def assertQueryStringContains(self, **kwargs):
@@ -95,8 +97,8 @@ class TestCase(testtools.TestCase):
         verified is that the parameter is present.
 
         """
-        parts = urlparse.urlparse(self.requests_mock.last_request.url)
-        qs = urlparse.parse_qs(parts.query, keep_blank_values=True)
+        parts = urllib.parse.urlparse(self.requests_mock.last_request.url)
+        qs = urllib.parse.parse_qs(parts.query, keep_blank_values=True)
 
         for k, v in kwargs.items():
             self.assertIn(k, qs)

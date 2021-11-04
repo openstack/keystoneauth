@@ -10,8 +10,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import six
-
 from keystoneauth1 import access
 from keystoneauth1 import exceptions
 from keystoneauth1.identity.v3 import federation
@@ -119,7 +117,7 @@ class Keystone2Keystone(federation._Rescoped):
         if not resp.text:
             raise exceptions.InvalidResponse(resp)
 
-        return six.text_type(resp.text)
+        return str(resp.text)
 
     def _send_service_provider_ecp_authn_response(self, session, sp_url,
                                                   sp_auth_url):

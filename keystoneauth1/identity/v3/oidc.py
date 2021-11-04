@@ -13,8 +13,6 @@
 import abc
 import warnings
 
-import six
-
 from keystoneauth1 import _utils as utils
 from keystoneauth1 import access
 from keystoneauth1 import exceptions
@@ -28,8 +26,7 @@ __all__ = ('OidcAuthorizationCode',
            'OidcAccessToken')
 
 
-@six.add_metaclass(abc.ABCMeta)
-class _OidcBase(federation.FederationBaseAuth):
+class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
     """Base class for different OpenID Connect based flows.
 
     The OpenID Connect specification can be found at::
