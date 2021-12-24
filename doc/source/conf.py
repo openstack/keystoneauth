@@ -195,8 +195,8 @@ htmlhelp_basename = 'keystoneauthdoc'
 # .
 latex_documents = [
     ('index', 'doc-keystoneauth.tex',
-     u'keystoneauth1 Documentation',
-     u'Openstack Developers',
+     'keystoneauth1 Documentation',
+     'Openstack Developers',
      'manual', True),
 ]
 
