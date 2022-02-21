@@ -3,7 +3,7 @@
 
 build-essential [platform:dpkg test]
 python-dev [platform:dpkg test]
-python-devel [platform:rpm test]
+python3-devel [platform:rpm test]
 libkrb5-dev [platform:dpkg test]
 krb5-devel [platform:rpm test]
 libxml2-dev [platform:dpkg]
