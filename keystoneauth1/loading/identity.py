@@ -56,7 +56,8 @@ class BaseV2Loader(BaseIdentityLoader):
         options.extend([
             opts.Opt('tenant-id', help='Tenant ID'),
             opts.Opt('tenant-name', help='Tenant Name'),
-            opts.Opt('trust-id', help='Trust ID'),
+            opts.Opt('trust-id',
+                     help='ID of the trust to use as a trustee use'),
         ])
 
         return options
@@ -83,7 +84,8 @@ class BaseV3Loader(BaseIdentityLoader):
                      help='Domain ID containing project'),
             opts.Opt('project-domain-name',
                      help='Domain name containing project'),
-            opts.Opt('trust-id', help='Trust ID'),
+            opts.Opt('trust-id',
+                     help='ID of the trust to use as a trustee use'),
         ])
 
         return options
@@ -148,7 +150,8 @@ class BaseGenericLoader(BaseIdentityLoader):
                      help='Domain ID containing project'),
             opts.Opt('project-domain-name',
                      help='Domain name containing project'),
-            opts.Opt('trust-id', help='Trust ID'),
+            opts.Opt('trust-id',
+                     help='ID of the trust to use as a trustee use'),
             opts.Opt('default-domain-id',
                      help='Optional domain ID to use with v3 and v2 '
                           'parameters. It will be used for both the user '
