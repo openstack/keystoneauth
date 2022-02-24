@@ -338,3 +338,44 @@ class MultiFactor(loading.BaseV3Loader):
         self._methods = kwargs['auth_methods']
 
         return super(MultiFactor, self).load_from_options(**kwargs)
+
+
+class OAuth2ClientCredential(loading.BaseV3Loader):
+
+    @property
+    def plugin_class(self):
+        return identity.V3OAuth2ClientCredential
+
+    def get_options(self):
+        options = super(OAuth2ClientCredential, self).get_options()
+        options.extend([
+            loading.Opt('oauth2_endpoint',
+                        required=True,
+                        help='Endpoint for OAuth2.0'),
+        ]),
+        options.extend([
+            loading.Opt('oauth2_client_id',
+                        required=True,
+                        help='Client id for OAuth2.0'),
+        ]),
+        options.extend([
+            loading.Opt('oauth2_client_secret',
+                        secret=True,
+                        required=True,
+                        help='Client secret for OAuth2.0'),
+        ])
+
+        return options
+
+    def load_from_options(self, **kwargs):
+        if not kwargs.get('oauth2_endpoint'):
+            m = 'You must provide an OAuth2.0 endpoint.'
+            raise exceptions.OptionError(m)
+        if not kwargs.get('oauth2_client_id'):
+            m = 'You must provide an OAuth2.0 client credential ID.'
+            raise exceptions.OptionError(m)
+        if not kwargs.get('oauth2_client_secret'):
+            m = 'You must provide an OAuth2.0 client credential auth secret.'
+            raise exceptions.OptionError(m)
+
+        return super(OAuth2ClientCredential, self).load_from_options(**kwargs)

@@ -23,6 +23,7 @@ from keystoneauth1.identity.v3.receipt import *  # noqa
 from keystoneauth1.identity.v3.token import *  # noqa
 from keystoneauth1.identity.v3.totp import *  # noqa
 from keystoneauth1.identity.v3.tokenless_auth import *  # noqa
+from keystoneauth1.identity.v3.oauth2_client_credential import *  # noqa
 
 
 __all__ = ('ApplicationCredential',
@@ -55,4 +56,7 @@ __all__ = ('ApplicationCredential',
 
            'ReceiptMethod',
 
-           'MultiFactor', )
+           'MultiFactor',
+
+           'OAuth2ClientCredential',
+           'OAuth2ClientCredentialMethod',)

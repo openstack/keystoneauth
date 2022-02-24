@@ -13,11 +13,13 @@
 import copy
 import json
 import time
+import unittest
 import uuid
 
 from keystoneauth1 import _utils as ksa_utils
 from keystoneauth1 import access
 from keystoneauth1 import exceptions
+from keystoneauth1.exceptions import ClientException
 from keystoneauth1 import fixture
 from keystoneauth1.identity import v3
 from keystoneauth1.identity.v3 import base as v3_base
@@ -36,6 +38,9 @@ class V3IdentityPlugin(utils.TestCase):
 
     TEST_APP_CRED_ID = 'appcredid'
     TEST_APP_CRED_SECRET = 'secret'
+
+    TEST_CLIENT_CRED_ID = 'clientcredid'
+    TEST_CLIENT_CRED_SECRET = 'secret'
 
     TEST_SERVICE_CATALOG = [{
         "endpoints": [{
@@ -822,3 +827,261 @@ class V3IdentityPlugin(utils.TestCase):
         self.assertRequestHeaderEqual('Content-Type', 'application/json')
         self.assertRequestHeaderEqual('Accept', 'application/json')
         self.assertEqual(s.auth.auth_ref.auth_token, self.TEST_TOKEN)
+
+    def test_oauth2_client_credential_method_http(self):
+        base_http = self.TEST_URL
+        oauth2_endpoint = f'{self.TEST_URL}/oauth_token'
+        oauth2_token = 'HW9bB6oYWJywz6mAN_KyIBXlof15Pk'
+        self.stub_auth(json=self.TEST_APP_CRED_TOKEN_RESPONSE)
+        client_cre = v3.OAuth2ClientCredential(
+            base_http,
+            oauth2_endpoint=oauth2_endpoint,
+            oauth2_client_id=self.TEST_CLIENT_CRED_ID,
+            oauth2_client_secret=self.TEST_CLIENT_CRED_SECRET
+        )
+        oauth2_resp = {
+            'status_code': 200,
+            'json': {
+                'access_token': oauth2_token,
+                'expires_in': 3600,
+                'token_type': 'Bearer'
+            }
+        }
+        self.requests_mock.post(oauth2_endpoint,
+                                [oauth2_resp])
+
+        sess = session.Session(auth=client_cre)
+        initial_cache_id = client_cre.get_cache_id()
+
+        auth_head = sess.get_auth_headers()
+        self.assertEqual(self.TEST_TOKEN, auth_head['X-Auth-Token'])
+        self.assertEqual(f'Bearer {oauth2_token}', auth_head['Authorization'])
+
+        self.assertEqual(sess.auth.auth_ref.auth_token, self.TEST_TOKEN)
+        self.assertEqual(initial_cache_id, client_cre.get_cache_id())
+
+        resp_ok = {
+            'status_code': 200
+        }
+        self.requests_mock.post(f'{base_http}/test_api',
+                                [resp_ok])
+        resp = sess.post(f'{base_http}/test_api', authenticated=True)
+        self.assertRequestHeaderEqual('Authorization',
+                                      f'Bearer {oauth2_token}')
+        self.assertRequestHeaderEqual('X-Auth-Token', self.TEST_TOKEN)
+        self.assertEqual(200, resp.status_code)
+
+    def test_oauth2_client_credential_method_https(self):
+        self.TEST_URL = self.TEST_URL.replace('http:', 'https:')
+        base_https = self.TEST_URL
+        oauth2_endpoint = f'{base_https}/oauth_token'
+        oauth2_token = 'HW9bB6oYWJywz6mAN_KyIBXlof15Pk'
+        self.stub_auth(json=self.TEST_APP_CRED_TOKEN_RESPONSE)
+        client_cre = v3.OAuth2ClientCredential(
+            base_https,
+            oauth2_endpoint=oauth2_endpoint,
+            oauth2_client_id=self.TEST_CLIENT_CRED_ID,
+            oauth2_client_secret=self.TEST_CLIENT_CRED_SECRET
+        )
+        oauth2_resp = {
+            'status_code': 200,
+            'json': {
+                'access_token': oauth2_token,
+                'expires_in': 3600,
+                'token_type': 'Bearer'
+            }
+        }
+        self.requests_mock.post(oauth2_endpoint,
+                                [oauth2_resp])
+
+        sess = session.Session(auth=client_cre)
+        initial_cache_id = client_cre.get_cache_id()
+
+        auth_head = sess.get_auth_headers()
+        self.assertEqual(self.TEST_TOKEN, auth_head['X-Auth-Token'])
+        self.assertEqual(f'Bearer {oauth2_token}', auth_head['Authorization'])
+
+        self.assertEqual(sess.auth.auth_ref.auth_token, self.TEST_TOKEN)
+        self.assertEqual(initial_cache_id, client_cre.get_cache_id())
+
+        resp_ok = {
+            'status_code': 200
+        }
+        self.requests_mock.post(f'{base_https}/test_api',
+                                [resp_ok])
+        resp = sess.post(f'{base_https}/test_api', authenticated=True)
+        self.assertRequestHeaderEqual('Authorization',
+                                      f'Bearer {oauth2_token}')
+        self.assertRequestHeaderEqual('X-Auth-Token', self.TEST_TOKEN)
+        self.assertEqual(200, resp.status_code)
+
+    def test_oauth2_client_credential_method_base_header_none(self):
+        base_https = self.TEST_URL.replace('http:', 'https:')
+        oauth2_endpoint = f'{base_https}/oauth_token'
+        oauth2_token = 'HW9bB6oYWJywz6mAN_KyIBXlof15Pk'
+        with unittest.mock.patch(
+                'keystoneauth1.plugin.BaseAuthPlugin.'
+                'get_headers') as co_mock:
+            co_mock.return_value = None
+            client_cre = v3.OAuth2ClientCredential(
+                base_https,
+                oauth2_endpoint=oauth2_endpoint,
+                oauth2_client_id=self.TEST_CLIENT_CRED_ID,
+                oauth2_client_secret=self.TEST_CLIENT_CRED_SECRET
+            )
+            oauth2_resp = {
+                'status_code': 200,
+                'json': {
+                    'access_token': oauth2_token,
+                    'expires_in': 3600,
+                    'token_type': 'Bearer'
+                }
+            }
+            self.requests_mock.post(oauth2_endpoint,
+                                    [oauth2_resp])
+
+            sess = session.Session(auth=client_cre)
+            auth_head = sess.get_auth_headers()
+            self.assertNotIn('X-Auth-Token', auth_head)
+            self.assertEqual(f'Bearer {oauth2_token}',
+                             auth_head['Authorization'])
+
+    def test_oauth2_client_credential_method_rm_auth(self):
+        base_https = self.TEST_URL.replace('http:', 'https:')
+        base_http = self.TEST_URL
+        oauth2_endpoint = f'{base_https}/oauth_token'
+        oauth2_token = 'HW9bB6oYWJywz6mAN_KyIBXlof15Pk'
+        self.stub_auth(json=self.TEST_APP_CRED_TOKEN_RESPONSE)
+        client_cre = v3.OAuth2ClientCredential(
+            base_http,
+            oauth2_endpoint=oauth2_endpoint,
+            oauth2_client_id=self.TEST_CLIENT_CRED_ID,
+            oauth2_client_secret=self.TEST_CLIENT_CRED_SECRET
+        )
+        oauth2_resp = {
+            'status_code': 200,
+            'json': {
+                'access_token': oauth2_token,
+                'expires_in': 3600,
+                'token_type': 'Bearer'
+            }
+        }
+        self.requests_mock.post(oauth2_endpoint,
+                                [oauth2_resp])
+
+        sess = session.Session(auth=client_cre)
+        initial_cache_id = client_cre.get_cache_id()
+
+        auth_head = sess.get_auth_headers()
+        self.assertEqual(self.TEST_TOKEN, auth_head['X-Auth-Token'])
+        self.assertEqual(f'Bearer {oauth2_token}', auth_head['Authorization'])
+
+        self.assertEqual(sess.auth.auth_ref.auth_token, self.TEST_TOKEN)
+        self.assertEqual(initial_cache_id, client_cre.get_cache_id())
+
+        resp_ok = {
+            'status_code': 200
+        }
+        self.requests_mock.post(f'{base_http}/test_api',
+                                [resp_ok])
+        resp = sess.post(f'{base_http}/test_api', authenticated=True)
+        self.assertRequestHeaderEqual('Authorization',
+                                      f'Bearer {oauth2_token}')
+        self.assertRequestHeaderEqual('X-Auth-Token', self.TEST_TOKEN)
+        self.assertEqual(200, resp.status_code)
+
+    def test_oauth2_client_credential_method_other_not_rm_auth(self):
+        base_https = self.TEST_URL.replace('http:', 'https:')
+        other_auth_token = 'HW9bB6oYWJywz6mAN_KyIBXlof15Pk'
+        self.stub_auth(json=self.TEST_APP_CRED_TOKEN_RESPONSE)
+        with unittest.mock.patch(
+                'keystoneauth1.identity.v3.Password.get_headers') as co_mock:
+            co_mock.return_value = {
+                'X-Auth-Token': self.TEST_TOKEN,
+                'Authorization': other_auth_token
+            }
+            pass_auth = v3.Password(base_https,
+                                    username=self.TEST_USER,
+                                    password=self.TEST_PASS,
+                                    include_catalog=False)
+            sess = session.Session(auth=pass_auth)
+
+            resp_ok = {
+                'status_code': 200
+            }
+            self.requests_mock.post(f'{base_https}/test_api',
+                                    [resp_ok])
+            resp = sess.post(f'{base_https}/test_api', authenticated=True)
+            self.assertRequestHeaderEqual('Authorization', other_auth_token)
+            self.assertRequestHeaderEqual('X-Auth-Token', self.TEST_TOKEN)
+            self.assertEqual(200, resp.status_code)
+
+    def test_oauth2_client_credential_method_500(self):
+        self.TEST_URL = self.TEST_URL.replace('http:', 'https:')
+        base_https = self.TEST_URL
+        oauth2_endpoint = f'{base_https}/oauth_token'
+        self.stub_auth(json=self.TEST_APP_CRED_TOKEN_RESPONSE)
+        client_cre = v3.OAuth2ClientCredential(
+            base_https,
+            oauth2_endpoint=oauth2_endpoint,
+            oauth2_client_id=self.TEST_CLIENT_CRED_ID,
+            oauth2_client_secret=self.TEST_CLIENT_CRED_SECRET
+        )
+        oauth2_resp = {
+            'status_code': 500,
+            'json': {
+                'error': 'other_error',
+                'error_description':
+                    'Unknown error is occur.'
+            }
+        }
+        self.requests_mock.post(oauth2_endpoint,
+                                [oauth2_resp])
+
+        sess = session.Session(auth=client_cre)
+        err = self.assertRaises(ClientException, sess.get_auth_headers)
+        self.assertEqual('Unknown error is occur.',
+                         str(err))
+
+    def test_oauth2_client_credential_reauth_called_https(self):
+        base_https = self.TEST_URL.replace('http:', 'https:')
+        oauth2_endpoint = f'{base_https}/oauth_token'
+        oauth2_token = 'HW9bB6oYWJywz6mAN_KyIBXlof15Pk'
+        auth = v3.OAuth2ClientCredential(
+            base_https,
+            oauth2_endpoint=oauth2_endpoint,
+            oauth2_client_id='clientcredid',
+            oauth2_client_secret='secret'
+        )
+        oauth2_resp = {
+            'status_code': 200,
+            'json': {
+                'access_token': oauth2_token,
+                'expires_in': 3600,
+                'token_type': 'Bearer'
+            }
+        }
+        self.requests_mock.post(oauth2_endpoint,
+                                [oauth2_resp])
+
+        sess = session.Session(auth=auth)
+
+        resp_text = json.dumps(self.TEST_APP_CRED_TOKEN_RESPONSE)
+        resp_ok = {
+            'status_code': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+                'x-subject-token': self.TEST_TOKEN
+            },
+            'text': resp_text
+        }
+        self.requests_mock.post(f'{base_https}/auth/tokens',
+                                [resp_ok,
+                                 {'text': 'Failed', 'status_code': 401},
+                                 resp_ok])
+
+        resp = sess.post(f'{base_https}/auth/tokens', authenticated=True)
+        self.assertRequestHeaderEqual('Authorization',
+                                      f'Bearer {oauth2_token}')
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual(resp_text, resp.text)
