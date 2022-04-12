@@ -1263,7 +1263,7 @@ class EndpointData(object):
 
         # First, check to see if the catalog url ends with a project id
         # We need to remove it and save it for later if it does
-        if project_id and url_parts[-1].endswith(project_id):
+        if project_id and (url_parts[-1] == project_id):
             self._saved_project_id = url_parts.pop()
         elif not project_id:
             # Peek to see if -2 is a version. If so, -1 is a project_id,
