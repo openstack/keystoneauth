@@ -103,13 +103,17 @@ class Session(base.BaseLoader):
             '--os-cert',
             metavar='<certificate>',
             default=os.environ.get('OS_CERT'),
-            help='Defaults to env[OS_CERT].')
+            help='The location for the keystore (PEM formatted) '
+                 'containing the public key of this client. '
+                 'Defaults to env[OS_CERT].')
 
         session_group.add_argument(
             '--os-key',
             metavar='<key>',
             default=os.environ.get('OS_KEY'),
-            help='Defaults to env[OS_KEY].')
+            help='The location for the keystore (PEM formatted) '
+                 'containing the private key of this client. '
+                 'Defaults to env[OS_KEY].')
 
         session_group.add_argument(
             '--timeout',
