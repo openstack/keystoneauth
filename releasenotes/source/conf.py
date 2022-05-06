@@ -55,8 +55,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'keystoneauth Release Notes'
-copyright = u'2015, Keystone Developers'
+project = 'keystoneauth Release Notes'
+copyright = '2015, Keystone Developers'
 
 # Release notes are version independent.
 
@@ -205,8 +205,8 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     ('index', 'keystoneauthReleaseNotes.tex',
-     u'keystoneauth Release Notes Documentation',
-     u'Keystone Developers', 'manual'),
+     'keystoneauth Release Notes Documentation',
+     'Keystone Developers', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -236,8 +236,8 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'keystoneauthreleasenotes',
-     u'keystoneauth Release Notes Documentation',
-     [u'Keystone Developers'], 1)
+     'keystoneauth Release Notes Documentation',
+     ['Keystone Developers'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -251,8 +251,8 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     ('index', 'keystoneauthReleaseNotes',
-     u'keystoneauth Release Notes Documentation',
-     u'Keystone Developers', 'keystoneauthReleaseNotes',
+     'keystoneauth Release Notes Documentation',
+     'Keystone Developers', 'keystoneauthReleaseNotes',
      'Authentication plugins for the OpenStack Identity service.',
      'Miscellaneous'),
 ]
