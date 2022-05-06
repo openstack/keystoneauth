@@ -1216,7 +1216,8 @@ class EndpointData(object):
                 break
             except (exceptions.DiscoveryFailure,
                     exceptions.HttpError,
-                    exceptions.ConnectionError):
+                    exceptions.ConnectionError) as exc:
+                _LOGGER.debug('No version document at %s: %s', vers_url, exc)
                 continue
         if not self._disc:
             # We couldn't find a version discovery document anywhere.
@@ -1247,8 +1248,10 @@ class EndpointData(object):
                 # date enough to properly specify a version and keystoneauth
                 # can't deliver.
                 raise exceptions.DiscoveryFailure(
-                    "Version requested but version discovery document was not"
-                    " found and allow_version_hack was False")
+                    "Unable to find a version discovery document at %s, "
+                    "the service is unavailable or misconfigured. "
+                    "Required version range (%s - %s), version hack disabled."
+                    % (self.url, min_version or "any", max_version or "any"))
 
     def _get_discovery_url_choices(
             self, project_id=None, allow_version_hack=True,
