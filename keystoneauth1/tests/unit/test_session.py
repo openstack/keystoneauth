@@ -867,6 +867,17 @@ class RedirectTests(utils.TestCase):
             self.assertEqual(resp.url, self.REDIRECT_CHAIN[i])
             self.assertEqual(resp.text, self.DEFAULT_REDIRECT_BODY)
 
+    def test_redirect_with_params(self):
+        params = {'foo': 'bar'}
+        session = client_session.Session(redirect=True)
+        # Note(knikolla): Setting complete_qs to True ensures that the mock
+        # will only match paths including all query strings.
+        self.setup_redirects(final_kwargs={'complete_qs': True})
+        resp = session.get(self.REDIRECT_CHAIN[0], params=params)
+        self.assertResponse(resp)
+        self.assertTrue(len(resp.history), len(self.REDIRECT_CHAIN))
+        self.assertQueryStringIs(None)
+
     def test_history_matches_requests(self):
         self.setup_redirects(status_code=301)
         session = client_session.Session(redirect=True)
