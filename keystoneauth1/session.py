@@ -48,7 +48,7 @@ DEFAULT_USER_AGENT = 'keystoneauth1/%s %s %s/%s' % (
 # NOTE(jamielennox): Clients will likely want to print more than json. Please
 # propose a patch if you have a content type you think is reasonable to print
 # here and we'll add it to the list as required.
-_LOG_CONTENT_TYPES = set(['application/json'])
+_LOG_CONTENT_TYPES = set(['application/json', 'text/plain'])
 
 _MAX_RETRY_INTERVAL = 60.0
 _EXPONENTIAL_DELAY_START = 0.5
