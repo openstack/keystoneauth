@@ -1296,6 +1296,10 @@ class VersionDataTests(utils.TestCase):
 
 
 class EndpointDataTests(utils.TestCase):
+    def setUp(self):
+        super(EndpointDataTests, self).setUp()
+        self.session = session.Session()
+
     @mock.patch('keystoneauth1.discover.get_discovery')
     @mock.patch('keystoneauth1.discover.EndpointData.'
                 '_get_discovery_url_choices')
@@ -1359,3 +1363,12 @@ class EndpointDataTests(utils.TestCase):
         bad_url = "https://compute.example.com/v2/123456"
         epd = discover.EndpointData(catalog_url=bad_url)
         self.assertEqual((2, 0), epd.api_version)
+
+    def test_url_version_match_project_id_int(self):
+        self.session = session.Session()
+        discovery_fixture = fixture.V3Discovery(V3_URL)
+        discovery_doc = _create_single_version(discovery_fixture)
+        self.requests_mock.get(V3_URL, status_code=200, json=discovery_doc)
+        epd = discover.EndpointData(catalog_url=V3_URL).get_versioned_data(
+            session=self.session, project_id='3')
+        self.assertEqual(epd.catalog_url, epd.url)
