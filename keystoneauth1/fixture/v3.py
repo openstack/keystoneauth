@@ -65,7 +65,8 @@ class Token(dict):
                  application_credential_access_rules=None,
                  oauth_access_token_id=None, oauth_consumer_id=None,
                  audit_id=None, audit_chain_id=None,
-                 is_admin_project=None, project_is_domain=None):
+                 is_admin_project=None, project_is_domain=None,
+                 oauth2_thumbprint=None):
         super(Token, self).__init__()
 
         self.user_id = user_id or uuid.uuid4().hex
@@ -128,6 +129,9 @@ class Token(dict):
 
         if is_admin_project is not None:
             self.is_admin_project = is_admin_project
+
+        if oauth2_thumbprint:
+            self.oauth2_thumbprint = oauth2_thumbprint
 
     @property
     def root(self):
@@ -394,6 +398,18 @@ class Token(dict):
     @is_admin_project.deleter
     def is_admin_project(self):
         self.root.pop('is_admin_project', None)
+
+    @property
+    def oauth2_thumbprint(self):
+        return self.root.get('oauth2_credential', {}).get('x5t#S256')
+
+    @oauth2_thumbprint.setter
+    def oauth2_thumbprint(self, value):
+        self.root.setdefault('oauth2_credential', {})['x5t#S256'] = value
+
+    @property
+    def oauth2_credential(self):
+        return self.root.get('oauth2_credential')
 
     def validate(self):
         project = self.root.get('project')

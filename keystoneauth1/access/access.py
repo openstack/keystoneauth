@@ -782,3 +782,11 @@ class AccessInfoV3(AccessInfo):
     @_missingproperty
     def bind(self):
         return self._data['token']['bind']
+
+    @property
+    def oauth2_credential(self):
+        return self._data['token']['oauth2_credential']
+
+    @_missingproperty
+    def oauth2_credential_thumbprint(self):
+        return self._data['token']['oauth2_credential']['x5t#S256']

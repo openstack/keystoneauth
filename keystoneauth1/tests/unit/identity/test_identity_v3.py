@@ -225,6 +225,37 @@ class V3IdentityPlugin(utils.TestCase):
                 "application_credential_restricted": True
             },
         }
+        self.TEST_OAUTH2_MTLS_TOKEN_RESPONSE = {
+            "token": {
+                "methods": [
+                    "oauth2_credential"
+                ],
+
+                "expires_at": "%i-02-01T00:00:10.000123Z" % nextyear,
+                "project": {
+                    "domain": {
+                        "id": self.TEST_DOMAIN_ID,
+                        "name": self.TEST_DOMAIN_NAME
+                    },
+                    "id": self.TEST_TENANT_ID,
+                    "name": self.TEST_TENANT_NAME
+                },
+                "user": {
+                    "domain": {
+                        "id": self.TEST_DOMAIN_ID,
+                        "name": self.TEST_DOMAIN_NAME
+                    },
+                    "id": self.TEST_USER,
+                    "name": self.TEST_USER
+                },
+                "issued_at": "2013-05-29T16:55:21.468960Z",
+                "catalog": self.TEST_SERVICE_CATALOG,
+                "service_providers": self.TEST_SERVICE_PROVIDERS,
+                "oauth2_credential": {
+                    "x5t#S256": "7UN-z4yFIm9s4jakecGoKa4rc353pDCuFUo9fsDD_1s="
+                }
+            },
+        }
         self.TEST_RECEIPT_RESPONSE = {
             "receipt": {
                 "methods": ["password"],
@@ -1085,3 +1116,215 @@ class V3IdentityPlugin(utils.TestCase):
                                       f'Bearer {oauth2_token}')
         self.assertEqual(200, resp.status_code)
         self.assertEqual(resp_text, resp.text)
+
+    def test_oauth2_mtls_client_credential_method(self):
+        base_https = self.TEST_URL.replace('http:', 'https:')
+        token_endpoint = f'{self.TEST_URL}/auth/tokens'
+        oauth2_endpoint = f'{base_https}/OS-OAUTH2/token'
+        oauth2_token = 'HW9bB6oYWJywz6mAN_KyIBXlof15Pk'
+        a = v3.OAuth2mTlsClientCredential(
+            self.TEST_URL,
+            oauth2_endpoint=oauth2_endpoint,
+            oauth2_client_id=self.TEST_CLIENT_CRED_ID
+        )
+
+        oauth2_post_resp = {
+            'status_code': 200,
+            'json': {
+                'access_token': oauth2_token,
+                'expires_in': 3600,
+                'token_type': 'Bearer'
+            }
+        }
+        self.requests_mock.post(oauth2_endpoint, [oauth2_post_resp])
+        token_verify_resp = {
+            'status_code': 200,
+            'json': {
+                **self.TEST_OAUTH2_MTLS_TOKEN_RESPONSE
+            }
+        }
+        self.requests_mock.get(token_endpoint, [token_verify_resp])
+
+        sess = session.Session(auth=a)
+        auth_ref = a.get_auth_ref(sess)
+        self.assertEqual(auth_ref.auth_token, oauth2_token)
+        self.assertEqual(auth_ref._data,
+                         self.TEST_OAUTH2_MTLS_TOKEN_RESPONSE)
+        self.assertEqual(
+            auth_ref.project_id,
+            self.TEST_OAUTH2_MTLS_TOKEN_RESPONSE.get(
+                'token', {}).get('project', {}).get('id'))
+        self.assertIsNone(auth_ref.domain_id)
+        self.assertEqual(
+            auth_ref.oauth2_credential,
+            self.TEST_OAUTH2_MTLS_TOKEN_RESPONSE.get(
+                'token', {}).get('oauth2_credential'))
+        self.assertEqual(
+            auth_ref.oauth2_credential_thumbprint,
+            self.TEST_OAUTH2_MTLS_TOKEN_RESPONSE.get(
+                'token', {}).get('oauth2_credential', {}).get('x5t#S256')
+        )
+
+        auth_head = sess.get_auth_headers()
+        self.assertEqual(f'Bearer {oauth2_token}', auth_head['Authorization'])
+        self.assertEqual(oauth2_token, auth_head['X-Auth-Token'])
+
+    def test_oauth2_mtls_client_credential_method_without_v3(self):
+        base_https = self.TEST_URL.replace('http:', 'https:')
+        token_endpoint = f'{self.TEST_URL}/auth/tokens'
+        oauth2_endpoint = f'{base_https}/OS-OAUTH2/token'
+        oauth2_token = 'HW9bB6oYWJywz6mAN_KyIBXlof15Pk'
+        a = v3.OAuth2mTlsClientCredential(
+            self.TEST_URL.replace('v3', ''),
+            oauth2_endpoint=oauth2_endpoint,
+            oauth2_client_id=self.TEST_CLIENT_CRED_ID
+        )
+
+        oauth2_post_resp = {
+            'status_code': 200,
+            'json': {
+                'access_token': oauth2_token,
+                'expires_in': 3600,
+                'token_type': 'Bearer'
+            }
+        }
+        self.requests_mock.post(oauth2_endpoint, [oauth2_post_resp])
+        token_verify_resp = {
+            'status_code': 200,
+            'json': {
+                **self.TEST_OAUTH2_MTLS_TOKEN_RESPONSE
+            }
+        }
+        self.requests_mock.get(token_endpoint, [token_verify_resp])
+
+        sess = session.Session(auth=a)
+        auth_ref = a.get_auth_ref(sess)
+        self.assertEqual(auth_ref.auth_token, oauth2_token)
+        self.assertEqual(auth_ref._data,
+                         self.TEST_OAUTH2_MTLS_TOKEN_RESPONSE)
+        self.assertEqual(
+            auth_ref.oauth2_credential,
+            self.TEST_OAUTH2_MTLS_TOKEN_RESPONSE.get(
+                'token', {}).get('oauth2_credential'))
+        self.assertEqual(
+            auth_ref.oauth2_credential_thumbprint,
+            self.TEST_OAUTH2_MTLS_TOKEN_RESPONSE.get(
+                'token', {}).get('oauth2_credential', {}).get('x5t#S256')
+        )
+        auth_head = sess.get_auth_headers()
+        self.assertEqual(f'Bearer {oauth2_token}', auth_head['Authorization'])
+        self.assertEqual(oauth2_token, auth_head['X-Auth-Token'])
+
+    def test_oauth2_mtls_client_credential_method_resp_invalid_json(self):
+        base_https = self.TEST_URL.replace('http:', 'https:')
+        token_endpoint = f'{self.TEST_URL}/auth/tokens'
+        oauth2_endpoint = f'{base_https}/OS-OAUTH2/token'
+        oauth2_token = 'HW9bB6oYWJywz6mAN_KyIBXlof15Pk'
+        a = v3.OAuth2mTlsClientCredential(
+            self.TEST_URL,
+            oauth2_endpoint=oauth2_endpoint,
+            oauth2_client_id=self.TEST_CLIENT_CRED_ID
+        )
+
+        oauth2_post_resp = {
+            'status_code': 200,
+            'json': {
+                'access_token': oauth2_token,
+                'expires_in': 3600,
+                'token_type': 'Bearer'
+            }
+        }
+        self.requests_mock.post(oauth2_endpoint, [oauth2_post_resp])
+        token_verify_resp = {
+            'status_code': 200,
+            'text': 'invalid json'
+        }
+        self.requests_mock.get(token_endpoint, [token_verify_resp])
+
+        sess = session.Session(auth=a)
+        self.assertRaises(exceptions.InvalidResponse, a.get_auth_ref, sess)
+
+    def test_oauth2_mtls_client_credential_method_resp_without_token(self):
+        base_https = self.TEST_URL.replace('http:', 'https:')
+        token_endpoint = f'{self.TEST_URL}/auth/tokens'
+        oauth2_endpoint = f'{base_https}/OS-OAUTH2/token'
+        oauth2_token = 'HW9bB6oYWJywz6mAN_KyIBXlof15Pk'
+        a = v3.OAuth2mTlsClientCredential(
+            self.TEST_URL,
+            oauth2_endpoint=oauth2_endpoint,
+            oauth2_client_id=self.TEST_CLIENT_CRED_ID
+        )
+
+        oauth2_post_resp = {
+            'status_code': 200,
+            'json': {
+                'access_token': oauth2_token,
+                'expires_in': 3600,
+                'token_type': 'Bearer'
+            }
+        }
+        self.requests_mock.post(oauth2_endpoint, [oauth2_post_resp])
+        token_verify_resp = {
+            'status_code': 200,
+            'json': {
+                'without_token': {}
+            }
+        }
+        self.requests_mock.get(token_endpoint, [token_verify_resp])
+
+        sess = session.Session(auth=a)
+        self.assertRaises(exceptions.InvalidResponse, a.get_auth_ref, sess)
+
+    def test_oauth2_mtls_client_credential_method_client_exception(self):
+        base_https = self.TEST_URL.replace('http:', 'https:')
+        oauth2_endpoint = f'{base_https}/OS-OAUTH2/token'
+        a = v3.OAuth2mTlsClientCredential(
+            self.TEST_URL,
+            oauth2_endpoint=oauth2_endpoint,
+            oauth2_client_id=self.TEST_CLIENT_CRED_ID
+        )
+
+        oauth2_post_resp = {
+            'status_code': 400,
+            'json': {}
+        }
+        self.requests_mock.post(oauth2_endpoint, [oauth2_post_resp])
+
+        sess = session.Session(auth=a)
+        self.assertRaises(exceptions.ClientException, a.get_auth_ref, sess)
+
+    def test_oauth2_mtls_client_credential_method_base_header_none(self):
+        base_https = self.TEST_URL.replace('http:', 'https:')
+        token_endpoint = f'{self.TEST_URL}/auth/tokens'
+        oauth2_endpoint = f'{base_https}/OS-OAUTH2/token'
+        oauth2_token = 'HW9bB6oYWJywz6mAN_KyIBXlof15Pk'
+        a = v3.OAuth2mTlsClientCredential(
+            self.TEST_URL,
+            oauth2_endpoint=oauth2_endpoint,
+            oauth2_client_id=self.TEST_CLIENT_CRED_ID
+        )
+        oauth2_post_resp = {
+            'status_code': 200,
+            'json': {
+                'access_token': oauth2_token,
+                'expires_in': 3600,
+                'token_type': 'Bearer'
+            }
+        }
+        self.requests_mock.post(oauth2_endpoint,
+                                [oauth2_post_resp])
+        token_verify_resp = {
+            'status_code': 200,
+            'json': {
+                **self.TEST_OAUTH2_MTLS_TOKEN_RESPONSE
+            }
+        }
+        self.requests_mock.get(token_endpoint, [token_verify_resp])
+        sess = session.Session(auth=a)
+
+        with unittest.mock.patch(
+                'keystoneauth1.plugin.BaseAuthPlugin.'
+                'get_headers') as co_mock:
+            co_mock.return_value = None
+            auth_head = sess.get_auth_headers()
+            self.assertEqual('Bearer None', auth_head['Authorization'])

@@ -379,3 +379,34 @@ class OAuth2ClientCredential(loading.BaseV3Loader):
             raise exceptions.OptionError(m)
 
         return super(OAuth2ClientCredential, self).load_from_options(**kwargs)
+
+
+class OAuth2mTlsClientCredential(loading.BaseV3Loader):
+
+    @property
+    def plugin_class(self):
+        return identity.V3OAuth2mTlsClientCredential
+
+    def get_options(self):
+        options = super(OAuth2mTlsClientCredential, self).get_options()
+        options.extend([
+            loading.Opt('oauth2-endpoint',
+                        required=True,
+                        help='Endpoint for OAuth2.0 Mutual-TLS Authorization'),
+            loading.Opt('oauth2-client-id',
+                        required=True,
+                        help='Client credential ID for OAuth2.0 Mutual-TLS '
+                             'Authorization')
+        ])
+        return options
+
+    def load_from_options(self, **kwargs):
+        if not kwargs.get('oauth2_endpoint'):
+            m = 'You must provide an OAuth2.0 Mutual-TLS endpoint.'
+            raise exceptions.OptionError(m)
+        if not kwargs.get('oauth2_client_id'):
+            m = ('You must provide an client credential ID for '
+                 'OAuth2.0 Mutual-TLS Authorization.')
+            raise exceptions.OptionError(m)
+        return super(OAuth2mTlsClientCredential,
+                     self).load_from_options(**kwargs)

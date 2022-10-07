@@ -64,6 +64,9 @@ V3MultiFactor = v3.MultiFactor
 V3OAuth2ClientCredential = v3.OAuth2ClientCredential
 """See :class:`keystoneauth1.identity.v3.OAuth2ClientCredential`"""
 
+V3OAuth2mTlsClientCredential = v3.OAuth2mTlsClientCredential
+"""See :class:`keystoneauth1.identity.v3.OAuth2mTlsClientCredential`"""
+
 __all__ = ('BaseIdentityPlugin',
            'Password',
            'Token',
@@ -78,4 +81,5 @@ __all__ = ('BaseIdentityPlugin',
            'V3TokenlessAuth',
            'V3ApplicationCredential',
            'V3MultiFactor',
-           'V3OAuth2ClientCredential')
+           'V3OAuth2ClientCredential',
+           'V3OAuth2mTlsClientCredential')

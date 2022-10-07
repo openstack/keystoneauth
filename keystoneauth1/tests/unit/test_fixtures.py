@@ -346,3 +346,17 @@ class V3TokenTests(utils.TestCase):
         del token.is_admin_project
         self.assertIsNone(token.is_admin_project)
         self.assertNotIn('is_admin_project', token['token'])
+
+    def test_oauth2(self):
+        methods = ['oauth2_credential']
+        oauth2_thumbprint = uuid.uuid4().hex
+        token = fixture.V3Token(
+            methods=methods,
+            oauth2_thumbprint=oauth2_thumbprint,
+        )
+        oauth2_credential = {
+            'x5t#S256': oauth2_thumbprint,
+        }
+        self.assertEqual(methods, token.methods)
+        self.assertEqual(oauth2_credential, token.oauth2_credential)
+        self.assertEqual(oauth2_thumbprint, token.oauth2_thumbprint)

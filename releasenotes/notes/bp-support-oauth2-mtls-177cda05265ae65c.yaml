@@ -1,0 +1,10 @@
+---
+features:
+  - |
+    [`blueprint support-oauth2-mtls <https://blueprints.launchpad.net/keystone/+spec/support-oauth2-mtls>`_]
+    Added a new OAuth2mTlsClientCredential plugin, accessible via the
+    'v3oauth2mtlsclientcredential' entry point, making possible to authenticate
+    using an OAuth 2.0 Mutual-TLS client credentials. Keystoneauth can now
+    be used to access the OpenStack APIs that use the keystone middleware to
+    support OAuth2.0 mutual-TLS client authentication through the keystone
+    identity server.
