@@ -887,6 +887,15 @@ class RedirectTests(utils.TestCase):
         resp = session.get(self.REDIRECT_CHAIN[-2])
         self.assertResponse(resp)
 
+    def test_req_id_redirect(self):
+        session = client_session.Session()
+        self.setup_redirects(status_code=302)
+        resp = session.get(self.REDIRECT_CHAIN[0],
+                           headers={'x-openstack-request-id': 'req-1234-5678'})
+        self.assertResponse(resp)
+        self.assertRequestHeaderEqual('x-openstack-request-id',
+                                      'req-1234-5678')
+
 
 class AuthPlugin(plugin.BaseAuthPlugin):
     """Very simple debug authentication plugin.
