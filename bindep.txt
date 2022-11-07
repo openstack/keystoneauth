@@ -2,7 +2,7 @@
 # see https://docs.openstack.org/infra/bindep/ for additional information.
 
 build-essential [platform:dpkg test]
-python-dev [platform:dpkg test]
+python3-dev [platform:dpkg test]
 python3-devel [platform:rpm test]
 libkrb5-dev [platform:dpkg test]
 krb5-devel [platform:rpm test]

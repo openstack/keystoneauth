@@ -452,7 +452,7 @@ class OidcAccessToken(_OidcBase):
         self.access_token = access_token
 
     def get_payload(self, session):
-        """OidcAccessToken does not require a payload."""
+        """OidcAccessToken does not require a payload."""  # noqa: D403
         return {}
 
     def get_unscoped_auth_ref(self, session):

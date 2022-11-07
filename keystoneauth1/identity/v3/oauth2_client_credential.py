@@ -46,7 +46,6 @@ class OAuth2ClientCredentialMethod(base.AuthMethod):
                  data for the auth type.
         :rtype: tuple(string, dict)
         """
-
         auth_data = {
             'id': self.oauth2_client_id,
             'secret': self.oauth2_client_secret
@@ -67,7 +66,6 @@ class OAuth2ClientCredentialMethod(base.AuthMethod):
         should be prefixed with the plugin identifier. For example the password
         plugin returns its username value as 'password_username'.
         """
-
         return dict(('oauth2_client_credential_%s' % p, getattr(self, p))
                     for p in self._method_parameters)
 
@@ -100,7 +98,6 @@ class OAuth2ClientCredential(base.AuthConstructor):
                   dict is a valid, non-failure response.
         :rtype: dict
         """
-
         # get headers for X-Auth-Token
         headers = super(OAuth2ClientCredential, self).get_headers(
             session, **kwargs)

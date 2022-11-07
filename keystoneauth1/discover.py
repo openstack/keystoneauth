@@ -197,7 +197,7 @@ def normalize_version_number(version):
         Examples: (1,), [1, 2], ('12', '34', '56'), (LATEST,), (2, 'latest')
     :return: A tuple of len >= 2 comprising integers and/or LATEST.
     :raises TypeError: If the input version cannot be interpreted.
-    """
+    """  # noqa: D412
     # Copy the input var so the error presents the original value
     ver = version
 
