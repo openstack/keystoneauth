@@ -58,7 +58,7 @@ def _int_or_latest(val):
     return LATEST if val == 'latest' or val == LATEST else int(val)
 
 
-def get_version_data(session, url, authenticated=None):
+def get_version_data(session, url, authenticated=None, version_header=None):
     """Retrieve raw version data from a url.
 
     The return is a list of dicts of the form::
@@ -93,10 +93,15 @@ def get_version_data(session, url, authenticated=None):
     :param string url: Endpoint or discovery URL from which to retrieve data.
     :param bool authenticated: Include a token in the discovery call.
                                (optional) Defaults to None.
+    :param string version_header: provide the OpenStack-API-Version header
+        for services which don't return version information without it, for
+        backward compatibility.
     :return: A list of dicts containing version information.
     :rtype: list(dict)
     """
     headers = {'Accept': 'application/json'}
+    if version_header:
+        headers['OpenStack-API-Version'] = version_header
 
     try:
         resp = session.get(url, headers=headers, authenticated=authenticated)

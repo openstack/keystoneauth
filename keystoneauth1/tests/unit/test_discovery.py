@@ -1321,7 +1321,8 @@ class EndpointDataTests(utils.TestCase):
 
     def test_run_discovery_auth(self):
         url = 'https://example.com'
-        headers = {'Accept': 'application/json'}
+        headers = {'Accept': 'application/json',
+                   'OpenStack-API-Version': 'version header test'}
 
         session = mock.Mock()
         session.get.side_effect = [
@@ -1332,7 +1333,8 @@ class EndpointDataTests(utils.TestCase):
         ]
 
         try:
-            discover.get_version_data(session, url)
+            discover.get_version_data(
+                session, url, version_header='version header test')
         except exceptions.BadRequest:
             pass
         # Only one call with 'url'
