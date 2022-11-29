@@ -77,6 +77,7 @@ DISCOVERY_DOCUMENT = {
     "grant_types_supported": [
         "authorization_code",
         "password",
+        "urn:ietf:params:oauth:grant-type:device_code",
     ],
     "introspection_endpoint": "https://localhost:8020/oidc/introspect",
     "issuer": "https://localhost:8020/oidc/",
@@ -88,6 +89,8 @@ DISCOVERY_DOCUMENT = {
     "service_documentation": "https://localhost:8020/oidc/about",
     "token_endpoint": "https://localhost:8020/oidc/token",
     "userinfo_endpoint": "https://localhost:8020/oidc/userinfo",
+    "device_authorization_endpoint":
+        "https://localhost:8020/oidc/authorize/device",
     "token_endpoint_auth_methods_supported": [
         "client_secret_post",
         "client_secret_basic",
