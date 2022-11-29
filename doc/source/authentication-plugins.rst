@@ -426,6 +426,7 @@ authentication plugins that are available in `keystoneauth` are:
 - v3oauth1: :py:class:`keystoneauth1.extras.oauth1.v3.OAuth1`
 - v3oidcaccesstoken: :py:class:`keystoneauth1.identity.v3:OpenIDConnectAccessToken`
 - v3oidcauthcode: :py:class:`keystoneauth1.identity.v3:OpenIDConnectAuthorizationCode`
+- v3oidcdeviceauthz: :py:class:`keystoneauth1.loading._plugins.identity.v3:OpenIDConnectDeviceAuthorization`
 - v3oidcclientcredentials: :py:class:`keystoneauth1.identity.v3:OpenIDConnectClientCredentials`
 - v3oidcpassword: :py:class:`keystoneauth1.identity.v3:OpenIDConnectPassword`
 - v3samlpassword: :py:class:`keystoneauth1.extras._saml2.v3.Password`
