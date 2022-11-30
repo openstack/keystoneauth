@@ -1,0 +1,6 @@
+---
+fixes:
+  - |
+    [`bug 1998366 <https://bugs.launchpad.net/keystoneauth/+bug/1998366>`_]
+    Federated auth plugins now can work with unversioned auth url
+    (e.g. "http://keystone").

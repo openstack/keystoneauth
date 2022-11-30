@@ -79,6 +79,10 @@ class V3FederatedPlugin(utils.TestCase):
         plugin = self.get_plugin()
         self.assertEqual(self.token_url, plugin.federated_token_url)
 
+    def test_federated_url_unversioned(self):
+        plugin = self.get_plugin(auth_url="http://keystone/")
+        self.assertEqual(self.token_url, plugin.federated_token_url)
+
     def test_unscoped_behaviour(self):
         sess = session.Session(auth=self.get_plugin())
         self.assertEqual(self.unscoped_token_id, sess.get_token())
