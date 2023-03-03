@@ -11,6 +11,8 @@
 # under the License.
 
 import abc
+import time
+from urllib import parse as urlparse
 import warnings
 
 import six
@@ -131,8 +133,8 @@ class _OidcBase(federation.FederationBaseAuth):
                   otherwise it will return an empty dict.
         :rtype: dict
         """
-        if (self.discovery_endpoint is not None and
-                not self._discovery_document):
+        if (self.discovery_endpoint is not None
+                and not self._discovery_document):
             try:
                 resp = session.get(self.discovery_endpoint,
                                    authenticated=False)
@@ -247,9 +249,8 @@ class _OidcBase(federation.FederationBaseAuth):
         # First of all, check if the grant type is supported
         discovery = self._get_discovery_document(session)
         grant_types = discovery.get("grant_types_supported")
-        if (grant_types and
-                self.grant_type is not None and
-                self.grant_type not in grant_types):
+        if (grant_types and self.grant_type is not None
+                and self.grant_type not in grant_types):
             raise exceptions.OidcPluginNotSupported()
 
         # Get the payload
@@ -473,3 +474,135 @@ class OidcAccessToken(_OidcBase):
         """
         response = self._get_keystone_token(session, self.access_token)
         return access.create(resp=response)
+
+
+class OidcDeviceAuthorization(_OidcBase):
+    """Implementation for OAuth 2.0 Device Authorization Grant."""
+
+    grant_type = "urn:ietf:params:oauth:grant-type:device_code"
+    HEADER_X_FORM = {"Content-Type": "application/x-www-form-urlencoded"}
+
+    def __init__(self, auth_url, identity_provider, protocol,  # nosec
+                 client_id, client_secret,
+                 access_token_endpoint=None,
+                 device_authorization_endpoint=None,
+                 discovery_endpoint=None,
+                 **kwargs):
+        """The OAuth 2.0 Device Authorization plugin expects the following.
+
+        :param device_authorization_endpoint: OAuth 2.0 Device Authorization
+                                  Endpoint, for example:
+                                  https://localhost:8020/oidc/authorize/device
+                                  Note that if a discovery document is
+                                  provided this value will override
+                                  the discovered one.
+        :type device_authorization_endpoint: string
+        """
+        # RFC 8628 only allows to retrieve an access_token
+        self.access_token_type = 'access_token'
+        self.device_authorization_endpoint = device_authorization_endpoint
+
+        super(OidcDeviceAuthorization, self).__init__(
+            auth_url=auth_url,
+            identity_provider=identity_provider,
+            protocol=protocol,
+            client_id=client_id,
+            client_secret=client_secret,
+            access_token_endpoint=access_token_endpoint,
+            discovery_endpoint=discovery_endpoint,
+            access_token_type=self.access_token_type,
+            **kwargs)
+
+    def _get_device_authorization_endpoint(self, session):
+        """Get the endpoint for the OAuth 2.0 Device Authorization flow.
+
+        This method will return the correct device authorization endpoint to
+        be used.
+        If the user has explicitly passed an device_authorization_endpoint to
+        the constructor that will be returned. If there is no explicit endpoint
+        and a discovery url is provided, it will try to get it from the
+        discovery document. If nothing is found, an exception will be raised.
+
+        :param session: a session object to send out HTTP requests.
+        :type session: keystoneauth1.session.Session
+
+        :return: the endpoint to use
+        :rtype: string or None if no endpoint is found
+        """
+        if self.device_authorization_endpoint is not None:
+            return self.device_authorization_endpoint
+
+        discovery = self._get_discovery_document(session)
+        endpoint = discovery.get("device_authorization_endpoint")
+        if endpoint is None:
+            raise exceptions.oidc.OidcDeviceAuthorizationEndpointNotFound()
+        return endpoint
+
+    def get_payload(self, session):
+        """Get an authorization grant for the "device_code" grant type.
+
+        :param session: a session object to send out HTTP requests.
+        :type session: keystoneauth1.session.Session
+
+        :returns: a python dictionary containing the payload to be exchanged
+        :rtype: dict
+        """
+        client_auth = (self.client_id, self.client_secret)
+        device_authz_endpoint = \
+            self._get_device_authorization_endpoint(session)
+        op_response = session.post(device_authz_endpoint,
+                                   requests_auth=client_auth,
+                                   data={},
+                                   authenticated=False)
+
+        self.expires_in = int(op_response.json()["expires_in"])
+        self.timeout = time.time() + self.expires_in
+        self.device_code = op_response.json()["device_code"]
+        self.interval = int(op_response.json()["interval"])
+        self.user_code = op_response.json()["user_code"]
+        self.verification_uri = op_response.json()["verification_uri"]
+        self.verification_uri_complete = \
+            op_response.json()["verification_uri_complete"]
+
+        payload = {'device_code': self.device_code}
+        return payload
+
+    def _get_access_token(self, session, payload):
+        """Poll token endpoint for an access token.
+
+        :param session: a session object to send out HTTP requests.
+        :type session: keystoneauth1.session.Session
+
+        :param payload: a dict containing various OpenID Connect values,
+                for example::
+                {'grant_type': 'urn:ietf:params:oauth:grant-type:device_code',
+                 'device_code': self.device_code}
+        :type payload: dict
+        """
+        print(f"\nTo authenticate please go to: "
+              f"{self.verification_uri_complete}")
+
+        client_auth = (self.client_id, self.client_secret)
+        access_token_endpoint = self._get_access_token_endpoint(session)
+        encoded_payload = urlparse.urlencode(payload)
+
+        while time.time() < self.timeout:
+            try:
+                op_response = session.post(access_token_endpoint,
+                                           requests_auth=client_auth,
+                                           data=encoded_payload,
+                                           headers=self.HEADER_X_FORM,
+                                           authenticated=False)
+            except exceptions.http.BadRequest as exc:
+                error = exc.response.json().get("error")
+                if error != "authorization_pending":
+                    raise
+                time.sleep(self.interval)
+                continue
+            break
+        else:
+            if error == "authorization_pending":
+                raise exceptions.oidc.OidcDeviceAuthorizationTimeOut()
+
+        access_token = op_response.json()[self.access_token_type]
+        return access_token

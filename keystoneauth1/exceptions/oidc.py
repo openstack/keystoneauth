@@ -36,6 +36,15 @@ class OidcAuthorizationEndpointNotFound(auth_plugins.AuthPluginException):
     message = "OpenID Connect authorization endpoint not provided."
 
 
+class OidcDeviceAuthorizationEndpointNotFound(
+        auth_plugins.AuthPluginException):
+    message = "OpenID Connect device authorization endpoint not provided."
+
+
+class OidcDeviceAuthorizationTimeOut(auth_plugins.AuthPluginException):
+    message = "Timeout for OpenID Connect device authorization."
+
+
 class OidcGrantTypeMissmatch(auth_plugins.AuthPluginException):
     message = "Missmatch between OpenID Connect plugin and grant_type argument"
 
