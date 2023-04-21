@@ -12,16 +12,13 @@
 
 import abc
 
-import six
-
 from keystoneauth1 import _utils as utils
 from keystoneauth1 import plugin
 
 LOG = utils.get_logger(__name__)
 
 
-@six.add_metaclass(abc.ABCMeta)
-class TokenlessAuth(plugin.BaseAuthPlugin):
+class TokenlessAuth(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
     """A plugin for authenticating with Tokenless Auth.
 
     This is for Tokenless Authentication. Scoped information

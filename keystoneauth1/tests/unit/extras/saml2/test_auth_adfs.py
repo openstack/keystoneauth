@@ -10,10 +10,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import urllib
 import uuid
 
 from lxml import etree
-from six.moves import urllib
 
 from keystoneauth1 import exceptions
 from keystoneauth1.extras import _saml2 as saml2

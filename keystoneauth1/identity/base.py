@@ -17,8 +17,6 @@ import hashlib
 import json
 import threading
 
-import six
-
 from keystoneauth1 import _utils as utils
 from keystoneauth1 import access
 from keystoneauth1 import discover
@@ -28,8 +26,7 @@ from keystoneauth1 import plugin
 LOG = utils.get_logger(__name__)
 
 
-@six.add_metaclass(abc.ABCMeta)
-class BaseIdentityPlugin(plugin.BaseAuthPlugin):
+class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
 
     # we count a token as valid (not needing refreshing) if it is valid for at
     # least this many seconds before the token expiry time
@@ -647,9 +644,9 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin):
         for k, v in sorted(elements.items()):
             if v is not None:
                 # NOTE(jamielennox): in python3 you need to pass bytes to hash
-                if isinstance(k, six.string_types):
+                if isinstance(k, str):
                     k = k.encode('utf-8')
-                if isinstance(v, six.string_types):
+                if isinstance(v, str):
                     v = v.encode('utf-8')
 
                 hasher.update(k)

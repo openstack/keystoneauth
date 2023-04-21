@@ -13,7 +13,6 @@
 import uuid
 
 from oauthlib import oauth1
-import six
 from testtools import matchers
 
 from keystoneauth1.extras import oauth1 as ksa_oauth1
@@ -47,7 +46,7 @@ class OAuth1AuthTests(test_utils.TestCase):
 
         self.assertEqual('HMAC-SHA1', parameters['oauth_signature_method'])
         self.assertEqual('1.0', parameters['oauth_version'])
-        self.assertIsInstance(parameters['oauth_nonce'], six.string_types)
+        self.assertIsInstance(parameters['oauth_nonce'], str)
         self.assertEqual(oauth_client.client_key,
                          parameters['oauth_consumer_key'])
         if oauth_client.resource_owner_key:

@@ -16,7 +16,6 @@ import json
 import os
 
 import betamax.serializers.base
-import six
 import yaml
 
 
@@ -52,7 +51,7 @@ def _indent_json(val):
     return json.dumps(
         json.loads(val), indent=2,
         separators=(',', ': '), sort_keys=False,
-        default=six.text_type)
+        default=str)
 
 
 def _is_json_body(interaction):
@@ -82,7 +81,7 @@ class YamlJsonSerializer(betamax.serializers.base.BaseSerializer):
 
         yaml.representer.BaseRepresenter.represent_scalar = _represent_scalar
 
-        MyDumper.add_representer(six.text_type, _unicode_representer)
+        MyDumper.add_representer(str, _unicode_representer)
 
         return yaml.dump(
             cassette_data, Dumper=MyDumper, default_flow_style=False)

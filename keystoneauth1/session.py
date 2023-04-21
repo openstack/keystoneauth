@@ -20,11 +20,10 @@ import platform
 import socket
 import sys
 import time
+import urllib
 import uuid
 
 import requests
-import six
-from six.moves import urllib
 
 import keystoneauth1
 from keystoneauth1 import _utils as utils
@@ -92,18 +91,11 @@ def _sanitize_headers(headers):
     """Ensure headers are strings and not bytes."""
     str_dict = {}
     for k, v in headers.items():
-        if six.PY3:
-            # requests expects headers to be str type in python3, which means
-            # if we get a bytes we need to decode it into a str
-            k = k.decode('ASCII') if isinstance(k, six.binary_type) else k
-            if v is not None:
-                v = v.decode('ASCII') if isinstance(v, six.binary_type) else v
-        else:
-            # requests expects headers to be str type in python2, which means
-            # if we get a unicode we need to encode it to ASCII into a str
-            k = k.encode('ASCII') if isinstance(k, six.text_type) else k
-            if v is not None:
-                v = v.encode('ASCII') if isinstance(v, six.text_type) else v
+        # requests expects headers to be str type in python3, which means
+        # if we get a bytes we need to decode it into a str
+        k = k.decode('ASCII') if isinstance(k, bytes) else k
+        if v is not None:
+            v = v.decode('ASCII') if isinstance(v, bytes) else v
         str_dict[k] = v
     return str_dict
 
@@ -126,9 +118,9 @@ class _JSONEncoder(json.JSONEncoder):
         if isinstance(o, datetime.datetime):
             return o.isoformat()
         if isinstance(o, uuid.UUID):
-            return six.text_type(o)
+            return str(o)
         if netaddr and isinstance(o, netaddr.IPAddress):
-            return six.text_type(o)
+            return str(o)
 
         return super(_JSONEncoder, self).default(o)
 
@@ -485,7 +477,7 @@ class Session(object):
         # so we need to actually check that this is False.
         if self.verify is False:
             string_parts.append('--insecure')
-        elif isinstance(self.verify, six.string_types):
+        elif isinstance(self.verify, str):
             string_parts.append('--cacert "%s"' % self.verify)
 
         if method:
@@ -509,7 +501,7 @@ class Session(object):
         if json:
             data = self._json.encode(json)
         if data:
-            if isinstance(data, six.binary_type):
+            if isinstance(data, bytes):
                 try:
                     data = data.decode("ascii")
                 except UnicodeDecodeError:

@@ -13,8 +13,6 @@
 import copy
 import uuid
 
-import six
-
 from keystoneauth1 import access
 from keystoneauth1 import exceptions
 from keystoneauth1 import fixture
@@ -148,7 +146,7 @@ class K2KAuthPluginTest(utils.TestCase):
         self.requests_mock.register_uri(
             'POST',
             self.REQUEST_ECP_URL,
-            content=six.b(k2k_fixtures.ECP_ENVELOPE),
+            content=bytes(k2k_fixtures.ECP_ENVELOPE, 'latin-1'),
             headers={'Content-Type': 'application/vnd.paos+xml'},
             status_code=200)
 
@@ -156,7 +154,7 @@ class K2KAuthPluginTest(utils.TestCase):
         self.requests_mock.register_uri(
             'POST',
             self.SP_URL,
-            content=six.b(k2k_fixtures.TOKEN_BASED_ECP),
+            content=bytes(k2k_fixtures.TOKEN_BASED_ECP, 'latin-1'),
             headers={'Content-Type': 'application/vnd.paos+xml'},
             status_code=redirect_code)
 
@@ -199,7 +197,7 @@ class K2KAuthPluginTest(utils.TestCase):
         self.requests_mock.register_uri(
             'POST', self.REQUEST_ECP_URL,
             headers={'Content-Type': 'application/vnd.paos+xml'},
-            content=six.b(''), status_code=200)
+            content=b'', status_code=200)
 
         self.assertRaises(exceptions.InvalidResponse,
                           self.k2kplugin._get_ecp_assertion,
@@ -214,7 +212,7 @@ class K2KAuthPluginTest(utils.TestCase):
         self.requests_mock.register_uri(
             'POST', self.REQUEST_ECP_URL,
             headers={'Content-Type': uuid.uuid4().hex},
-            content=six.b(''), status_code=200)
+            content=b'', status_code=200)
 
         self.assertRaises(exceptions.InvalidResponse,
                           self.k2kplugin._get_ecp_assertion,
@@ -263,7 +261,7 @@ class K2KAuthPluginTest(utils.TestCase):
         self.requests_mock.register_uri(
             'POST',
             self.REQUEST_ECP_URL,
-            content=six.b(k2k_fixtures.ECP_ENVELOPE),
+            content=bytes(k2k_fixtures.ECP_ENVELOPE, 'latin-1'),
             headers={'Content-Type': 'application/vnd.paos+xml'},
             status_code=200)
 
@@ -271,7 +269,7 @@ class K2KAuthPluginTest(utils.TestCase):
         self.requests_mock.register_uri(
             'POST',
             self.SP_URL,
-            content=six.b(k2k_fixtures.TOKEN_BASED_ECP),
+            content=bytes(k2k_fixtures.TOKEN_BASED_ECP, 'latin-1'),
             headers={'Content-Type': 'application/vnd.paos+xml'},
             status_code=302)
 

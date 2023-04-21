@@ -23,10 +23,9 @@ raw data specified in version discovery responses.
 
 import copy
 import re
+import urllib
 
 import os_service_types
-import six
-from six.moves import urllib
 
 from keystoneauth1 import _utils as utils
 from keystoneauth1 import exceptions
@@ -208,7 +207,7 @@ def normalize_version_number(version):
 
     # If it's a non-string iterable, turn it into a string for subsequent
     # processing.  This ensures at least 1 decimal point if e.g. [1] is given.
-    if not isinstance(ver, six.string_types):
+    if not isinstance(ver, str):
         try:
             ver = '.'.join(map(_str_or_latest, ver))
         except TypeError:
@@ -219,7 +218,7 @@ def normalize_version_number(version):
     # float string. This ensures 1 decimal point.
     # If it's a float as a string, don't do that, the split/map below will do
     # what we want. (Otherwise, we wind up with 3.20 -> (3, 2))
-    if isinstance(ver, six.string_types):
+    if isinstance(ver, str):
         # trim the v from a 'v2.0' or similar
         ver = ver.lstrip('v')
         try:

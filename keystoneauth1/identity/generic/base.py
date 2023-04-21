@@ -11,9 +11,7 @@
 # under the License.
 
 import abc
-
-import six
-import six.moves.urllib.parse as urlparse
+import urllib.parse
 
 from keystoneauth1 import _utils as utils
 from keystoneauth1 import discover
@@ -24,8 +22,7 @@ from keystoneauth1.identity import base
 LOG = utils.get_logger(__name__)
 
 
-@six.add_metaclass(abc.ABCMeta)
-class BaseGenericPlugin(base.BaseIdentityPlugin):
+class BaseGenericPlugin(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
     """An identity plugin that is not version dependent.
 
     Internally we will construct a version dependent plugin with the resolved
@@ -144,7 +141,7 @@ class BaseGenericPlugin(base.BaseIdentityPlugin):
                         'contacting %s. Attempting to parse version from URL.',
                         self.auth_url)
 
-            url_parts = urlparse.urlparse(self.auth_url)
+            url_parts = urllib.parse.urlparse(self.auth_url)
             path = url_parts.path.lower()
 
             if path.startswith('/v2.0'):

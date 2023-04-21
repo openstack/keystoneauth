@@ -19,14 +19,11 @@
 import abc
 import copy
 
-import six
-
 from keystoneauth1 import discover
 from keystoneauth1 import exceptions
 
 
-@six.add_metaclass(abc.ABCMeta)
-class ServiceCatalog(object):
+class ServiceCatalog(metaclass=abc.ABCMeta):
     """Helper methods for dealing with a Keystone Service Catalog."""
 
     def __init__(self, catalog):

@@ -14,7 +14,6 @@ import datetime
 import logging
 
 import iso8601
-import six
 
 
 def get_logger(name):
@@ -38,9 +37,9 @@ def parse_isotime(timestr):
     try:
         return iso8601.parse_date(timestr)
     except iso8601.ParseError as e:
-        raise ValueError(six.text_type(e))
+        raise ValueError(str(e))
     except TypeError as e:
-        raise ValueError(six.text_type(e))
+        raise ValueError(str(e))
 
 
 def from_utcnow(**timedelta_kwargs):

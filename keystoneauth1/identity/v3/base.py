@@ -13,8 +13,6 @@
 import abc
 import json
 
-import six
-
 from keystoneauth1 import _utils as utils
 from keystoneauth1 import access
 from keystoneauth1 import exceptions
@@ -25,8 +23,7 @@ _logger = utils.get_logger(__name__)
 __all__ = ('Auth', 'AuthMethod', 'AuthConstructor', 'BaseAuth')
 
 
-@six.add_metaclass(abc.ABCMeta)
-class BaseAuth(base.BaseIdentityPlugin):
+class BaseAuth(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
     """Identity V3 Authentication Plugin.
 
     :param string auth_url: Identity service endpoint for authentication.
@@ -224,8 +221,7 @@ class Auth(BaseAuth):
         return params
 
 
-@six.add_metaclass(abc.ABCMeta)
-class AuthMethod(object):
+class AuthMethod(metaclass=abc.ABCMeta):
     """One part of a V3 Authentication strategy.
 
     V3 Tokens allow multiple methods to be presented when authentication
@@ -284,8 +280,7 @@ class AuthMethod(object):
         raise NotImplementedError()
 
 
-@six.add_metaclass(abc.ABCMeta)
-class AuthConstructor(Auth):
+class AuthConstructor(Auth, metaclass=abc.ABCMeta):
     """Abstract base class for creating an Auth Plugin.
 
     The Auth Plugin created contains only one authentication method. This

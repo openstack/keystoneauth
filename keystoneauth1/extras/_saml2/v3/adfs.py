@@ -11,14 +11,13 @@
 # under the License.
 
 import datetime
+import urllib
 import uuid
 
 try:
     from lxml import etree
 except ImportError:
     etree = None
-
-from six.moves import urllib
 
 from keystoneauth1 import access
 from keystoneauth1 import exceptions

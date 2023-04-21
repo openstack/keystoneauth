@@ -12,7 +12,6 @@
 
 import abc
 
-import six
 import stevedore
 
 from keystoneauth1 import exceptions
@@ -99,8 +98,7 @@ def get_plugin_options(name):
     return get_plugin_loader(name).get_options()
 
 
-@six.add_metaclass(abc.ABCMeta)
-class BaseLoader(object):
+class BaseLoader(metaclass=abc.ABCMeta):
 
     @property
     def plugin_class(self):

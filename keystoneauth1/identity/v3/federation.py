@@ -12,16 +12,13 @@
 
 import abc
 
-import six
-
 from keystoneauth1.identity.v3 import base
 from keystoneauth1.identity.v3 import token
 
 __all__ = ('FederationBaseAuth',)
 
 
-@six.add_metaclass(abc.ABCMeta)
-class _Rescoped(base.BaseAuth):
+class _Rescoped(base.BaseAuth, metaclass=abc.ABCMeta):
     """A plugin that is always going to go through a rescope process.
 
     The original keystone plugins could simply pass a project or domain to
