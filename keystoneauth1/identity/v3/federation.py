@@ -103,8 +103,11 @@ class FederationBaseAuth(_Rescoped):
     @property
     def federated_token_url(self):
         """Full URL where authorization data is sent."""
+        host = self.auth_url.rstrip('/')
+        if not host.endswith('v3'):
+            host += '/v3'
         values = {
-            'host': self.auth_url.rstrip('/'),
+            'host': host,
             'identity_provider': self.identity_provider,
             'protocol': self.protocol
         }
