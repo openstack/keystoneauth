@@ -2,7 +2,7 @@
     templates:
       - check-requirements
       - lib-forward-testing-python3
-      - openstack-python3-zed-jobs
+      - openstack-python3-jobs
       - openstacksdk-functional-tips
       - openstacksdk-tox-tips
       - osc-tox-unit-tips
