@@ -549,7 +549,7 @@ class OidcDeviceAuthorization(_OidcBase):
             self._get_device_authorization_endpoint(session)
         op_response = session.post(device_authz_endpoint,
                                    requests_auth=client_auth,
-                                   data={},
+                                   headers=self.HEADER_X_FORM,
                                    authenticated=False)
 
         self.expires_in = int(op_response.json()["expires_in"])
