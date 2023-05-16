@@ -324,7 +324,8 @@ class OidcPassword(_OidcBase):
         """
         payload = {'username': self.username,
                    'password': self.password,
-                   'scope': self.scope}
+                   'scope': self.scope,
+                   'client_id': self.client_id}
         return payload
 
 
