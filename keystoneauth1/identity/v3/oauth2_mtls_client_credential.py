@@ -14,15 +14,12 @@
 
 import abc
 
-import six
-
 from keystoneauth1 import access
 from keystoneauth1 import exceptions
 from keystoneauth1.identity.v3 import base
 
 
-@six.add_metaclass(abc.ABCMeta)
-class OAuth2mTlsClientCredential(base.BaseAuth):
+class OAuth2mTlsClientCredential(base.BaseAuth, metaclass=abc.ABCMeta):
     """A plugin for authenticating via an OAuth2.0 mTLS client credential.
 
     :param string auth_url: keystone authorization endpoint.
