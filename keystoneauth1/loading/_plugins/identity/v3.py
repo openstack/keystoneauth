@@ -209,6 +209,8 @@ class OpenIDConnectDeviceAuthorization(_OpenIDConnectBase):
                         'that if a discovery document is being passed this '
                         'option will override the endpoint provided by the '
                         'server in the discovery document.'),
+            loading.Opt('code-challenge-method',
+                        help='PKCE Challenge Method (RFC 7636)'),
         ])
 
         return options
