@@ -66,6 +66,8 @@ this V3 defines a number of different
   Authenticate against a V3 identity service using an application credential.
 - :py:class:`~keystoneauth1.extras.kerberos.KerberosMethod`: Authenticate
   against a V3 identity service using Kerberos.
+- :py:class:`~keystoneauth1.identity.v3.OAuth2ClientCredentialMethod`:
+  Authenticate against a V3 identity service using an OAuth2.0 client credential.
 
 The :py:class:`~keystoneauth1.identity.v3.AuthMethod` objects are then
 passed to the :py:class:`~keystoneauth1.identity.v3.Auth` plugin::
@@ -380,6 +382,37 @@ The following example shows the method usage with a session::
     >>> sess = session.Session(auth=auth)
 
 
+OAuth2.0 Client Credentials
+===========================
+
+.. warning::
+
+   The access token must be only added for the requests using HTTPS according
+   to `RFC6749`_
+
+There is a specific authentication method for interacting with Identity
+servers that support OAuth2.0 Client Credential Grant. The notable difference
+from the other authentication method is that, after passing the
+authentication, the ``session`` will add "Authorization" header with an
+OAuth2.0 access token to sent subsequent requests. The following method can be
+used to authenticate for a token using OAuth2.0 client credentials:
+
+.. _RFC6749: https://datatracker.ietf.org/doc/html/rfc6749
+
+- :py:class:`~keystoneauth1.identity.v3.OAuth2ClientCredential`:
+
+The following example shows the method usage with a session::
+
+    >>> from keystoneauth1 import session
+    >>> from keystone.identity import v3
+    >>> auth = v3.OAuth2ClientCredential(
+            oauth2_endpoint='https://keystone.host/identity/v3/OS-OAUTH2/token'
+            oauth2_client_id='f96a2fec117141a6b5fbaa0485632244',
+            oauth2_client_secret='client_credential_secret'
+        )
+    >>> sess = session.Session(auth=auth)
+
+
 Tokenless Auth
 ==============
 
@@ -432,7 +465,7 @@ authentication plugins that are available in `keystoneauth` are:
 - v3samlpassword: :py:class:`keystoneauth1.extras._saml2.v3.Password`
 - v3tokenlessauth: :py:class:`keystoneauth1.identity.v3.TokenlessAuth`
 - v3totp: :py:class:`keystoneauth1.identity.v3.TOTP`
-
+- v3oauth2clientcredential: :py:class:`keystoneauth1.identity.v3.OAuth2ClientCredential`
 
 Creating Authentication Plugins
 ===============================
