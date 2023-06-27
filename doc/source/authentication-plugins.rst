@@ -67,7 +67,11 @@ this V3 defines a number of different
 - :py:class:`~keystoneauth1.extras.kerberos.KerberosMethod`: Authenticate
   against a V3 identity service using Kerberos.
 - :py:class:`~keystoneauth1.identity.v3.OAuth2ClientCredentialMethod`:
-  Authenticate against a V3 identity service using an OAuth2.0 client credential.
+  Authenticate against a V3 identity service using an OAuth2.0 client
+  credential.
+- :py:class:`~keystoneauth1.identity.v3.OAuth2mTlsClientCredential`:
+  Authenticate against a V3 identity service using an OAuth2.0 Mutual-TLS
+  client credentials.
 
 The :py:class:`~keystoneauth1.identity.v3.AuthMethod` objects are then
 passed to the :py:class:`~keystoneauth1.identity.v3.Auth` plugin::
@@ -388,7 +392,7 @@ OAuth2.0 Client Credentials
 .. warning::
 
    The access token must be only added for the requests using HTTPS according
-   to `RFC6749`_
+   to `RFC6749`_.
 
 There is a specific authentication method for interacting with Identity
 servers that support OAuth2.0 Client Credential Grant. The notable difference
@@ -409,6 +413,38 @@ The following example shows the method usage with a session::
             oauth2_endpoint='https://keystone.host/identity/v3/OS-OAUTH2/token'
             oauth2_client_id='f96a2fec117141a6b5fbaa0485632244',
             oauth2_client_secret='client_credential_secret'
+        )
+    >>> sess = session.Session(auth=auth)
+
+
+OAuth2.0 Mutual-TLS Client Credentials
+======================================
+
+.. warning::
+
+   The access token must be only added for the requests using mutual TLS
+   according to `RFC8705`_.
+
+There is a specific authentication method for interacting with Identity
+servers that support OAuth 2.0 Mutual-TLS Client Authentication. The notable
+difference from the other authentication method is that, after passing the
+authentication, the ``session`` will add "Authorization" header with an
+OAuth2.0 Certificate-Bound Access Tokens to sent subsequent requests. The
+following method can be used to authenticate for a token using OAuth2.0
+Mutual-TLS client credentials:
+
+.. _RFC8705: https://datatracker.ietf.org/doc/html/rfc8705
+
+- :py:class:`~keystoneauth1.identity.v3.OAuth2mTlsClientCredential`:
+
+The following example shows the method usage with a session::
+
+    >>> from keystoneauth1 import session
+    >>> from keystone.identity import v3
+    >>> auth = v3.OAuth2mTlsClientCredential(
+            auth_url='http://keystone.host:5000/v3'
+            oauth2_endpoint='https://keystone.host/identity/v3/OS-OAUTH2/token'
+            oauth2_client_id='f96a2fec117141a6b5fbaa0485632244'
         )
     >>> sess = session.Session(auth=auth)
 
@@ -466,6 +502,8 @@ authentication plugins that are available in `keystoneauth` are:
 - v3tokenlessauth: :py:class:`keystoneauth1.identity.v3.TokenlessAuth`
 - v3totp: :py:class:`keystoneauth1.identity.v3.TOTP`
 - v3oauth2clientcredential: :py:class:`keystoneauth1.identity.v3.OAuth2ClientCredential`
+- v3oauth2mtlsclientcredential: :py:class:`keystoneauth1.identity.v3.OAuth2mTlsClientCredential`
+
 
 Creating Authentication Plugins
 ===============================
