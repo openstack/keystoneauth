@@ -1074,6 +1074,10 @@ class Session(object):
                 logger.warning("Failed to redirect request to %s as new "
                                "location was not provided.", resp.url)
             else:
+                if 'x-openstack-request-id' in resp.headers:
+                    kwargs['headers'].setdefault('x-openstack-request-id',
+                                                 resp.headers[
+                                                     'x-openstack-request-id'])
                 # NOTE(jamielennox): We don't keep increasing delays.
                 # This request actually worked so we can reset the delay count.
                 connect_retry_delays.reset()
