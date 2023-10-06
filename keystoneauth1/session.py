@@ -1074,10 +1074,17 @@ class Session(object):
                 logger.warning("Failed to redirect request to %s as new "
                                "location was not provided.", resp.url)
             else:
+                # NOTE(TheJulia): Location redirects generally should have
+                # URI's to the destination.
+                # https://datatracker.ietf.org/doc/html/rfc7231#section-7.1.2
+                if 'params' in kwargs:
+                    kwargs['params'] = {}
+
                 if 'x-openstack-request-id' in resp.headers:
                     kwargs['headers'].setdefault('x-openstack-request-id',
                                                  resp.headers[
                                                      'x-openstack-request-id'])
+
                 # NOTE(jamielennox): We don't keep increasing delays.
                 # This request actually worked so we can reset the delay count.
                 connect_retry_delays.reset()

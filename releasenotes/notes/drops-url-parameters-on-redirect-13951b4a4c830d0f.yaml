@@ -1,0 +1,10 @@
+---
+fixes:
+  - |
+    Fixes a condition where URL parameters would be appended to a
+    new URL discovered via a redirect. This was resulting in arguments
+    being duplicated on requests to the new server being redirected to.
+    URL redirects are intended to redirect the requester to the final
+    location, and generally include a fully formatted final destination
+    URL, which would include URL parameters. URL parameters are now dropped
+    when attempting to issue a request once redirected.
