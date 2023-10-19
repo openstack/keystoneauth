@@ -216,12 +216,10 @@ class Adapter(object):
         if self.user_agent:
             kwargs.setdefault('user_agent', self.user_agent)
         for arg in ('connect_retries', 'status_code_retries',
-                    'connect_retry_delay', 'status_code_retry_delay'):
+                    'connect_retry_delay', 'status_code_retry_delay',
+                    'retriable_status_codes'):
             if getattr(self, arg) is not None:
                 kwargs.setdefault(arg, getattr(self, arg))
-        if self.retriable_status_codes:
-            kwargs.setdefault('retriable_status_codes',
-                              self.retriable_status_codes)
         if self.logger:
             kwargs.setdefault('logger', self.logger)
         if self.allow:
