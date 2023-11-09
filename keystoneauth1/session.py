@@ -153,7 +153,12 @@ def _determine_calling_package():
     # module does this but is far less efficient. Same story with the
     # frame walking below.  One could use ``inspect.stack()`` but it
     # has far more overhead.
-    mod_lookup = dict((m.__file__, n) for n, m in sys.modules.items()
+
+    # NOTE(jwysogla): According to the docs, we should always use copy(),
+    # because sys.modules can change during iteration, which results
+    # in a RuntimeError
+    # https://docs.python.org/3/library/sys.html#sys.modules
+    mod_lookup = dict((m.__file__, n) for n, m in sys.modules.copy().items()
                       if hasattr(m, '__file__'))
 
     # NOTE(shaleh): these are not useful because they hide the real
