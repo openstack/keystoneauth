@@ -51,6 +51,7 @@ _LOG_CONTENT_TYPES = set(['application/json', 'text/plain'])
 
 _MAX_RETRY_INTERVAL = 60.0
 _EXPONENTIAL_DELAY_START = 0.5
+_RETRIABLE_STATUS_CODES = [503]
 
 # NOTE(efried): This is defined in oslo_middleware.request_id.INBOUND_HEADER,
 # but it didn't seem worth adding oslo_middleware to requirements just for that
@@ -771,7 +772,8 @@ class Session(object):
         if connect_retries is None:
             connect_retries = self._connect_retries
         # HTTP 503 - Service Unavailable
-        retriable_status_codes = retriable_status_codes or [503]
+        retriable_status_codes = retriable_status_codes or \
+            _RETRIABLE_STATUS_CODES
         rate_semaphore = rate_semaphore or self._rate_semaphore
 
         headers = kwargs.setdefault('headers', dict())
