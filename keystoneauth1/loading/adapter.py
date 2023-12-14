@@ -10,8 +10,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from oslo_config import types
-
 from keystoneauth1 import adapter
 from keystoneauth1.loading import _utils
 from keystoneauth1.loading import base
@@ -166,12 +164,13 @@ class Adapter(base.BaseLoader):
                 cfg.ListOpt('retriable-status-codes',
                             deprecated_opts=deprecated_opts.get(
                                 'retriable-status-codes'),
-                            item_type=types.Integer(),
+                            item_type=cfg.types.Integer(),
                             help='List of retriable HTTP status codes that '
                                  'should be retried. If not set default to '
                                  ' [503]'
                             ),
                 ]
+
         if include_deprecated:
             opts += [
                 cfg.StrOpt('interface',
