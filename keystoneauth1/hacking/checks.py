@@ -33,4 +33,4 @@ def check_oslo_namespace_imports(logical_line, blank_before, filename):
         msg = ("K333: '%s' must be used instead of '%s'.") % (
             logical_line.replace('oslo.', 'oslo_'),
             logical_line)
-        yield(0, msg)
+        yield (0, msg)

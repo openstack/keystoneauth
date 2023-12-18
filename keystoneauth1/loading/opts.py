@@ -112,7 +112,7 @@ class Opt(object):
 
     def __eq__(self, other):
         """Define equality operator on option parameters."""
-        return (type(self) == type(other) and
+        return (type(self) is type(other) and
                 self.name == other.name and
                 self.type == other.type and
                 self.help == other.help and

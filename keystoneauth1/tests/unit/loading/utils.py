@@ -73,7 +73,7 @@ class BoolType(object):
     def __eq__(self, other):
         """Define equiality for many bool types."""
         # hack around oslo.config equality comparison
-        return type(self) == type(other)
+        return type(self) is type(other)
 
     # NOTE: This function is only needed by Python 2. If we get to point where
     # we don't support Python 2 anymore, this function should be removed.
