@@ -504,7 +504,7 @@ class OidcDeviceAuthorization(_OidcBase):
         :type code_challenge_method: string
         """
         # RFC 8628 only allows to retrieve an access_token
-        self.access_token_type = 'access_token'
+        self.access_token_type = 'access_token'  # nosec B105
         self.device_authorization_endpoint = device_authorization_endpoint
         self.code_challenge_method = code_challenge_method
 
