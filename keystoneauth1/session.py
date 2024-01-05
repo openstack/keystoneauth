@@ -1045,8 +1045,10 @@ class Session(object):
                 raise
 
             delay = next(connect_retry_delays)
-            logger.info('Failure: %(e)s. Retrying in %(delay).1fs.',
-                        {'e': e, 'delay': delay})
+            logger.warning('Failure: %(e)s. Retrying in %(delay).1fs.'
+                           '%(retries)s retries left',
+                           {'e': e, 'delay': delay,
+                            'retries': connect_retries})
             time.sleep(delay)
 
             return self._send_request(
@@ -1114,9 +1116,10 @@ class Session(object):
               status_code_retries > 0):
 
             delay = next(status_code_retry_delays)
-            logger.info('Retriable status code %(code)s. Retrying in '
-                        '%(delay).1fs.',
-                        {'code': resp.status_code, 'delay': delay})
+            logger.warning('Retriable status code %(code)s. Retrying in '
+                           '%(delay).1fs. %(retries)s retries left',
+                           {'code': resp.status_code, 'delay': delay,
+                            'retries': status_code_retries})
             time.sleep(delay)
 
             # NOTE(jamielennox): We don't keep increasing connection delays.
