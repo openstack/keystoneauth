@@ -141,12 +141,17 @@ class Opt:
         return [f'--os-{o.name}' for o in self._all_opts]
 
     @property
+    def argparse_envvars(self) -> ty.List[str]:
+        return [
+            'OS_{}'.format(o.name.replace('-', '_').upper())
+            for o in self._all_opts
+        ]
+
+    @property
     def argparse_default(self) -> ty.Any:
         # select the first ENV that is not false-y or return None
-        for o in self._all_opts:
-            v = os.environ.get(
-                'OS_{}'.format(o.name.replace('-', '_').upper())
-            )
+        for envvar in self.argparse_envvars:
+            v = os.environ.get(envvar)
             if v:
                 return v
 
