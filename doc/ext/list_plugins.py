@@ -58,8 +58,18 @@ class ListAuthPluginsDirective(rst.Directive):
             yield "------"
             yield "\n"
 
-        for opt in ext.obj.get_options():
-            yield f":{opt.name}: {opt.help}"
+        for opt in sorted(ext.obj.get_options(), key=lambda opt: opt.name):
+            summary = f":{opt.name}: {opt.help}"
+            if opt.required:
+                summary += " **(mandatory)**"
+            yield summary
+            yield "\n\n"
+            yield "     :CLI options: {}\n".format(
+                ', '.join([f'``{x}``' for x in opt.argparse_args])
+            )
+            yield "     :Environment variables: {}\n".format(
+                ', '.join([f'``{x}``' for x in opt.argparse_envvars])
+            )
 
         yield "\n"
 
