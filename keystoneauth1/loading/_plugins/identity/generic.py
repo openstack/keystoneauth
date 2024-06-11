@@ -28,7 +28,7 @@ class Token(loading.BaseGenericLoader[identity.Token]):
 
     As a generic plugin this plugin is identity version independent and will
     discover available versions before use. This means it expects to be
-    providen an unversioned URL to operate against.
+    provided an unversioned URL to operate against.
     """
 
     @property
@@ -57,7 +57,7 @@ class Password(loading.BaseGenericLoader[identity.Password]):
 
     As a generic plugin this plugin is identity version independent and will
     discover available versions before use. This means it expects to be
-    providen an unversioned URL to operate against.
+    provided an unversioned URL to operate against.
     """
 
     @property
