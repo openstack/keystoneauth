@@ -56,8 +56,7 @@ class ListAuthPluginsDirective(rst.Directive):
             yield doc
             yield "\n"
             yield "------"
-
-        yield "\n"
+            yield "\n"
 
         for opt in ext.obj.get_options():
             yield f":{opt.name}: {opt.help}"
@@ -75,7 +74,7 @@ class ListAuthPluginsDirective(rst.Directive):
 
         for name in sorted(mgr.names()):
             for line in self.display_plugin(mgr[name]):
-                for l in line.splitlines():
+                for x in line.splitlines():
                     ep = mgr[name]
                     try:
                         module_name = ep.entry_point.module_name
@@ -84,7 +83,7 @@ class ListAuthPluginsDirective(rst.Directive):
                             module_name = ep.entry_point.module
                         except AttributeError:
                             module_name = ep.entry_point.value
-                    result.append(l, module_name)
+                    result.append(x, module_name)
 
         # Parse what we have into a new section.
         node = nodes.section()
