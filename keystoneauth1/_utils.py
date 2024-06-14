@@ -49,11 +49,12 @@ def from_utcnow(**timedelta_kwargs):
         Passed directly to :class:`datetime.timedelta` to add to the current
         time in UTC.
     :returns:
-        The time in the future based on ``timedelta_kwargs``.
+        The time in the future based on ``timedelta_kwargs`` and in TZ-naive
+        format.
     :rtype:
         datetime.datetime
     """
-    now = datetime.datetime.utcnow()
+    now = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
     delta = datetime.timedelta(**timedelta_kwargs)
     return now + delta
 
@@ -65,11 +66,12 @@ def before_utcnow(**timedelta_kwargs):
         Passed directly to :class:`datetime.timedelta` to subtract from the
         current time in UTC.
     :returns:
-        The time in the past based on ``timedelta_kwargs``.
+        The time in the past based on ``timedelta_kwargs`` and in TZ-naive
+        format.
     :rtype:
         datetime.datetime
     """
-    now = datetime.datetime.utcnow()
+    now = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
     delta = datetime.timedelta(**timedelta_kwargs)
     return now - delta
 
