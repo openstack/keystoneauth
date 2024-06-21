@@ -122,7 +122,8 @@ class Password(base.BaseSAMLPlugin):
         :type fmt: string
 
         """
-        date_created = datetime.datetime.utcnow()
+        date_created = datetime.datetime.now(datetime.timezone.utc).replace(
+            tzinfo=None)
         date_expires = date_created + datetime.timedelta(
             seconds=self.DEFAULT_ADFS_TOKEN_EXPIRATION)
         return [_time.strftime(fmt) for _time in (date_created, date_expires)]
