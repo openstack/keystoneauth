@@ -12,7 +12,9 @@
 
 import abc
 import base64
+import copy
 import hashlib
+import logging
 import os
 import time
 from urllib import parse as urlparse
@@ -29,6 +31,8 @@ __all__ = ('OidcAuthorizationCode',
            'OidcClientCredentials',
            'OidcPassword',
            'OidcAccessToken')
+
+SENSITIVE_KEYS = ("password", "code", "token", "secret")
 
 
 class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
@@ -177,6 +181,13 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
             raise exceptions.OidcAccessTokenEndpointNotFound()
         return endpoint
 
+    def _sanitize(self, data):
+        sanitized = copy.deepcopy(data)
+        for key in sanitized:
+            if any(s in key for s in SENSITIVE_KEYS):
+                sanitized[key] = "***"
+        return sanitized
+
     def _get_access_token(self, session, payload):
         """Exchange a variety of user supplied values for an access token.
 
@@ -192,11 +203,26 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
         client_auth = (self.client_id, self.client_secret)
         access_token_endpoint = self._get_access_token_endpoint(session)
 
+        if _logger.isEnabledFor(logging.DEBUG):
+            sanitized_payload = self._sanitize(payload)
+            _logger.debug(
+                "Making OpenID-Connect authentication request to %s with "
+                "data %s", access_token_endpoint, sanitized_payload
+            )
+
         op_response = session.post(access_token_endpoint,
                                    requests_auth=client_auth,
                                    data=payload,
+                                   log=False,
                                    authenticated=False)
-        access_token = op_response.json()[self.access_token_type]
+        response = op_response.json()
+        if _logger.isEnabledFor(logging.DEBUG):
+            sanitized_response = self._sanitize(response)
+            _logger.debug(
+                "OpenID-Connect authentication response from %s is %s",
+                access_token_endpoint, sanitized_response
+            )
+        access_token = response[self.access_token_type]
         return access_token
 
     def _get_keystone_token(self, session, access_token):
@@ -588,11 +614,24 @@ class OidcDeviceAuthorization(_OidcBase):
             payload.setdefault('code_challenge', self.code_challenge)
         encoded_payload = urlparse.urlencode(payload)
 
+        if _logger.isEnabledFor(logging.DEBUG):
+            sanitized_payload = self._sanitize(payload)
+            _logger.debug(
+                "Making OpenID-Connect authentication request to %s with "
+                "data %s", device_authz_endpoint, sanitized_payload
+            )
         op_response = session.post(device_authz_endpoint,
                                    requests_auth=client_auth,
                                    headers=self.HEADER_X_FORM,
                                    data=encoded_payload,
+                                   log=False,
                                    authenticated=False)
+        if _logger.isEnabledFor(logging.DEBUG):
+            sanitized_response = self._sanitize(op_response.json())
+            _logger.debug(
+                "OpenID-Connect authentication response from %s is %s",
+                device_authz_endpoint, sanitized_response
+            )
 
         self.expires_in = int(op_response.json()["expires_in"])
         self.timeout = time.time() + self.expires_in
@@ -629,11 +668,25 @@ class OidcDeviceAuthorization(_OidcBase):
 
         while time.time() < self.timeout:
             try:
+                if _logger.isEnabledFor(logging.DEBUG):
+                    sanitized_payload = self._sanitize(payload)
+                    _logger.debug(
+                        "Making OpenID-Connect authentication request to %s "
+                        "with data %s",
+                        access_token_endpoint, sanitized_payload
+                    )
                 op_response = session.post(access_token_endpoint,
                                            requests_auth=client_auth,
                                            data=encoded_payload,
                                            headers=self.HEADER_X_FORM,
+                                           log=False,
                                            authenticated=False)
+                if _logger.isEnabledFor(logging.DEBUG):
+                    sanitized_response = self._sanitize(op_response.json())
+                    _logger.debug(
+                        "OpenID-Connect authentication response from %s is %s",
+                        access_token_endpoint, sanitized_response
+                    )
             except exceptions.http.BadRequest as exc:
                 error = exc.response.json().get("error")
                 if error != "authorization_pending":
