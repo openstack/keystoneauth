@@ -659,8 +659,8 @@ class OidcDeviceAuthorization(_OidcBase):
                  'device_code': self.device_code}
         :type payload: dict
         """
-        print(f"\nTo authenticate please go to: "
-              f"{self.verification_uri_complete}")
+        _logger.warning(f"To authenticate please go to: "
+                        f"{self.verification_uri_complete}")
 
         client_auth = (self.client_id, self.client_secret)
         access_token_endpoint = self._get_access_token_endpoint(session)
