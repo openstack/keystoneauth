@@ -50,6 +50,16 @@ ACCESS_TOKEN_VIA_AUTH_GRANT_RESP = {
     "id_token": "eyJhbGciOiJSUzI1Ni8hOYHuZT8dt_yynmJVhcU"
 }
 
+DEVICE_CODE_RESP = {
+    'device_code': "fRtNXLxmRy4iEzLsbAV96pMFgOMEUCPZmAMepjLrvQ",
+    'user_code': "ABCD-EFGH",
+    'verification_uri': "https://localhost:8020/oidc/authorize/device",
+    'verification_uri_complete':
+        "https://localhost:8020/oidc/authorize/device?user_code=ABCD-EFGH",
+    'expires_in': 1800,
+    'interval': 5
+}
+
 DISCOVERY_DOCUMENT = {
     "authorization_endpoint": "https://localhost:8020/oidc/authorize",
     "claims_supported": [
