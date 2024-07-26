@@ -10,6 +10,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import base64
+import time
 from unittest import mock
 import urllib
 import uuid
@@ -427,3 +429,133 @@ class OIDCTokenTests(utils.TestCase):
 
         response = self.plugin.get_unscoped_auth_ref(self.session)
         self.assertEqual(KEYSTONE_TOKEN_VALUE, response.auth_token)
+
+
+class OIDCDeviceAuthorizationTest(BaseOIDCTests, utils.TestCase):
+    def setUp(self):
+        super(OIDCDeviceAuthorizationTest, self).setUp()
+
+        self.GRANT_TYPE = 'urn:ietf:params:oauth:grant-type:device_code'
+        self.DEVICE_AUTH_ENDPOINT = \
+            'https://localhost:8020/oidc/authorize/device'
+
+        self.plugin = oidc.OidcDeviceAuthorization(
+            self.AUTH_URL,
+            self.IDENTITY_PROVIDER,
+            self.PROTOCOL,
+            client_id=self.CLIENT_ID,
+            client_secret=self.CLIENT_SECRET,
+            access_token_endpoint=self.ACCESS_TOKEN_ENDPOINT,
+            device_authorization_endpoint=self.DEVICE_AUTH_ENDPOINT)
+
+    def test_get_device_authorization_request(self):
+        """Test device authorization request."""
+        # Mock the output that creates the device code
+        self.requests_mock.post(
+            self.DEVICE_AUTH_ENDPOINT,
+            json=oidc_fixtures.DEVICE_CODE_RESP)
+
+        result = self.plugin.get_payload(self.session)
+
+        # Verify the request matches the expected structure
+        last_req = self.requests_mock.last_request
+        self.assertEqual(self.DEVICE_AUTH_ENDPOINT, last_req.url)
+        self.assertEqual('POST', last_req.method)
+        self.assertEqual(
+            self._basic_header(self.CLIENT_ID, self.CLIENT_SECRET),
+            last_req.headers.get('Authorization'))
+        self.assertEqual(oidc_fixtures.DEVICE_CODE_RESP["device_code"],
+                         result["device_code"])
+
+    def test_get_device_authorization_request_without_client_secret(self):
+        """Test device authorization request, without client_secret.
+
+        From RFC 8628 Section 3.1, if Basic authentication is not performed,
+        it is required to include the client_id in the request body.
+        """
+        self.plugin.client_secret = None
+
+        # Mock the output that creates the device code
+        self.requests_mock.post(
+            self.DEVICE_AUTH_ENDPOINT,
+            json=oidc_fixtures.DEVICE_CODE_RESP)
+        result = self.plugin.get_payload(self.session)
+
+        payload = {'client_id': self.CLIENT_ID}
+        # Verify the request matches the expected structure
+        last_req = self.requests_mock.last_request
+        self.assertEqual(self.DEVICE_AUTH_ENDPOINT, last_req.url)
+        self.assertEqual('POST', last_req.method)
+        self.assertIsNone(last_req.headers.get('Authorization'))
+        encoded_payload = urllib.parse.urlencode(payload)
+        self.assertEqual(encoded_payload, last_req.body)
+        self.assertEqual(oidc_fixtures.DEVICE_CODE_RESP["device_code"],
+                         result["device_code"])
+
+    def test_second_call_to_get_access_token(self):
+        """Test Device Access Token Request."""
+        self._store_device_authorization_response()
+        # Mock the output that creates the access token
+        self.requests_mock.post(
+            self.ACCESS_TOKEN_ENDPOINT,
+            json=oidc_fixtures.ACCESS_TOKEN_VIA_PASSWORD_RESP)
+
+        # Prep all the values and send the request
+        payload = {'grant_type': self.GRANT_TYPE,
+                   'device_code': self.plugin.device_code}
+        self.plugin._get_access_token(self.session, payload)
+
+        # Verify the request matches the expected structure
+        last_req = self.requests_mock.last_request
+        self.assertEqual(self.ACCESS_TOKEN_ENDPOINT, last_req.url)
+        self.assertEqual('POST', last_req.method)
+        self.assertEqual(
+            self._basic_header(self.CLIENT_ID, self.CLIENT_SECRET),
+            last_req.headers.get('Authorization'))
+        encoded_payload = urllib.parse.urlencode(payload)
+        self.assertEqual(encoded_payload, last_req.body)
+
+    def test_second_call_to_get_access_token_without_client_secret(self):
+        """Device Access Token Request without client_secret.
+
+        From RFC 8628 Section 3.4, if Basic authentication is not performed,
+        it is required to include the client_id in the request body.
+        """
+        self.plugin.client_secret = None
+        self._store_device_authorization_response()
+
+        # Mock the output that creates the access token
+        self.requests_mock.post(
+            self.ACCESS_TOKEN_ENDPOINT,
+            json=oidc_fixtures.ACCESS_TOKEN_VIA_PASSWORD_RESP)
+
+        # Prep all the values and send the request
+        payload = {'grant_type': self.GRANT_TYPE,
+                   'device_code': self.plugin.device_code,
+                   'client_id': self.CLIENT_ID}
+        self.plugin._get_access_token(self.session, payload)
+
+        # Verify the request matches the expected structure
+        last_req = self.requests_mock.last_request
+        self.assertEqual(self.ACCESS_TOKEN_ENDPOINT, last_req.url)
+        self.assertEqual('POST', last_req.method)
+        self.assertIsNone(last_req.headers.get('Authorization'))
+        encoded_payload = urllib.parse.urlencode(payload)
+        self.assertEqual(encoded_payload, last_req.body)
+
+    def _basic_header(self, username, password):
+        user_pass = '{}:{}'.format(username, password).encode('utf-8')
+        encoded_credentials = base64.b64encode(user_pass).decode('utf-8')
+        return 'Basic {}'.format(encoded_credentials)
+
+    def _store_device_authorization_response(self):
+        self.plugin.expires_in = int(
+            oidc_fixtures.DEVICE_CODE_RESP["expires_in"])
+        self.plugin.timeout = time.time() + self.plugin.expires_in
+        self.plugin.device_code = oidc_fixtures.DEVICE_CODE_RESP["device_code"]
+        self.plugin.interval = int(oidc_fixtures.DEVICE_CODE_RESP["interval"])
+        self.plugin.user_code = oidc_fixtures.DEVICE_CODE_RESP["user_code"]
+        self.plugin.verification_uri = \
+            oidc_fixtures.DEVICE_CODE_RESP["verification_uri"]
+        self.plugin.verification_uri_complete = \
+            oidc_fixtures.DEVICE_CODE_RESP["verification_uri_complete"]

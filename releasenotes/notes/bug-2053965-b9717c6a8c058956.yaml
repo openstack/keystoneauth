@@ -1,0 +1,7 @@
+---
+fixes:
+  - |
+    [`bug 2053965 <https://bugs.launchpad.net/keystoneauth/+bug/2053965>`_]
+    OIDC Device Authorization Flow: In accordance with RFC8628, for public
+    clients that do not have a client_secret, the client_id is included in
+    the request bodies.

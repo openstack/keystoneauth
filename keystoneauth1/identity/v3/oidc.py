@@ -635,11 +635,16 @@ class OidcDeviceAuthorization(_OidcBase):
         :returns: a python dictionary containing the payload to be exchanged
         :rtype: dict
         """
-        client_auth = (self.client_id, self.client_secret)
         device_authz_endpoint = \
             self._get_device_authorization_endpoint(session)
 
-        payload = {}
+        if self.client_secret:
+            client_auth = (self.client_id, self.client_secret)
+            payload = {}
+        else:
+            client_auth = None
+            payload = {'client_id': self.client_id}
+
         if self.code_challenge_method:
             self.code_challenge = self._generate_pkce_challenge()
             payload.setdefault('code_challenge_method',
@@ -695,7 +700,12 @@ class OidcDeviceAuthorization(_OidcBase):
         _logger.warning(f"To authenticate please go to: "
                         f"{self.verification_uri_complete}")
 
-        client_auth = (self.client_id, self.client_secret)
+        if self.client_secret:
+            client_auth = (self.client_id, self.client_secret)
+        else:
+            client_auth = None
+            payload.setdefault('client_id', self.client_id)
+
         access_token_endpoint = self._get_access_token_endpoint(session)
         encoded_payload = urlparse.urlencode(payload)
 
