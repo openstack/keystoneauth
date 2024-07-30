@@ -35,19 +35,18 @@ repos:
         additional_dependencies:
           - flake8-import-order~=0.18.2
         exclude: '^(doc|releasenotes|tools)/.*$'
-  # - repo: https://github.com/pre-commit/mirrors-mypy
-  #   rev: v1.10.1
-  #   hooks:
-  #     - id: mypy
-  #       additional_dependencies:
-  #         - types-decorator
-  #         - types-PyYAML
-  #         - types-requests
-  #         - types-simplejson
-  #       # keep this in-sync with '[mypy] exclude' in 'setup.cfg'
-  #       exclude: |
-  #         (?x)(
-  #           doc/.*
-  #           | examples/.*
-  #           | releasenotes/.*
-  #         )
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.11.0
+    hooks:
+      - id: mypy
+        additional_dependencies:
+          - types-PyYAML
+          - types-requests
+          - types-simplejson
+        # keep this in-sync with '[mypy] exclude' in 'setup.cfg'
+        exclude: |
+          (?x)(
+            doc/.*
+            | examples/.*
+            | releasenotes/.*
+          )
