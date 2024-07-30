@@ -14,12 +14,12 @@ repos:
       - id: check-yaml
         files: .*\.(yaml|yml)$
         exclude: '^zuul.d/.*$'
-  # - repo: https://github.com/astral-sh/ruff-pre-commit
-  #   rev: v0.5.5
-  #   hooks:
-  #     - id: ruff
-  #       args: ['--fix', '--unsafe-fixes']
-  #     - id: ruff-format
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.5.5
+    hooks:
+      - id: ruff
+        args: ['--fix', '--unsafe-fixes']
+      - id: ruff-format
   - repo: https://github.com/PyCQA/bandit
     rev: 1.7.9
     hooks:
