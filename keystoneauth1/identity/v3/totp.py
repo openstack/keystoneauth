@@ -36,7 +36,8 @@ class TOTPMethod(base.AuthMethod):
         'passcode',
     ]
 
-    def get_auth_data(self, session, auth, headers, **kwargs):
+    # TODO(stephenfin): Deprecate and remove unused kwargs
+    def get_auth_data(self, session, auth, headers, request_kwargs, **kwargs):
         user = {'passcode': self.passcode}
 
         if self.user_id:

@@ -167,6 +167,7 @@ class Keystone2Keystone(federation._Rescoped):
 
         return response
 
+    # TODO(stephenfin): Deprecate and remove unused kwargs
     def get_unscoped_auth_ref(self, session, **kwargs):
         sp_auth_url = self._local_cloud_plugin.get_sp_auth_url(
             session, self._sp_id

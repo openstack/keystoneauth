@@ -51,7 +51,8 @@ class OAuth1Method(v3.AuthMethod):
         'access_secret',
     ]
 
-    def get_auth_data(self, session, auth, headers, **kwargs):
+    # TODO(stephenfin): Deprecate and remove unused kwargs
+    def get_auth_data(self, session, auth, headers, request_kwargs, **kwargs):
         # Add the oauth specific content into the headers
         oauth_client = oauth1.Client(
             self.consumer_key,

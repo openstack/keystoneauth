@@ -34,7 +34,8 @@ class PasswordMethod(base.AuthMethod):
         'password',
     ]
 
-    def get_auth_data(self, session, auth, headers, **kwargs):
+    # TODO(stephenfin): Deprecate and remove unused kwargs
+    def get_auth_data(self, session, auth, headers, request_kwargs, **kwargs):
         user = {'password': self.password}
 
         if self.user_id:

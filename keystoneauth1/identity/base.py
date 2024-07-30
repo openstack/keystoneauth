@@ -153,17 +153,18 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
     def get_endpoint_data(
         self,
         session,
+        *,
+        endpoint_override=None,
+        discover_versions=True,
         service_type=None,
         interface=None,
         region_name=None,
         service_name=None,
         allow=None,
         allow_version_hack=True,
-        discover_versions=True,
         skip_discovery=False,
         min_version=None,
         max_version=None,
-        endpoint_override=None,
         **kwargs,
     ):
         """Return a valid endpoint data for a service.
@@ -180,6 +181,16 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
 
         :param session: A session object that can be used for communication.
         :type session: keystoneauth1.session.Session
+        :param str endpoint_override: URL to use instead of looking in the
+                                      catalog. Catalog lookup will be skipped,
+                                      but version discovery will be run.
+                                      Sets allow_version_hack to False
+                                      (optional)
+        :param bool discover_versions: Whether to get version metadata from
+                                       the version discovery document even
+                                       if it's not neccessary to fulfill the
+                                       major version request. (optional,
+                                       defaults to True)
         :param string service_type: The type of service to lookup the endpoint
                                     for. This plugin will return None (failure)
                                     if service_type is not provided.
@@ -198,11 +209,6 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         :param bool allow_version_hack: Allow keystoneauth to hack up catalog
                                         URLS to support older schemes.
                                         (optional, default True)
-        :param bool discover_versions: Whether to get version metadata from
-                                       the version discovery document even
-                                       if it's not neccessary to fulfill the
-                                       major version request. (optional,
-                                       defaults to True)
         :param bool skip_discovery: Whether to skip version discovery even
                                     if a version has been given. This is useful
                                     if endpoint_override or similar has been
@@ -216,11 +222,6 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
                             exclusive with version. If min_version is given
                             with no max_version it is as if max version is
                             'latest'. (optional)
-        :param str endpoint_override: URL to use instead of looking in the
-                                      catalog. Catalog lookup will be skipped,
-                                      but version discovery will be run.
-                                      Sets allow_version_hack to False
-                                      (optional)
         :param kwargs: Ignored.
 
         :raises keystoneauth1.exceptions.http.HttpError: An error from an
@@ -417,6 +418,8 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
     def get_api_major_version(
         self,
         session,
+        *,
+        endpoint_override=None,
         service_type=None,
         interface=None,
         region_name=None,
@@ -444,6 +447,7 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
 
         :param session: A session object that can be used for communication.
         :type session: keystoneauth1.session.Session
+        :param str endpoint_override: URL to use for version discovery.
         :param string service_type: The type of service to lookup the endpoint
                                     for. This plugin will return None (failure)
                                     if service_type is not provided.
@@ -538,6 +542,7 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         get_endpoint_data = functools.partial(
             self.get_endpoint_data,
             session,
+            endpoint_override=endpoint_override,
             service_type=service_type,
             interface=interface,
             region_name=region_name,

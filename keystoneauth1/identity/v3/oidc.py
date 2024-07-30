@@ -270,7 +270,8 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
         )
         return auth_response
 
-    def get_unscoped_auth_ref(self, session):
+    # TODO(stephenfin): Deprecate and remove unused kwargs
+    def get_unscoped_auth_ref(self, session, **kwargs):
         """Authenticate with OpenID Connect and get back claims.
 
         This is a multi-step process:
@@ -573,7 +574,8 @@ class OidcAccessToken(_OidcBase):
         """OidcAccessToken does not require a payload."""  # noqa: D403
         return {}
 
-    def get_unscoped_auth_ref(self, session):
+    # TODO(stephenfin): Deprecate and remove unused kwargs
+    def get_unscoped_auth_ref(self, session, **kwargs):
         """Authenticate with OpenID Connect and get back claims.
 
         We exchange the access token upon accessing the protected Keystone

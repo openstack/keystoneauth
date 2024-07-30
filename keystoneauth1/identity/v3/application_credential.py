@@ -47,7 +47,8 @@ class ApplicationCredentialMethod(base.AuthMethod):
         'user_domain_name',
     ]
 
-    def get_auth_data(self, session, auth, headers, **kwargs):
+    # TODO(stephenfin): Deprecate and remove unused kwargs
+    def get_auth_data(self, session, auth, headers, request_kwargs, **kwargs):
         auth_data = {'secret': self.application_credential_secret}
 
         if self.application_credential_id:

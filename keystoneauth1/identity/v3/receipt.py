@@ -24,7 +24,8 @@ class ReceiptMethod(base.AuthMethod):
 
     _method_parameters = ['receipt']
 
-    def get_auth_data(self, session, auth, headers, **kwargs):
+    # TODO(stephenfin): Deprecate and remove unused kwargs
+    def get_auth_data(self, session, auth, headers, request_kwargs, **kwargs):
         """Add the auth receipt to the headers.
 
         We explicitly return None to avoid being added to the request

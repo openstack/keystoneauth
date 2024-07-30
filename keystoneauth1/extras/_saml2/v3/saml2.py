@@ -243,6 +243,7 @@ class _FederatedSaml(v3.FederationBaseAuth):
     def get_requests_auth(self):
         raise NotImplementedError()
 
+    # TODO(stephenfin): Deprecate and remove unused kwargs
     def get_unscoped_auth_ref(self, session, **kwargs):
         method = self.get_requests_auth()
         auth = _SamlAuth(self.identity_provider_url, method)
