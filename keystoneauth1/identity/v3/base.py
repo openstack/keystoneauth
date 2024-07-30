@@ -12,6 +12,9 @@
 
 import abc
 import json
+import typing as ty
+
+import typing_extensions as ty_ext
 
 from keystoneauth1 import _utils as utils
 from keystoneauth1 import access
@@ -88,6 +91,15 @@ class BaseAuth(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
         )
 
 
+class _AuthIdentity(ty.TypedDict):
+    identity: ty.Dict[str, ty.Any]
+    scope: ty_ext.NotRequired[ty.Union[ty.Dict[str, ty.Any], str]]
+
+
+class _AuthBody(ty.TypedDict):
+    auth: _AuthIdentity
+
+
 class Auth(BaseAuth):
     """Identity V3 Authentication Plugin.
 
@@ -120,9 +132,10 @@ class Auth(BaseAuth):
 
     def get_auth_ref(self, session, **kwargs):
         headers = {'Accept': 'application/json'}
-        body = {'auth': {'identity': {}}}
+        body: _AuthBody = {'auth': {'identity': {}}}
         ident = body['auth']['identity']
-        rkwargs = {}
+        # this is passed around for its side-effects
+        rkwargs: ty.Dict[str, ty.Any] = {}
 
         for method in self.auth_methods:
             name, auth_data = method.get_auth_data(
@@ -254,7 +267,7 @@ class AuthMethod(metaclass=abc.ABCMeta):
     the factory method and don't work as well with AuthConstructors.
     """
 
-    _method_parameters = []
+    _method_parameters: ty.List[str] = []
 
     def __init__(self, **kwargs):
         for param in self._method_parameters:
@@ -312,7 +325,7 @@ class AuthConstructor(Auth, metaclass=abc.ABCMeta):
     creates the auth plugin with only that authentication method.
     """
 
-    _auth_method_class = None
+    _auth_method_class: ty.Type[AuthMethod]
 
     def __init__(self, auth_url, *args, **kwargs):
         method_kwargs = self._auth_method_class._extract_kwargs(kwargs)

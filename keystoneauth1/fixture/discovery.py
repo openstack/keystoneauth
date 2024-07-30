@@ -10,6 +10,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import typing as ty
+
 from keystoneauth1 import _utils as utils
 
 __all__ = ('DiscoveryList', 'V2Discovery', 'V3Discovery', 'VersionDiscovery')
@@ -17,7 +19,7 @@ __all__ = ('DiscoveryList', 'V2Discovery', 'V3Discovery', 'VersionDiscovery')
 _DEFAULT_DAYS_AGO = 30
 
 
-class DiscoveryBase(dict):
+class DiscoveryBase(ty.Dict[str, ty.Any]):
     """The basic version discovery structure.
 
     All version discovery elements should have access to these values.
@@ -281,7 +283,7 @@ class V3Discovery(DiscoveryBase):
         )
 
 
-class DiscoveryList(dict):
+class DiscoveryList(ty.Dict[str, ty.Any]):
     """A List of version elements.
 
     Creates a correctly structured list of identity service endpoints for

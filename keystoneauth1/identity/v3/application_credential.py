@@ -12,6 +12,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import typing as ty
+
 from keystoneauth1.identity.v3 import base
 
 
@@ -57,7 +59,9 @@ class ApplicationCredentialMethod(base.AuthMethod):
 
     # TODO(stephenfin): Deprecate and remove unused kwargs
     def get_auth_data(self, session, auth, headers, request_kwargs, **kwargs):
-        auth_data = {'secret': self.application_credential_secret}
+        auth_data: ty.Dict[str, ty.Any] = {
+            'secret': self.application_credential_secret
+        }
 
         if self.application_credential_id:
             auth_data['id'] = self.application_credential_id

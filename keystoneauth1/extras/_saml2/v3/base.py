@@ -11,7 +11,9 @@
 # under the License.
 
 try:
-    from lxml import etree
+    # explicitly re-export symbol
+    # https://mypy.readthedocs.io/en/stable/command_line.html#cmdoption-mypy-no-implicit-reexport
+    from lxml import etree as etree
 except ImportError:
     etree = None
 
@@ -24,7 +26,7 @@ class _Saml2TokenAuthMethod(v3.AuthMethod):
 
     # TODO(stephenfin): Deprecate and remove unused kwargs
     def get_auth_data(self, session, auth, headers, request_kwargs, **kwargs):
-        raise exceptions.MethodNotImplemented(
+        raise exceptions.HttpNotImplemented(
             'This method should never be called'
         )
 

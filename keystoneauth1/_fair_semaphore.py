@@ -34,7 +34,7 @@ class FairSemaphore:
         self._concurrency = concurrency
         if concurrency:
             self._count = 0
-            self._queue = queue.Queue()
+            self._queue: queue.Queue[threading.Event] = queue.Queue()
 
         self._rate_delay = rate_delay
         self._rate_last_ts = time.time()

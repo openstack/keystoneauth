@@ -11,13 +11,14 @@
 # under the License.
 
 import datetime
+import typing as ty
 import uuid
 
 from keystoneauth1 import _utils
 from keystoneauth1.fixture import exception
 
 
-class _Service(dict):
+class _Service(ty.Dict[str, ty.Any]):
     def add_endpoint(
         self,
         public,
@@ -40,7 +41,7 @@ class _Service(dict):
         return data
 
 
-class Token(dict):
+class Token(ty.Dict[str, ty.Any]):
     """A V2 Keystone token that can be used for testing.
 
     This object is designed to allow clients to generate a correct V2 token for
@@ -229,14 +230,14 @@ class Token(dict):
         self._token['audit_ids'] = [self.audit_id, value]
 
     def validate(self):
-        scoped = 'tenant' in self.token
+        scoped = 'tenant' in self._token
         catalog = self.root.get('serviceCatalog')
 
         if catalog and not scoped:
             msg = 'You cannot have a service catalog on an unscoped token'
             raise exception.FixtureValidationError(msg)
 
-        if scoped and not self.user.get('roles'):
+        if scoped and not self._user.get('roles'):
             msg = 'You must have roles on a token to scope it'
             raise exception.FixtureValidationError(msg)
 

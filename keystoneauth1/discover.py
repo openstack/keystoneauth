@@ -23,6 +23,7 @@ raw data specified in version discovery responses.
 
 import copy
 import re
+import typing as ty
 import urllib
 
 import os_service_types
@@ -834,7 +835,7 @@ class Discover:
         return data['url'] if data else None
 
 
-class VersionData(dict):
+class VersionData(ty.Dict[str, ty.Any]):
     """Normalized Version Data about an endpoint."""
 
     def __init__(

@@ -11,13 +11,14 @@
 # under the License.
 
 import datetime
+import typing as ty
 import uuid
 
 from keystoneauth1 import _utils
 from keystoneauth1.fixture import exception
 
 
-class _Service(dict):
+class _Service(ty.Dict[str, ty.Any]):
     """One of the services that exist in the catalog.
 
     You use this by adding a service to a token which returns an instance of
@@ -50,7 +51,7 @@ class _Service(dict):
         return ret
 
 
-class Token(dict):
+class Token(ty.Dict[str, ty.Any]):
     """A V3 Keystone token that can be used for testing.
 
     This object is designed to allow clients to generate a correct V3 token for
@@ -466,7 +467,7 @@ class Token(dict):
             msg = 'You cannot have a service catalog on an unscoped token'
             raise exception.FixtureValidationError(msg)
 
-        if scoped and not self.user.get('roles'):
+        if scoped and not self._user.get('roles'):
             msg = 'You must have roles on a token to scope it'
             raise exception.FixtureValidationError(msg)
 

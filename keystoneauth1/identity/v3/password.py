@@ -10,8 +10,9 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from keystoneauth1.identity.v3 import base
+import typing as ty
 
+from keystoneauth1.identity.v3 import base
 
 __all__ = ('PasswordMethod', 'Password')
 
@@ -42,7 +43,7 @@ class PasswordMethod(base.AuthMethod):
 
     # TODO(stephenfin): Deprecate and remove unused kwargs
     def get_auth_data(self, session, auth, headers, request_kwargs, **kwargs):
-        user = {'password': self.password}
+        user: ty.Dict[str, ty.Any] = {'password': self.password}
 
         if self.user_id:
             user['id'] = self.user_id

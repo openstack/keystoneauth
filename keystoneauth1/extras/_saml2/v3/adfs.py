@@ -15,7 +15,9 @@ import urllib
 import uuid
 
 try:
-    from lxml import etree
+    # explicitly re-export symbol
+    # https://mypy.readthedocs.io/en/stable/command_line.html#cmdoption-mypy-no-implicit-reexport
+    from lxml import etree as etree
 except ImportError:
     etree = None
 

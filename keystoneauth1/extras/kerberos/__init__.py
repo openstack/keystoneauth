@@ -22,7 +22,9 @@
 """
 
 try:
-    import requests_kerberos
+    # explicitly re-export symbol
+    # https://mypy.readthedocs.io/en/stable/command_line.html#cmdoption-mypy-no-implicit-reexport
+    import requests_kerberos as requests_kerberos
 except ImportError:
     requests_kerberos = None
 
@@ -58,6 +60,8 @@ packages. These can be installed with::
 
 
 class KerberosMethod(v3.AuthMethod):
+    mutual_auth: str
+
     _method_parameters = ['mutual_auth']
 
     def __init__(self, *args, **kwargs):
