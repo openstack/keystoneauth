@@ -17,9 +17,8 @@ from keystoneauth1.tests.unit import utils as test_utils
 
 
 class OAuth1LoadingTests(test_utils.TestCase):
-
     def setUp(self):
-        super(OAuth1LoadingTests, self).setUp()
+        super().setUp()
         self.auth_url = uuid.uuid4().hex
 
     def create(self, **kwargs):
@@ -33,10 +32,12 @@ class OAuth1LoadingTests(test_utils.TestCase):
         consumer_key = uuid.uuid4().hex
         consumer_secret = uuid.uuid4().hex
 
-        p = self.create(access_key=access_key,
-                        access_secret=access_secret,
-                        consumer_key=consumer_key,
-                        consumer_secret=consumer_secret)
+        p = self.create(
+            access_key=access_key,
+            access_secret=access_secret,
+            consumer_key=consumer_key,
+            consumer_secret=consumer_secret,
+        )
 
         oauth_method = p.auth_methods[0]
 
@@ -49,9 +50,13 @@ class OAuth1LoadingTests(test_utils.TestCase):
     def test_options(self):
         options = loading.get_plugin_loader('v3oauth1').get_options()
 
-        self.assertEqual(set([o.name for o in options]),
-                         set(['auth-url',
-                              'access-key',
-                              'access-secret',
-                              'consumer-key',
-                              'consumer-secret']))
+        self.assertEqual(
+            {o.name for o in options},
+            {
+                'auth-url',
+                'access-key',
+                'access-secret',
+                'consumer-key',
+                'consumer-secret',
+            },
+        )

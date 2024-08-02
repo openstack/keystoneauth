@@ -31,7 +31,7 @@ class OAuth2ClientCredentialMethod(base.AuthMethod):
     _method_parameters = [
         'oauth2_endpoint',
         'oauth2_client_id',
-        'oauth2_client_secret'
+        'oauth2_client_secret',
     ]
 
     def get_auth_data(self, session, auth, headers, **kwargs):
@@ -48,7 +48,7 @@ class OAuth2ClientCredentialMethod(base.AuthMethod):
         """
         auth_data = {
             'id': self.oauth2_client_id,
-            'secret': self.oauth2_client_secret
+            'secret': self.oauth2_client_secret,
         }
         return 'application_credential', auth_data
 
@@ -66,8 +66,10 @@ class OAuth2ClientCredentialMethod(base.AuthMethod):
         should be prefixed with the plugin identifier. For example the password
         plugin returns its username value as 'password_username'.
         """
-        return dict(('oauth2_client_credential_%s' % p, getattr(self, p))
-                    for p in self._method_parameters)
+        return {
+            f'oauth2_client_credential_{p}': getattr(self, p)
+            for p in self._method_parameters
+        }
 
 
 class OAuth2ClientCredential(base.AuthConstructor):
@@ -82,7 +84,7 @@ class OAuth2ClientCredential(base.AuthConstructor):
     _auth_method_class = OAuth2ClientCredentialMethod
 
     def __init__(self, auth_url, *args, **kwargs):
-        super(OAuth2ClientCredential, self).__init__(auth_url, *args, **kwargs)
+        super().__init__(auth_url, *args, **kwargs)
         self._oauth2_endpoint = kwargs['oauth2_endpoint']
         self._oauth2_client_id = kwargs['oauth2_client_id']
         self._oauth2_client_secret = kwargs['oauth2_client_secret']
@@ -99,19 +101,21 @@ class OAuth2ClientCredential(base.AuthConstructor):
         :rtype: dict
         """
         # get headers for X-Auth-Token
-        headers = super(OAuth2ClientCredential, self).get_headers(
-            session, **kwargs)
+        headers = super().get_headers(session, **kwargs)
 
         # Get OAuth2.0 access token and add the field 'Authorization'
         data = {"grant_type": "client_credentials"}
-        auth = requests.auth.HTTPBasicAuth(self._oauth2_client_id,
-                                           self._oauth2_client_secret)
-        resp = session.request(self._oauth2_endpoint,
-                               "POST",
-                               authenticated=False,
-                               raise_exc=False,
-                               data=data,
-                               requests_auth=auth)
+        auth = requests.auth.HTTPBasicAuth(
+            self._oauth2_client_id, self._oauth2_client_secret
+        )
+        resp = session.request(
+            self._oauth2_endpoint,
+            "POST",
+            authenticated=False,
+            raise_exc=False,
+            data=data,
+            requests_auth=auth,
+        )
         if resp.status_code == 200:
             oauth2 = resp.json()
             oauth2_token = oauth2["access_token"]

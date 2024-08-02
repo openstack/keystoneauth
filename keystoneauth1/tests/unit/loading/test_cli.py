@@ -23,17 +23,16 @@ from keystoneauth1.tests.unit.loading import utils
 
 TesterPlugin, TesterLoader = utils.create_plugin(
     opts=[
-        loading.Opt('test-opt',
-                    help='tester',
-                    deprecated=[loading.Opt('test-other')])
+        loading.Opt(
+            'test-opt', help='tester', deprecated=[loading.Opt('test-other')]
+        )
     ]
 )
 
 
 class CliTests(utils.TestCase):
-
     def setUp(self):
-        super(CliTests, self).setUp()
+        super().setUp()
         self.p = argparse.ArgumentParser()
 
     def env(self, name, value=None):
@@ -68,10 +67,16 @@ class CliTests(utils.TestCase):
     @utils.mock_plugin()
     def test_param_loading(self, m):
         name = uuid.uuid4().hex
-        argv = ['--os-auth-type', name,
-                '--os-a-int', str(self.a_int),
-                '--os-a-float', str(self.a_float),
-                '--os-a-bool', str(self.a_bool)]
+        argv = [
+            '--os-auth-type',
+            name,
+            '--os-a-int',
+            str(self.a_int),
+            '--os-a-float',
+            str(self.a_float),
+            '--os-a-bool',
+            str(self.a_bool),
+        ]
 
         klass = loading.register_auth_argparse_arguments(self.p, argv)
         self.assertIsInstance(klass, utils.MockLoader)
@@ -90,8 +95,7 @@ class CliTests(utils.TestCase):
     @utils.mock_plugin()
     def test_default_options(self, m):
         name = uuid.uuid4().hex
-        argv = ['--os-auth-type', name,
-                '--os-a-float', str(self.a_float)]
+        argv = ['--os-auth-type', name, '--os-a-float', str(self.a_float)]
 
         klass = loading.register_auth_argparse_arguments(self.p, argv)
         self.assertIsInstance(klass, utils.MockLoader)
@@ -107,9 +111,9 @@ class CliTests(utils.TestCase):
     @utils.mock_plugin()
     def test_with_default_string_value(self, m):
         name = uuid.uuid4().hex
-        klass = loading.register_auth_argparse_arguments(self.p,
-                                                         [],
-                                                         default=name)
+        klass = loading.register_auth_argparse_arguments(
+            self.p, [], default=name
+        )
         self.assertIsInstance(klass, utils.MockLoader)
         m.assert_called_once_with(name)
 
@@ -118,18 +122,18 @@ class CliTests(utils.TestCase):
         name = uuid.uuid4().hex
         default = uuid.uuid4().hex
         argv = ['--os-auth-type', name]
-        klass = loading.register_auth_argparse_arguments(self.p,
-                                                         argv,
-                                                         default=default)
+        klass = loading.register_auth_argparse_arguments(
+            self.p, argv, default=default
+        )
         self.assertIsInstance(klass, utils.MockLoader)
         m.assert_called_once_with(name)
 
     @utils.mock_plugin()
     def test_with_default_type_value(self, m):
         default = utils.MockLoader()
-        klass = loading.register_auth_argparse_arguments(self.p,
-                                                         [],
-                                                         default=default)
+        klass = loading.register_auth_argparse_arguments(
+            self.p, [], default=default
+        )
         self.assertIsInstance(klass, utils.MockLoader)
         self.assertEqual(0, m.call_count)
 
@@ -137,13 +141,14 @@ class CliTests(utils.TestCase):
     def test_overrides_default_type_value(self, m):
         # using this test plugin would fail if called because there
         # is no get_options() function
-        class TestLoader(object):
+        class TestLoader:
             pass
+
         name = uuid.uuid4().hex
         argv = ['--os-auth-type', name]
-        klass = loading.register_auth_argparse_arguments(self.p,
-                                                         argv,
-                                                         default=TestLoader)
+        klass = loading.register_auth_argparse_arguments(
+            self.p, argv, default=TestLoader
+        )
         self.assertIsInstance(klass, utils.MockLoader)
         m.assert_called_once_with(name)
 
@@ -153,9 +158,9 @@ class CliTests(utils.TestCase):
         val = uuid.uuid4().hex
         self.env('OS_A_STR', val)
 
-        klass = loading.register_auth_argparse_arguments(self.p,
-                                                         [],
-                                                         default=name)
+        klass = loading.register_auth_argparse_arguments(
+            self.p, [], default=name
+        )
         self.assertIsInstance(klass, utils.MockLoader)
         opts = self.p.parse_args([])
         a = loading.load_auth_from_argparse_arguments(opts)
@@ -173,8 +178,9 @@ class CliTests(utils.TestCase):
         val1 = uuid.uuid4().hex
         val2 = uuid.uuid4().hex
         # argarse rules say that the last specified wins.
-        opts = self.p.parse_args(['--os-test-other', val2,
-                                  '--os-test-opt', val1])
+        opts = self.p.parse_args(
+            ['--os-test-other', val2, '--os-test-opt', val1]
+        )
         self.assertEqual(val1, opts.os_test_opt)
 
     def test_deprecated_env_options(self):
@@ -190,8 +196,9 @@ class CliTests(utils.TestCase):
         val1 = uuid.uuid4().hex
         val2 = uuid.uuid4().hex
 
-        with mock.patch.dict('os.environ', {'OS_TEST_OPT': val1,
-                                            'OS_TEST_OTHER': val2}):
+        with mock.patch.dict(
+            'os.environ', {'OS_TEST_OPT': val1, 'OS_TEST_OTHER': val2}
+        ):
             cli._register_plugin_argparse_arguments(self.p, TesterLoader())
 
         opts = self.p.parse_args([])

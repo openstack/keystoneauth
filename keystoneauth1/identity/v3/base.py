@@ -41,19 +41,21 @@ class BaseAuth(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
                                  token. (optional) default True.
     """
 
-    def __init__(self, auth_url,
-                 trust_id=None,
-                 system_scope=None,
-                 domain_id=None,
-                 domain_name=None,
-                 project_id=None,
-                 project_name=None,
-                 project_domain_id=None,
-                 project_domain_name=None,
-                 reauthenticate=True,
-                 include_catalog=True):
-        super(BaseAuth, self).__init__(auth_url=auth_url,
-                                       reauthenticate=reauthenticate)
+    def __init__(
+        self,
+        auth_url,
+        trust_id=None,
+        system_scope=None,
+        domain_id=None,
+        domain_name=None,
+        project_id=None,
+        project_name=None,
+        project_domain_id=None,
+        project_domain_name=None,
+        reauthenticate=True,
+        include_catalog=True,
+    ):
+        super().__init__(auth_url=auth_url, reauthenticate=reauthenticate)
         self.trust_id = trust_id
         self.system_scope = system_scope
         self.domain_id = domain_id
@@ -67,7 +69,7 @@ class BaseAuth(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
     @property
     def token_url(self):
         """The full URL where we will send authentication data."""
-        return '%s/auth/tokens' % self.auth_url.rstrip('/')
+        return '{}/auth/tokens'.format(self.auth_url.rstrip('/'))
 
     @abc.abstractmethod
     def get_auth_ref(self, session, **kwargs):
@@ -76,9 +78,14 @@ class BaseAuth(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
     @property
     def has_scope_parameters(self):
         """Return true if parameters can be used to create a scoped token."""
-        return (self.domain_id or self.domain_name or
-                self.project_id or self.project_name or
-                self.trust_id or self.system_scope)
+        return (
+            self.domain_id
+            or self.domain_name
+            or self.project_id
+            or self.project_name
+            or self.trust_id
+            or self.system_scope
+        )
 
 
 class Auth(BaseAuth):
@@ -104,7 +111,7 @@ class Auth(BaseAuth):
 
     def __init__(self, auth_url, auth_methods, **kwargs):
         self.unscoped = kwargs.pop('unscoped', False)
-        super(Auth, self).__init__(auth_url=auth_url, **kwargs)
+        super().__init__(auth_url=auth_url, **kwargs)
         self.auth_methods = auth_methods
 
     def add_method(self, method):
@@ -119,7 +126,8 @@ class Auth(BaseAuth):
 
         for method in self.auth_methods:
             name, auth_data = method.get_auth_data(
-                session, self, headers, request_kwargs=rkwargs)
+                session, self, headers, request_kwargs=rkwargs
+            )
             # NOTE(adriant): Methods like ReceiptMethod don't
             # want anything added to the request data, so they
             # explicitly return None, which we check for.
@@ -129,19 +137,23 @@ class Auth(BaseAuth):
 
         if not ident:
             raise exceptions.AuthorizationFailure(
-                'Authentication method required (e.g. password)')
+                'Authentication method required (e.g. password)'
+            )
 
-        mutual_exclusion = [bool(self.domain_id or self.domain_name),
-                            bool(self.project_id or self.project_name),
-                            bool(self.trust_id),
-                            bool(self.system_scope),
-                            bool(self.unscoped)]
+        mutual_exclusion = [
+            bool(self.domain_id or self.domain_name),
+            bool(self.project_id or self.project_name),
+            bool(self.trust_id),
+            bool(self.system_scope),
+            bool(self.unscoped),
+        ]
 
         if sum(mutual_exclusion) > 1:
             raise exceptions.AuthorizationFailure(
                 message='Authentication cannot be scoped to multiple'
-                        ' targets. Pick one of: project, domain, '
-                        'trust, system or unscoped')
+                ' targets. Pick one of: project, domain, '
+                'trust, system or unscoped'
+            )
 
         if self.domain_id:
             body['auth']['scope'] = {'domain': {'id': self.domain_id}}
@@ -174,7 +186,7 @@ class Auth(BaseAuth):
         token_url = self.token_url
 
         if not self.auth_url.rstrip('/').endswith('v3'):
-            token_url = '%s/v3/auth/tokens' % self.auth_url.rstrip('/')
+            token_url = '{}/v3/auth/tokens'.format(self.auth_url.rstrip('/'))
 
         # NOTE(jamielennox): we add nocatalog here rather than in token_url
         # directly as some federation plugins require the base token_url
@@ -182,8 +194,14 @@ class Auth(BaseAuth):
             token_url += '?nocatalog'
 
         _logger.debug('Making authentication request to %s', token_url)
-        resp = session.post(token_url, json=body, headers=headers,
-                            authenticated=False, log=False, **rkwargs)
+        resp = session.post(
+            token_url,
+            json=body,
+            headers=headers,
+            authenticated=False,
+            log=False,
+            **rkwargs,
+        )
 
         try:
             _logger.debug(json.dumps(resp.json()))
@@ -194,21 +212,24 @@ class Auth(BaseAuth):
         if 'token' not in resp_data:
             raise exceptions.InvalidResponse(response=resp)
 
-        return access.AccessInfoV3(auth_token=resp.headers['X-Subject-Token'],
-                                   body=resp_data)
+        return access.AccessInfoV3(
+            auth_token=resp.headers['X-Subject-Token'], body=resp_data
+        )
 
     def get_cache_id_elements(self):
         if not self.auth_methods:
             return None
 
-        params = {'auth_url': self.auth_url,
-                  'domain_id': self.domain_id,
-                  'domain_name': self.domain_name,
-                  'project_id': self.project_id,
-                  'project_name': self.project_name,
-                  'project_domain_id': self.project_domain_id,
-                  'project_domain_name': self.project_domain_name,
-                  'trust_id': self.trust_id}
+        params = {
+            'auth_url': self.auth_url,
+            'domain_id': self.domain_id,
+            'domain_name': self.domain_name,
+            'project_id': self.project_id,
+            'project_name': self.project_name,
+            'project_domain_id': self.project_domain_id,
+            'project_domain_name': self.project_domain_name,
+            'trust_id': self.trust_id,
+        }
 
         for method in self.auth_methods:
             try:
@@ -240,14 +261,13 @@ class AuthMethod(metaclass=abc.ABCMeta):
             setattr(self, param, kwargs.pop(param, None))
 
         if kwargs:
-            msg = "Unexpected Attributes: %s" % ", ".join(kwargs.keys())
+            msg = "Unexpected Attributes: {}".format(", ".join(kwargs.keys()))
             raise AttributeError(msg)
 
     @classmethod
     def _extract_kwargs(cls, kwargs):
         """Remove parameters related to this method from other kwargs."""
-        return dict([(p, kwargs.pop(p, None))
-                     for p in cls._method_parameters])
+        return {p: kwargs.pop(p, None) for p in cls._method_parameters}
 
     @abc.abstractmethod
     def get_auth_data(self, session, auth, headers, **kwargs):
@@ -296,4 +316,4 @@ class AuthConstructor(Auth, metaclass=abc.ABCMeta):
     def __init__(self, auth_url, *args, **kwargs):
         method_kwargs = self._auth_method_class._extract_kwargs(kwargs)
         method = self._auth_method_class(*args, **method_kwargs)
-        super(AuthConstructor, self).__init__(auth_url, [method], **kwargs)
+        super().__init__(auth_url, [method], **kwargs)

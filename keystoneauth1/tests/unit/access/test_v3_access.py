@@ -21,7 +21,6 @@ from keystoneauth1.tests.unit import utils
 
 
 class AccessV3Test(utils.TestCase):
-
     def test_building_unscoped_accessinfo(self):
         token = fixture.V3Token()
         token_id = uuid.uuid4().hex
@@ -52,10 +51,14 @@ class AccessV3Test(utils.TestCase):
         self.assertIsNone(auth_ref.project_domain_id)
         self.assertIsNone(auth_ref.project_domain_name)
 
-        self.assertEqual(auth_ref.expires, timeutils.parse_isotime(
-                         token['token']['expires_at']))
-        self.assertEqual(auth_ref.issued, timeutils.parse_isotime(
-                         token['token']['issued_at']))
+        self.assertEqual(
+            auth_ref.expires,
+            timeutils.parse_isotime(token['token']['expires_at']),
+        )
+        self.assertEqual(
+            auth_ref.issued,
+            timeutils.parse_isotime(token['token']['issued_at']),
+        )
 
         self.assertEqual(auth_ref.expires, token.expires)
         self.assertEqual(auth_ref.issued, token.issued)
@@ -197,8 +200,9 @@ class AccessV3Test(utils.TestCase):
         self.assertEqual(auth_ref.tenant_id, auth_ref.project_id)
 
         self.assertEqual(token.project_domain_id, auth_ref.project_domain_id)
-        self.assertEqual(token.project_domain_name,
-                         auth_ref.project_domain_name)
+        self.assertEqual(
+            token.project_domain_name, auth_ref.project_domain_name
+        )
 
         self.assertEqual(token.user_domain_id, auth_ref.user_domain_id)
         self.assertEqual(token.user_domain_name, auth_ref.user_domain_name)
@@ -243,8 +247,9 @@ class AccessV3Test(utils.TestCase):
         self.assertEqual(auth_ref.tenant_id, auth_ref.project_id)
 
         self.assertEqual(token.project_domain_id, auth_ref.project_domain_id)
-        self.assertEqual(token.project_domain_name,
-                         auth_ref.project_domain_name)
+        self.assertEqual(
+            token.project_domain_name, auth_ref.project_domain_name
+        )
 
         self.assertEqual(token.user_domain_id, auth_ref.user_domain_id)
         self.assertEqual(token.user_domain_name, auth_ref.user_domain_name)
@@ -262,19 +267,22 @@ class AccessV3Test(utils.TestCase):
 
         token = fixture.V3Token()
         token.set_project_scope()
-        token.set_oauth(access_token_id=access_token_id,
-                        consumer_id=consumer_id)
+        token.set_oauth(
+            access_token_id=access_token_id, consumer_id=consumer_id
+        )
 
         auth_ref = access.create(body=token)
 
         self.assertEqual(consumer_id, auth_ref.oauth_consumer_id)
         self.assertEqual(access_token_id, auth_ref.oauth_access_token_id)
 
-        self.assertEqual(consumer_id,
-                         auth_ref._data['token']['OS-OAUTH1']['consumer_id'])
+        self.assertEqual(
+            consumer_id, auth_ref._data['token']['OS-OAUTH1']['consumer_id']
+        )
         self.assertEqual(
             access_token_id,
-            auth_ref._data['token']['OS-OAUTH1']['access_token_id'])
+            auth_ref._data['token']['OS-OAUTH1']['access_token_id'],
+        )
 
     def test_federated_property_standard_token(self):
         """Check if is_federated property returns expected value."""

@@ -20,7 +20,7 @@ AUTH_INTERFACE = object()
 IDENTITY_AUTH_HEADER_NAME = 'X-Auth-Token'
 
 
-class BaseAuthPlugin(object):
+class BaseAuthPlugin:
     """The basic structure of an authentication plugin.
 
     .. note::
@@ -110,10 +110,9 @@ class BaseAuthPlugin(object):
 
         return {IDENTITY_AUTH_HEADER_NAME: token}
 
-    def get_endpoint_data(self, session,
-                          endpoint_override=None,
-                          discover_versions=True,
-                          **kwargs):
+    def get_endpoint_data(
+        self, session, endpoint_override=None, discover_versions=True, **kwargs
+    ):
         """Return a valid endpoint data for a the service.
 
         :param session: A session object that can be used for communication.
@@ -140,8 +139,10 @@ class BaseAuthPlugin(object):
             return endpoint_data
 
         return endpoint_data.get_versioned_data(
-            session, cache=self._discovery_cache,
-            discover_versions=discover_versions)
+            session,
+            cache=self._discovery_cache,
+            discover_versions=discover_versions,
+        )
 
     def get_api_major_version(self, session, endpoint_override=None, **kwargs):
         """Get the major API version from the endpoint.
@@ -158,16 +159,22 @@ class BaseAuthPlugin(object):
         :rtype: `keystoneauth1.discover.EndpointData` or None
         """
         endpoint_data = self.get_endpoint_data(
-            session, endpoint_override=endpoint_override,
-            discover_versions=False, **kwargs)
+            session,
+            endpoint_override=endpoint_override,
+            discover_versions=False,
+            **kwargs,
+        )
         if endpoint_data is None:
             return
 
         if endpoint_data.api_version is None:
             # No version detected from the URL, trying full discovery.
             endpoint_data = self.get_endpoint_data(
-                session, endpoint_override=endpoint_override,
-                discover_versions=True, **kwargs)
+                session,
+                endpoint_override=endpoint_override,
+                discover_versions=True,
+                **kwargs,
+            )
 
         if endpoint_data and endpoint_data.api_version:
             return endpoint_data.api_version
@@ -195,7 +202,8 @@ class BaseAuthPlugin(object):
         :rtype: string
         """
         endpoint_data = self.get_endpoint_data(
-            session, discover_versions=False, **kwargs)
+            session, discover_versions=False, **kwargs
+        )
         if not endpoint_data:
             return None
         return endpoint_data.url
@@ -340,7 +348,7 @@ class FixedEndpointPlugin(BaseAuthPlugin):
     """A base class for plugins that have one fixed endpoint."""
 
     def __init__(self, endpoint=None):
-        super(FixedEndpointPlugin, self).__init__()
+        super().__init__()
         self.endpoint = endpoint
 
     def get_endpoint(self, session, **kwargs):
@@ -352,10 +360,9 @@ class FixedEndpointPlugin(BaseAuthPlugin):
         """
         return kwargs.get('endpoint_override') or self.endpoint
 
-    def get_endpoint_data(self, session,
-                          endpoint_override=None,
-                          discover_versions=True,
-                          **kwargs):
+    def get_endpoint_data(
+        self, session, endpoint_override=None, discover_versions=True, **kwargs
+    ):
         """Return a valid endpoint data for a the service.
 
         :param session: A session object that can be used for communication.
@@ -374,8 +381,9 @@ class FixedEndpointPlugin(BaseAuthPlugin):
         :return: Valid EndpointData or None if not available.
         :rtype: `keystoneauth1.discover.EndpointData` or None
         """
-        return super(FixedEndpointPlugin, self).get_endpoint_data(
+        return super().get_endpoint_data(
             session,
             endpoint_override=endpoint_override or self.endpoint,
             discover_versions=discover_versions,
-            **kwargs)
+            **kwargs,
+        )

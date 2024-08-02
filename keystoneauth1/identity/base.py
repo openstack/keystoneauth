@@ -27,14 +27,12 @@ LOG = utils.get_logger(__name__)
 
 
 class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
-
     # we count a token as valid (not needing refreshing) if it is valid for at
     # least this many seconds before the token expiry time
     MIN_TOKEN_LIFE_SECONDS = 120
 
     def __init__(self, auth_url=None, reauthenticate=True):
-
-        super(BaseIdentityPlugin, self).__init__()
+        super().__init__()
 
         self.auth_url = auth_url
         self.auth_ref = None
@@ -152,11 +150,22 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
 
         return False
 
-    def get_endpoint_data(self, session, service_type=None, interface=None,
-                          region_name=None, service_name=None, allow=None,
-                          allow_version_hack=True, discover_versions=True,
-                          skip_discovery=False, min_version=None,
-                          max_version=None, endpoint_override=None, **kwargs):
+    def get_endpoint_data(
+        self,
+        session,
+        service_type=None,
+        interface=None,
+        region_name=None,
+        service_name=None,
+        allow=None,
+        allow_version_hack=True,
+        discover_versions=True,
+        skip_discovery=False,
+        min_version=None,
+        max_version=None,
+        endpoint_override=None,
+        **kwargs,
+    ):
         """Return a valid endpoint data for a service.
 
         If a valid token is not present then a new one will be fetched using
@@ -223,7 +232,8 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         allow = allow or {}
 
         min_version, max_version = discover._normalize_version_args(
-            None, min_version, max_version, service_type=service_type)
+            None, min_version, max_version, service_type=service_type
+        )
 
         # NOTE(jamielennox): if you specifically ask for requests to be sent to
         # the auth url then we can ignore many of the checks. Typically if you
@@ -233,7 +243,8 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         if interface is plugin.AUTH_INTERFACE:
             endpoint_data = discover.EndpointData(
                 service_url=self.auth_url,
-                service_type=service_type or 'identity')
+                service_type=service_type or 'identity',
+            )
             project_id = None
         elif endpoint_override:
             # TODO(mordred) Make a code path that will look for a
@@ -246,7 +257,8 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
                 catalog_url=endpoint_override,
                 interface=interface,
                 region_name=region_name,
-                service_name=service_name)
+                service_name=service_name,
+            )
             # Setting an endpoint_override then calling get_endpoint_data means
             # you absolutely want the discovery info for the URL in question.
             # There are no code flows where this will happen for any other
@@ -255,9 +267,11 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
             project_id = self.get_project_id(session)
         else:
             if not service_type:
-                LOG.warning('Plugin cannot return an endpoint without '
-                            'knowing the service type that is required. Add '
-                            'service_type to endpoint filtering data.')
+                LOG.warning(
+                    'Plugin cannot return an endpoint without '
+                    'knowing the service type that is required. Add '
+                    'service_type to endpoint filtering data.'
+                )
                 return None
 
             # It's possible for things higher in the stack, because of
@@ -273,7 +287,8 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
                 service_type=service_type,
                 interface=interface,
                 region_name=region_name,
-                service_name=service_name)
+                service_name=service_name,
+            )
             if not endpoint_data:
                 return None
 
@@ -288,10 +303,14 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
                 max_version=max_version,
                 cache=self._discovery_cache,
                 discover_versions=discover_versions,
-                allow_version_hack=allow_version_hack, allow=allow)
-        except (exceptions.DiscoveryFailure,
-                exceptions.HttpError,
-                exceptions.ConnectionError):
+                allow_version_hack=allow_version_hack,
+                allow=allow,
+            )
+        except (
+            exceptions.DiscoveryFailure,
+            exceptions.HttpError,
+            exceptions.ConnectionError,
+        ):
             # If a version was requested, we didn't find it, return
             # None.
             if max_version or min_version:
@@ -300,12 +319,21 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
             # should be fine
             return endpoint_data
 
-    def get_endpoint(self, session, service_type=None, interface=None,
-                     region_name=None, service_name=None, version=None,
-                     allow=None, allow_version_hack=True,
-                     skip_discovery=False,
-                     min_version=None, max_version=None,
-                     **kwargs):
+    def get_endpoint(
+        self,
+        session,
+        service_type=None,
+        interface=None,
+        region_name=None,
+        service_name=None,
+        version=None,
+        allow=None,
+        allow_version_hack=True,
+        skip_discovery=False,
+        min_version=None,
+        max_version=None,
+        **kwargs,
+    ):
         """Return a valid endpoint for a service.
 
         If a valid token is not present then a new one will be fetched using
@@ -363,26 +391,45 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         # Explode `version` into min_version and max_version - everything below
         # here uses the latter rather than the former.
         min_version, max_version = discover._normalize_version_args(
-            version, min_version, max_version, service_type=service_type)
+            version, min_version, max_version, service_type=service_type
+        )
         # Set discover_versions to False since we're only going to return
         # a URL. Fetching the microversion data would be needlessly
         # expensive in the common case. However, discover_versions=False
         # will still run discovery if the version requested is not the
         # version in the catalog.
         endpoint_data = self.get_endpoint_data(
-            session, service_type=service_type, interface=interface,
-            region_name=region_name, service_name=service_name,
-            allow=allow, min_version=min_version, max_version=max_version,
-            discover_versions=False, skip_discovery=skip_discovery,
-            allow_version_hack=allow_version_hack, **kwargs)
+            session,
+            service_type=service_type,
+            interface=interface,
+            region_name=region_name,
+            service_name=service_name,
+            allow=allow,
+            min_version=min_version,
+            max_version=max_version,
+            discover_versions=False,
+            skip_discovery=skip_discovery,
+            allow_version_hack=allow_version_hack,
+            **kwargs,
+        )
         return endpoint_data.url if endpoint_data else None
 
-    def get_api_major_version(self, session, service_type=None, interface=None,
-                              region_name=None, service_name=None,
-                              version=None, allow=None,
-                              allow_version_hack=True, skip_discovery=False,
-                              discover_versions=False, min_version=None,
-                              max_version=None, **kwargs):
+    def get_api_major_version(
+        self,
+        session,
+        service_type=None,
+        interface=None,
+        region_name=None,
+        service_name=None,
+        version=None,
+        allow=None,
+        allow_version_hack=True,
+        skip_discovery=False,
+        discover_versions=False,
+        min_version=None,
+        max_version=None,
+        **kwargs,
+    ):
         """Return the major API version for a service.
 
         If a valid token is not present then a new one will be fetched using
@@ -456,8 +503,8 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         ``block-storage`` service and they do::
 
           client = adapter.Adapter(
-              session, service_type='block-storage', min_version=2,
-              max_version=3)
+              session, service_type='block-storage', min_version=2, max_version=3
+          )
           volume_version = client.get_api_major_version()
 
         The version actually be returned with no api calls other than getting
@@ -485,15 +532,23 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         # Explode `version` into min_version and max_version - everything below
         # here uses the latter rather than the former.
         min_version, max_version = discover._normalize_version_args(
-            version, min_version, max_version, service_type=service_type)
+            version, min_version, max_version, service_type=service_type
+        )
         # Using functools.partial here just to reduce copy-pasta of params
         get_endpoint_data = functools.partial(
             self.get_endpoint_data,
-            session, service_type=service_type, interface=interface,
-            region_name=region_name, service_name=service_name,
-            allow=allow, min_version=min_version, max_version=max_version,
+            session,
+            service_type=service_type,
+            interface=interface,
+            region_name=region_name,
+            service_name=service_name,
+            allow=allow,
+            min_version=min_version,
+            max_version=max_version,
             skip_discovery=skip_discovery,
-            allow_version_hack=allow_version_hack, **kwargs)
+            allow_version_hack=allow_version_hack,
+            **kwargs,
+        )
         data = get_endpoint_data(discover_versions=discover_versions)
         if (not data or not data.api_version) and not discover_versions:
             # It's possible that no version was requested and the endpoint
@@ -505,9 +560,14 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
             return None
         return data.api_version
 
-    def get_all_version_data(self, session, interface='public',
-                             region_name=None, service_type=None,
-                             **kwargs):
+    def get_all_version_data(
+        self,
+        session,
+        interface='public',
+        region_name=None,
+        service_type=None,
+        **kwargs,
+    ):
         """Get version data for all services in the catalog.
 
         :param session: A session object that can be used for communication.
@@ -539,12 +599,12 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         for endpoint_service_type, services in endpoints_data.items():
             if service_types.is_known(endpoint_service_type):
                 endpoint_service_type = service_types.get_service_type(
-                    endpoint_service_type)
+                    endpoint_service_type
+                )
 
             for service in services:
                 versions = service.get_all_version_string_data(
-                    session=session,
-                    project_id=self.get_project_id(session),
+                    session=session, project_id=self.get_project_id(session)
                 )
 
                 if service.region_name not in version_data:
@@ -566,15 +626,15 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
 
     def get_sp_auth_url(self, session, sp_id, **kwargs):
         try:
-            return self.get_access(
-                session).service_providers.get_auth_url(sp_id)
+            return self.get_access(session).service_providers.get_auth_url(
+                sp_id
+            )
         except exceptions.ServiceProviderNotFound:
             return None
 
     def get_sp_url(self, session, sp_id, **kwargs):
         try:
-            return self.get_access(
-                session).service_providers.get_sp_url(sp_id)
+            return self.get_access(session).service_providers.get_sp_url(sp_id)
         except exceptions.ServiceProviderNotFound:
             return None
 
@@ -602,9 +662,12 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
 
         :returns: A discovery object with the results of looking up that URL.
         """
-        return discover.get_discovery(session=session, url=url,
-                                      cache=self._discovery_cache,
-                                      authenticated=authenticated)
+        return discover.get_discovery(
+            session=session,
+            url=url,
+            cache=self._discovery_cache,
+            authenticated=authenticated,
+        )
 
     def get_cache_id_elements(self):
         """Get the elements for this auth plugin that make it unique.
@@ -667,8 +730,10 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         :rtype: str or None if no auth present.
         """
         if self.auth_ref:
-            data = {'auth_token': self.auth_ref.auth_token,
-                    'body': self.auth_ref._data}
+            data = {
+                'auth_token': self.auth_ref.auth_token,
+                'body': self.auth_ref._data,
+            }
 
             return json.dumps(data)
 
@@ -680,7 +745,8 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         """
         if data:
             auth_data = json.loads(data)
-            self.auth_ref = access.create(body=auth_data['body'],
-                                          auth_token=auth_data['auth_token'])
+            self.auth_ref = access.create(
+                body=auth_data['body'], auth_token=auth_data['auth_token']
+            )
         else:
             self.auth_ref = None

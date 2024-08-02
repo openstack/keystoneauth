@@ -20,53 +20,60 @@ from keystoneauth1.tests.unit import utils
 
 
 class ServiceTokenTests(utils.TestCase):
-
     TEST_URL = 'http://test.example.com/path/'
     USER_URL = 'http://user-keystone.example.com/v3'
     SERVICE_URL = 'http://service-keystone.example.com/v3'
 
     def setUp(self):
-        super(ServiceTokenTests, self).setUp()
+        super().setUp()
 
         self.user_token_id = uuid.uuid4().hex
         self.user_token = fixture.V3Token()
         self.user_token.set_project_scope()
-        self.user_auth = identity.V3Password(auth_url=self.USER_URL,
-                                             user_id=uuid.uuid4().hex,
-                                             password=uuid.uuid4().hex,
-                                             project_id=uuid.uuid4().hex)
+        self.user_auth = identity.V3Password(
+            auth_url=self.USER_URL,
+            user_id=uuid.uuid4().hex,
+            password=uuid.uuid4().hex,
+            project_id=uuid.uuid4().hex,
+        )
 
         self.service_token_id = uuid.uuid4().hex
         self.service_token = fixture.V3Token()
         self.service_token.set_project_scope()
-        self.service_auth = identity.V3Password(auth_url=self.SERVICE_URL,
-                                                user_id=uuid.uuid4().hex,
-                                                password=uuid.uuid4().hex,
-                                                project_id=uuid.uuid4().hex)
+        self.service_auth = identity.V3Password(
+            auth_url=self.SERVICE_URL,
+            user_id=uuid.uuid4().hex,
+            password=uuid.uuid4().hex,
+            project_id=uuid.uuid4().hex,
+        )
 
         for t in (self.user_token, self.service_token):
             s = t.add_service('identity')
-            s.add_standard_endpoints(public='http://keystone.example.com',
-                                     admin='http://keystone.example.com',
-                                     internal='http://keystone.example.com')
+            s.add_standard_endpoints(
+                public='http://keystone.example.com',
+                admin='http://keystone.example.com',
+                internal='http://keystone.example.com',
+            )
 
         self.test_data = {'data': uuid.uuid4().hex}
 
         self.user_mock = self.requests_mock.post(
             self.USER_URL + '/auth/tokens',
             json=self.user_token,
-            headers={'X-Subject-Token': self.user_token_id})
+            headers={'X-Subject-Token': self.user_token_id},
+        )
 
         self.service_mock = self.requests_mock.post(
             self.SERVICE_URL + '/auth/tokens',
             json=self.service_token,
-            headers={'X-Subject-Token': self.service_token_id})
+            headers={'X-Subject-Token': self.service_token_id},
+        )
 
         self.requests_mock.get(self.TEST_URL, json=self.test_data)
 
         self.combined_auth = service_token.ServiceTokenAuthWrapper(
-            self.user_auth,
-            self.service_auth)
+            self.user_auth, self.service_auth
+        )
 
         self.session = session.Session(auth=self.combined_auth)
 
@@ -96,21 +103,32 @@ class ServiceTokenTests(utils.TestCase):
         self.assertEqual(2, self.service_mock.call_count)
 
     def test_pass_throughs(self):
-        self.assertEqual(self.user_auth.get_token(self.session),
-                         self.combined_auth.get_token(self.session))
+        self.assertEqual(
+            self.user_auth.get_token(self.session),
+            self.combined_auth.get_token(self.session),
+        )
 
         self.assertEqual(
             self.user_auth.get_endpoint(self.session, 'identity'),
-            self.combined_auth.get_endpoint(self.session, 'identity'))
+            self.combined_auth.get_endpoint(self.session, 'identity'),
+        )
 
-        self.assertEqual(self.user_auth.get_user_id(self.session),
-                         self.combined_auth.get_user_id(self.session))
+        self.assertEqual(
+            self.user_auth.get_user_id(self.session),
+            self.combined_auth.get_user_id(self.session),
+        )
 
-        self.assertEqual(self.user_auth.get_project_id(self.session),
-                         self.combined_auth.get_project_id(self.session))
+        self.assertEqual(
+            self.user_auth.get_project_id(self.session),
+            self.combined_auth.get_project_id(self.session),
+        )
 
-        self.assertEqual(self.user_auth.get_sp_auth_url(self.session, 'a'),
-                         self.combined_auth.get_sp_auth_url(self.session, 'a'))
+        self.assertEqual(
+            self.user_auth.get_sp_auth_url(self.session, 'a'),
+            self.combined_auth.get_sp_auth_url(self.session, 'a'),
+        )
 
-        self.assertEqual(self.user_auth.get_sp_url(self.session, 'a'),
-                         self.combined_auth.get_sp_url(self.session, 'a'))
+        self.assertEqual(
+            self.user_auth.get_sp_url(self.session, 'a'),
+            self.combined_auth.get_sp_url(self.session, 'a'),
+        )

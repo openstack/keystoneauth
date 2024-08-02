@@ -21,5 +21,5 @@ class InvalidResponse(base.ClientException):
     message = "Invalid response from server."
 
     def __init__(self, response):
-        super(InvalidResponse, self).__init__()
+        super().__init__()
         self.response = response

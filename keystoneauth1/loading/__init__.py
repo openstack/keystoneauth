@@ -37,7 +37,8 @@ get_session_conf_options = session.get_conf_options
 
 register_adapter_argparse_arguments = adapter.register_argparse_arguments
 register_service_adapter_argparse_arguments = (
-    adapter.register_service_argparse_arguments)
+    adapter.register_service_argparse_arguments
+)
 register_adapter_conf_options = adapter.register_conf_options
 load_adapter_from_conf_options = adapter.load_from_conf_options
 get_adapter_conf_options = adapter.get_conf_options
@@ -50,38 +51,32 @@ __all__ = (
     'get_available_plugin_loaders',
     'get_plugin_loader',
     'PLUGIN_NAMESPACE',
-
     # loading.identity
     'BaseIdentityLoader',
     'BaseV2Loader',
     'BaseV3Loader',
     'BaseFederationLoader',
     'BaseGenericLoader',
-
     # auth cli
     'register_auth_argparse_arguments',
     'load_auth_from_argparse_arguments',
-
     # auth conf
     'get_auth_common_conf_options',
     'get_auth_plugin_conf_options',
     'register_auth_conf_options',
     'load_auth_from_conf_options',
-
     # session
     'register_session_argparse_arguments',
     'load_session_from_argparse_arguments',
     'register_session_conf_options',
     'load_session_from_conf_options',
     'get_session_conf_options',
-
     # adapter
     'register_adapter_argparse_arguments',
     'register_service_adapter_argparse_arguments',
     'register_adapter_conf_options',
     'load_adapter_from_conf_options',
     'get_adapter_conf_options',
-
     # loading.opts
     'Opt',
 )

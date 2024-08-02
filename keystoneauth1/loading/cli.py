@@ -16,17 +16,18 @@ import os
 from keystoneauth1.loading import base
 
 
-__all__ = ('register_argparse_arguments',
-           'load_from_argparse_arguments')
+__all__ = ('register_argparse_arguments', 'load_from_argparse_arguments')
 
 
 def _register_plugin_argparse_arguments(parser, plugin):
     for opt in plugin.get_options():
-        parser.add_argument(*opt.argparse_args,
-                            default=opt.argparse_default,
-                            metavar=opt.metavar,
-                            help=opt.help,
-                            dest='os_%s' % opt.dest)
+        parser.add_argument(
+            *opt.argparse_args,
+            default=opt.argparse_default,
+            metavar=opt.metavar,
+            help=opt.help,
+            dest=f'os_{opt.dest}',
+        )
 
 
 def register_argparse_arguments(parser, argv, default=None):
@@ -48,14 +49,17 @@ def register_argparse_arguments(parser, argv, default=None):
         if a plugin cannot be created.
     """
     in_parser = argparse.ArgumentParser(add_help=False)
-    env_plugin = os.environ.get('OS_AUTH_TYPE',
-                                os.environ.get('OS_AUTH_PLUGIN', default))
+    env_plugin = os.environ.get(
+        'OS_AUTH_TYPE', os.environ.get('OS_AUTH_PLUGIN', default)
+    )
     for p in (in_parser, parser):
-        p.add_argument('--os-auth-type',
-                       '--os-auth-plugin',
-                       metavar='<name>',
-                       default=env_plugin,
-                       help='Authentication type to use')
+        p.add_argument(
+            '--os-auth-type',
+            '--os-auth-plugin',
+            metavar='<name>',
+            default=env_plugin,
+            help='Authentication type to use',
+        )
 
     options, _args = in_parser.parse_known_args(argv)
 
@@ -66,7 +70,7 @@ def register_argparse_arguments(parser, argv, default=None):
         msg = 'Default Authentication options'
         plugin = options.os_auth_type
     else:
-        msg = 'Options specific to the %s plugin.' % options.os_auth_type
+        msg = f'Options specific to the {options.os_auth_type} plugin.'
         plugin = base.get_plugin_loader(options.os_auth_type)
 
     group = parser.add_argument_group('Authentication Options', msg)
@@ -97,6 +101,6 @@ def load_from_argparse_arguments(namespace, **kwargs):
         plugin = base.get_plugin_loader(namespace.os_auth_type)
 
     def _getter(opt):
-        return getattr(namespace, 'os_%s' % opt.dest)
+        return getattr(namespace, f'os_{opt.dest}')
 
     return plugin.load_from_options_getter(_getter, **kwargs)

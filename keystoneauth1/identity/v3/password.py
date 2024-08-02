@@ -26,11 +26,13 @@ class PasswordMethod(base.AuthMethod):
     :param string user_domain_name: User's domain name for authentication.
     """
 
-    _method_parameters = ['user_id',
-                          'username',
-                          'user_domain_id',
-                          'user_domain_name',
-                          'password']
+    _method_parameters = [
+        'user_id',
+        'username',
+        'user_domain_id',
+        'user_domain_name',
+        'password',
+    ]
 
     def get_auth_data(self, session, auth, headers, **kwargs):
         user = {'password': self.password}
@@ -48,8 +50,9 @@ class PasswordMethod(base.AuthMethod):
         return 'password', {'user': user}
 
     def get_cache_id_elements(self):
-        return dict(('password_%s' % p, getattr(self, p))
-                    for p in self._method_parameters)
+        return {
+            f'password_{p}': getattr(self, p) for p in self._method_parameters
+        }
 
 
 class Password(base.AuthConstructor):

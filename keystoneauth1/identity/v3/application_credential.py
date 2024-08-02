@@ -37,13 +37,15 @@ class ApplicationCredentialMethod(base.AuthMethod):
                                     provided.
     """
 
-    _method_parameters = ['application_credential_secret',
-                          'application_credential_id',
-                          'application_credential_name',
-                          'user_id',
-                          'username',
-                          'user_domain_id',
-                          'user_domain_name']
+    _method_parameters = [
+        'application_credential_secret',
+        'application_credential_id',
+        'application_credential_name',
+        'user_id',
+        'username',
+        'user_domain_id',
+        'user_domain_name',
+    ]
 
     def get_auth_data(self, session, auth, headers, **kwargs):
         auth_data = {'secret': self.application_credential_secret}
@@ -62,13 +64,16 @@ class ApplicationCredentialMethod(base.AuthMethod):
                     auth_data['user']['domain'] = {'id': self.user_domain_id}
                 elif self.user_domain_name:
                     auth_data['user']['domain'] = {
-                        'name': self.user_domain_name}
+                        'name': self.user_domain_name
+                    }
 
         return 'application_credential', auth_data
 
     def get_cache_id_elements(self):
-        return dict(('application_credential_%s' % p, getattr(self, p))
-                    for p in self._method_parameters)
+        return {
+            f'application_credential_{p}': getattr(self, p)
+            for p in self._method_parameters
+        }
 
 
 class ApplicationCredential(base.AuthConstructor):

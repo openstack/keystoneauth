@@ -16,7 +16,6 @@ from keystoneauth1 import loading
 
 
 class Kerberos(loading.BaseV3Loader):
-
     @property
     def plugin_class(self):
         return kerberos.Kerberos
@@ -26,14 +25,18 @@ class Kerberos(loading.BaseV3Loader):
         return kerberos.requests_kerberos is not None
 
     def get_options(self):
-        options = super(Kerberos, self).get_options()
+        options = super().get_options()
 
-        options.extend([
-            loading.Opt('mutual-auth',
-                        required=False,
-                        default='optional',
-                        help='Configures Kerberos Mutual Authentication'),
-        ])
+        options.extend(
+            [
+                loading.Opt(
+                    'mutual-auth',
+                    required=False,
+                    default='optional',
+                    help='Configures Kerberos Mutual Authentication',
+                )
+            ]
+        )
 
         return options
 
@@ -41,16 +44,17 @@ class Kerberos(loading.BaseV3Loader):
         if kwargs.get('mutual_auth'):
             value = kwargs.get('mutual_auth')
             if not (value.lower() in ['required', 'optional', 'disabled']):
-                m = ('You need to provide a valid value for kerberos mutual '
-                     'authentication. It can be one of the following: '
-                     '(required, optional, disabled)')
+                m = (
+                    'You need to provide a valid value for kerberos mutual '
+                    'authentication. It can be one of the following: '
+                    '(required, optional, disabled)'
+                )
                 raise exceptions.OptionError(m)
 
-        return super(Kerberos, self).load_from_options(**kwargs)
+        return super().load_from_options(**kwargs)
 
 
 class MappedKerberos(loading.BaseFederationLoader):
-
     @property
     def plugin_class(self):
         return kerberos.MappedKerberos
@@ -60,14 +64,18 @@ class MappedKerberos(loading.BaseFederationLoader):
         return kerberos.requests_kerberos is not None
 
     def get_options(self):
-        options = super(MappedKerberos, self).get_options()
+        options = super().get_options()
 
-        options.extend([
-            loading.Opt('mutual-auth',
-                        required=False,
-                        default='optional',
-                        help='Configures Kerberos Mutual Authentication'),
-        ])
+        options.extend(
+            [
+                loading.Opt(
+                    'mutual-auth',
+                    required=False,
+                    default='optional',
+                    help='Configures Kerberos Mutual Authentication',
+                )
+            ]
+        )
 
         return options
 
@@ -75,9 +83,11 @@ class MappedKerberos(loading.BaseFederationLoader):
         if kwargs.get('mutual_auth'):
             value = kwargs.get('mutual_auth')
             if not (value.lower() in ['required', 'optional', 'disabled']):
-                m = ('You need to provide a valid value for kerberos mutual '
-                     'authentication. It can be one of the following: '
-                     '(required, optional, disabled)')
+                m = (
+                    'You need to provide a valid value for kerberos mutual '
+                    'authentication. It can be one of the following: '
+                    '(required, optional, disabled)'
+                )
                 raise exceptions.OptionError(m)
 
-        return super(MappedKerberos, self).load_from_options(**kwargs)
+        return super().load_from_options(**kwargs)

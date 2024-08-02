@@ -17,7 +17,6 @@ from keystoneauth1.tests.unit import utils
 
 
 class HTTPBasicAuthTest(utils.TestCase):
-
     TEST_URL = 'http://server/prefix'
 
     def test_basic_case(self):
@@ -30,13 +29,15 @@ class HTTPBasicAuthTest(utils.TestCase):
 
         self.assertEqual(data.text, 'body')
         self.assertRequestHeaderEqual(
-            'Authorization', 'Basic bXlOYW1lOm15UGFzc3dvcmQ=')
+            'Authorization', 'Basic bXlOYW1lOm15UGFzc3dvcmQ='
+        )
         self.assertIsNone(a.get_endpoint(s))
 
     def test_basic_options(self):
         opts = loader.HTTPBasicAuth().get_options()
-        self.assertEqual(['username', 'password', 'endpoint'],
-                         [o.name for o in opts])
+        self.assertEqual(
+            ['username', 'password', 'endpoint'], [o.name for o in opts]
+        )
 
     def test_get_endpoint(self):
         a = http_basic.HTTPBasicAuth(endpoint=self.TEST_URL)

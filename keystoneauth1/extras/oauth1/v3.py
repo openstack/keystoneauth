@@ -44,37 +44,46 @@ class OAuth1Method(v3.AuthMethod):
     :param string access_secret: Access token secret.
     """
 
-    _method_parameters = ['consumer_key', 'consumer_secret',
-                          'access_key', 'access_secret']
+    _method_parameters = [
+        'consumer_key',
+        'consumer_secret',
+        'access_key',
+        'access_secret',
+    ]
 
     def get_auth_data(self, session, auth, headers, **kwargs):
         # Add the oauth specific content into the headers
-        oauth_client = oauth1.Client(self.consumer_key,
-                                     client_secret=self.consumer_secret,
-                                     resource_owner_key=self.access_key,
-                                     resource_owner_secret=self.access_secret,
-                                     signature_method=oauth1.SIGNATURE_HMAC)
+        oauth_client = oauth1.Client(
+            self.consumer_key,
+            client_secret=self.consumer_secret,
+            resource_owner_key=self.access_key,
+            resource_owner_secret=self.access_secret,
+            signature_method=oauth1.SIGNATURE_HMAC,
+        )
 
-        o_url, o_headers, o_body = oauth_client.sign(auth.token_url,
-                                                     http_method='POST')
+        o_url, o_headers, o_body = oauth_client.sign(
+            auth.token_url, http_method='POST'
+        )
         headers.update(o_headers)
 
         return 'oauth1', {}
 
     def get_cache_id_elements(self):
-        return dict(('oauth1_%s' % p, getattr(self, p))
-                    for p in self._method_parameters)
+        return {
+            f'oauth1_{p}': getattr(self, p) for p in self._method_parameters
+        }
 
 
 class OAuth1(v3.AuthConstructor):
-
     _auth_method_class = OAuth1Method
 
     def __init__(self, *args, **kwargs):
-        super(OAuth1, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         if self.has_scope_parameters:
-            LOG.warning('Scoping parameters such as a project were provided '
-                        'to the OAuth1 plugin. Because OAuth1 access is '
-                        'always scoped to a project these will be ignored by '
-                        'the identity server')
+            LOG.warning(
+                'Scoping parameters such as a project were provided '
+                'to the OAuth1 plugin. Because OAuth1 access is '
+                'always scoped to a project these will be ignored by '
+                'the identity server'
+            )

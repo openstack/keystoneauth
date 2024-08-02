@@ -18,11 +18,13 @@ from keystoneauth1.loading import base
 from keystoneauth1 import session
 
 
-__all__ = ('register_argparse_arguments',
-           'load_from_argparse_arguments',
-           'register_conf_options',
-           'load_from_conf_options',
-           'get_conf_options')
+__all__ = (
+    'register_argparse_arguments',
+    'load_from_argparse_arguments',
+    'register_conf_options',
+    'load_from_conf_options',
+    'get_conf_options',
+)
 
 
 def _positive_non_zero_float(argument_value):
@@ -31,16 +33,15 @@ def _positive_non_zero_float(argument_value):
     try:
         value = float(argument_value)
     except ValueError:
-        msg = "%s must be a float" % argument_value
+        msg = f"{argument_value} must be a float"
         raise argparse.ArgumentTypeError(msg)
     if value <= 0:
-        msg = "%s must be greater than 0" % argument_value
+        msg = f"{argument_value} must be greater than 0"
         raise argparse.ArgumentTypeError(msg)
     return value
 
 
 class Session(base.BaseLoader):
-
     @property
     def plugin_class(self):
         return session.Session
@@ -48,13 +49,15 @@ class Session(base.BaseLoader):
     def get_options(self):
         return []
 
-    def load_from_options(self,
-                          insecure=False,
-                          verify=None,
-                          cacert=None,
-                          cert=None,
-                          key=None,
-                          **kwargs):
+    def load_from_options(
+        self,
+        insecure=False,
+        verify=None,
+        cacert=None,
+        cert=None,
+        key=None,
+        **kwargs,
+    ):
         """Create a session with individual certificate parameters.
 
         Some parameters used to create a session don't lend themselves to be
@@ -72,14 +75,13 @@ class Session(base.BaseLoader):
             # requests lib form of having the cert and key as a tuple
             cert = (cert, key)
 
-        return super(Session, self).load_from_options(verify=verify,
-                                                      cert=cert,
-                                                      **kwargs)
+        return super().load_from_options(verify=verify, cert=cert, **kwargs)
 
     def register_argparse_arguments(self, parser):
         session_group = parser.add_argument_group(
             'API Connection Options',
-            'Options controlling the HTTP API Connections')
+            'Options controlling the HTTP API Connections',
+        )
 
         session_group.add_argument(
             '--insecure',
@@ -89,7 +91,8 @@ class Session(base.BaseLoader):
             '"insecure" TLS (https) requests. The '
             'server\'s certificate will not be verified '
             'against any certificate authorities. This '
-            'option should be used with caution.')
+            'option should be used with caution.',
+        )
 
         session_group.add_argument(
             '--os-cacert',
@@ -97,36 +100,41 @@ class Session(base.BaseLoader):
             default=os.environ.get('OS_CACERT'),
             help='Specify a CA bundle file to use in '
             'verifying a TLS (https) server certificate. '
-            'Defaults to env[OS_CACERT].')
+            'Defaults to env[OS_CACERT].',
+        )
 
         session_group.add_argument(
             '--os-cert',
             metavar='<certificate>',
             default=os.environ.get('OS_CERT'),
             help='The location for the keystore (PEM formatted) '
-                 'containing the public key of this client. '
-                 'Defaults to env[OS_CERT].')
+            'containing the public key of this client. '
+            'Defaults to env[OS_CERT].',
+        )
 
         session_group.add_argument(
             '--os-key',
             metavar='<key>',
             default=os.environ.get('OS_KEY'),
             help='The location for the keystore (PEM formatted) '
-                 'containing the private key of this client. '
-                 'Defaults to env[OS_KEY].')
+            'containing the private key of this client. '
+            'Defaults to env[OS_KEY].',
+        )
 
         session_group.add_argument(
             '--timeout',
             default=600,
             type=_positive_non_zero_float,
             metavar='<seconds>',
-            help='Set request timeout (in seconds).')
+            help='Set request timeout (in seconds).',
+        )
 
         session_group.add_argument(
             '--collect-timing',
             default=False,
             action='store_true',
-            help='Collect per-API call timing information.')
+            help='Collect per-API call timing information.',
+        )
 
     def load_from_argparse_arguments(self, namespace, **kwargs):
         kwargs.setdefault('insecure', namespace.insecure)
@@ -162,7 +170,7 @@ class Session(base.BaseLoader):
              ``cafile`` option name::
 
                  old_opt = oslo_cfg.DeprecatedOpt('ca_file', 'old_group')
-                 deprecated_opts={'cafile': [old_opt]}
+                 deprecated_opts = {'cafile': [old_opt]}
 
         :returns: A list of oslo_config options.
         """
@@ -171,34 +179,47 @@ class Session(base.BaseLoader):
         if deprecated_opts is None:
             deprecated_opts = {}
 
-        return [cfg.StrOpt('cafile',
-                           deprecated_opts=deprecated_opts.get('cafile'),
-                           help='PEM encoded Certificate Authority to use '
-                                'when verifying HTTPs connections.'),
-                cfg.StrOpt('certfile',
-                           deprecated_opts=deprecated_opts.get('certfile'),
-                           help='PEM encoded client certificate cert file'),
-                cfg.StrOpt('keyfile',
-                           deprecated_opts=deprecated_opts.get('keyfile'),
-                           help='PEM encoded client certificate key file'),
-                cfg.BoolOpt('insecure',
-                            default=False,
-                            deprecated_opts=deprecated_opts.get('insecure'),
-                            help='Verify HTTPS connections.'),
-                cfg.IntOpt('timeout',
-                           deprecated_opts=deprecated_opts.get('timeout'),
-                           help='Timeout value for http requests'),
-                cfg.BoolOpt('collect-timing',
-                            deprecated_opts=deprecated_opts.get(
-                                'collect-timing'),
-                            default=False,
-                            help='Collect per-API call timing information.'),
-                cfg.BoolOpt('split-loggers',
-                            deprecated_opts=deprecated_opts.get(
-                                'split-loggers'),
-                            default=False,
-                            help='Log requests to multiple loggers.')
-                ]
+        return [
+            cfg.StrOpt(
+                'cafile',
+                deprecated_opts=deprecated_opts.get('cafile'),
+                help='PEM encoded Certificate Authority to use '
+                'when verifying HTTPs connections.',
+            ),
+            cfg.StrOpt(
+                'certfile',
+                deprecated_opts=deprecated_opts.get('certfile'),
+                help='PEM encoded client certificate cert file',
+            ),
+            cfg.StrOpt(
+                'keyfile',
+                deprecated_opts=deprecated_opts.get('keyfile'),
+                help='PEM encoded client certificate key file',
+            ),
+            cfg.BoolOpt(
+                'insecure',
+                default=False,
+                deprecated_opts=deprecated_opts.get('insecure'),
+                help='Verify HTTPS connections.',
+            ),
+            cfg.IntOpt(
+                'timeout',
+                deprecated_opts=deprecated_opts.get('timeout'),
+                help='Timeout value for http requests',
+            ),
+            cfg.BoolOpt(
+                'collect-timing',
+                deprecated_opts=deprecated_opts.get('collect-timing'),
+                default=False,
+                help='Collect per-API call timing information.',
+            ),
+            cfg.BoolOpt(
+                'split-loggers',
+                deprecated_opts=deprecated_opts.get('split-loggers'),
+                default=False,
+                help='Log requests to multiple loggers.',
+            ),
+        ]
 
     def register_conf_options(self, conf, group, deprecated_opts=None):
         """Register the oslo_config options that are needed for a session.
@@ -223,7 +244,7 @@ class Session(base.BaseLoader):
              ``cafile`` option name::
 
                  old_opt = oslo_cfg.DeprecatedOpt('ca_file', 'old_group')
-                 deprecated_opts={'cafile': [old_opt]}
+                 deprecated_opts = {'cafile': [old_opt]}
 
         :returns: The list of options that was registered.
         """

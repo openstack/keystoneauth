@@ -28,7 +28,7 @@ _PAOS_NAMESPACE = 'urn:liberty:paos:2003-08'
 _ECP_NAMESPACE = 'urn:oasis:names:tc:SAML:2.0:profiles:SSO:ecp'
 _PAOS_HEADER = 'application/vnd.paos+xml'
 
-_PAOS_VER = 'ver="%s";"%s"' % (_PAOS_NAMESPACE, _ECP_NAMESPACE)
+_PAOS_VER = f'ver="{_PAOS_NAMESPACE}";"{_ECP_NAMESPACE}"'
 
 _XML_NAMESPACES = {
     'ecp': _ECP_NAMESPACE,
@@ -72,14 +72,14 @@ def _response_xml(response, name):
     try:
         return etree.XML(response.content)
     except etree.XMLSyntaxError as e:
-        msg = 'SAML2: Error parsing XML returned from %s: %s' % (name, e)
+        msg = f'SAML2: Error parsing XML returned from {name}: {e}'
         raise InvalidResponse(msg)
 
 
 def _str_from_xml(xml, path):
     li = xml.xpath(path, namespaces=_XML_NAMESPACES)
     if len(li) != 1:
-        raise IndexError('%s should provide a single element list' % path)
+        raise IndexError(f'{path} should provide a single element list')
     return li[0]
 
 
@@ -115,7 +115,7 @@ class _SamlAuth(requests.auth.AuthBase):
     """
 
     def __init__(self, identity_provider_url, requests_auth):
-        super(_SamlAuth, self).__init__()
+        super().__init__()
         self.identity_provider_url = identity_provider_url
         self.requests_auth = requests_auth
 
@@ -132,8 +132,10 @@ class _SamlAuth(requests.auth.AuthBase):
         return request
 
     def _handle_response(self, response, **kwargs):
-        if (response.status_code == 200 and
-                response.headers.get('Content-Type') == _PAOS_HEADER):
+        if (
+            response.status_code == 200
+            and response.headers.get('Content-Type') == _PAOS_HEADER
+        ):
             response = self._ecp_retry(response, **kwargs)
 
         return response
@@ -151,33 +153,40 @@ class _SamlAuth(requests.auth.AuthBase):
 
         authn_request.remove(authn_request[0])
 
-        idp_response = send('POST',
-                            self.identity_provider_url,
-                            headers={'Content-type': 'text/xml'},
-                            data=etree.tostring(authn_request),
-                            auth=self.requests_auth)
+        idp_response = send(
+            'POST',
+            self.identity_provider_url,
+            headers={'Content-type': 'text/xml'},
+            data=etree.tostring(authn_request),
+            auth=self.requests_auth,
+        )
         history.append(idp_response)
 
         authn_response = _response_xml(idp_response, 'Identity Provider')
-        idp_consumer_url = _str_from_xml(authn_response,
-                                         _XPATH_IDP_CONSUMER_URL)
+        idp_consumer_url = _str_from_xml(
+            authn_response, _XPATH_IDP_CONSUMER_URL
+        )
 
         if sp_consumer_url != idp_consumer_url:
             # send fault message to the SP, discard the response
-            send('POST',
-                 sp_consumer_url,
-                 data=_SOAP_FAULT,
-                 headers={'Content-Type': _PAOS_HEADER})
+            send(
+                'POST',
+                sp_consumer_url,
+                data=_SOAP_FAULT,
+                headers={'Content-Type': _PAOS_HEADER},
+            )
 
             # prepare error message and raise an exception.
-            msg = ('Consumer URLs from Service Provider %(service_provider)s '
-                   '%(sp_consumer_url)s and Identity Provider '
-                   '%(identity_provider)s %(idp_consumer_url)s are not equal')
+            msg = (
+                'Consumer URLs from Service Provider %(service_provider)s '
+                '%(sp_consumer_url)s and Identity Provider '
+                '%(identity_provider)s %(idp_consumer_url)s are not equal'
+            )
             msg = msg % {
                 'service_provider': sp_response.request.url,
                 'sp_consumer_url': sp_consumer_url,
                 'identity_provider': self.identity_provider_url,
-                'idp_consumer_url': idp_consumer_url
+                'idp_consumer_url': idp_consumer_url,
             }
 
             raise ConsumerMismatch(msg)
@@ -186,19 +195,22 @@ class _SamlAuth(requests.auth.AuthBase):
 
         # idp_consumer_url is the URL on the SP that handles the ECP body
         # returned and creates an authenticated session.
-        final_resp = send('POST',
-                          idp_consumer_url,
-                          headers={'Content-Type': _PAOS_HEADER},
-                          cookies=idp_response.cookies,
-                          data=etree.tostring(authn_response))
+        final_resp = send(
+            'POST',
+            idp_consumer_url,
+            headers={'Content-Type': _PAOS_HEADER},
+            cookies=idp_response.cookies,
+            data=etree.tostring(authn_response),
+        )
 
         history.append(final_resp)
 
         # the SP should then redirect us back to the original URL to retry the
         # original request.
-        if final_resp.status_code in (requests.codes.found,
-                                      requests.codes.other):
-
+        if final_resp.status_code in (
+            requests.codes.found,
+            requests.codes.other,
+        ):
             # Consume content and release the original connection
             # to allow our new request to reuse the same one.
             sp_response.content
@@ -216,13 +228,15 @@ class _SamlAuth(requests.auth.AuthBase):
 
 
 class _FederatedSaml(v3.FederationBaseAuth):
-
-    def __init__(self, auth_url, identity_provider, protocol,
-                 identity_provider_url, **kwargs):
-        super(_FederatedSaml, self).__init__(auth_url,
-                                             identity_provider,
-                                             protocol,
-                                             **kwargs)
+    def __init__(
+        self,
+        auth_url,
+        identity_provider,
+        protocol,
+        identity_provider_url,
+        **kwargs,
+    ):
+        super().__init__(auth_url, identity_provider, protocol, **kwargs)
         self.identity_provider_url = identity_provider_url
 
     @abc.abstractmethod
@@ -234,9 +248,11 @@ class _FederatedSaml(v3.FederationBaseAuth):
         auth = _SamlAuth(self.identity_provider_url, method)
 
         try:
-            resp = session.get(self.federated_token_url,
-                               requests_auth=auth,
-                               authenticated=False)
+            resp = session.get(
+                self.federated_token_url,
+                requests_auth=auth,
+                authenticated=False,
+            )
         except SamlException as e:
             raise exceptions.AuthorizationFailure(str(e))
 
@@ -287,13 +303,23 @@ class Password(_FederatedSaml):
 
     """
 
-    def __init__(self, auth_url, identity_provider, protocol,
-                 identity_provider_url, username, password, **kwargs):
-        super(Password, self).__init__(auth_url,
-                                       identity_provider,
-                                       protocol,
-                                       identity_provider_url,
-                                       **kwargs)
+    def __init__(
+        self,
+        auth_url,
+        identity_provider,
+        protocol,
+        identity_provider_url,
+        username,
+        password,
+        **kwargs,
+    ):
+        super().__init__(
+            auth_url,
+            identity_provider,
+            protocol,
+            identity_provider_url,
+            **kwargs,
+        )
         self.username = username
         self.password = password
 

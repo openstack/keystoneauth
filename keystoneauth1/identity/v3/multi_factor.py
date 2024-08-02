@@ -14,7 +14,7 @@ from keystoneauth1.identity.v3 import base
 from keystoneauth1 import loading
 
 
-__all__ = ('MultiFactor', )
+__all__ = ('MultiFactor',)
 
 
 class MultiFactor(base.Auth):
@@ -42,7 +42,8 @@ class MultiFactor(base.Auth):
         for method in auth_methods:
             # Using the loaders we pull the related auth method class
             method_class = loading.get_plugin_loader(
-                method).plugin_class._auth_method_class
+                method
+            ).plugin_class._auth_method_class
             # We build some new kwargs for the method from required parameters
             method_kwargs = {}
             for key in method_class._method_parameters:
@@ -56,4 +57,4 @@ class MultiFactor(base.Auth):
         # to the super class and throw errors
         for key in method_keys:
             kwargs.pop(key, None)
-        super(MultiFactor, self).__init__(auth_url, method_instances, **kwargs)
+        super().__init__(auth_url, method_instances, **kwargs)

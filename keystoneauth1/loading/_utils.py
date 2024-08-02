@@ -32,9 +32,11 @@ def get_oslo_config():
             cfg = _NOT_FOUND
 
     if cfg is _NOT_FOUND:
-        raise ImportError("oslo.config is not an automatic dependency of "
-                          "keystoneauth. If you wish to use oslo.config "
-                          "you need to import it into your application's "
-                          "requirements file. ")
+        raise ImportError(
+            "oslo.config is not an automatic dependency of "
+            "keystoneauth. If you wish to use oslo.config "
+            "you need to import it into your application's "
+            "requirements file. "
+        )
 
     return cfg

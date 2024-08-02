@@ -26,7 +26,6 @@ from keystoneauth1.fixture import hooks
 
 
 class TestBetamaxHooks(testtools.TestCase):
-
     def test_pre_record_hook_v3(self):
         fixtures_path = 'keystoneauth1/tests/unit/data'
 
@@ -34,8 +33,11 @@ class TestBetamaxHooks(testtools.TestCase):
             config.before_record(callback=hooks.pre_record_hook)
 
         cassette = betamax.cassette.Cassette(
-            'test_pre_record_hook', 'json', record_mode=None,
-            cassette_library_dir=fixtures_path)
+            'test_pre_record_hook',
+            'json',
+            record_mode=None,
+            cassette_library_dir=fixtures_path,
+        )
 
         # Create a new object to serialize
         r = models.Response()
@@ -46,9 +48,9 @@ class TestBetamaxHooks(testtools.TestCase):
         r.url = 'http://localhost:35357/'
 
         # load request and response
-        with open('%s/keystone_v3_sample_response.json' % fixtures_path) as f:
+        with open(f'{fixtures_path}/keystone_v3_sample_response.json') as f:
             response_content = json.loads(f.read())
-        with open('%s/keystone_v3_sample_request.json' % fixtures_path) as f:
+        with open(f'{fixtures_path}/keystone_v3_sample_request.json') as f:
             request_content = json.loads(f.read())
 
         body_content = {
@@ -59,8 +61,8 @@ class TestBetamaxHooks(testtools.TestCase):
         }
 
         betamax.util.add_urllib3_response(
-            body_content, r,
-            HTTPHeaderDict({'Accept': 'application/json'}))
+            body_content, r, HTTPHeaderDict({'Accept': 'application/json'})
+        )
         response = r
 
         # Create an associated request
@@ -70,9 +72,7 @@ class TestBetamaxHooks(testtools.TestCase):
         r.headers = {}
         r.data = {}
         response.request = r.prepare()
-        response.request.headers.update(
-            {'User-Agent': 'betamax/test header'}
-        )
+        response.request.headers.update({'User-Agent': 'betamax/test header'})
 
         response.request.body = json.dumps(request_content)
 
@@ -80,27 +80,34 @@ class TestBetamaxHooks(testtools.TestCase):
 
         # check that all values have been masked
         response_content = json.loads(
-            interaction.data['response']['body']['string'])
+            interaction.data['response']['body']['string']
+        )
         self.assertEqual(
-            response_content['token']['expires_at'],
-            u'9999-12-31T23:59:59Z')
+            response_content['token']['expires_at'], '9999-12-31T23:59:59Z'
+        )
         self.assertEqual(
-            response_content['token']['project']['domain']['id'],
-            u'dummy')
+            response_content['token']['project']['domain']['id'], 'dummy'
+        )
         self.assertEqual(
-            response_content['token']['user']['domain']['id'],
-            u'dummy')
-        self.assertEqual(
-            response_content['token']['user']['name'], u'dummy')
+            response_content['token']['user']['domain']['id'], 'dummy'
+        )
+        self.assertEqual(response_content['token']['user']['name'], 'dummy')
 
         request_content = json.loads(
-            interaction.data['request']['body']['string'])
+            interaction.data['request']['body']['string']
+        )
         self.assertEqual(
-            request_content['auth']['identity']['password']
-            ['user']['domain']['id'], u'dummy')
+            request_content['auth']['identity']['password']['user']['domain'][
+                'id'
+            ],
+            'dummy',
+        )
         self.assertEqual(
-            request_content['auth']['identity']['password']
-            ['user']['password'], u'********')
+            request_content['auth']['identity']['password']['user'][
+                'password'
+            ],
+            '********',
+        )
 
     def test_pre_record_hook_v2(self):
         fixtures_path = 'keystoneauth1/tests/unit/data'
@@ -109,8 +116,11 @@ class TestBetamaxHooks(testtools.TestCase):
             config.before_record(callback=hooks.pre_record_hook)
 
         cassette = betamax.cassette.Cassette(
-            'test_pre_record_hook', 'json', record_mode=None,
-            cassette_library_dir=fixtures_path)
+            'test_pre_record_hook',
+            'json',
+            record_mode=None,
+            cassette_library_dir=fixtures_path,
+        )
 
         # Create a new object to serialize
         r = models.Response()
@@ -121,9 +131,9 @@ class TestBetamaxHooks(testtools.TestCase):
         r.url = 'http://localhost:35357/'
 
         # load request and response
-        with open('%s/keystone_v2_sample_response.json' % fixtures_path) as f:
+        with open(f'{fixtures_path}/keystone_v2_sample_response.json') as f:
             response_content = json.loads(f.read())
-        with open('%s/keystone_v2_sample_request.json' % fixtures_path) as f:
+        with open(f'{fixtures_path}/keystone_v2_sample_request.json') as f:
             request_content = json.loads(f.read())
 
         body_content = {
@@ -134,8 +144,8 @@ class TestBetamaxHooks(testtools.TestCase):
         }
 
         betamax.util.add_urllib3_response(
-            body_content, r,
-            HTTPHeaderDict({'Accept': 'application/json'}))
+            body_content, r, HTTPHeaderDict({'Accept': 'application/json'})
+        )
         response = r
 
         # Create an associated request
@@ -145,9 +155,7 @@ class TestBetamaxHooks(testtools.TestCase):
         r.headers = {}
         r.data = {}
         response.request = r.prepare()
-        response.request.headers.update(
-            {'User-Agent': 'betamax/test header'}
-        )
+        response.request.headers.update({'User-Agent': 'betamax/test header'})
 
         response.request.body = json.dumps(request_content)
 
@@ -155,44 +163,35 @@ class TestBetamaxHooks(testtools.TestCase):
 
         # check that all values have been masked
         response_content = json.loads(
-            interaction.data['response']['body']['string'])
+            interaction.data['response']['body']['string']
+        )
         self.assertEqual(
             response_content['access']['token']['expires'],
-            u'9999-12-31T23:59:59Z')
+            '9999-12-31T23:59:59Z',
+        )
         self.assertEqual(
-            response_content['access']['token']['tenant']['name'],
-            u'dummy')
-        self.assertEqual(
-            response_content['access']['user']['name'],
-            u'dummy')
+            response_content['access']['token']['tenant']['name'], 'dummy'
+        )
+        self.assertEqual(response_content['access']['user']['name'], 'dummy')
 
         request_content = json.loads(
-            interaction.data['request']['body']['string'])
+            interaction.data['request']['body']['string']
+        )
         self.assertEqual(
             request_content['auth']['passwordCredentials']['password'],
-            u'********')
+            '********',
+        )
         self.assertEqual(
-            request_content['auth']['passwordCredentials']['username'],
-            u'dummy')
-        self.assertEqual(
-            request_content['auth']['tenantName'], u'dummy')
+            request_content['auth']['passwordCredentials']['username'], 'dummy'
+        )
+        self.assertEqual(request_content['auth']['tenantName'], 'dummy')
 
     @mock.patch('keystoneauth1.fixture.hooks.mask_fixture_values')
     def test_pre_record_hook_empty_body(self, mask_fixture_values):
         interaction = mock.Mock()
         interaction.data = {
-            'request': {
-                'body': {
-                    'encoding': 'utf-8',
-                    'string': '',
-                },
-            },
-            'response': {
-                'body': {
-                    'encoding': 'utf-8',
-                    'string': '',
-                },
-            },
+            'request': {'body': {'encoding': 'utf-8', 'string': ''}},
+            'response': {'body': {'encoding': 'utf-8', 'string': ''}},
         }
 
         hooks.pre_record_hook(interaction, mock.Mock())

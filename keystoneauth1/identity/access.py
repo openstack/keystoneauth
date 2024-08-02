@@ -31,8 +31,7 @@ class AccessInfoPlugin(base.BaseIdentityPlugin):
     """
 
     def __init__(self, auth_ref, auth_url=None):
-        super(AccessInfoPlugin, self).__init__(auth_url=auth_url,
-                                               reauthenticate=False)
+        super().__init__(auth_url=auth_url, reauthenticate=False)
         self.auth_ref = auth_ref
 
     def get_auth_ref(self, session, **kwargs):

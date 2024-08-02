@@ -35,21 +35,34 @@ class Password(base.BaseSAMLPlugin):
     NAMESPACES = {
         's': 'http://www.w3.org/2003/05/soap-envelope',
         'a': 'http://www.w3.org/2005/08/addressing',
-        'u': ('http://docs.oasis-open.org/wss/2004/01/oasis-200401-'
-              'wss-wssecurity-utility-1.0.xsd')
+        'u': (
+            'http://docs.oasis-open.org/wss/2004/01/oasis-200401-'
+            'wss-wssecurity-utility-1.0.xsd'
+        ),
     }
 
     ADFS_TOKEN_NAMESPACES = {
         's': 'http://www.w3.org/2003/05/soap-envelope',
-        't': 'http://docs.oasis-open.org/ws-sx/ws-trust/200512'
+        't': 'http://docs.oasis-open.org/ws-sx/ws-trust/200512',
     }
-    ADFS_ASSERTION_XPATH = ('/s:Envelope/s:Body'
-                            '/t:RequestSecurityTokenResponseCollection'
-                            '/t:RequestSecurityTokenResponse')
+    ADFS_ASSERTION_XPATH = (
+        '/s:Envelope/s:Body'
+        '/t:RequestSecurityTokenResponseCollection'
+        '/t:RequestSecurityTokenResponse'
+    )
 
-    def __init__(self, auth_url, identity_provider, identity_provider_url,
-                 service_provider_endpoint, username, password,
-                 protocol, service_provider_entity_id=None, **kwargs):
+    def __init__(
+        self,
+        auth_url,
+        identity_provider,
+        identity_provider_url,
+        service_provider_endpoint,
+        username,
+        password,
+        protocol,
+        service_provider_entity_id=None,
+        **kwargs,
+    ):
         """Constructor for ``ADFSPassword``.
 
         :param auth_url: URL of the Identity Service
@@ -78,10 +91,15 @@ class Password(base.BaseSAMLPlugin):
         :type password: string
 
         """
-        super(Password, self).__init__(
-            auth_url=auth_url, identity_provider=identity_provider,
+        super().__init__(
+            auth_url=auth_url,
+            identity_provider=identity_provider,
             identity_provider_url=identity_provider_url,
-            username=username, password=password, protocol=protocol, **kwargs)
+            username=username,
+            password=password,
+            protocol=protocol,
+            **kwargs,
+        )
 
         self.service_provider_endpoint = service_provider_endpoint
         self.service_provider_entity_id = service_provider_entity_id
@@ -123,9 +141,11 @@ class Password(base.BaseSAMLPlugin):
 
         """
         date_created = datetime.datetime.now(datetime.timezone.utc).replace(
-            tzinfo=None)
+            tzinfo=None
+        )
         date_expires = date_created + datetime.timedelta(
-            seconds=self.DEFAULT_ADFS_TOKEN_EXPIRATION)
+            seconds=self.DEFAULT_ADFS_TOKEN_EXPIRATION
+        )
         return [_time.strftime(fmt) for _time in (date_created, date_expires)]
 
     def _prepare_adfs_request(self):
@@ -135,132 +155,188 @@ class Password(base.BaseSAMLPlugin):
 
         """
         WSS_SECURITY_NAMESPACE = {
-            'o': ('http://docs.oasis-open.org/wss/2004/01/oasis-200401-'
-                  'wss-wssecurity-secext-1.0.xsd')
+            'o': (
+                'http://docs.oasis-open.org/wss/2004/01/oasis-200401-'
+                'wss-wssecurity-secext-1.0.xsd'
+            )
         }
 
         TRUST_NAMESPACE = {
             'trust': 'http://docs.oasis-open.org/ws-sx/ws-trust/200512'
         }
 
-        WSP_NAMESPACE = {
-            'wsp': 'http://schemas.xmlsoap.org/ws/2004/09/policy'
-        }
+        WSP_NAMESPACE = {'wsp': 'http://schemas.xmlsoap.org/ws/2004/09/policy'}
 
-        WSA_NAMESPACE = {
-            'wsa': 'http://www.w3.org/2005/08/addressing'
-        }
+        WSA_NAMESPACE = {'wsa': 'http://www.w3.org/2005/08/addressing'}
 
         root = etree.Element(
             '{http://www.w3.org/2003/05/soap-envelope}Envelope',
-            nsmap=self.NAMESPACES)
+            nsmap=self.NAMESPACES,
+        )
 
         header = etree.SubElement(
-            root, '{http://www.w3.org/2003/05/soap-envelope}Header')
+            root, '{http://www.w3.org/2003/05/soap-envelope}Header'
+        )
         action = etree.SubElement(
-            header, "{http://www.w3.org/2005/08/addressing}Action")
+            header, "{http://www.w3.org/2005/08/addressing}Action"
+        )
         action.set(
-            "{http://www.w3.org/2003/05/soap-envelope}mustUnderstand", "1")
-        action.text = ('http://docs.oasis-open.org/ws-sx/ws-trust/200512'
-                       '/RST/Issue')
+            "{http://www.w3.org/2003/05/soap-envelope}mustUnderstand", "1"
+        )
+        action.text = (
+            'http://docs.oasis-open.org/ws-sx/ws-trust/200512/RST/Issue'
+        )
 
         messageID = etree.SubElement(
-            header, '{http://www.w3.org/2005/08/addressing}MessageID')
+            header, '{http://www.w3.org/2005/08/addressing}MessageID'
+        )
         messageID.text = 'urn:uuid:' + uuid.uuid4().hex
         replyID = etree.SubElement(
-            header, '{http://www.w3.org/2005/08/addressing}ReplyTo')
+            header, '{http://www.w3.org/2005/08/addressing}ReplyTo'
+        )
         address = etree.SubElement(
-            replyID, '{http://www.w3.org/2005/08/addressing}Address')
+            replyID, '{http://www.w3.org/2005/08/addressing}Address'
+        )
         address.text = 'http://www.w3.org/2005/08/addressing/anonymous'
 
         to = etree.SubElement(
-            header, '{http://www.w3.org/2005/08/addressing}To')
+            header, '{http://www.w3.org/2005/08/addressing}To'
+        )
         to.set("{http://www.w3.org/2003/05/soap-envelope}mustUnderstand", "1")
 
         security = etree.SubElement(
-            header, '{http://docs.oasis-open.org/wss/2004/01/oasis-200401-'
+            header,
+            '{http://docs.oasis-open.org/wss/2004/01/oasis-200401-'
             'wss-wssecurity-secext-1.0.xsd}Security',
-            nsmap=WSS_SECURITY_NAMESPACE)
+            nsmap=WSS_SECURITY_NAMESPACE,
+        )
 
         security.set(
-            "{http://www.w3.org/2003/05/soap-envelope}mustUnderstand", "1")
+            "{http://www.w3.org/2003/05/soap-envelope}mustUnderstand", "1"
+        )
 
         timestamp = etree.SubElement(
-            security, ('{http://docs.oasis-open.org/wss/2004/01/oasis-200401-'
-                       'wss-wssecurity-utility-1.0.xsd}Timestamp'))
+            security,
+            (
+                '{http://docs.oasis-open.org/wss/2004/01/oasis-200401-'
+                'wss-wssecurity-utility-1.0.xsd}Timestamp'
+            ),
+        )
         timestamp.set(
-            ('{http://docs.oasis-open.org/wss/2004/01/oasis-200401-'
-             'wss-wssecurity-utility-1.0.xsd}Id'), '_0')
+            (
+                '{http://docs.oasis-open.org/wss/2004/01/oasis-200401-'
+                'wss-wssecurity-utility-1.0.xsd}Id'
+            ),
+            '_0',
+        )
 
         created = etree.SubElement(
-            timestamp, ('{http://docs.oasis-open.org/wss/2004/01/oasis-200401-'
-                        'wss-wssecurity-utility-1.0.xsd}Created'))
+            timestamp,
+            (
+                '{http://docs.oasis-open.org/wss/2004/01/oasis-200401-'
+                'wss-wssecurity-utility-1.0.xsd}Created'
+            ),
+        )
 
         expires = etree.SubElement(
-            timestamp, ('{http://docs.oasis-open.org/wss/2004/01/oasis-200401-'
-                        'wss-wssecurity-utility-1.0.xsd}Expires'))
+            timestamp,
+            (
+                '{http://docs.oasis-open.org/wss/2004/01/oasis-200401-'
+                'wss-wssecurity-utility-1.0.xsd}Expires'
+            ),
+        )
 
         created.text, expires.text = self._token_dates()
 
         usernametoken = etree.SubElement(
-            security, '{http://docs.oasis-open.org/wss/2004/01/oasis-200401-'
-                      'wss-wssecurity-secext-1.0.xsd}UsernameToken')
+            security,
+            '{http://docs.oasis-open.org/wss/2004/01/oasis-200401-'
+            'wss-wssecurity-secext-1.0.xsd}UsernameToken',
+        )
         usernametoken.set(
-            ('{http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-'
-             'wssecurity-utility-1.0.xsd}u'), "uuid-%s-1" % uuid.uuid4().hex)
+            (
+                '{http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-'
+                'wssecurity-utility-1.0.xsd}u'
+            ),
+            f"uuid-{uuid.uuid4().hex}-1",
+        )
 
         username = etree.SubElement(
-            usernametoken, ('{http://docs.oasis-open.org/wss/2004/01/oasis-'
-                            '200401-wss-wssecurity-secext-1.0.xsd}Username'))
+            usernametoken,
+            (
+                '{http://docs.oasis-open.org/wss/2004/01/oasis-'
+                '200401-wss-wssecurity-secext-1.0.xsd}Username'
+            ),
+        )
         password = etree.SubElement(
-            usernametoken, ('{http://docs.oasis-open.org/wss/2004/01/oasis-'
-                            '200401-wss-wssecurity-secext-1.0.xsd}Password'),
-            Type=('http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-'
-                  'username-token-profile-1.0#PasswordText'))
+            usernametoken,
+            (
+                '{http://docs.oasis-open.org/wss/2004/01/oasis-'
+                '200401-wss-wssecurity-secext-1.0.xsd}Password'
+            ),
+            Type=(
+                'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-'
+                'username-token-profile-1.0#PasswordText'
+            ),
+        )
 
         body = etree.SubElement(
-            root, "{http://www.w3.org/2003/05/soap-envelope}Body")
+            root, "{http://www.w3.org/2003/05/soap-envelope}Body"
+        )
 
         request_security_token = etree.SubElement(
-            body, ('{http://docs.oasis-open.org/ws-sx/ws-trust/200512}'
-                   'RequestSecurityToken'), nsmap=TRUST_NAMESPACE)
+            body,
+            (
+                '{http://docs.oasis-open.org/ws-sx/ws-trust/200512}'
+                'RequestSecurityToken'
+            ),
+            nsmap=TRUST_NAMESPACE,
+        )
 
         applies_to = etree.SubElement(
             request_security_token,
             '{http://schemas.xmlsoap.org/ws/2004/09/policy}AppliesTo',
-            nsmap=WSP_NAMESPACE)
+            nsmap=WSP_NAMESPACE,
+        )
 
         endpoint_reference = etree.SubElement(
             applies_to,
             '{http://www.w3.org/2005/08/addressing}EndpointReference',
-            nsmap=WSA_NAMESPACE)
+            nsmap=WSA_NAMESPACE,
+        )
 
         wsa_address = etree.SubElement(
-            endpoint_reference,
-            '{http://www.w3.org/2005/08/addressing}Address')
+            endpoint_reference, '{http://www.w3.org/2005/08/addressing}Address'
+        )
 
         keytype = etree.SubElement(
             request_security_token,
-            '{http://docs.oasis-open.org/ws-sx/ws-trust/200512}KeyType')
-        keytype.text = ('http://docs.oasis-open.org/ws-sx/'
-                        'ws-trust/200512/Bearer')
+            '{http://docs.oasis-open.org/ws-sx/ws-trust/200512}KeyType',
+        )
+        keytype.text = (
+            'http://docs.oasis-open.org/ws-sx/ws-trust/200512/Bearer'
+        )
 
         request_type = etree.SubElement(
             request_security_token,
-            '{http://docs.oasis-open.org/ws-sx/ws-trust/200512}RequestType')
-        request_type.text = ('http://docs.oasis-open.org/ws-sx/'
-                             'ws-trust/200512/Issue')
+            '{http://docs.oasis-open.org/ws-sx/ws-trust/200512}RequestType',
+        )
+        request_type.text = (
+            'http://docs.oasis-open.org/ws-sx/ws-trust/200512/Issue'
+        )
         token_type = etree.SubElement(
             request_security_token,
-            '{http://docs.oasis-open.org/ws-sx/ws-trust/200512}TokenType')
+            '{http://docs.oasis-open.org/ws-sx/ws-trust/200512}TokenType',
+        )
         token_type.text = 'urn:oasis:names:tc:SAML:1.0:assertion'
 
         # After constructing the request, let's plug in some values
         username.text = self.username
         password.text = self.password
         to.text = self.identity_provider_url
-        wsa_address.text = (self.service_provider_entity_id or
-                            self.service_provider_endpoint)
+        wsa_address.text = (
+            self.service_provider_entity_id or self.service_provider_endpoint
+        )
 
         self.prepared_request = root
 
@@ -289,12 +365,14 @@ class Password(base.BaseSAMLPlugin):
                  recognized.
 
         """
+
         def _get_failure(e):
             xpath = '/s:Envelope/s:Body/s:Fault/s:Code/s:Subcode/s:Value'
             content = e.response.content
             try:
                 obj = self.str_to_xml(content).xpath(
-                    xpath, namespaces=self.NAMESPACES)
+                    xpath, namespaces=self.NAMESPACES
+                )
                 obj = self._first(obj)
                 return obj.text
             # NOTE(marek-denis): etree.Element.xpath() doesn't raise an
@@ -309,13 +387,18 @@ class Password(base.BaseSAMLPlugin):
         request_security_token = self.xml_to_str(self.prepared_request)
         try:
             response = session.post(
-                url=self.identity_provider_url, headers=self.HEADER_SOAP,
-                data=request_security_token, authenticated=False)
+                url=self.identity_provider_url,
+                headers=self.HEADER_SOAP,
+                data=request_security_token,
+                authenticated=False,
+            )
         except exceptions.InternalServerError as e:
             reason = _get_failure(e)
             raise exceptions.AuthorizationFailure(reason)
-        msg = ('Error parsing XML returned from '
-               'the ADFS Identity Provider, reason: %s')
+        msg = (
+            'Error parsing XML returned from '
+            'the ADFS Identity Provider, reason: %s'
+        )
         self.adfs_token = self.str_to_xml(response.content, msg)
 
     def _prepare_sp_request(self):
@@ -329,7 +412,8 @@ class Password(base.BaseSAMLPlugin):
 
         """
         assertion = self.adfs_token.xpath(
-            self.ADFS_ASSERTION_XPATH, namespaces=self.ADFS_TOKEN_NAMESPACES)
+            self.ADFS_ASSERTION_XPATH, namespaces=self.ADFS_TOKEN_NAMESPACES
+        )
         assertion = self._first(assertion)
         assertion = self.xml_to_str(assertion)
         # TODO(marek-denis): Ideally no string replacement should occur.
@@ -338,7 +422,8 @@ class Password(base.BaseSAMLPlugin):
         # from scratch and reuse values from the adfs security token.
         assertion = assertion.replace(
             b'http://docs.oasis-open.org/ws-sx/ws-trust/200512',
-            b'http://schemas.xmlsoap.org/ws/2005/02/trust')
+            b'http://schemas.xmlsoap.org/ws/2005/02/trust',
+        )
 
         encoded_assertion = urllib.parse.quote(assertion)
         self.encoded_assertion = 'wa=wsignin1.0&wresult=' + encoded_assertion
@@ -358,8 +443,12 @@ class Password(base.BaseSAMLPlugin):
 
         """
         session.post(
-            url=self.service_provider_endpoint, data=self.encoded_assertion,
-            headers=self.HEADER_X_FORM, redirect=False, authenticated=False)
+            url=self.service_provider_endpoint,
+            data=self.encoded_assertion,
+            headers=self.HEADER_X_FORM,
+            redirect=False,
+            authenticated=False,
+        )
 
     def _access_service_provider(self, session):
         """Access protected endpoint and fetch unscoped token.
@@ -382,9 +471,11 @@ class Password(base.BaseSAMLPlugin):
         if self._cookies(session) is False:
             raise exceptions.AuthorizationFailure(
                 "Session object doesn't contain a cookie, therefore you are "
-                "not allowed to enter the Identity Provider's protected area.")
-        self.authenticated_response = session.get(self.federated_token_url,
-                                                  authenticated=False)
+                "not allowed to enter the Identity Provider's protected area."
+            )
+        self.authenticated_response = session.get(
+            self.federated_token_url, authenticated=False
+        )
 
     def get_unscoped_auth_ref(self, session, *kwargs):
         """Retrieve unscoped token after authentcation with ADFS server.

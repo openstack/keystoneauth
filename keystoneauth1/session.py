@@ -40,14 +40,12 @@ try:
 except ImportError:
     osprofiler_web = None
 
-DEFAULT_USER_AGENT = 'keystoneauth1/%s %s %s/%s' % (
-    keystoneauth1.__version__, requests.utils.default_user_agent(),
-    platform.python_implementation(), platform.python_version())
+DEFAULT_USER_AGENT = f'keystoneauth1/{keystoneauth1.__version__} {requests.utils.default_user_agent()} {platform.python_implementation()}/{platform.python_version()}'
 
 # NOTE(jamielennox): Clients will likely want to print more than json. Please
 # propose a patch if you have a content type you think is reasonable to print
 # here and we'll add it to the list as required.
-_LOG_CONTENT_TYPES = set(['application/json', 'text/plain'])
+_LOG_CONTENT_TYPES = {'application/json', 'text/plain'}
 
 _MAX_RETRY_INTERVAL = 60.0
 _EXPONENTIAL_DELAY_START = 0.5
@@ -101,7 +99,7 @@ def _sanitize_headers(headers):
     return str_dict
 
 
-class NoOpSemaphore(object):
+class NoOpSemaphore:
     """Empty context manager for use as a default semaphore."""
 
     def __enter__(self):
@@ -114,7 +112,6 @@ class NoOpSemaphore(object):
 
 
 class _JSONEncoder(json.JSONEncoder):
-
     def default(self, o):
         if isinstance(o, datetime.datetime):
             return o.isoformat()
@@ -123,10 +120,10 @@ class _JSONEncoder(json.JSONEncoder):
         if netaddr and isinstance(o, netaddr.IPAddress):
             return str(o)
 
-        return super(_JSONEncoder, self).default(o)
+        return super().default(o)
 
 
-class _StringFormatter(object):
+class _StringFormatter:
     """A String formatter that fetches values on demand."""
 
     def __init__(self, session, auth):
@@ -142,8 +139,10 @@ class _StringFormatter(object):
             raise AttributeError(item)
 
         if not value:
-            raise ValueError("This type of authentication does not provide a "
-                             "%s that can be substituted" % item)
+            raise ValueError(
+                "This type of authentication does not provide a "
+                f"{item} that can be substituted"
+            )
 
         return value
 
@@ -159,8 +158,11 @@ def _determine_calling_package():
     # because sys.modules can change during iteration, which results
     # in a RuntimeError
     # https://docs.python.org/3/library/sys.html#sys.modules
-    mod_lookup = dict((m.__file__, n) for n, m in sys.modules.copy().items()
-                      if hasattr(m, '__file__'))
+    mod_lookup = {
+        m.__file__: n
+        for n, m in sys.modules.copy().items()
+        if hasattr(m, '__file__')
+    }
 
     # NOTE(shaleh): these are not useful because they hide the real
     # user of the code. debtcollector did not import keystoneauth but
@@ -205,7 +207,7 @@ def _determine_user_agent():
     # NOTE(shaleh): mod_wsgi is not any more useful than just
     # reporting "keystoneauth". Ignore it and perform the package name
     # heuristic.
-    ignored = ('mod_wsgi', )
+    ignored = ('mod_wsgi',)
 
     try:
         name = sys.argv[0]
@@ -222,7 +224,7 @@ def _determine_user_agent():
     return name
 
 
-class RequestTiming(object):
+class RequestTiming:
     """Contains timing information for an HTTP interaction."""
 
     #: HTTP method used for the call (GET, POST, etc)
@@ -240,7 +242,7 @@ class RequestTiming(object):
         self.elapsed = elapsed
 
 
-class _Retries(object):
+class _Retries:
     __slots__ = ('_fixed_delay', '_current')
 
     def __init__(self, fixed_delay=None):
@@ -263,7 +265,7 @@ class _Retries(object):
     next = __next__
 
 
-class Session(object):
+class Session:
     """Maintains client communication state and common functionality.
 
     As much as possible the parameters to this class reflect and are passed
@@ -341,14 +343,26 @@ class Session(object):
 
     _DEFAULT_REDIRECT_LIMIT = 30
 
-    def __init__(self, auth=None, session=None, original_ip=None, verify=True,
-                 cert=None, timeout=None, user_agent=None,
-                 redirect=_DEFAULT_REDIRECT_LIMIT, additional_headers=None,
-                 app_name=None, app_version=None, additional_user_agent=None,
-                 discovery_cache=None, split_loggers=None,
-                 collect_timing=False, rate_semaphore=None,
-                 connect_retries=0):
-
+    def __init__(
+        self,
+        auth=None,
+        session=None,
+        original_ip=None,
+        verify=True,
+        cert=None,
+        timeout=None,
+        user_agent=None,
+        redirect=_DEFAULT_REDIRECT_LIMIT,
+        additional_headers=None,
+        app_name=None,
+        app_version=None,
+        additional_user_agent=None,
+        discovery_cache=None,
+        split_loggers=None,
+        collect_timing=False,
+        rate_semaphore=None,
+        connect_retries=0,
+    ):
         self.auth = auth
         self.session = _construct_session(session)
         # NOTE(mwhahaha): keep a reference to the session object so we can
@@ -383,7 +397,7 @@ class Session(object):
             self.timeout = float(timeout)
 
         if user_agent is not None:
-            self.user_agent = "%s %s" % (user_agent, DEFAULT_USER_AGENT)
+            self.user_agent = f"{user_agent} {DEFAULT_USER_AGENT}"
 
         self._json = _JSONEncoder()
 
@@ -431,13 +445,17 @@ class Session(object):
     @staticmethod
     def _process_header(header):
         """Redact the secure headers to be logged."""
-        secure_headers = ('authorization', 'x-auth-token',
-                          'x-subject-token', 'x-service-token')
+        secure_headers = (
+            'authorization',
+            'x-auth-token',
+            'x-subject-token',
+            'x-service-token',
+        )
         if header[0].lower() in secure_headers:
             token_hasher = hashlib.sha256()
             token_hasher.update(header[1].encode('utf-8'))
             token_hash = token_hasher.hexdigest()
-            return (header[0], '{SHA256}%s' % token_hash)
+            return (header[0], f'{{SHA256}}{token_hash}')
         return header
 
     def _get_split_loggers(self, split_loggers):
@@ -458,9 +476,17 @@ class Session(object):
             split_loggers = False
         return split_loggers
 
-    def _http_log_request(self, url, method=None, data=None,
-                          json=None, headers=None, query_params=None,
-                          logger=None, split_loggers=None):
+    def _http_log_request(
+        self,
+        url,
+        method=None,
+        data=None,
+        json=None,
+        headers=None,
+        query_params=None,
+        logger=None,
+        split_loggers=None,
+    ):
         string_parts = []
 
         if self._get_split_loggers(split_loggers):
@@ -484,7 +510,7 @@ class Session(object):
         if self.verify is False:
             string_parts.append('--insecure')
         elif isinstance(self.verify, str):
-            string_parts.append('--cacert "%s"' % self.verify)
+            string_parts.append(f'--cacert "{self.verify}"')
 
         if method:
             string_parts.extend(['-X', method])
@@ -495,15 +521,16 @@ class Session(object):
             url = url + '?' + urllib.parse.urlencode(query_params)
             # URLs with query strings need to be wrapped in quotes in order
             # for the CURL command to run properly.
-            string_parts.append('"%s"' % url)
+            string_parts.append(f'"{url}"')
         else:
             string_parts.append(url)
 
         if headers:
             # Sort headers so that testing can work consistently.
             for header in sorted(headers.items()):
-                string_parts.append('-H "%s: %s"'
-                                    % self._process_header(header))
+                string_parts.append(
+                    '-H "{}: {}"'.format(*self._process_header(header))
+                )
         if json:
             data = self._json.encode(json)
         if data:
@@ -512,13 +539,20 @@ class Session(object):
                     data = data.decode("ascii")
                 except UnicodeDecodeError:
                     data = "<binary_data>"
-            string_parts.append("-d '%s'" % data)
+            string_parts.append(f"-d '{data}'")
 
         logger.debug(' '.join(string_parts))
 
-    def _http_log_response(self, response=None, json=None,
-                           status_code=None, headers=None, text=None,
-                           logger=None, split_loggers=True):
+    def _http_log_response(
+        self,
+        response=None,
+        json=None,
+        status_code=None,
+        headers=None,
+        text=None,
+        logger=None,
+        split_loggers=True,
+    ):
         string_parts = []
         body_parts = []
         if self._get_split_loggers(split_loggers):
@@ -540,11 +574,13 @@ class Session(object):
                 headers = response.headers
 
         if status_code:
-            string_parts.append('[%s]' % status_code)
+            string_parts.append(f'[{status_code}]')
         if headers:
             # Sort headers so that testing can work consistently.
             for header in sorted(headers.items()):
-                string_parts.append('%s: %s' % self._process_header(header))
+                string_parts.append(
+                    '{}: {}'.format(*self._process_header(header))
+                )
         logger.debug(' '.join(string_parts))
 
         if not body_logger.isEnabledFor(logging.DEBUG):
@@ -565,12 +601,15 @@ class Session(object):
                 # [1] https://www.w3.org/Protocols/rfc1341/4_Content-Type.html
                 for log_type in _LOG_CONTENT_TYPES:
                     if content_type is not None and content_type.startswith(
-                            log_type):
+                        log_type
+                    ):
                         text = self._remove_service_catalog(response.text)
                         break
                 else:
-                    text = ('Omitted, Content-Type is set to %s. Only '
-                            '%s responses have their bodies logged.')
+                    text = (
+                        'Omitted, Content-Type is set to %s. Only '
+                        '%s responses have their bodies logged.'
+                    )
                     text = text % (content_type, ', '.join(_LOG_CONTENT_TYPES))
         if json:
             text = self._json.encode(json)
@@ -581,7 +620,8 @@ class Session(object):
 
     @staticmethod
     def _set_microversion_headers(
-            headers, microversion, service_type, endpoint_filter):
+        headers, microversion, service_type, endpoint_filter
+    ):
         # We're converting it to normalized version number for two reasons.
         # First, to validate it's a real version number. Second, so that in
         # the future we can pre-validate that it is within the range of
@@ -592,27 +632,32 @@ class Session(object):
         # with the microversion range we found in discovery.
         microversion = discover.normalize_version_number(microversion)
         # Can't specify a M.latest microversion
-        if (microversion[0] != discover.LATEST and
-                discover.LATEST in microversion[1:]):
+        if (
+            microversion[0] != discover.LATEST
+            and discover.LATEST in microversion[1:]
+        ):
             raise TypeError(
-                "Specifying a '{major}.latest' microversion is not allowed.")
+                "Specifying a '{major}.latest' microversion is not allowed."
+            )
         microversion = discover.version_to_string(microversion)
         if not service_type:
             if endpoint_filter and 'service_type' in endpoint_filter:
                 service_type = endpoint_filter['service_type']
             else:
                 raise TypeError(
-                    "microversion {microversion} was requested but no"
+                    f"microversion {microversion} was requested but no"
                     " service_type information is available. Either provide a"
                     " service_type in endpoint_filter or pass"
-                    " microversion_service_type as an argument.".format(
-                        microversion=microversion))
+                    " microversion_service_type as an argument."
+                )
 
         # TODO(mordred) cinder uses volume in its microversion header. This
         # logic should be handled in the future by os-service-types but for
         # now hard-code for cinder.
-        if (service_type.startswith('volume') or
-                service_type == 'block-storage'):
+        if (
+            service_type.startswith('volume')
+            or service_type == 'block-storage'
+        ):
             service_type = 'volume'
         elif service_type.startswith('share'):
             # NOTE(gouthamr) manila doesn't honor the "OpenStack-API-Version"
@@ -622,25 +667,44 @@ class Session(object):
             # service catalog
             service_type = 'shared-file-system'
 
-        headers.setdefault('OpenStack-API-Version',
-                           '{service_type} {microversion}'.format(
-                               service_type=service_type,
-                               microversion=microversion))
+        headers.setdefault(
+            'OpenStack-API-Version', f'{service_type} {microversion}'
+        )
         header_names = _mv_legacy_headers_for_service(service_type)
         for h in header_names:
             headers.setdefault(h, microversion)
 
-    def request(self, url, method, json=None, original_ip=None,
-                user_agent=None, redirect=None, authenticated=None,
-                endpoint_filter=None, auth=None, requests_auth=None,
-                raise_exc=True, allow_reauth=True, log=True,
-                endpoint_override=None, connect_retries=None, logger=None,
-                allow=None, client_name=None, client_version=None,
-                microversion=None, microversion_service_type=None,
-                status_code_retries=0, retriable_status_codes=None,
-                rate_semaphore=None, global_request_id=None,
-                connect_retry_delay=None, status_code_retry_delay=None,
-                **kwargs):
+    def request(
+        self,
+        url,
+        method,
+        json=None,
+        original_ip=None,
+        user_agent=None,
+        redirect=None,
+        authenticated=None,
+        endpoint_filter=None,
+        auth=None,
+        requests_auth=None,
+        raise_exc=True,
+        allow_reauth=True,
+        log=True,
+        endpoint_override=None,
+        connect_retries=None,
+        logger=None,
+        allow=None,
+        client_name=None,
+        client_version=None,
+        microversion=None,
+        microversion_service_type=None,
+        status_code_retries=0,
+        retriable_status_codes=None,
+        rate_semaphore=None,
+        global_request_id=None,
+        connect_retry_delay=None,
+        status_code_retry_delay=None,
+        **kwargs,
+    ):
         """Send an HTTP request with the specified characteristics.
 
         Wrapper around `requests.Session.request` to handle tasks such as
@@ -766,21 +830,26 @@ class Session(object):
         # case insensitive.
         if kwargs.get('headers'):
             kwargs['headers'] = requests.structures.CaseInsensitiveDict(
-                kwargs['headers'])
+                kwargs['headers']
+            )
         else:
             kwargs['headers'] = requests.structures.CaseInsensitiveDict()
         if connect_retries is None:
             connect_retries = self._connect_retries
         # HTTP 503 - Service Unavailable
-        retriable_status_codes = retriable_status_codes or \
-            _RETRIABLE_STATUS_CODES
+        retriable_status_codes = (
+            retriable_status_codes or _RETRIABLE_STATUS_CODES
+        )
         rate_semaphore = rate_semaphore or self._rate_semaphore
 
-        headers = kwargs.setdefault('headers', dict())
+        headers = kwargs.setdefault('headers', {})
         if microversion:
             self._set_microversion_headers(
-                headers, microversion, microversion_service_type,
-                endpoint_filter)
+                headers,
+                microversion,
+                microversion_service_type,
+                endpoint_filter,
+            )
 
         if authenticated is None:
             authenticated = bool(auth or self.auth)
@@ -807,13 +876,14 @@ class Session(object):
             if endpoint_override:
                 base_url = endpoint_override % _StringFormatter(self, auth)
             elif endpoint_filter:
-                base_url = self.get_endpoint(auth, allow=allow,
-                                             **endpoint_filter)
+                base_url = self.get_endpoint(
+                    auth, allow=allow, **endpoint_filter
+                )
 
             if not base_url:
                 raise exceptions.EndpointNotFound()
 
-            url = '%s/%s' % (base_url.rstrip('/'), url.lstrip('/'))
+            url = '{}/{}'.format(base_url.rstrip('/'), url.lstrip('/'))
 
         if self.cert:
             kwargs.setdefault('cert', self.cert)
@@ -835,17 +905,17 @@ class Session(object):
             agent = []
 
             if self.app_name and self.app_version:
-                agent.append('%s/%s' % (self.app_name, self.app_version))
+                agent.append(f'{self.app_name}/{self.app_version}')
             elif self.app_name:
                 agent.append(self.app_name)
 
             if client_name and client_version:
-                agent.append('%s/%s' % (client_name, client_version))
+                agent.append(f'{client_name}/{client_version}')
             elif client_name:
                 agent.append(client_name)
 
             for additional in self.additional_user_agent:
-                agent.append('%s/%s' % additional)
+                agent.append('{}/{}'.format(*additional))
 
             if not agent:
                 # NOTE(jamielennox): determine_user_agent will return an empty
@@ -861,8 +931,9 @@ class Session(object):
             user_agent = headers.setdefault('User-Agent', ' '.join(agent))
 
         if self.original_ip:
-            headers.setdefault('Forwarded',
-                               'for=%s;by=%s' % (self.original_ip, user_agent))
+            headers.setdefault(
+                'Forwarded', f'for={self.original_ip};by={user_agent}'
+            )
 
         if json is not None:
             headers.setdefault('Content-Type', 'application/json')
@@ -890,14 +961,18 @@ class Session(object):
         # be logged properly, but those sent in the `params` parameter
         # (which the requests library handles) need to be explicitly
         # picked out so they can be included in the URL that gets loggged.
-        query_params = kwargs.get('params', dict())
+        query_params = kwargs.get('params', {})
 
         if log:
-            self._http_log_request(url, method=method,
-                                   data=kwargs.get('data'),
-                                   headers=headers,
-                                   query_params=query_params,
-                                   logger=logger, split_loggers=split_loggers)
+            self._http_log_request(
+                url,
+                method=method,
+                data=kwargs.get('data'),
+                headers=headers,
+                query_params=query_params,
+                logger=logger,
+                split_loggers=split_loggers,
+            )
 
         # Force disable requests redirect handling. We will manage this below.
         kwargs['allow_redirects'] = False
@@ -908,12 +983,21 @@ class Session(object):
         connect_retry_delays = _Retries(connect_retry_delay)
         status_code_retry_delays = _Retries(status_code_retry_delay)
 
-        send = functools.partial(self._send_request,
-                                 url, method, redirect, log, logger,
-                                 split_loggers, connect_retries,
-                                 status_code_retries, retriable_status_codes,
-                                 rate_semaphore, connect_retry_delays,
-                                 status_code_retry_delays)
+        send = functools.partial(
+            self._send_request,
+            url,
+            method,
+            redirect,
+            log,
+            logger,
+            split_loggers,
+            connect_retries,
+            status_code_retries,
+            retriable_status_codes,
+            rate_semaphore,
+            connect_retry_delays,
+            status_code_retry_delays,
+        )
 
         try:
             connection_params = self.get_auth_connection_params(auth=auth)
@@ -942,8 +1026,9 @@ class Session(object):
             # Nova uses 'x-compute-request-id' and other services like
             # Glance, Cinder etc are using 'x-openstack-request-id' to store
             # request-id in the header
-            request_id = (resp.headers.get('x-openstack-request-id') or
-                          resp.headers.get('x-compute-request-id'))
+            request_id = resp.headers.get(
+                'x-openstack-request-id'
+            ) or resp.headers.get('x-compute-request-id')
             if request_id:
                 if self._get_split_loggers(split_loggers):
                     id_logger = utils.get_logger(__name__ + '.request-id')
@@ -953,21 +1038,25 @@ class Session(object):
                     id_logger.debug(
                         '%(method)s call to %(service_name)s for '
                         '%(url)s used request id '
-                        '%(response_request_id)s', {
+                        '%(response_request_id)s',
+                        {
                             'method': resp.request.method,
                             'service_name': service_name,
                             'url': resp.url,
-                            'response_request_id': request_id
-                        })
+                            'response_request_id': request_id,
+                        },
+                    )
                 else:
                     id_logger.debug(
                         '%(method)s call to '
                         '%(url)s used request id '
-                        '%(response_request_id)s', {
+                        '%(response_request_id)s',
+                        {
                             'method': resp.request.method,
                             'url': resp.url,
-                            'response_request_id': request_id
-                        })
+                            'response_request_id': request_id,
+                        },
+                    )
 
         # handle getting a 401 Unauthorized response by invalidating the plugin
         # and then retrying the request. This is only tried once.
@@ -980,30 +1069,46 @@ class Session(object):
                     resp = send(**kwargs)
 
         if raise_exc and resp.status_code >= 400:
-            logger.debug('Request returned failure status: %s',
-                         resp.status_code)
+            logger.debug(
+                'Request returned failure status: %s', resp.status_code
+            )
             raise exceptions.from_response(resp, method, url)
 
         if self._collect_timing:
             for h in resp.history:
-                self._api_times.append(RequestTiming(
-                    method=h.request.method,
-                    url=h.request.url,
-                    elapsed=h.elapsed,
-                ))
-            self._api_times.append(RequestTiming(
-                method=resp.request.method,
-                url=resp.request.url,
-                elapsed=resp.elapsed,
-            ))
+                self._api_times.append(
+                    RequestTiming(
+                        method=h.request.method,
+                        url=h.request.url,
+                        elapsed=h.elapsed,
+                    )
+                )
+            self._api_times.append(
+                RequestTiming(
+                    method=resp.request.method,
+                    url=resp.request.url,
+                    elapsed=resp.elapsed,
+                )
+            )
 
         return resp
 
-    def _send_request(self, url, method, redirect, log, logger, split_loggers,
-                      connect_retries, status_code_retries,
-                      retriable_status_codes, rate_semaphore,
-                      connect_retry_delays, status_code_retry_delays,
-                      **kwargs):
+    def _send_request(
+        self,
+        url,
+        method,
+        redirect,
+        log,
+        logger,
+        split_loggers,
+        connect_retries,
+        status_code_retries,
+        retriable_status_codes,
+        rate_semaphore,
+        connect_retry_delays,
+        status_code_retry_delays,
+        **kwargs,
+    ):
         # NOTE(jamielennox): We handle redirection manually because the
         # requests lib follows some browser patterns where it will redirect
         # POSTs as GETs for certain statuses which is not want we want for an
@@ -1020,11 +1125,10 @@ class Session(object):
                 with rate_semaphore:
                     resp = self.session.request(method, url, **kwargs)
             except requests.exceptions.SSLError as e:
-                msg = 'SSL exception connecting to %(url)s: %(error)s' % {
-                    'url': url, 'error': e}
+                msg = f'SSL exception connecting to {url}: {e}'
                 raise exceptions.SSLError(msg)
             except requests.exceptions.Timeout:
-                msg = 'Request to %s timed out' % url
+                msg = f'Request to {url} timed out'
                 raise exceptions.ConnectTimeout(msg)
             except requests.exceptions.ConnectionError as e:
                 # NOTE(sdague): urllib3/requests connection error is a
@@ -1033,11 +1137,10 @@ class Session(object):
                 # level message is often really important in figuring
                 # out the difference between network misconfigurations
                 # and firewall blocking.
-                msg = 'Unable to establish connection to %s: %s' % (url, e)
+                msg = f'Unable to establish connection to {url}: {e}'
                 raise exceptions.ConnectFailure(msg)
             except requests.exceptions.RequestException as e:
-                msg = 'Unexpected exception for %(url)s: %(error)s' % {
-                    'url': url, 'error': e}
+                msg = f'Unexpected exception for {url}: {e}'
                 raise exceptions.UnknownConnectionError(msg, e)
 
         except exceptions.RetriableConnectionFailure as e:
@@ -1045,26 +1148,33 @@ class Session(object):
                 raise
 
             delay = next(connect_retry_delays)
-            logger.warning('Failure: %(e)s. Retrying in %(delay).1fs.'
-                           '%(retries)s retries left',
-                           {'e': e, 'delay': delay,
-                            'retries': connect_retries})
+            logger.warning(
+                'Failure: %(e)s. Retrying in %(delay).1fs.'
+                '%(retries)s retries left',
+                {'e': e, 'delay': delay, 'retries': connect_retries},
+            )
             time.sleep(delay)
 
             return self._send_request(
-                url, method, redirect, log, logger, split_loggers,
+                url,
+                method,
+                redirect,
+                log,
+                logger,
+                split_loggers,
                 status_code_retries=status_code_retries,
                 retriable_status_codes=retriable_status_codes,
                 rate_semaphore=rate_semaphore,
                 connect_retries=connect_retries - 1,
                 connect_retry_delays=connect_retry_delays,
                 status_code_retry_delays=status_code_retry_delays,
-                **kwargs)
+                **kwargs,
+            )
 
         if log:
             self._http_log_response(
-                response=resp, logger=logger,
-                split_loggers=split_loggers)
+                response=resp, logger=logger, split_loggers=split_loggers
+            )
 
         if resp.status_code in self._REDIRECT_STATUSES:
             # be careful here in python True == 1 and False == 0
@@ -1080,8 +1190,11 @@ class Session(object):
             try:
                 location = resp.headers['location']
             except KeyError:
-                logger.warning("Failed to redirect request to %s as new "
-                               "location was not provided.", resp.url)
+                logger.warning(
+                    "Failed to redirect request to %s as new "
+                    "location was not provided.",
+                    resp.url,
+                )
             else:
                 # NOTE(TheJulia): Location redirects generally should have
                 # URI's to the destination.
@@ -1090,50 +1203,69 @@ class Session(object):
                     kwargs['params'] = {}
 
                 if 'x-openstack-request-id' in resp.headers:
-                    kwargs['headers'].setdefault('x-openstack-request-id',
-                                                 resp.headers[
-                                                     'x-openstack-request-id'])
+                    kwargs['headers'].setdefault(
+                        'x-openstack-request-id',
+                        resp.headers['x-openstack-request-id'],
+                    )
 
                 # NOTE(jamielennox): We don't keep increasing delays.
                 # This request actually worked so we can reset the delay count.
                 connect_retry_delays.reset()
                 status_code_retry_delays.reset()
                 new_resp = self._send_request(
-                    location, method, redirect, log, logger, split_loggers,
+                    location,
+                    method,
+                    redirect,
+                    log,
+                    logger,
+                    split_loggers,
                     rate_semaphore=rate_semaphore,
                     connect_retries=connect_retries,
                     status_code_retries=status_code_retries,
                     retriable_status_codes=retriable_status_codes,
                     connect_retry_delays=connect_retry_delays,
                     status_code_retry_delays=status_code_retry_delays,
-                    **kwargs)
+                    **kwargs,
+                )
 
                 if not isinstance(new_resp.history, list):
                     new_resp.history = list(new_resp.history)
                 new_resp.history.insert(0, resp)
                 resp = new_resp
-        elif (resp.status_code in retriable_status_codes and
-              status_code_retries > 0):
-
+        elif (
+            resp.status_code in retriable_status_codes
+            and status_code_retries > 0
+        ):
             delay = next(status_code_retry_delays)
-            logger.warning('Retriable status code %(code)s. Retrying in '
-                           '%(delay).1fs. %(retries)s retries left',
-                           {'code': resp.status_code, 'delay': delay,
-                            'retries': status_code_retries})
+            logger.warning(
+                'Retriable status code %(code)s. Retrying in '
+                '%(delay).1fs. %(retries)s retries left',
+                {
+                    'code': resp.status_code,
+                    'delay': delay,
+                    'retries': status_code_retries,
+                },
+            )
             time.sleep(delay)
 
             # NOTE(jamielennox): We don't keep increasing connection delays.
             # This request actually worked so we can reset the delay count.
             connect_retry_delays.reset()
             return self._send_request(
-                url, method, redirect, log, logger, split_loggers,
+                url,
+                method,
+                redirect,
+                log,
+                logger,
+                split_loggers,
                 connect_retries=connect_retries,
                 status_code_retries=status_code_retries - 1,
                 retriable_status_codes=retriable_status_codes,
                 rate_semaphore=rate_semaphore,
                 connect_retry_delays=connect_retry_delays,
                 status_code_retry_delays=status_code_retry_delays,
-                **kwargs)
+                **kwargs,
+            )
 
         return resp
 
@@ -1288,9 +1420,14 @@ class Session(object):
         auth = self._auth_required(auth, 'determine endpoint URL')
         return auth.get_api_major_version(self, **kwargs)
 
-    def get_all_version_data(self, auth=None, interface='public',
-                             region_name=None, service_type=None,
-                             **kwargs):
+    def get_all_version_data(
+        self,
+        auth=None,
+        interface='public',
+        region_name=None,
+        service_type=None,
+        **kwargs,
+    ):
         """Get version data for all services in the catalog.
 
         :param auth:
@@ -1318,7 +1455,8 @@ class Session(object):
             interface=interface,
             region_name=region_name,
             service_type=service_type,
-            **kwargs)
+            **kwargs,
+        )
 
     def get_auth_connection_params(self, auth=None, **kwargs):
         """Return auth connection params as provided by the auth plugin.
@@ -1461,17 +1599,19 @@ class TCPKeepAliveAdapter(requests.adapters.HTTPAdapter):
                 ]
 
             # Windows subsystem for Linux does not support this feature
-            if (hasattr(socket, 'TCP_KEEPCNT') and
-                    not utils.is_windows_linux_subsystem):
+            if (
+                hasattr(socket, 'TCP_KEEPCNT')
+                and not utils.is_windows_linux_subsystem
+            ):
                 socket_options += [
                     # Set the maximum number of keep-alive probes
-                    (socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 4),
+                    (socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 4)
                 ]
 
             if hasattr(socket, 'TCP_KEEPINTVL'):
                 socket_options += [
                     # Send keep-alive probes every 15 seconds
-                    (socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 15),
+                    (socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 15)
                 ]
 
             # After waiting 60 seconds, and then sending a probe once every 15
@@ -1479,4 +1619,4 @@ class TCPKeepAliveAdapter(requests.adapters.HTTPAdapter):
             # hands for no longer than 2 minutes before a ConnectionError is
             # raised.
             kwargs['socket_options'] = socket_options
-        super(TCPKeepAliveAdapter, self).init_poolmanager(*args, **kwargs)
+        super().init_poolmanager(*args, **kwargs)

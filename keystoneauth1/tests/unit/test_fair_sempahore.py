@@ -21,7 +21,6 @@ from keystoneauth1 import _fair_semaphore
 
 
 class SemaphoreTests(testtools.TestCase):
-
     def _thread_worker(self):
         while True:
             # get returns the Item, but we don't care about the value so we
@@ -48,7 +47,7 @@ class SemaphoreTests(testtools.TestCase):
         self.q.join()
 
     def setUp(self):
-        super(SemaphoreTests, self).setUp()
+        super().setUp()
         self.mock_payload = mock.Mock()
 
     # We should be waiting at least 0.1s between operations, so

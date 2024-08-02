@@ -17,7 +17,6 @@ from keystoneauth1 import loading
 # NOTE(jamielennox): This is not a BaseV3Loader because we don't want to
 # include the scoping options like project-id in the option list
 class V3OAuth1(loading.BaseIdentityLoader):
-
     @property
     def plugin_class(self):
         return v3.OAuth1
@@ -27,21 +26,25 @@ class V3OAuth1(loading.BaseIdentityLoader):
         return v3.oauth1 is not None
 
     def get_options(self):
-        options = super(V3OAuth1, self).get_options()
+        options = super().get_options()
 
-        options.extend([
-            loading.Opt('consumer-key',
-                        required=True,
-                        help='OAuth Consumer ID/Key'),
-            loading.Opt('consumer-secret',
-                        required=True,
-                        help='OAuth Consumer Secret'),
-            loading.Opt('access-key',
-                        required=True,
-                        help='OAuth Access Key'),
-            loading.Opt('access-secret',
-                        required=True,
-                        help='OAuth Access Secret'),
-        ])
+        options.extend(
+            [
+                loading.Opt(
+                    'consumer-key', required=True, help='OAuth Consumer ID/Key'
+                ),
+                loading.Opt(
+                    'consumer-secret',
+                    required=True,
+                    help='OAuth Consumer Secret',
+                ),
+                loading.Opt(
+                    'access-key', required=True, help='OAuth Access Key'
+                ),
+                loading.Opt(
+                    'access-secret', required=True, help='OAuth Access Secret'
+                ),
+            ]
+        )
 
         return options

@@ -24,29 +24,32 @@ from keystoneauth1 import session
 
 
 class TestBetamaxFixture(testtools.TestCase):
-
     TEST_USERNAME = 'test_user_name'
     TEST_PASSWORD = 'test_password'
     TEST_TENANT_NAME = 'test_tenant_name'
     TEST_AUTH_URL = 'http://keystoneauth-betamax.test/v2.0/'
 
-    V2_TOKEN = v2Fixtures.Token(tenant_name=TEST_TENANT_NAME,
-                                user_name=TEST_USERNAME)
+    V2_TOKEN = v2Fixtures.Token(
+        tenant_name=TEST_TENANT_NAME, user_name=TEST_USERNAME
+    )
 
     def setUp(self):
-        super(TestBetamaxFixture, self).setUp()
+        super().setUp()
         self.ksa_betamax_fixture = self.useFixture(
             keystoneauth_betamax.BetamaxFixture(
                 cassette_name='ksa_betamax_test_cassette',
                 cassette_library_dir='keystoneauth1/tests/unit/data/',
-                record=False))
+                record=False,
+            )
+        )
 
     def _replay_cassette(self):
         plugin = v2.Password(
             auth_url=self.TEST_AUTH_URL,
             password=self.TEST_PASSWORD,
             username=self.TEST_USERNAME,
-            tenant_name=self.TEST_TENANT_NAME)
+            tenant_name=self.TEST_TENANT_NAME,
+        )
         s = session.Session()
         s.get_token(auth=plugin)
 
@@ -58,7 +61,8 @@ class TestBetamaxFixture(testtools.TestCase):
             auth_url='http://invalid-auth-url/v2.0/',
             password=self.TEST_PASSWORD,
             username=self.TEST_USERNAME,
-            tenant_name=self.TEST_TENANT_NAME)
+            tenant_name=self.TEST_TENANT_NAME,
+        )
         s = session.Session()
         self.assertRaises(exceptions.BetamaxError, s.get_token, auth=plugin)
 

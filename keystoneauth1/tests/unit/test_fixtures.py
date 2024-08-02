@@ -17,15 +17,14 @@ from keystoneauth1.tests.unit import utils
 
 
 class V2TokenTests(utils.TestCase):
-
     def test_unscoped(self):
         token_id = uuid.uuid4().hex
         user_id = uuid.uuid4().hex
         user_name = uuid.uuid4().hex
 
-        token = fixture.V2Token(token_id=token_id,
-                                user_id=user_id,
-                                user_name=user_name)
+        token = fixture.V2Token(
+            token_id=token_id, user_id=user_id, user_name=user_name
+        )
 
         self.assertEqual(token_id, token.token_id)
         self.assertEqual(token_id, token['access']['token']['id'])
@@ -39,8 +38,7 @@ class V2TokenTests(utils.TestCase):
         tenant_id = uuid.uuid4().hex
         tenant_name = uuid.uuid4().hex
 
-        token = fixture.V2Token(tenant_id=tenant_id,
-                                tenant_name=tenant_name)
+        token = fixture.V2Token(tenant_id=tenant_id, tenant_name=tenant_name)
 
         self.assertEqual(tenant_id, token.tenant_id)
         self.assertEqual(tenant_id, token['access']['token']['tenant']['id'])
@@ -53,8 +51,9 @@ class V2TokenTests(utils.TestCase):
         trust_id = uuid.uuid4().hex
         trustee_user_id = uuid.uuid4().hex
 
-        token = fixture.V2Token(trust_id=trust_id,
-                                trustee_user_id=trustee_user_id)
+        token = fixture.V2Token(
+            trust_id=trust_id, trustee_user_id=trustee_user_id
+        )
         trust = token['access']['trust']
 
         self.assertEqual(trust_id, token.trust_id)
@@ -75,7 +74,7 @@ class V2TokenTests(utils.TestCase):
         role_names = token['access']['user']['roles']
         role_ids = token['access']['metadata']['roles']
 
-        self.assertEqual(set([role_id1, role_id2]), set(role_ids))
+        self.assertEqual({role_id1, role_id2}, set(role_ids))
         for r in (role_name1, role_name2):
             self.assertIn({'name': r}, role_names)
 
@@ -92,11 +91,13 @@ class V2TokenTests(utils.TestCase):
         token = fixture.V2Token()
         svc = token.add_service(type=service_type, name=service_name)
 
-        svc.add_endpoint(public=public,
-                         admin=admin,
-                         internal=internal,
-                         region=region,
-                         id=endpoint_id)
+        svc.add_endpoint(
+            public=public,
+            admin=admin,
+            internal=internal,
+            region=region,
+            id=endpoint_id,
+        )
 
         self.assertEqual(1, len(token['access']['serviceCatalog']))
         service = token['access']['serviceCatalog'][0]['endpoints'][0]
@@ -120,22 +121,24 @@ class V2TokenTests(utils.TestCase):
         token.set_bind(name1, data1)
         token.set_bind(name2, data2)
 
-        self.assertEqual({name1: data1, name2: data2},
-                         token['access']['token']['bind'])
+        self.assertEqual(
+            {name1: data1, name2: data2}, token['access']['token']['bind']
+        )
 
 
 class V3TokenTests(utils.TestCase):
-
     def test_unscoped(self):
         user_id = uuid.uuid4().hex
         user_name = uuid.uuid4().hex
         user_domain_id = uuid.uuid4().hex
         user_domain_name = uuid.uuid4().hex
 
-        token = fixture.V3Token(user_id=user_id,
-                                user_name=user_name,
-                                user_domain_id=user_domain_id,
-                                user_domain_name=user_domain_name)
+        token = fixture.V3Token(
+            user_id=user_id,
+            user_name=user_name,
+            user_domain_id=user_domain_id,
+            user_domain_name=user_domain_name,
+        )
 
         self.assertEqual(user_id, token.user_id)
         self.assertEqual(user_id, token['token']['user']['id'])
@@ -155,10 +158,12 @@ class V3TokenTests(utils.TestCase):
         project_domain_id = uuid.uuid4().hex
         project_domain_name = uuid.uuid4().hex
 
-        token = fixture.V3Token(project_id=project_id,
-                                project_name=project_name,
-                                project_domain_id=project_domain_id,
-                                project_domain_name=project_domain_name)
+        token = fixture.V3Token(
+            project_id=project_id,
+            project_name=project_name,
+            project_domain_id=project_domain_id,
+            project_domain_name=project_domain_name,
+        )
 
         self.assertEqual(project_id, token.project_id)
         self.assertEqual(project_id, token['token']['project']['id'])
@@ -181,11 +186,13 @@ class V3TokenTests(utils.TestCase):
         project_domain_name = uuid.uuid4().hex
         project_is_domain = True
 
-        token = fixture.V3Token(project_id=project_id,
-                                project_name=project_name,
-                                project_domain_id=project_domain_id,
-                                project_domain_name=project_domain_name,
-                                project_is_domain=project_is_domain)
+        token = fixture.V3Token(
+            project_id=project_id,
+            project_name=project_name,
+            project_domain_id=project_domain_id,
+            project_domain_name=project_domain_name,
+            project_is_domain=project_is_domain,
+        )
 
         self.assertEqual(project_id, token.project_id)
         self.assertEqual(project_id, token['token']['project']['id'])
@@ -204,8 +211,7 @@ class V3TokenTests(utils.TestCase):
         domain_id = uuid.uuid4().hex
         domain_name = uuid.uuid4().hex
 
-        token = fixture.V3Token(domain_id=domain_id,
-                                domain_name=domain_name)
+        token = fixture.V3Token(domain_id=domain_id, domain_name=domain_name)
 
         self.assertEqual(domain_id, token.domain_id)
         self.assertEqual(domain_id, token['token']['domain']['id'])
@@ -231,10 +237,12 @@ class V3TokenTests(utils.TestCase):
         trustor_user_id = uuid.uuid4().hex
         impersonation = True
 
-        token = fixture.V3Token(trust_id=trust_id,
-                                trustee_user_id=trustee_user_id,
-                                trustor_user_id=trustor_user_id,
-                                trust_impersonation=impersonation)
+        token = fixture.V3Token(
+            trust_id=trust_id,
+            trustee_user_id=trustee_user_id,
+            trustor_user_id=trustor_user_id,
+            trust_impersonation=impersonation,
+        )
 
         trust = token['token']['OS-TRUST:trust']
         self.assertEqual(trust_id, token.trust_id)
@@ -250,8 +258,9 @@ class V3TokenTests(utils.TestCase):
         access_id = uuid.uuid4().hex
         consumer_id = uuid.uuid4().hex
 
-        token = fixture.V3Token(oauth_access_token_id=access_id,
-                                oauth_consumer_id=consumer_id)
+        token = fixture.V3Token(
+            oauth_access_token_id=access_id, oauth_consumer_id=consumer_id
+        )
 
         oauth = token['token']['OS-OAUTH1']
 
@@ -265,14 +274,16 @@ class V3TokenTests(utils.TestCase):
         service_name = uuid.uuid4().hex
         service_id = uuid.uuid4().hex
         region = uuid.uuid4().hex
-        endpoints = {'public': uuid.uuid4().hex,
-                     'internal': uuid.uuid4().hex,
-                     'admin': uuid.uuid4().hex}
+        endpoints = {
+            'public': uuid.uuid4().hex,
+            'internal': uuid.uuid4().hex,
+            'admin': uuid.uuid4().hex,
+        }
 
         token = fixture.V3Token()
-        svc = token.add_service(type=service_type,
-                                name=service_name,
-                                id=service_id)
+        svc = token.add_service(
+            type=service_type, name=service_name, id=service_id
+        )
         svc.add_standard_endpoints(region=region, **endpoints)
 
         self.assertEqual(1, len(token['token']['catalog']))
@@ -289,8 +300,12 @@ class V3TokenTests(utils.TestCase):
             self.assertTrue(endpoint.pop('id'))
 
         for interface, url in endpoints.items():
-            endpoint = {'interface': interface, 'url': url,
-                        'region': region, 'region_id': region}
+            endpoint = {
+                'interface': interface,
+                'url': url,
+                'region': region,
+                'region_id': region,
+            }
             self.assertIn(endpoint, service['endpoints'])
 
         token.remove_service(type=service_type)
@@ -305,17 +320,17 @@ class V3TokenTests(utils.TestCase):
             return {
                 'id': uuid.uuid4().hex,
                 'sp_url': uuid.uuid4().hex,
-                'auth_url': uuid.uuid4().hex
+                'auth_url': uuid.uuid4().hex,
             }
+
         ref_service_providers = [new_sp(), new_sp()]
         token = fixture.V3Token()
         for sp in ref_service_providers:
-            token.add_service_provider(sp['id'],
-                                       sp['auth_url'],
-                                       sp['sp_url'])
+            token.add_service_provider(sp['id'], sp['auth_url'], sp['sp_url'])
         self.assertEqual(ref_service_providers, token.service_providers)
-        self.assertEqual(ref_service_providers,
-                         token['token']['service_providers'])
+        self.assertEqual(
+            ref_service_providers, token['token']['service_providers']
+        )
 
     def test_token_bind(self):
         name1 = uuid.uuid4().hex
@@ -327,8 +342,7 @@ class V3TokenTests(utils.TestCase):
         token.set_bind(name1, data1)
         token.set_bind(name2, data2)
 
-        self.assertEqual({name1: data1, name2: data2},
-                         token['token']['bind'])
+        self.assertEqual({name1: data1, name2: data2}, token['token']['bind'])
 
     def test_is_admin_project(self):
         token = fixture.V3Token()
@@ -351,12 +365,9 @@ class V3TokenTests(utils.TestCase):
         methods = ['oauth2_credential']
         oauth2_thumbprint = uuid.uuid4().hex
         token = fixture.V3Token(
-            methods=methods,
-            oauth2_thumbprint=oauth2_thumbprint,
+            methods=methods, oauth2_thumbprint=oauth2_thumbprint
         )
-        oauth2_credential = {
-            'x5t#S256': oauth2_thumbprint,
-        }
+        oauth2_credential = {'x5t#S256': oauth2_thumbprint}
         self.assertEqual(methods, token.methods)
         self.assertEqual(oauth2_credential, token.oauth2_credential)
         self.assertEqual(oauth2_thumbprint, token.oauth2_thumbprint)

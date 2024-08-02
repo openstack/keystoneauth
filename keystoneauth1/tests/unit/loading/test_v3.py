@@ -19,9 +19,8 @@ from keystoneauth1.tests.unit.loading import utils
 
 
 class V3PasswordTests(utils.TestCase):
-
     def setUp(self):
-        super(V3PasswordTests, self).setUp()
+        super().setUp()
 
         self.auth_url = uuid.uuid4().hex
 
@@ -37,11 +36,13 @@ class V3PasswordTests(utils.TestCase):
         project_name = uuid.uuid4().hex
         project_domain_id = uuid.uuid4().hex
 
-        p = self.create(username=username,
-                        user_domain_id=user_domain_id,
-                        project_name=project_name,
-                        project_domain_id=project_domain_id,
-                        password=password)
+        p = self.create(
+            username=username,
+            user_domain_id=user_domain_id,
+            project_name=project_name,
+            project_domain_id=project_domain_id,
+            password=password,
+        )
 
         pw_method = p.auth_methods[0]
 
@@ -53,24 +54,27 @@ class V3PasswordTests(utils.TestCase):
         self.assertEqual(project_domain_id, p.project_domain_id)
 
     def test_without_user_domain(self):
-        self.assertRaises(exceptions.OptionError,
-                          self.create,
-                          username=uuid.uuid4().hex,
-                          password=uuid.uuid4().hex)
+        self.assertRaises(
+            exceptions.OptionError,
+            self.create,
+            username=uuid.uuid4().hex,
+            password=uuid.uuid4().hex,
+        )
 
     def test_without_project_domain(self):
-        self.assertRaises(exceptions.OptionError,
-                          self.create,
-                          username=uuid.uuid4().hex,
-                          password=uuid.uuid4().hex,
-                          user_domain_id=uuid.uuid4().hex,
-                          project_name=uuid.uuid4().hex)
+        self.assertRaises(
+            exceptions.OptionError,
+            self.create,
+            username=uuid.uuid4().hex,
+            password=uuid.uuid4().hex,
+            user_domain_id=uuid.uuid4().hex,
+            project_name=uuid.uuid4().hex,
+        )
 
 
 class TOTPTests(utils.TestCase):
-
     def setUp(self):
-        super(TOTPTests, self).setUp()
+        super().setUp()
 
         self.auth_url = uuid.uuid4().hex
 
@@ -87,11 +91,13 @@ class TOTPTests(utils.TestCase):
         project_name = uuid.uuid4().hex
         project_domain_id = uuid.uuid4().hex
 
-        p = self.create(username=username,
-                        user_domain_id=user_domain_id,
-                        project_name=project_name,
-                        project_domain_id=project_domain_id,
-                        passcode=passcode)
+        p = self.create(
+            username=username,
+            user_domain_id=user_domain_id,
+            project_name=project_name,
+            project_domain_id=project_domain_id,
+            passcode=passcode,
+        )
 
         totp_method = p.auth_methods[0]
 
@@ -103,26 +109,29 @@ class TOTPTests(utils.TestCase):
         self.assertEqual(project_domain_id, p.project_domain_id)
 
     def test_without_user_domain(self):
-        self.assertRaises(exceptions.OptionError,
-                          self.create,
-                          username=uuid.uuid4().hex,
-                          passcode=uuid.uuid4().hex)
+        self.assertRaises(
+            exceptions.OptionError,
+            self.create,
+            username=uuid.uuid4().hex,
+            passcode=uuid.uuid4().hex,
+        )
 
     def test_without_project_domain(self):
-        self.assertRaises(exceptions.OptionError,
-                          self.create,
-                          username=uuid.uuid4().hex,
-                          passcode=uuid.uuid4().hex,
-                          user_domain_id=uuid.uuid4().hex,
-                          project_name=uuid.uuid4().hex)
+        self.assertRaises(
+            exceptions.OptionError,
+            self.create,
+            username=uuid.uuid4().hex,
+            passcode=uuid.uuid4().hex,
+            user_domain_id=uuid.uuid4().hex,
+            project_name=uuid.uuid4().hex,
+        )
 
 
-class OpenIDConnectBaseTests(object):
-
+class OpenIDConnectBaseTests:
     plugin_name = None
 
     def setUp(self):
-        super(OpenIDConnectBaseTests, self).setUp()
+        super().setUp()
 
         self.auth_url = uuid.uuid4().hex
 
@@ -134,26 +143,27 @@ class OpenIDConnectBaseTests(object):
     def test_base_options_are_there(self):
         options = loading.get_plugin_loader(self.plugin_name).get_options()
         self.assertTrue(
-            set(['client-id', 'client-secret', 'access-token-endpoint',
-                 'access-token-type', 'openid-scope',
-                 'discovery-endpoint']).issubset(
-                     set([o.name for o in options]))
+            {
+                'client-id',
+                'client-secret',
+                'access-token-endpoint',
+                'access-token-type',
+                'openid-scope',
+                'discovery-endpoint',
+            }.issubset({o.name for o in options})
         )
         # openid-scope gets renamed into "scope"
         self.assertIn('scope', [o.dest for o in options])
 
 
-class OpenIDConnectClientCredentialsTests(OpenIDConnectBaseTests,
-                                          utils.TestCase):
-
+class OpenIDConnectClientCredentialsTests(
+    OpenIDConnectBaseTests, utils.TestCase
+):
     plugin_name = "v3oidcclientcredentials"
 
     def test_options(self):
         options = loading.get_plugin_loader(self.plugin_name).get_options()
-        self.assertTrue(
-            set(['openid-scope']).issubset(
-                set([o.name for o in options]))
-        )
+        self.assertTrue({'openid-scope'}.issubset({o.name for o in options}))
 
     def test_basic(self):
         access_token_endpoint = uuid.uuid4().hex
@@ -164,12 +174,14 @@ class OpenIDConnectClientCredentialsTests(OpenIDConnectBaseTests,
         client_id = uuid.uuid4().hex
         client_secret = uuid.uuid4().hex
 
-        oidc = self.create(identity_provider=identity_provider,
-                           protocol=protocol,
-                           access_token_endpoint=access_token_endpoint,
-                           client_id=client_id,
-                           client_secret=client_secret,
-                           scope=scope)
+        oidc = self.create(
+            identity_provider=identity_provider,
+            protocol=protocol,
+            access_token_endpoint=access_token_endpoint,
+            client_id=client_id,
+            client_secret=client_secret,
+            scope=scope,
+        )
 
         self.assertEqual(scope, oidc.scope)
         self.assertEqual(identity_provider, oidc.identity_provider)
@@ -180,14 +192,14 @@ class OpenIDConnectClientCredentialsTests(OpenIDConnectBaseTests,
 
 
 class OpenIDConnectPasswordTests(OpenIDConnectBaseTests, utils.TestCase):
-
     plugin_name = "v3oidcpassword"
 
     def test_options(self):
         options = loading.get_plugin_loader(self.plugin_name).get_options()
         self.assertTrue(
-            set(['username', 'password', 'openid-scope']).issubset(
-                set([o.name for o in options]))
+            {'username', 'password', 'openid-scope'}.issubset(
+                {o.name for o in options}
+            )
         )
 
     def test_basic(self):
@@ -201,14 +213,16 @@ class OpenIDConnectPasswordTests(OpenIDConnectBaseTests, utils.TestCase):
         client_id = uuid.uuid4().hex
         client_secret = uuid.uuid4().hex
 
-        oidc = self.create(username=username,
-                           password=password,
-                           identity_provider=identity_provider,
-                           protocol=protocol,
-                           access_token_endpoint=access_token_endpoint,
-                           client_id=client_id,
-                           client_secret=client_secret,
-                           scope=scope)
+        oidc = self.create(
+            username=username,
+            password=password,
+            identity_provider=identity_provider,
+            protocol=protocol,
+            access_token_endpoint=access_token_endpoint,
+            client_id=client_id,
+            client_secret=client_secret,
+            scope=scope,
+        )
 
         self.assertEqual(username, oidc.username)
         self.assertEqual(password, oidc.password)
@@ -221,14 +235,12 @@ class OpenIDConnectPasswordTests(OpenIDConnectBaseTests, utils.TestCase):
 
 
 class OpenIDConnectAuthCodeTests(OpenIDConnectBaseTests, utils.TestCase):
-
     plugin_name = "v3oidcauthcode"
 
     def test_options(self):
         options = loading.get_plugin_loader(self.plugin_name).get_options()
         self.assertTrue(
-            set(['redirect-uri', 'code']).issubset(
-                set([o.name for o in options]))
+            {'redirect-uri', 'code'}.issubset({o.name for o in options})
         )
 
     def test_basic(self):
@@ -241,14 +253,16 @@ class OpenIDConnectAuthCodeTests(OpenIDConnectBaseTests, utils.TestCase):
         client_id = uuid.uuid4().hex
         client_secret = uuid.uuid4().hex
 
-        oidc = self.create(code=authorization_code,
-                           redirect_uri=redirect_uri,
-                           identity_provider=identity_provider,
-                           protocol=protocol,
-                           access_token_endpoint=access_token_endpoint,
-                           client_id=client_id,
-                           client_secret=client_secret,
-                           scope=scope)
+        oidc = self.create(
+            code=authorization_code,
+            redirect_uri=redirect_uri,
+            identity_provider=identity_provider,
+            protocol=protocol,
+            access_token_endpoint=access_token_endpoint,
+            client_id=client_id,
+            client_secret=client_secret,
+            scope=scope,
+        )
 
         self.assertEqual(redirect_uri, oidc.redirect_uri)
         self.assertEqual(authorization_code, oidc.code)
@@ -261,11 +275,10 @@ class OpenIDConnectAuthCodeTests(OpenIDConnectBaseTests, utils.TestCase):
 
 
 class OpenIDConnectAccessToken(utils.TestCase):
-
     plugin_name = "v3oidcaccesstoken"
 
     def setUp(self):
-        super(OpenIDConnectAccessToken, self).setUp()
+        super().setUp()
 
         self.auth_url = uuid.uuid4().hex
 
@@ -276,19 +289,18 @@ class OpenIDConnectAccessToken(utils.TestCase):
 
     def test_options(self):
         options = loading.get_plugin_loader(self.plugin_name).get_options()
-        self.assertTrue(
-            set(['access-token']).issubset(
-                set([o.name for o in options]))
-        )
+        self.assertTrue({'access-token'}.issubset({o.name for o in options}))
 
     def test_basic(self):
         access_token = uuid.uuid4().hex
         identity_provider = uuid.uuid4().hex
         protocol = uuid.uuid4().hex
 
-        oidc = self.create(access_token=access_token,
-                           identity_provider=identity_provider,
-                           protocol=protocol)
+        oidc = self.create(
+            access_token=access_token,
+            identity_provider=identity_provider,
+            protocol=protocol,
+        )
 
         self.assertEqual(identity_provider, oidc.identity_provider)
         self.assertEqual(protocol, oidc.protocol)
@@ -296,11 +308,10 @@ class OpenIDConnectAccessToken(utils.TestCase):
 
 
 class OpenIDConnectDeviceAuthorizationTests(utils.TestCase):
-
     plugin_name = "v3oidcdeviceauthz"
 
     def setUp(self):
-        super(OpenIDConnectDeviceAuthorizationTests, self).setUp()
+        super().setUp()
 
         self.auth_url = uuid.uuid4().hex
 
@@ -312,10 +323,14 @@ class OpenIDConnectDeviceAuthorizationTests(utils.TestCase):
     def test_options(self):
         options = loading.get_plugin_loader(self.plugin_name).get_options()
         self.assertTrue(
-            set(['client-id', 'client-secret', 'access-token-endpoint',
-                 'openid-scope', 'discovery-endpoint',
-                 'device-authorization-endpoint']).issubset(
-                set([o.name for o in options]))
+            {
+                'client-id',
+                'client-secret',
+                'access-token-endpoint',
+                'openid-scope',
+                'discovery-endpoint',
+                'device-authorization-endpoint',
+            }.issubset({o.name for o in options})
         )
 
     def test_basic(self):
@@ -328,13 +343,15 @@ class OpenIDConnectDeviceAuthorizationTests(utils.TestCase):
         client_secret = uuid.uuid4().hex
 
         dev_authz_endpt = device_authorization_endpoint
-        oidc = self.create(identity_provider=identity_provider,
-                           protocol=protocol,
-                           access_token_endpoint=access_token_endpoint,
-                           device_authorization_endpoint=dev_authz_endpt,
-                           client_id=client_id,
-                           client_secret=client_secret,
-                           scope=scope)
+        oidc = self.create(
+            identity_provider=identity_provider,
+            protocol=protocol,
+            access_token_endpoint=access_token_endpoint,
+            device_authorization_endpoint=dev_authz_endpt,
+            client_id=client_id,
+            client_secret=client_secret,
+            scope=scope,
+        )
 
         self.assertEqual(dev_authz_endpt, oidc.device_authorization_endpoint)
         self.assertEqual(identity_provider, oidc.identity_provider)
@@ -346,9 +363,8 @@ class OpenIDConnectDeviceAuthorizationTests(utils.TestCase):
 
 
 class V3TokenlessAuthTests(utils.TestCase):
-
     def setUp(self):
-        super(V3TokenlessAuthTests, self).setUp()
+        super().setUp()
 
         self.auth_url = uuid.uuid4().hex
 
@@ -365,12 +381,14 @@ class V3TokenlessAuthTests(utils.TestCase):
         project_domain_id = uuid.uuid4().hex
         project_domain_name = uuid.uuid4().hex
 
-        tla = self.create(domain_id=domain_id,
-                          domain_name=domain_name,
-                          project_id=project_id,
-                          project_name=project_name,
-                          project_domain_id=project_domain_id,
-                          project_domain_name=project_domain_name)
+        tla = self.create(
+            domain_id=domain_id,
+            domain_name=domain_name,
+            project_id=project_id,
+            project_name=project_name,
+            project_domain_id=project_domain_id,
+            project_domain_name=project_domain_name,
+        )
 
         self.assertEqual(domain_id, tla.domain_id)
         self.assertEqual(domain_name, tla.domain_name)
@@ -380,45 +398,44 @@ class V3TokenlessAuthTests(utils.TestCase):
         self.assertEqual(project_domain_name, tla.project_domain_name)
 
     def test_missing_parameters(self):
-        self.assertRaises(exceptions.OptionError,
-                          self.create,
-                          domain_id=None)
-        self.assertRaises(exceptions.OptionError,
-                          self.create,
-                          domain_name=None)
-        self.assertRaises(exceptions.OptionError,
-                          self.create,
-                          project_id=None)
-        self.assertRaises(exceptions.OptionError,
-                          self.create,
-                          project_name=None)
-        self.assertRaises(exceptions.OptionError,
-                          self.create,
-                          project_domain_id=None)
-        self.assertRaises(exceptions.OptionError,
-                          self.create,
-                          project_domain_name=None)
+        self.assertRaises(exceptions.OptionError, self.create, domain_id=None)
+        self.assertRaises(
+            exceptions.OptionError, self.create, domain_name=None
+        )
+        self.assertRaises(exceptions.OptionError, self.create, project_id=None)
+        self.assertRaises(
+            exceptions.OptionError, self.create, project_name=None
+        )
+        self.assertRaises(
+            exceptions.OptionError, self.create, project_domain_id=None
+        )
+        self.assertRaises(
+            exceptions.OptionError, self.create, project_domain_name=None
+        )
         # only when a project_name is provided, project_domain_id will
         # be use to uniquely identify the project. It's an invalid
         # option when it's just by itself.
-        self.assertRaises(exceptions.OptionError,
-                          self.create,
-                          project_domain_id=uuid.uuid4().hex)
+        self.assertRaises(
+            exceptions.OptionError,
+            self.create,
+            project_domain_id=uuid.uuid4().hex,
+        )
         # only when a project_name is provided, project_domain_name will
         # be use to uniquely identify the project. It's an invalid
         # option when it's just by itself.
-        self.assertRaises(exceptions.OptionError,
-                          self.create,
-                          project_domain_name=uuid.uuid4().hex)
-        self.assertRaises(exceptions.OptionError,
-                          self.create,
-                          project_name=uuid.uuid4().hex)
+        self.assertRaises(
+            exceptions.OptionError,
+            self.create,
+            project_domain_name=uuid.uuid4().hex,
+        )
+        self.assertRaises(
+            exceptions.OptionError, self.create, project_name=uuid.uuid4().hex
+        )
 
 
 class V3ApplicationCredentialTests(utils.TestCase):
-
     def setUp(self):
-        super(V3ApplicationCredentialTests, self).setUp()
+        super().setUp()
 
         self.auth_url = uuid.uuid4().hex
 
@@ -431,8 +448,9 @@ class V3ApplicationCredentialTests(utils.TestCase):
         id = uuid.uuid4().hex
         secret = uuid.uuid4().hex
 
-        app_cred = self.create(application_credential_id=id,
-                               application_credential_secret=secret)
+        app_cred = self.create(
+            application_credential_id=id, application_credential_secret=secret
+        )
 
         ac_method = app_cred.auth_methods[0]
 
@@ -445,10 +463,12 @@ class V3ApplicationCredentialTests(utils.TestCase):
         username = uuid.uuid4().hex
         user_domain_id = uuid.uuid4().hex
 
-        app_cred = self.create(application_credential_name=name,
-                               application_credential_secret=secret,
-                               username=username,
-                               user_domain_id=user_domain_id)
+        app_cred = self.create(
+            application_credential_name=name,
+            application_credential_secret=secret,
+            username=username,
+            user_domain_id=user_domain_id,
+        )
 
         ac_method = app_cred.auth_methods[0]
 
@@ -458,31 +478,36 @@ class V3ApplicationCredentialTests(utils.TestCase):
         self.assertEqual(user_domain_id, ac_method.user_domain_id)
 
     def test_without_user_domain(self):
-        self.assertRaises(exceptions.OptionError,
-                          self.create,
-                          application_credential_name=uuid.uuid4().hex,
-                          username=uuid.uuid4().hex,
-                          application_credential_secret=uuid.uuid4().hex)
+        self.assertRaises(
+            exceptions.OptionError,
+            self.create,
+            application_credential_name=uuid.uuid4().hex,
+            username=uuid.uuid4().hex,
+            application_credential_secret=uuid.uuid4().hex,
+        )
 
     def test_without_name_or_id(self):
-        self.assertRaises(exceptions.OptionError,
-                          self.create,
-                          username=uuid.uuid4().hex,
-                          user_domain_id=uuid.uuid4().hex,
-                          application_credential_secret=uuid.uuid4().hex)
+        self.assertRaises(
+            exceptions.OptionError,
+            self.create,
+            username=uuid.uuid4().hex,
+            user_domain_id=uuid.uuid4().hex,
+            application_credential_secret=uuid.uuid4().hex,
+        )
 
     def test_without_secret(self):
-        self.assertRaises(exceptions.OptionError,
-                          self.create,
-                          application_credential_id=uuid.uuid4().hex,
-                          username=uuid.uuid4().hex,
-                          user_domain_id=uuid.uuid4().hex)
+        self.assertRaises(
+            exceptions.OptionError,
+            self.create,
+            application_credential_id=uuid.uuid4().hex,
+            username=uuid.uuid4().hex,
+            user_domain_id=uuid.uuid4().hex,
+        )
 
 
 class MultiFactorTests(utils.TestCase):
-
     def setUp(self):
-        super(MultiFactorTests, self).setUp()
+        super().setUp()
 
         self.auth_url = uuid.uuid4().hex
 
@@ -507,7 +532,8 @@ class MultiFactorTests(utils.TestCase):
             user_domain_id=user_domain_id,
             project_name=project_name,
             project_domain_id=project_domain_id,
-            passcode=passcode)
+            passcode=passcode,
+        )
 
         password_method = p.auth_methods[0]
         totp_method = p.auth_methods[1]
@@ -524,24 +550,27 @@ class MultiFactorTests(utils.TestCase):
         self.assertEqual(project_domain_id, p.project_domain_id)
 
     def test_without_methods(self):
-        self.assertRaises(exceptions.OptionError,
-                          self.create,
-                          username=uuid.uuid4().hex,
-                          passcode=uuid.uuid4().hex)
+        self.assertRaises(
+            exceptions.OptionError,
+            self.create,
+            username=uuid.uuid4().hex,
+            passcode=uuid.uuid4().hex,
+        )
 
     def test_without_user_domain_for_password(self):
-        self.assertRaises(exceptions.OptionError,
-                          self.create,
-                          methods=['v3password'],
-                          username=uuid.uuid4().hex,
-                          project_name=uuid.uuid4().hex,
-                          project_domain_id=uuid.uuid4().hex)
+        self.assertRaises(
+            exceptions.OptionError,
+            self.create,
+            methods=['v3password'],
+            username=uuid.uuid4().hex,
+            project_name=uuid.uuid4().hex,
+            project_domain_id=uuid.uuid4().hex,
+        )
 
 
 class V3Oauth2ClientCredentialTests(utils.TestCase):
-
     def setUp(self):
-        super(V3Oauth2ClientCredentialTests, self).setUp()
+        super().setUp()
 
         self.auth_url = uuid.uuid4().hex
 
@@ -555,9 +584,11 @@ class V3Oauth2ClientCredentialTests(utils.TestCase):
         secret = uuid.uuid4().hex
         oauth2_endpoint = "https://localhost/token"
 
-        client_cred = self.create(oauth2_endpoint=oauth2_endpoint,
-                                  oauth2_client_id=id,
-                                  oauth2_client_secret=secret)
+        client_cred = self.create(
+            oauth2_endpoint=oauth2_endpoint,
+            oauth2_client_id=id,
+            oauth2_client_secret=secret,
+        )
 
         client_method = client_cred.auth_methods[0]
         self.assertEqual(id, client_method.oauth2_client_id)
@@ -571,30 +602,35 @@ class V3Oauth2ClientCredentialTests(utils.TestCase):
     def test_without_oauth2_endpoint(self):
         id = uuid.uuid4().hex
         secret = uuid.uuid4().hex
-        self.assertRaises(exceptions.OptionError,
-                          self.create,
-                          oauth2_client_id=id,
-                          oauth2_client_secret=secret)
+        self.assertRaises(
+            exceptions.OptionError,
+            self.create,
+            oauth2_client_id=id,
+            oauth2_client_secret=secret,
+        )
 
     def test_without_client_id(self):
         oauth2_endpoint = "https://localhost/token"
-        self.assertRaises(exceptions.OptionError,
-                          self.create,
-                          oauth2_endpoint=oauth2_endpoint,
-                          oauth2_client_secret=uuid.uuid4().hex)
+        self.assertRaises(
+            exceptions.OptionError,
+            self.create,
+            oauth2_endpoint=oauth2_endpoint,
+            oauth2_client_secret=uuid.uuid4().hex,
+        )
 
     def test_without_secret(self):
         oauth2_endpoint = "https://localhost/token"
-        self.assertRaises(exceptions.OptionError,
-                          self.create,
-                          oauth2_endpoint=oauth2_endpoint,
-                          oauth2_client_id=uuid.uuid4().hex)
+        self.assertRaises(
+            exceptions.OptionError,
+            self.create,
+            oauth2_endpoint=oauth2_endpoint,
+            oauth2_client_id=uuid.uuid4().hex,
+        )
 
 
 class V3Oauth2mTlsClientCredentialTests(utils.TestCase):
-
     def setUp(self):
-        super(V3Oauth2mTlsClientCredentialTests, self).setUp()
+        super().setUp()
 
         self.auth_url = uuid.uuid4().hex
 
@@ -607,23 +643,24 @@ class V3Oauth2mTlsClientCredentialTests(utils.TestCase):
         client_id = uuid.uuid4().hex
         oauth2_endpoint = "https://localhost/token"
 
-        client_cred = self.create(oauth2_endpoint=oauth2_endpoint,
-                                  oauth2_client_id=client_id
-                                  )
+        client_cred = self.create(
+            oauth2_endpoint=oauth2_endpoint, oauth2_client_id=client_id
+        )
         self.assertEqual(self.auth_url, client_cred.auth_url)
         self.assertEqual(client_id, client_cred.oauth2_client_id)
         self.assertEqual(oauth2_endpoint, client_cred.oauth2_endpoint)
 
     def test_without_oauth2_endpoint(self):
         client_id = uuid.uuid4().hex
-        self.assertRaises(exceptions.OptionError,
-                          self.create,
-                          oauth2_client_id=client_id,
-                          )
+        self.assertRaises(
+            exceptions.OptionError, self.create, oauth2_client_id=client_id
+        )
 
     def test_without_client_id(self):
         oauth2_endpoint = "https://localhost/token"
-        self.assertRaises(exceptions.OptionError,
-                          self.create,
-                          oauth2_endpoint=oauth2_endpoint,
-                          oauth2_client_secret=uuid.uuid4().hex)
+        self.assertRaises(
+            exceptions.OptionError,
+            self.create,
+            oauth2_endpoint=oauth2_endpoint,
+            oauth2_client_secret=uuid.uuid4().hex,
+        )

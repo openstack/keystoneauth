@@ -31,13 +31,15 @@ class Auth(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
                                 is going to expire. (optional) default True
     """
 
-    def __init__(self, auth_url,
-                 trust_id=None,
-                 tenant_id=None,
-                 tenant_name=None,
-                 reauthenticate=True):
-        super(Auth, self).__init__(auth_url=auth_url,
-                                   reauthenticate=reauthenticate)
+    def __init__(
+        self,
+        auth_url,
+        trust_id=None,
+        tenant_id=None,
+        tenant_name=None,
+        reauthenticate=True,
+    ):
+        super().__init__(auth_url=auth_url, reauthenticate=reauthenticate)
 
         self.trust_id = trust_id
         self.tenant_id = tenant_id
@@ -56,8 +58,9 @@ class Auth(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
             params['auth']['trust_id'] = self.trust_id
 
         _logger.debug('Making authentication request to %s', url)
-        resp = session.post(url, json=params, headers=headers,
-                            authenticated=False, log=False)
+        resp = session.post(
+            url, json=params, headers=headers, authenticated=False, log=False
+        )
 
         try:
             resp_data = resp.json()
@@ -106,9 +109,15 @@ class Password(Auth):
     :raises TypeError: if a user_id or username is not provided.
     """
 
-    def __init__(self, auth_url, username=_NOT_PASSED, password=None,
-                 user_id=_NOT_PASSED, **kwargs):
-        super(Password, self).__init__(auth_url, **kwargs)
+    def __init__(
+        self,
+        auth_url,
+        username=_NOT_PASSED,
+        password=None,
+        user_id=_NOT_PASSED,
+        **kwargs,
+    ):
+        super().__init__(auth_url, **kwargs)
 
         if username is _NOT_PASSED and user_id is _NOT_PASSED:
             msg = 'You need to specify either a username or user_id'
@@ -134,13 +143,15 @@ class Password(Auth):
         return {'passwordCredentials': auth}
 
     def get_cache_id_elements(self):
-        return {'username': self.username,
-                'user_id': self.user_id,
-                'password': self.password,
-                'auth_url': self.auth_url,
-                'tenant_id': self.tenant_id,
-                'tenant_name': self.tenant_name,
-                'trust_id': self.trust_id}
+        return {
+            'username': self.username,
+            'user_id': self.user_id,
+            'password': self.password,
+            'auth_url': self.auth_url,
+            'tenant_id': self.tenant_id,
+            'tenant_name': self.tenant_name,
+            'trust_id': self.trust_id,
+        }
 
 
 class Token(Auth):
@@ -156,7 +167,7 @@ class Token(Auth):
     """
 
     def __init__(self, auth_url, token, **kwargs):
-        super(Token, self).__init__(auth_url, **kwargs)
+        super().__init__(auth_url, **kwargs)
         self.token = token
 
     def get_auth_data(self, headers=None):
@@ -165,8 +176,10 @@ class Token(Auth):
         return {'token': {'id': self.token}}
 
     def get_cache_id_elements(self):
-        return {'token': self.token,
-                'auth_url': self.auth_url,
-                'tenant_id': self.tenant_id,
-                'tenant_name': self.tenant_name,
-                'trust_id': self.trust_id}
+        return {
+            'token': self.token,
+            'auth_url': self.auth_url,
+            'tenant_id': self.tenant_id,
+            'tenant_name': self.tenant_name,
+            'trust_id': self.trust_id,
+        }

@@ -23,7 +23,7 @@ class Token(base.BaseGenericPlugin):
     """
 
     def __init__(self, auth_url, token=None, **kwargs):
-        super(Token, self).__init__(auth_url, **kwargs)
+        super().__init__(auth_url, **kwargs)
         self._token = token
 
     def create_plugin(self, session, version, url, raw_status=None):
@@ -34,6 +34,6 @@ class Token(base.BaseGenericPlugin):
             return v3.Token(url, self._token, **self._v3_params)
 
     def get_cache_id_elements(self):
-        elements = super(Token, self).get_cache_id_elements(_implemented=True)
+        elements = super().get_cache_id_elements(_implemented=True)
         elements['token'] = self._token
         return elements

@@ -27,10 +27,12 @@ from keystoneauth1.identity.v3 import federation
 
 _logger = utils.get_logger(__name__)
 
-__all__ = ('OidcAuthorizationCode',
-           'OidcClientCredentials',
-           'OidcPassword',
-           'OidcAccessToken')
+__all__ = (
+    'OidcAuthorizationCode',
+    'OidcClientCredentials',
+    'OidcPassword',
+    'OidcAccessToken',
+)
 
 SENSITIVE_KEYS = ("password", "code", "token", "secret")
 
@@ -44,14 +46,20 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
 
     grant_type = None
 
-    def __init__(self, auth_url, identity_provider, protocol,
-                 client_id, client_secret,
-                 access_token_type,
-                 scope="openid profile",
-                 access_token_endpoint=None,
-                 discovery_endpoint=None,
-                 grant_type=None,
-                 **kwargs):
+    def __init__(
+        self,
+        auth_url,
+        identity_provider,
+        protocol,
+        client_id,
+        client_secret,
+        access_token_type,
+        scope="openid profile",
+        access_token_endpoint=None,
+        discovery_endpoint=None,
+        grant_type=None,
+        **kwargs,
+    ):
         """The OpenID Connect plugin expects the following.
 
         :param auth_url: URL of the Identity Service
@@ -96,8 +104,7 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
                       states that "openid" must be always specified.
         :type scope: string
         """
-        super(_OidcBase, self).__init__(auth_url, identity_provider, protocol,
-                                        **kwargs)
+        super().__init__(auth_url, identity_provider, protocol, **kwargs)
         self.client_id = client_id
         self.client_secret = client_secret
 
@@ -111,15 +118,17 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
         if grant_type is not None:
             if grant_type != self.grant_type:
                 raise exceptions.OidcGrantTypeMissmatch()
-            warnings.warn("Passing grant_type as an argument has been "
-                          "deprecated as it is now defined in the plugin "
-                          "itself. You should stop passing this argument "
-                          "to the plugin, as it will be ignored, since you "
-                          "cannot pass a free text string as a grant_type. "
-                          "This argument will be dropped from the plugin in "
-                          "July 2017 or with the next major release of "
-                          "keystoneauth (3.0.0)",
-                          DeprecationWarning)
+            warnings.warn(
+                "Passing grant_type as an argument has been "
+                "deprecated as it is now defined in the plugin "
+                "itself. You should stop passing this argument "
+                "to the plugin, as it will be ignored, since you "
+                "cannot pass a free text string as a grant_type. "
+                "This argument will be dropped from the plugin in "
+                "July 2017 or with the next major release of "
+                "keystoneauth (3.0.0)",
+                DeprecationWarning,
+            )
 
     def _get_discovery_document(self, session):
         """Get the contents of the OpenID Connect Discovery Document.
@@ -137,14 +146,18 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
                   otherwise it will return an empty dict.
         :rtype: dict
         """
-        if (self.discovery_endpoint is not None
-                and not self._discovery_document):
+        if (
+            self.discovery_endpoint is not None
+            and not self._discovery_document
+        ):
             try:
-                resp = session.get(self.discovery_endpoint,
-                                   authenticated=False)
+                resp = session.get(
+                    self.discovery_endpoint, authenticated=False
+                )
             except exceptions.HttpError:
-                _logger.error("Cannot fetch discovery document %(discovery)s" %
-                              {"discovery": self.discovery_endpoint})
+                _logger.error(
+                    f"Cannot fetch discovery document {self.discovery_endpoint}"
+                )
                 raise
 
             try:
@@ -211,20 +224,25 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
             sanitized_payload = self._sanitize(payload)
             _logger.debug(
                 "Making OpenID-Connect authentication request to %s with "
-                "data %s", access_token_endpoint, sanitized_payload
+                "data %s",
+                access_token_endpoint,
+                sanitized_payload,
             )
 
-        op_response = session.post(access_token_endpoint,
-                                   requests_auth=client_auth,
-                                   data=payload,
-                                   log=False,
-                                   authenticated=False)
+        op_response = session.post(
+            access_token_endpoint,
+            requests_auth=client_auth,
+            data=payload,
+            log=False,
+            authenticated=False,
+        )
         response = op_response.json()
         if _logger.isEnabledFor(logging.DEBUG):
             sanitized_response = self._sanitize(response)
             _logger.debug(
                 "OpenID-Connect authentication response from %s is %s",
-                access_token_endpoint, sanitized_response
+                access_token_endpoint,
+                sanitized_response,
             )
         return response[self.access_token_type]
 
@@ -247,9 +265,9 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
         """
         # use access token against protected URL
         headers = {'Authorization': 'Bearer ' + access_token}
-        auth_response = session.post(self.federated_token_url,
-                                     headers=headers,
-                                     authenticated=False)
+        auth_response = session.post(
+            self.federated_token_url, headers=headers, authenticated=False
+        )
         return auth_response
 
     def get_unscoped_auth_ref(self, session):
@@ -278,8 +296,11 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
         # First of all, check if the grant type is supported
         discovery = self._get_discovery_document(session)
         grant_types = discovery.get("grant_types_supported")
-        if (grant_types and self.grant_type is not None
-                and self.grant_type not in grant_types):
+        if (
+            grant_types
+            and self.grant_type is not None
+            and self.grant_type not in grant_types
+        ):
             raise exceptions.OidcPluginNotSupported()
 
         # Get the payload
@@ -317,13 +338,21 @@ class OidcPassword(_OidcBase):
 
     grant_type = "password"
 
-    def __init__(self, auth_url, identity_provider, protocol,  # nosec
-                 client_id, client_secret,
-                 access_token_endpoint=None,
-                 discovery_endpoint=None,
-                 access_token_type='access_token',
-                 username=None, password=None, idp_otp_key=None,
-                 **kwargs):
+    def __init__(
+        self,
+        auth_url,
+        identity_provider,
+        protocol,  # nosec
+        client_id,
+        client_secret,
+        access_token_endpoint=None,
+        discovery_endpoint=None,
+        access_token_type='access_token',
+        username=None,
+        password=None,
+        idp_otp_key=None,
+        **kwargs,
+    ):
         """The OpenID Password plugin expects the following.
 
         :param username: Username used to authenticate
@@ -332,7 +361,7 @@ class OidcPassword(_OidcBase):
         :param password: Password used to authenticate
         :type password: string
         """
-        super(OidcPassword, self).__init__(
+        super().__init__(
             auth_url=auth_url,
             identity_provider=identity_provider,
             protocol=protocol,
@@ -341,7 +370,8 @@ class OidcPassword(_OidcBase):
             access_token_endpoint=access_token_endpoint,
             discovery_endpoint=discovery_endpoint,
             access_token_type=access_token_type,
-            **kwargs)
+            **kwargs,
+        )
         self.username = username
         self.password = password
         self.idp_otp_key = idp_otp_key
@@ -355,10 +385,12 @@ class OidcPassword(_OidcBase):
         :returns: a python dictionary containing the payload to be exchanged
         :rtype: dict
         """
-        payload = {'username': self.username,
-                   'password': self.password,
-                   'scope': self.scope,
-                   'client_id': self.client_id}
+        payload = {
+            'username': self.username,
+            'password': self.password,
+            'scope': self.scope,
+            'client_id': self.client_id,
+        }
 
         self.manage_otp_from_session_or_request_to_the_user(payload, session)
 
@@ -391,7 +423,8 @@ class OidcPassword(_OidcBase):
             payload[self.idp_otp_key] = otp_from_session
         else:
             payload[self.idp_otp_key] = input(
-                "Please, enter the generated OTP code: ")
+                "Please, enter the generated OTP code: "
+            )
             setattr(session, 'otp', payload[self.idp_otp_key])
 
 
@@ -400,12 +433,18 @@ class OidcClientCredentials(_OidcBase):
 
     grant_type = 'client_credentials'
 
-    def __init__(self, auth_url, identity_provider, protocol,  # nosec
-                 client_id, client_secret,
-                 access_token_endpoint=None,
-                 discovery_endpoint=None,
-                 access_token_type='access_token',
-                 **kwargs):
+    def __init__(
+        self,
+        auth_url,
+        identity_provider,
+        protocol,  # nosec
+        client_id,
+        client_secret,
+        access_token_endpoint=None,
+        discovery_endpoint=None,
+        access_token_type='access_token',
+        **kwargs,
+    ):
         """The OpenID Client Credentials expects the following.
 
         :param client_id: Client ID used to authenticate
@@ -414,7 +453,7 @@ class OidcClientCredentials(_OidcBase):
         :param client_secret: Client Secret used to authenticate
         :type password: string
         """
-        super(OidcClientCredentials, self).__init__(
+        super().__init__(
             auth_url=auth_url,
             identity_provider=identity_provider,
             protocol=protocol,
@@ -423,7 +462,8 @@ class OidcClientCredentials(_OidcBase):
             access_token_endpoint=access_token_endpoint,
             discovery_endpoint=discovery_endpoint,
             access_token_type=access_token_type,
-            **kwargs)
+            **kwargs,
+        )
 
     def get_payload(self, session):
         """Get an authorization grant for the client credentials grant type.
@@ -443,12 +483,20 @@ class OidcAuthorizationCode(_OidcBase):
 
     grant_type = 'authorization_code'
 
-    def __init__(self, auth_url, identity_provider, protocol,  # nosec
-                 client_id, client_secret,
-                 access_token_endpoint=None,
-                 discovery_endpoint=None,
-                 access_token_type='access_token',
-                 redirect_uri=None, code=None, **kwargs):
+    def __init__(
+        self,
+        auth_url,
+        identity_provider,
+        protocol,  # nosec
+        client_id,
+        client_secret,
+        access_token_endpoint=None,
+        discovery_endpoint=None,
+        access_token_type='access_token',
+        redirect_uri=None,
+        code=None,
+        **kwargs,
+    ):
         """The OpenID Authorization Code plugin expects the following.
 
         :param redirect_uri: OpenID Connect Client Redirect URL
@@ -458,7 +506,7 @@ class OidcAuthorizationCode(_OidcBase):
         :type code: string
 
         """
-        super(OidcAuthorizationCode, self).__init__(
+        super().__init__(
             auth_url=auth_url,
             identity_provider=identity_provider,
             protocol=protocol,
@@ -467,7 +515,8 @@ class OidcAuthorizationCode(_OidcBase):
             access_token_endpoint=access_token_endpoint,
             discovery_endpoint=discovery_endpoint,
             access_token_type=access_token_type,
-            **kwargs)
+            **kwargs,
+        )
         self.redirect_uri = redirect_uri
         self.code = code
 
@@ -488,8 +537,9 @@ class OidcAuthorizationCode(_OidcBase):
 class OidcAccessToken(_OidcBase):
     """Implementation for OpenID Connect access token reuse."""
 
-    def __init__(self, auth_url, identity_provider, protocol,
-                 access_token, **kwargs):
+    def __init__(
+        self, auth_url, identity_provider, protocol, access_token, **kwargs
+    ):
         """The OpenID Connect plugin based on the Access Token.
 
         It expects the following:
@@ -507,13 +557,16 @@ class OidcAccessToken(_OidcBase):
         :param access_token: OpenID Connect Access token
         :type access_token: string
         """
-        super(OidcAccessToken, self).__init__(auth_url, identity_provider,
-                                              protocol,
-                                              client_id=None,
-                                              client_secret=None,
-                                              access_token_endpoint=None,
-                                              access_token_type=None,
-                                              **kwargs)
+        super().__init__(
+            auth_url,
+            identity_provider,
+            protocol,
+            client_id=None,
+            client_secret=None,
+            access_token_endpoint=None,
+            access_token_type=None,
+            **kwargs,
+        )
         self.access_token = access_token
 
     def get_payload(self, session):
@@ -546,13 +599,20 @@ class OidcDeviceAuthorization(_OidcBase):
     grant_type = "urn:ietf:params:oauth:grant-type:device_code"
     HEADER_X_FORM = {"Content-Type": "application/x-www-form-urlencoded"}
 
-    def __init__(self, auth_url, identity_provider, protocol,  # nosec
-                 client_id, client_secret=None,
-                 access_token_endpoint=None,
-                 device_authorization_endpoint=None,
-                 discovery_endpoint=None,
-                 code_challenge=None, code_challenge_method=None,
-                 **kwargs):
+    def __init__(
+        self,
+        auth_url,
+        identity_provider,
+        protocol,  # nosec
+        client_id,
+        client_secret=None,
+        access_token_endpoint=None,
+        device_authorization_endpoint=None,
+        discovery_endpoint=None,
+        code_challenge=None,
+        code_challenge_method=None,
+        **kwargs,
+    ):
         """The OAuth 2.0 Device Authorization plugin expects the following.
 
         :param device_authorization_endpoint: OAuth 2.0 Device Authorization
@@ -571,7 +631,7 @@ class OidcDeviceAuthorization(_OidcBase):
         self.device_authorization_endpoint = device_authorization_endpoint
         self.code_challenge_method = code_challenge_method
 
-        super(OidcDeviceAuthorization, self).__init__(
+        super().__init__(
             auth_url=auth_url,
             identity_provider=identity_provider,
             protocol=protocol,
@@ -580,7 +640,8 @@ class OidcDeviceAuthorization(_OidcBase):
             access_token_endpoint=access_token_endpoint,
             discovery_endpoint=discovery_endpoint,
             access_token_type=self.access_token_type,
-            **kwargs)
+            **kwargs,
+        )
 
     def _get_device_authorization_endpoint(self, session):
         """Get the endpoint for the OAuth 2.0 Device Authorization flow.
@@ -639,8 +700,9 @@ class OidcDeviceAuthorization(_OidcBase):
         :returns: a python dictionary containing the payload to be exchanged
         :rtype: dict
         """
-        device_authz_endpoint = \
-            self._get_device_authorization_endpoint(session)
+        device_authz_endpoint = self._get_device_authorization_endpoint(
+            session
+        )
 
         if self.client_secret:
             client_auth = (self.client_id, self.client_secret)
@@ -651,8 +713,9 @@ class OidcDeviceAuthorization(_OidcBase):
 
         if self.code_challenge_method:
             self.code_challenge = self._generate_pkce_challenge()
-            payload.setdefault('code_challenge_method',
-                               self.code_challenge_method)
+            payload.setdefault(
+                'code_challenge_method', self.code_challenge_method
+            )
             payload.setdefault('code_challenge', self.code_challenge)
         encoded_payload = urlparse.urlencode(payload)
 
@@ -660,19 +723,24 @@ class OidcDeviceAuthorization(_OidcBase):
             sanitized_payload = self._sanitize(payload)
             _logger.debug(
                 "Making OpenID-Connect authentication request to %s with "
-                "data %s", device_authz_endpoint, sanitized_payload
+                "data %s",
+                device_authz_endpoint,
+                sanitized_payload,
             )
-        op_response = session.post(device_authz_endpoint,
-                                   requests_auth=client_auth,
-                                   headers=self.HEADER_X_FORM,
-                                   data=encoded_payload,
-                                   log=False,
-                                   authenticated=False)
+        op_response = session.post(
+            device_authz_endpoint,
+            requests_auth=client_auth,
+            headers=self.HEADER_X_FORM,
+            data=encoded_payload,
+            log=False,
+            authenticated=False,
+        )
         if _logger.isEnabledFor(logging.DEBUG):
             sanitized_response = self._sanitize(op_response.json())
             _logger.debug(
                 "OpenID-Connect authentication response from %s is %s",
-                device_authz_endpoint, sanitized_response
+                device_authz_endpoint,
+                sanitized_response,
             )
 
         self.expires_in = int(op_response.json()["expires_in"])
@@ -681,8 +749,9 @@ class OidcDeviceAuthorization(_OidcBase):
         self.interval = int(op_response.json()["interval"])
         self.user_code = op_response.json()["user_code"]
         self.verification_uri = op_response.json()["verification_uri"]
-        self.verification_uri_complete = \
-            op_response.json()["verification_uri_complete"]
+        self.verification_uri_complete = op_response.json()[
+            "verification_uri_complete"
+        ]
 
         payload = {'device_code': self.device_code}
         if self.code_challenge_method:
@@ -701,8 +770,10 @@ class OidcDeviceAuthorization(_OidcBase):
                  'device_code': self.device_code}
         :type payload: dict
         """
-        _logger.warning(f"To authenticate please go to: "
-                        f"{self.verification_uri_complete}")
+        _logger.warning(
+            f"To authenticate please go to: "
+            f"{self.verification_uri_complete}"
+        )
 
         if self.client_secret:
             client_auth = (self.client_id, self.client_secret)
@@ -720,19 +791,23 @@ class OidcDeviceAuthorization(_OidcBase):
                     _logger.debug(
                         "Making OpenID-Connect authentication request to %s "
                         "with data %s",
-                        access_token_endpoint, sanitized_payload
+                        access_token_endpoint,
+                        sanitized_payload,
                     )
-                op_response = session.post(access_token_endpoint,
-                                           requests_auth=client_auth,
-                                           data=encoded_payload,
-                                           headers=self.HEADER_X_FORM,
-                                           log=False,
-                                           authenticated=False)
+                op_response = session.post(
+                    access_token_endpoint,
+                    requests_auth=client_auth,
+                    data=encoded_payload,
+                    headers=self.HEADER_X_FORM,
+                    log=False,
+                    authenticated=False,
+                )
                 if _logger.isEnabledFor(logging.DEBUG):
                     sanitized_response = self._sanitize(op_response.json())
                     _logger.debug(
                         "OpenID-Connect authentication response from %s is %s",
-                        access_token_endpoint, sanitized_response
+                        access_token_endpoint,
+                        sanitized_response,
                     )
             except exceptions.http.BadRequest as exc:
                 error = exc.response.json().get("error")

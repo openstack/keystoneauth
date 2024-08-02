@@ -27,9 +27,17 @@ class Password(base.BaseGenericPlugin):
 
     """
 
-    def __init__(self, auth_url, username=None, user_id=None, password=None,
-                 user_domain_id=None, user_domain_name=None, **kwargs):
-        super(Password, self).__init__(auth_url=auth_url, **kwargs)
+    def __init__(
+        self,
+        auth_url,
+        username=None,
+        user_id=None,
+        password=None,
+        user_domain_id=None,
+        user_domain_name=None,
+        **kwargs,
+    ):
+        super().__init__(auth_url=auth_url, **kwargs)
 
         self._username = username
         self._user_id = user_id
@@ -42,23 +50,27 @@ class Password(base.BaseGenericPlugin):
             if self._user_domain_id or self._user_domain_name:
                 return None
 
-            return v2.Password(auth_url=url,
-                               user_id=self._user_id,
-                               username=self._username,
-                               password=self._password,
-                               **self._v2_params)
+            return v2.Password(
+                auth_url=url,
+                user_id=self._user_id,
+                username=self._username,
+                password=self._password,
+                **self._v2_params,
+            )
 
         elif discover.version_match((3,), version):
             u_domain_id = self._user_domain_id or self._default_domain_id
             u_domain_name = self._user_domain_name or self._default_domain_name
 
-            return v3.Password(auth_url=url,
-                               user_id=self._user_id,
-                               username=self._username,
-                               user_domain_id=u_domain_id,
-                               user_domain_name=u_domain_name,
-                               password=self._password,
-                               **self._v3_params)
+            return v3.Password(
+                auth_url=url,
+                user_id=self._user_id,
+                username=self._username,
+                user_domain_id=u_domain_id,
+                user_domain_name=u_domain_name,
+                password=self._password,
+                **self._v3_params,
+            )
 
     @property
     def user_domain_id(self):
@@ -77,8 +89,7 @@ class Password(base.BaseGenericPlugin):
         self._user_domain_name = value
 
     def get_cache_id_elements(self):
-        elements = super(Password, self).get_cache_id_elements(
-            _implemented=True)
+        elements = super().get_cache_id_elements(_implemented=True)
         elements['username'] = self._username
         elements['user_id'] = self._user_id
         elements['password'] = self._password

@@ -25,16 +25,19 @@ class _Service(dict):
     """
 
     def add_endpoint(self, interface, url, region=None, id=None):
-        data = {'id': id or uuid.uuid4().hex,
-                'interface': interface,
-                'url': url,
-                'region': region,
-                'region_id': region}
+        data = {
+            'id': id or uuid.uuid4().hex,
+            'interface': interface,
+            'url': url,
+            'region': region,
+            'region_id': region,
+        }
         self.setdefault('endpoints', []).append(data)
         return data
 
-    def add_standard_endpoints(self, public=None, admin=None, internal=None,
-                               region=None):
+    def add_standard_endpoints(
+        self, public=None, admin=None, internal=None, region=None
+    ):
         ret = []
 
         if public:
@@ -56,18 +59,36 @@ class Token(dict):
     that matter to them and not copy and paste sample.
     """
 
-    def __init__(self, expires=None, issued=None, user_id=None, user_name=None,
-                 user_domain_id=None, user_domain_name=None, methods=None,
-                 project_id=None, project_name=None, project_domain_id=None,
-                 project_domain_name=None, domain_id=None, domain_name=None,
-                 trust_id=None, trust_impersonation=None, trustee_user_id=None,
-                 trustor_user_id=None, application_credential_id=None,
-                 application_credential_access_rules=None,
-                 oauth_access_token_id=None, oauth_consumer_id=None,
-                 audit_id=None, audit_chain_id=None,
-                 is_admin_project=None, project_is_domain=None,
-                 oauth2_thumbprint=None):
-        super(Token, self).__init__()
+    def __init__(
+        self,
+        expires=None,
+        issued=None,
+        user_id=None,
+        user_name=None,
+        user_domain_id=None,
+        user_domain_name=None,
+        methods=None,
+        project_id=None,
+        project_name=None,
+        project_domain_id=None,
+        project_domain_name=None,
+        domain_id=None,
+        domain_name=None,
+        trust_id=None,
+        trust_impersonation=None,
+        trustee_user_id=None,
+        trustor_user_id=None,
+        application_credential_id=None,
+        application_credential_access_rules=None,
+        oauth_access_token_id=None,
+        oauth_consumer_id=None,
+        audit_id=None,
+        audit_chain_id=None,
+        is_admin_project=None,
+        project_is_domain=None,
+        oauth2_thumbprint=None,
+    ):
+        super().__init__()
 
         self.user_id = user_id or uuid.uuid4().hex
         self.user_name = user_name or uuid.uuid4().hex
@@ -97,32 +118,47 @@ class Token(dict):
             # expires should be able to be passed as a string so ignore
             self.expires_str = expires
 
-        if (project_id or project_name or
-                project_domain_id or project_domain_name):
-            self.set_project_scope(id=project_id,
-                                   name=project_name,
-                                   domain_id=project_domain_id,
-                                   domain_name=project_domain_name,
-                                   is_domain=project_is_domain)
+        if (
+            project_id
+            or project_name
+            or project_domain_id
+            or project_domain_name
+        ):
+            self.set_project_scope(
+                id=project_id,
+                name=project_name,
+                domain_id=project_domain_id,
+                domain_name=project_domain_name,
+                is_domain=project_is_domain,
+            )
 
         if domain_id or domain_name:
             self.set_domain_scope(id=domain_id, name=domain_name)
 
-        if (trust_id or (trust_impersonation is not None) or
-                trustee_user_id or trustor_user_id):
-            self.set_trust_scope(id=trust_id,
-                                 impersonation=trust_impersonation,
-                                 trustee_user_id=trustee_user_id,
-                                 trustor_user_id=trustor_user_id)
+        if (
+            trust_id
+            or (trust_impersonation is not None)
+            or trustee_user_id
+            or trustor_user_id
+        ):
+            self.set_trust_scope(
+                id=trust_id,
+                impersonation=trust_impersonation,
+                trustee_user_id=trustee_user_id,
+                trustor_user_id=trustor_user_id,
+            )
 
         if application_credential_id:
             self.set_application_credential(
                 application_credential_id,
-                access_rules=application_credential_access_rules)
+                access_rules=application_credential_access_rules,
+            )
 
         if oauth_access_token_id or oauth_consumer_id:
-            self.set_oauth(access_token_id=oauth_access_token_id,
-                           consumer_id=oauth_consumer_id)
+            self.set_oauth(
+                access_token_id=oauth_access_token_id,
+                consumer_id=oauth_consumer_id,
+            )
 
         if audit_chain_id:
             self.audit_chain_id = audit_chain_id
@@ -326,7 +362,8 @@ class Token(dict):
     @application_credential_id.setter
     def application_credential_id(self, value):
         application_credential = self.root.setdefault(
-            'application_credential', {})
+            'application_credential', {}
+        )
         application_credential.setdefault('id', value)
 
     @property
@@ -336,7 +373,8 @@ class Token(dict):
     @application_credential_access_rules.setter
     def application_credential_access_rules(self, value):
         application_credential = self.root.setdefault(
-            'application_credential', {})
+            'application_credential', {}
+        )
         application_credential.setdefault('access_rules', value)
 
     @property
@@ -438,8 +476,7 @@ class Token(dict):
 
     def add_role(self, name=None, id=None):
         roles = self.root.setdefault('roles', [])
-        data = {'id': id or uuid.uuid4().hex,
-                'name': name or uuid.uuid4().hex}
+        data = {'id': id or uuid.uuid4().hex, 'name': name or uuid.uuid4().hex}
         roles.append(data)
         return data
 
@@ -453,11 +490,17 @@ class Token(dict):
     def remove_service(self, type):
         self.root.setdefault('catalog', [])
         self.root['catalog'] = [
-            f for f in self.root.setdefault('catalog', [])
-            if f['type'] != type]
+            f for f in self.root.setdefault('catalog', []) if f['type'] != type
+        ]
 
-    def set_project_scope(self, id=None, name=None, domain_id=None,
-                          domain_name=None, is_domain=None):
+    def set_project_scope(
+        self,
+        id=None,
+        name=None,
+        domain_id=None,
+        domain_name=None,
+        is_domain=None,
+    ):
         self.project_id = id or uuid.uuid4().hex
         self.project_name = name or uuid.uuid4().hex
         self.project_domain_id = domain_id or uuid.uuid4().hex
@@ -477,8 +520,13 @@ class Token(dict):
         # entire system.
         self.system = {'all': True}
 
-    def set_trust_scope(self, id=None, impersonation=False,
-                        trustee_user_id=None, trustor_user_id=None):
+    def set_trust_scope(
+        self,
+        id=None,
+        impersonation=False,
+        trustee_user_id=None,
+        trustor_user_id=None,
+    ):
         self.trust_id = id or uuid.uuid4().hex
         self.trust_impersonation = impersonation
         self.trustee_user_id = trustee_user_id or uuid.uuid4().hex
@@ -488,8 +536,9 @@ class Token(dict):
         self.oauth_access_token_id = access_token_id or uuid.uuid4().hex
         self.oauth_consumer_id = consumer_id or uuid.uuid4().hex
 
-    def set_application_credential(self, application_credential_id,
-                                   access_rules=None):
+    def set_application_credential(
+        self, application_credential_id, access_rules=None
+    ):
         self.application_credential_id = application_credential_id
         if access_rules is not None:
             self.application_credential_access_rules = access_rules
@@ -517,20 +566,22 @@ class V3FederationToken(Token):
 
     FEDERATED_DOMAIN_ID = 'Federated'
 
-    def __init__(self, methods=None, identity_provider=None, protocol=None,
-                 groups=None):
+    def __init__(
+        self, methods=None, identity_provider=None, protocol=None, groups=None
+    ):
         methods = methods or ['saml2']
-        super(V3FederationToken, self).__init__(methods=methods)
+        super().__init__(methods=methods)
         self._user_domain = {'id': V3FederationToken.FEDERATED_DOMAIN_ID}
         self.add_federation_info_to_user(identity_provider, protocol, groups)
 
-    def add_federation_info_to_user(self, identity_provider=None,
-                                    protocol=None, groups=None):
+    def add_federation_info_to_user(
+        self, identity_provider=None, protocol=None, groups=None
+    ):
         data = {
             "OS-FEDERATION": {
                 "identity_provider": identity_provider or uuid.uuid4().hex,
                 "protocol": protocol or uuid.uuid4().hex,
-                "groups": groups or [{"id": uuid.uuid4().hex}]
+                "groups": groups or [{"id": uuid.uuid4().hex}],
             }
         }
         self._user.update(data)

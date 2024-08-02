@@ -27,13 +27,16 @@ class TokenlessAuth(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
     the provided HTTPS certificate along with the scope information.
     """
 
-    def __init__(self, auth_url,
-                 domain_id=None,
-                 domain_name=None,
-                 project_id=None,
-                 project_name=None,
-                 project_domain_id=None,
-                 project_domain_name=None):
+    def __init__(
+        self,
+        auth_url,
+        domain_id=None,
+        domain_name=None,
+        project_id=None,
+        project_name=None,
+        project_domain_id=None,
+        project_domain_name=None,
+    ):
         """A init method for TokenlessAuth.
 
         :param string auth_url: Identity service endpoint for authentication.
@@ -75,23 +78,23 @@ class TokenlessAuth(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         elif self.project_name:
             scope_headers['X-Project-Name'] = self.project_name
             if self.project_domain_id:
-                scope_headers['X-Project-Domain-Id'] = (
-                    self.project_domain_id)
+                scope_headers['X-Project-Domain-Id'] = self.project_domain_id
             elif self.project_domain_name:
                 scope_headers['X-Project-Domain-Name'] = (
-                    self.project_domain_name)
+                    self.project_domain_name
+                )
             else:
                 LOG.warning(
                     'Neither Project Domain ID nor Project Domain Name was '
-                    'provided.')
+                    'provided.'
+                )
                 return None
         elif self.domain_id:
             scope_headers['X-Domain-Id'] = self.domain_id
         elif self.domain_name:
             scope_headers['X-Domain-Name'] = self.domain_name
         else:
-            LOG.warning(
-                'Neither Project nor Domain scope was provided.')
+            LOG.warning('Neither Project nor Domain scope was provided.')
             return None
         return scope_headers
 
@@ -106,8 +109,10 @@ class TokenlessAuth(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         :return: A valid endpoint URL or None if not available.
         :rtype: string or None
         """
-        if (service_type is plugin.AUTH_INTERFACE or
-                service_type.lower() == 'identity'):
+        if (
+            service_type is plugin.AUTH_INTERFACE
+            or service_type.lower() == 'identity'
+        ):
             return self.auth_url
 
         return None

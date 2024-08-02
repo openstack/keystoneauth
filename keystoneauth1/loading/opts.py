@@ -19,7 +19,7 @@ from keystoneauth1.loading import _utils
 __all__ = ('Opt',)
 
 
-class Opt(object):
+class Opt:
     """An option required by an authentication plugin.
 
     Opts provide a means for authentication plugins that are going to be
@@ -60,17 +60,19 @@ class Opt(object):
         appropriate) set the string that should be used to prompt with.
     """
 
-    def __init__(self,
-                 name,
-                 type=str,
-                 help=None,
-                 secret=False,
-                 dest=None,
-                 deprecated=None,
-                 default=None,
-                 metavar=None,
-                 required=False,
-                 prompt=None):
+    def __init__(
+        self,
+        name,
+        type=str,
+        help=None,
+        secret=False,
+        dest=None,
+        deprecated=None,
+        default=None,
+        metavar=None,
+        required=False,
+        prompt=None,
+    ):
         if not callable(type):
             raise TypeError('type must be callable')
 
@@ -95,33 +97,37 @@ class Opt(object):
 
     def __repr__(self):
         """Return string representation of option name."""
-        return '<Opt: %s>' % self.name
+        return f'<Opt: {self.name}>'
 
     def _to_oslo_opt(self):
         cfg = _utils.get_oslo_config()
         deprecated_opts = [cfg.DeprecatedOpt(o.name) for o in self.deprecated]
 
-        return cfg.Opt(name=self.name,
-                       type=self.type,
-                       help=self.help,
-                       secret=self.secret,
-                       required=self.required,
-                       dest=self.dest,
-                       deprecated_opts=deprecated_opts,
-                       metavar=self.metavar)
+        return cfg.Opt(
+            name=self.name,
+            type=self.type,
+            help=self.help,
+            secret=self.secret,
+            required=self.required,
+            dest=self.dest,
+            deprecated_opts=deprecated_opts,
+            metavar=self.metavar,
+        )
 
     def __eq__(self, other):
         """Define equality operator on option parameters."""
-        return (type(self) is type(other) and
-                self.name == other.name and
-                self.type == other.type and
-                self.help == other.help and
-                self.secret == other.secret and
-                self.required == other.required and
-                self.dest == other.dest and
-                self.deprecated == other.deprecated and
-                self.default == other.default and
-                self.metavar == other.metavar)
+        return (
+            type(self) is type(other)
+            and self.name == other.name
+            and self.type == other.type
+            and self.help == other.help
+            and self.secret == other.secret
+            and self.required == other.required
+            and self.dest == other.dest
+            and self.deprecated == other.deprecated
+            and self.default == other.default
+            and self.metavar == other.metavar
+        )
 
     # NOTE: This function is only needed by Python 2. If we get to point where
     # we don't support Python 2 anymore, this function should be removed.
@@ -135,13 +141,15 @@ class Opt(object):
 
     @property
     def argparse_args(self):
-        return ['--os-%s' % o.name for o in self._all_opts]
+        return [f'--os-{o.name}' for o in self._all_opts]
 
     @property
     def argparse_default(self):
         # select the first ENV that is not false-y or return None
         for o in self._all_opts:
-            v = os.environ.get('OS_%s' % o.name.replace('-', '_').upper())
+            v = os.environ.get(
+                'OS_{}'.format(o.name.replace('-', '_').upper())
+            )
             if v:
                 return v
 

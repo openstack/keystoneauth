@@ -28,5 +28,5 @@ class MissingAuthMethods(base.ClientException):
         self.methods = body['receipt']['methods']
         self.required_auth_methods = body['required_auth_methods']
         self.expires_at = utils.parse_isotime(body['receipt']['expires_at'])
-        message = "%s: %s" % (self.message, self.required_auth_methods)
-        super(MissingAuthMethods, self).__init__(message)
+        message = f"{self.message}: {self.required_auth_methods}"
+        super().__init__(message)

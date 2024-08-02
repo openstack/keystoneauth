@@ -13,22 +13,24 @@
 from keystoneauth1 import exceptions
 
 
-class ServiceProviders(object):
+class ServiceProviders:
     """Helper methods for dealing with Service Providers."""
 
     @classmethod
     def from_token(cls, token):
         if 'token' not in token:
-            raise ValueError('Token format does not support service'
-                             'providers.')
+            raise ValueError(
+                'Token format does not support service providers.'
+            )
 
         return cls(token['token'].get('service_providers', []))
 
     def __init__(self, service_providers):
-
         def normalize(service_providers_list):
-            return dict((sp['id'], sp) for sp in service_providers_list
-                        if 'id' in sp)
+            return {
+                sp['id']: sp for sp in service_providers_list if 'id' in sp
+            }
+
         self._service_providers = normalize(service_providers)
 
     def _get_service_provider(self, sp_id):

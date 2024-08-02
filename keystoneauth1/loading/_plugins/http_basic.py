@@ -31,18 +31,25 @@ class HTTPBasicAuth(loading.BaseLoader):
         return http_basic.HTTPBasicAuth
 
     def get_options(self):
-        options = super(HTTPBasicAuth, self).get_options()
+        options = super().get_options()
 
-        options.extend([
-            loading.Opt('username',
-                        help='Username',
-                        deprecated=[loading.Opt('user-name')]),
-            loading.Opt('password',
-                        secret=True,
-                        prompt='Password: ',
-                        help="User's password"),
-            loading.Opt('endpoint',
-                        help='The endpoint that will always be used'),
-        ])
+        options.extend(
+            [
+                loading.Opt(
+                    'username',
+                    help='Username',
+                    deprecated=[loading.Opt('user-name')],
+                ),
+                loading.Opt(
+                    'password',
+                    secret=True,
+                    prompt='Password: ',
+                    help="User's password",
+                ),
+                loading.Opt(
+                    'endpoint', help='The endpoint that will always be used'
+                ),
+            ]
+        )
 
         return options

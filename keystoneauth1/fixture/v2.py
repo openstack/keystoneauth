@@ -18,15 +18,23 @@ from keystoneauth1.fixture import exception
 
 
 class _Service(dict):
-
-    def add_endpoint(self, public, admin=None, internal=None,
-                     tenant_id=None, region=None, id=None):
-        data = {'tenantId': tenant_id or uuid.uuid4().hex,
-                'publicURL': public,
-                'adminURL': admin or public,
-                'internalURL': internal or public,
-                'region': region,
-                'id': id or uuid.uuid4().hex}
+    def add_endpoint(
+        self,
+        public,
+        admin=None,
+        internal=None,
+        tenant_id=None,
+        region=None,
+        id=None,
+    ):
+        data = {
+            'tenantId': tenant_id or uuid.uuid4().hex,
+            'publicURL': public,
+            'adminURL': admin or public,
+            'internalURL': internal or public,
+            'region': region,
+            'id': id or uuid.uuid4().hex,
+        }
 
         self.setdefault('endpoints', []).append(data)
         return data
@@ -41,11 +49,21 @@ class Token(dict):
     that matter to them and not copy and paste sample.
     """
 
-    def __init__(self, token_id=None, expires=None, issued=None,
-                 tenant_id=None, tenant_name=None, user_id=None,
-                 user_name=None, trust_id=None, trustee_user_id=None,
-                 audit_id=None, audit_chain_id=None):
-        super(Token, self).__init__()
+    def __init__(
+        self,
+        token_id=None,
+        expires=None,
+        issued=None,
+        tenant_id=None,
+        tenant_name=None,
+        user_id=None,
+        user_name=None,
+        trust_id=None,
+        trustee_user_id=None,
+        audit_id=None,
+        audit_chain_id=None,
+    ):
+        super().__init__()
 
         self.token_id = token_id or uuid.uuid4().hex
         self.user_id = user_id or uuid.uuid4().hex
@@ -75,8 +93,9 @@ class Token(dict):
         if trust_id or trustee_user_id:
             # the trustee_user_id will generally be the same as the user_id as
             # the token is being issued to the trustee
-            self.set_trust(id=trust_id,
-                           trustee_user_id=trustee_user_id or user_id)
+            self.set_trust(
+                id=trust_id, trustee_user_id=trustee_user_id or user_id
+            )
 
         if audit_chain_id:
             self.audit_chain_id = audit_chain_id
@@ -237,8 +256,10 @@ class Token(dict):
 
     def remove_service(self, type):
         self.root['serviceCatalog'] = [
-            f for f in self.root.setdefault('serviceCatalog', [])
-            if f['type'] != type]
+            f
+            for f in self.root.setdefault('serviceCatalog', [])
+            if f['type'] != type
+        ]
 
     def set_scope(self, id=None, name=None):
         self.tenant_id = id or uuid.uuid4().hex

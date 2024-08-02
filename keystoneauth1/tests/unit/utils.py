@@ -23,7 +23,6 @@ import testtools
 
 
 class TestCase(testtools.TestCase):
-
     TEST_DOMAIN_ID = uuid.uuid4().hex
     TEST_DOMAIN_NAME = uuid.uuid4().hex
     TEST_GROUP_ID = uuid.uuid4().hex
@@ -39,7 +38,7 @@ class TestCase(testtools.TestCase):
     TEST_ROOT_URL = 'http://127.0.0.1:5000/'
 
     def setUp(self):
-        super(TestCase, self).setUp()
+        super().setUp()
         self.logger = self.useFixture(fixtures.FakeLogger(level=logging.DEBUG))
 
         fixtures.MockPatchObject(time, 'time', lambda: 1234)
@@ -83,7 +82,7 @@ class TestCase(testtools.TestCase):
         expected = urllib.parse.parse_qs(qs, keep_blank_values=True)
         parts = urllib.parse.urlparse(self.requests_mock.last_request.url)
         querystring = urllib.parse.parse_qs(
-            parts.query, keep_blank_values=True,
+            parts.query, keep_blank_values=True
         )
         self.assertEqual(expected, querystring)
 
@@ -129,7 +128,7 @@ class TestResponse(requests.Response):
 
     def __init__(self, data):
         self._text = None
-        super(TestResponse, self).__init__()
+        super().__init__()
         if isinstance(data, dict):
             self.status_code = data.get('status_code', 200)
             headers = data.get('headers')

@@ -15,15 +15,16 @@ from keystoneauth1.loading import _utils
 from keystoneauth1.loading import base
 
 
-__all__ = ('register_argparse_arguments',
-           'register_service_argparse_arguments',
-           'register_conf_options',
-           'load_from_conf_options',
-           'get_conf_options')
+__all__ = (
+    'register_argparse_arguments',
+    'register_service_argparse_arguments',
+    'register_conf_options',
+    'load_from_conf_options',
+    'get_conf_options',
+)
 
 
 class Adapter(base.BaseLoader):
-
     @property
     def plugin_class(self):
         return adapter.Adapter
@@ -76,7 +77,7 @@ class Adapter(base.BaseLoader):
              the new ``endpoint_override`` option name::
 
                  old_opt = oslo_cfg.DeprecatedOpt('api_endpoint', 'old_group')
-                 deprecated_opts={'endpoint_override': [old_opt]}
+                 deprecated_opts = {'endpoint_override': [old_opt]}
 
         :returns: A list of oslo_config options.
         """
@@ -86,106 +87,127 @@ class Adapter(base.BaseLoader):
             deprecated_opts = {}
 
         # This is goofy, but need to support hyphens *or* underscores
-        deprecated_opts = {name.replace('_', '-'): opt
-                           for name, opt in deprecated_opts.items()}
+        deprecated_opts = {
+            name.replace('_', '-'): opt
+            for name, opt in deprecated_opts.items()
+        }
 
-        opts = [cfg.StrOpt('service-type',
-                           deprecated_opts=deprecated_opts.get('service-type'),
-                           help='The default service_type for endpoint URL '
-                                'discovery.'),
-                cfg.StrOpt('service-name',
-                           deprecated_opts=deprecated_opts.get('service-name'),
-                           help='The default service_name for endpoint URL '
-                                'discovery.'),
-                cfg.ListOpt('valid-interfaces',
-                            deprecated_opts=deprecated_opts.get(
-                                'valid-interfaces'),
-                            help='List of interfaces, in order of preference, '
-                                 'for endpoint URL.'),
-                cfg.StrOpt('region-name',
-                           deprecated_opts=deprecated_opts.get('region-name'),
-                           help='The default region_name for endpoint URL '
-                                'discovery.'),
-                cfg.StrOpt('endpoint-override',
-                           deprecated_opts=deprecated_opts.get(
-                               'endpoint-override'),
-                           help='Always use this endpoint URL for requests '
-                                'for this client. NOTE: The unversioned '
-                                'endpoint should be specified here; to '
-                                'request a particular API version, use the '
-                                '`version`, `min-version`, and/or '
-                                '`max-version` options.'),
-                cfg.StrOpt('version',
-                           deprecated_opts=deprecated_opts.get('version'),
-                           help='Minimum Major API version within a given '
-                                'Major API version for endpoint URL '
-                                'discovery. Mutually exclusive with '
-                                'min_version and max_version'),
-                cfg.StrOpt('min-version',
-                           deprecated_opts=deprecated_opts.get('min-version'),
-                           help='The minimum major version of a given API, '
-                                'intended to be used as the lower bound of a '
-                                'range with max_version. Mutually exclusive '
-                                'with version. If min_version is given with '
-                                'no max_version it is as if max version is '
-                                '"latest".'),
-                cfg.StrOpt('max-version',
-                           deprecated_opts=deprecated_opts.get('max-version'),
-                           help='The maximum major version of a given API, '
-                                'intended to be used as the upper bound of a '
-                                'range with min_version. Mutually exclusive '
-                                'with version.'),
-                cfg.IntOpt('connect-retries',
-                           deprecated_opts=deprecated_opts.get(
-                               'connect-retries'),
-                           help='The maximum number of retries that should be '
-                                'attempted for connection errors.'),
-                cfg.FloatOpt('connect-retry-delay',
-                             deprecated_opts=deprecated_opts.get(
-                                 'connect-retry-delay'),
-                             help='Delay (in seconds) between two retries '
-                                  'for connection errors. If not set, '
-                                  'exponential retry starting with 0.5 '
-                                  'seconds up to a maximum of 60 seconds '
-                                  'is used.'),
-                cfg.IntOpt('status-code-retries',
-                           deprecated_opts=deprecated_opts.get(
-                               'status-code-retries'),
-                           help='The maximum number of retries that should be '
-                                'attempted for retriable HTTP status codes.'),
-                cfg.FloatOpt('status-code-retry-delay',
-                             deprecated_opts=deprecated_opts.get(
-                                 'status-code-retry-delay'),
-                             help='Delay (in seconds) between two retries '
-                                  'for retriable status codes. If not set, '
-                                  'exponential retry starting with 0.5 '
-                                  'seconds up to a maximum of 60 seconds '
-                                  'is used.'),
-                cfg.ListOpt('retriable-status-codes',
-                            deprecated_opts=deprecated_opts.get(
-                                'retriable-status-codes'),
-                            item_type=cfg.types.Integer(),
-                            help='List of retriable HTTP status codes that '
-                                 'should be retried. If not set default to '
-                                 ' [503]'
-                            ),
-                ]
+        opts = [
+            cfg.StrOpt(
+                'service-type',
+                deprecated_opts=deprecated_opts.get('service-type'),
+                help='The default service_type for endpoint URL discovery.',
+            ),
+            cfg.StrOpt(
+                'service-name',
+                deprecated_opts=deprecated_opts.get('service-name'),
+                help='The default service_name for endpoint URL discovery.',
+            ),
+            cfg.ListOpt(
+                'valid-interfaces',
+                deprecated_opts=deprecated_opts.get('valid-interfaces'),
+                help='List of interfaces, in order of preference, '
+                'for endpoint URL.',
+            ),
+            cfg.StrOpt(
+                'region-name',
+                deprecated_opts=deprecated_opts.get('region-name'),
+                help='The default region_name for endpoint URL discovery.',
+            ),
+            cfg.StrOpt(
+                'endpoint-override',
+                deprecated_opts=deprecated_opts.get('endpoint-override'),
+                help='Always use this endpoint URL for requests '
+                'for this client. NOTE: The unversioned '
+                'endpoint should be specified here; to '
+                'request a particular API version, use the '
+                '`version`, `min-version`, and/or '
+                '`max-version` options.',
+            ),
+            cfg.StrOpt(
+                'version',
+                deprecated_opts=deprecated_opts.get('version'),
+                help='Minimum Major API version within a given '
+                'Major API version for endpoint URL '
+                'discovery. Mutually exclusive with '
+                'min_version and max_version',
+            ),
+            cfg.StrOpt(
+                'min-version',
+                deprecated_opts=deprecated_opts.get('min-version'),
+                help='The minimum major version of a given API, '
+                'intended to be used as the lower bound of a '
+                'range with max_version. Mutually exclusive '
+                'with version. If min_version is given with '
+                'no max_version it is as if max version is '
+                '"latest".',
+            ),
+            cfg.StrOpt(
+                'max-version',
+                deprecated_opts=deprecated_opts.get('max-version'),
+                help='The maximum major version of a given API, '
+                'intended to be used as the upper bound of a '
+                'range with min_version. Mutually exclusive '
+                'with version.',
+            ),
+            cfg.IntOpt(
+                'connect-retries',
+                deprecated_opts=deprecated_opts.get('connect-retries'),
+                help='The maximum number of retries that should be '
+                'attempted for connection errors.',
+            ),
+            cfg.FloatOpt(
+                'connect-retry-delay',
+                deprecated_opts=deprecated_opts.get('connect-retry-delay'),
+                help='Delay (in seconds) between two retries '
+                'for connection errors. If not set, '
+                'exponential retry starting with 0.5 '
+                'seconds up to a maximum of 60 seconds '
+                'is used.',
+            ),
+            cfg.IntOpt(
+                'status-code-retries',
+                deprecated_opts=deprecated_opts.get('status-code-retries'),
+                help='The maximum number of retries that should be '
+                'attempted for retriable HTTP status codes.',
+            ),
+            cfg.FloatOpt(
+                'status-code-retry-delay',
+                deprecated_opts=deprecated_opts.get('status-code-retry-delay'),
+                help='Delay (in seconds) between two retries '
+                'for retriable status codes. If not set, '
+                'exponential retry starting with 0.5 '
+                'seconds up to a maximum of 60 seconds '
+                'is used.',
+            ),
+            cfg.ListOpt(
+                'retriable-status-codes',
+                deprecated_opts=deprecated_opts.get('retriable-status-codes'),
+                item_type=cfg.types.Integer(),
+                help='List of retriable HTTP status codes that '
+                'should be retried. If not set default to '
+                ' [503]',
+            ),
+        ]
 
         if include_deprecated:
             opts += [
-                cfg.StrOpt('interface',
-                           help='The default interface for endpoint URL '
-                                'discovery.',
-                           deprecated_for_removal=True,
-                           deprecated_reason='Using valid-interfaces is'
-                                             ' preferrable because it is'
-                                             ' capable of accepting a list of'
-                                             ' possible interfaces.'),
+                cfg.StrOpt(
+                    'interface',
+                    help='The default interface for endpoint URL '
+                    'discovery.',
+                    deprecated_for_removal=True,
+                    deprecated_reason='Using valid-interfaces is'
+                    ' preferrable because it is'
+                    ' capable of accepting a list of'
+                    ' possible interfaces.',
+                )
             ]
         return opts
 
-    def register_conf_options(self, conf, group, include_deprecated=True,
-                              deprecated_opts=None):
+    def register_conf_options(
+        self, conf, group, include_deprecated=True, deprecated_opts=None
+    ):
         """Register the oslo_config options that are needed for an Adapter.
 
         The options that are set are:
@@ -231,12 +253,14 @@ class Adapter(base.BaseLoader):
              the new ``endpoint_override`` option name::
 
                  old_opt = oslo_cfg.DeprecatedOpt('api_endpoint', 'old_group')
-                 deprecated_opts={'endpoint_override': [old_opt]}
+                 deprecated_opts = {'endpoint_override': [old_opt]}
 
         :returns: The list of options that was registered.
         """
-        opts = self.get_conf_options(include_deprecated=include_deprecated,
-                                     deprecated_opts=deprecated_opts)
+        opts = self.get_conf_options(
+            include_deprecated=include_deprecated,
+            deprecated_opts=deprecated_opts,
+        )
         conf.register_group(_utils.get_oslo_config().OptGroup(group))
         conf.register_opts(opts, group=group)
         return opts
@@ -270,16 +294,19 @@ def process_conf_options(confgrp, kwargs):
     :raise TypeError: If invalid conf option values or combinations are found.
     """
     if confgrp.valid_interfaces and getattr(confgrp, 'interface', None):
-        raise TypeError("interface and valid_interfaces are mutually"
-                        " exclusive. Please use valid_interfaces.")
+        raise TypeError(
+            "interface and valid_interfaces are mutually"
+            " exclusive. Please use valid_interfaces."
+        )
     if confgrp.valid_interfaces:
         for iface in confgrp.valid_interfaces:
             if iface not in ('public', 'internal', 'admin'):
                 # TODO(efried): s/valies/values/ - are we allowed to fix this?
-                raise TypeError("'{iface}' is not a valid value for"
-                                " valid_interfaces. Valid valies are"
-                                " public, internal or admin".format(
-                                    iface=iface))
+                raise TypeError(
+                    f"'{iface}' is not a valid value for"
+                    " valid_interfaces. Valid valies are"
+                    " public, internal or admin"
+                )
         kwargs.setdefault('interface', confgrp.valid_interfaces)
     elif hasattr(confgrp, 'interface'):
         kwargs.setdefault('interface', confgrp.interface)
@@ -290,16 +317,16 @@ def process_conf_options(confgrp, kwargs):
     kwargs.setdefault('version', confgrp.version)
     kwargs.setdefault('min_version', confgrp.min_version)
     kwargs.setdefault('max_version', confgrp.max_version)
-    if kwargs['version'] and (
-            kwargs['max_version'] or kwargs['min_version']):
+    if kwargs['version'] and (kwargs['max_version'] or kwargs['min_version']):
         raise TypeError(
-            "version is mutually exclusive with min_version and"
-            " max_version")
+            "version is mutually exclusive with min_version and max_version"
+        )
     kwargs.setdefault('connect_retries', confgrp.connect_retries)
     kwargs.setdefault('connect_retry_delay', confgrp.connect_retry_delay)
     kwargs.setdefault('status_code_retries', confgrp.status_code_retries)
-    kwargs.setdefault('status_code_retry_delay',
-                      confgrp.status_code_retry_delay)
+    kwargs.setdefault(
+        'status_code_retry_delay', confgrp.status_code_retry_delay
+    )
     kwargs.setdefault('retriable_status_codes', confgrp.retriable_status_codes)
 
 

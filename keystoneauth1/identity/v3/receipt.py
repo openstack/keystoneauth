@@ -13,7 +13,7 @@
 from keystoneauth1.identity.v3 import base
 
 
-__all__ = ('ReceiptMethod', )
+__all__ = ('ReceiptMethod',)
 
 
 class ReceiptMethod(base.AuthMethod):

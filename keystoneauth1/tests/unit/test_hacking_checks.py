@@ -21,11 +21,12 @@ from keystoneauth1.tests.unit import keystoneauth_fixtures
 
 
 class TestCheckOsloNamespaceImports(testtools.TestCase):
-
     # We are patching pycodestyle so that only the check under test is actually
     # installed.
-    @mock.patch('pycodestyle._checks',
-                {'physical_line': {}, 'logical_line': {}, 'tree': {}})
+    @mock.patch(
+        'pycodestyle._checks',
+        {'physical_line': {}, 'logical_line': {}, 'tree': {}},
+    )
     def run_check(self, code):
         pycodestyle.register_check(checks.check_oslo_namespace_imports)
 

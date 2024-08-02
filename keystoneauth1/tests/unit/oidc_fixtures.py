@@ -18,19 +18,13 @@ UNSCOPED_TOKEN = {
         "expires_at": "2014-06-09T10:48:59.643375Z",
         "user": {
             "OS-FEDERATION": {
-                "identity_provider": {
-                    "id": "bluepages"
-                },
-                "protocol": {
-                    "id": "oidc"
-                },
-                "groups": [
-                    {"id": "1764fa5cf69a49a4918131de5ce4af9a"}
-                ]
+                "identity_provider": {"id": "bluepages"},
+                "protocol": {"id": "oidc"},
+                "groups": [{"id": "1764fa5cf69a49a4918131de5ce4af9a"}],
             },
             "id": "oidc_user%40example.com",
-            "name": "oidc_user@example.com"
-        }
+            "name": "oidc_user@example.com",
+        },
     }
 }
 
@@ -39,7 +33,7 @@ ACCESS_TOKEN_VIA_PASSWORD_RESP = {
     "token_type": "bearer",
     "expires_in": 3599,
     "scope": "openid profile",
-    "refresh_token": "DCERsh83IAhu9bhavrp"
+    "refresh_token": "DCERsh83IAhu9bhavrp",
 }
 
 ACCESS_TOKEN_VIA_AUTH_GRANT_RESP = {
@@ -47,17 +41,16 @@ ACCESS_TOKEN_VIA_AUTH_GRANT_RESP = {
     "token_type": "Bearer",
     "expires_in": 3600,
     "refresh_token": "1/ySXNO9XISBMIgOrJDtdun6zK6XiATCKT",
-    "id_token": "eyJhbGciOiJSUzI1Ni8hOYHuZT8dt_yynmJVhcU"
+    "id_token": "eyJhbGciOiJSUzI1Ni8hOYHuZT8dt_yynmJVhcU",
 }
 
 DEVICE_CODE_RESP = {
     'device_code': "fRtNXLxmRy4iEzLsbAV96pMFgOMEUCPZmAMepjLrvQ",
     'user_code': "ABCD-EFGH",
     'verification_uri': "https://localhost:8020/oidc/authorize/device",
-    'verification_uri_complete':
-        "https://localhost:8020/oidc/authorize/device?user_code=ABCD-EFGH",
+    'verification_uri_complete': "https://localhost:8020/oidc/authorize/device?user_code=ABCD-EFGH",
     'expires_in': 1800,
-    'interval': 5
+    'interval': 5,
 }
 
 DISCOVERY_DOCUMENT = {
@@ -82,7 +75,7 @@ DISCOVERY_DOCUMENT = {
         "email_verified",
         "phone_number",
         "phone_number_verified",
-        "address"
+        "address",
     ],
     "grant_types_supported": [
         "authorization_code",
@@ -99,13 +92,12 @@ DISCOVERY_DOCUMENT = {
     "service_documentation": "https://localhost:8020/oidc/about",
     "token_endpoint": "https://localhost:8020/oidc/token",
     "userinfo_endpoint": "https://localhost:8020/oidc/userinfo",
-    "device_authorization_endpoint":
-        "https://localhost:8020/oidc/authorize/device",
+    "device_authorization_endpoint": "https://localhost:8020/oidc/authorize/device",
     "token_endpoint_auth_methods_supported": [
         "client_secret_post",
         "client_secret_basic",
         "client_secret_jwt",
         "private_key_jwt",
-        "none"
+        "none",
     ],
 }

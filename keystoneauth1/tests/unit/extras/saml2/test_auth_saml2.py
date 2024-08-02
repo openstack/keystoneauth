@@ -53,8 +53,8 @@ class SamlAuth2PluginTests(utils.TestCase):
         return [r.url.strip('/') for r in self.requests_mock.request_history]
 
     def basic_header(self, username=TEST_USER, password=TEST_PASS):
-        user_pass = ('%s:%s' % (username, password)).encode('utf-8')
-        return 'Basic %s' % base64.b64encode(user_pass).decode('utf-8')
+        user_pass = (f'{username}:{password}').encode()
+        return 'Basic {}'.format(base64.b64encode(user_pass).decode('utf-8'))
 
     def test_request_accept_headers(self):
         # Include some random Accept header
@@ -70,18 +70,23 @@ class SamlAuth2PluginTests(utils.TestCase):
         # added the PAOS_HEADER to it using the correct media type separator
         accept_header = plugin_headers['Accept']
         self.assertIn(self.HEADER_MEDIA_TYPE_SEPARATOR, accept_header)
-        self.assertIn(random_header,
-                      accept_header.split(self.HEADER_MEDIA_TYPE_SEPARATOR))
-        self.assertIn(PAOS_HEADER,
-                      accept_header.split(self.HEADER_MEDIA_TYPE_SEPARATOR))
+        self.assertIn(
+            random_header,
+            accept_header.split(self.HEADER_MEDIA_TYPE_SEPARATOR),
+        )
+        self.assertIn(
+            PAOS_HEADER, accept_header.split(self.HEADER_MEDIA_TYPE_SEPARATOR)
+        )
 
     def test_passed_when_not_200(self):
         text = uuid.uuid4().hex
         test_url = 'http://another.test'
-        self.requests_mock.get(test_url,
-                               status_code=201,
-                               headers=CONTENT_TYPE_PAOS_HEADER,
-                               text=text)
+        self.requests_mock.get(
+            test_url,
+            status_code=201,
+            headers=CONTENT_TYPE_PAOS_HEADER,
+            text=text,
+        )
 
         resp = requests.get(test_url, auth=self.get_plugin())
         self.assertEqual(201, resp.status_code)
@@ -99,82 +104,115 @@ class SamlAuth2PluginTests(utils.TestCase):
     def test_standard_workflow_302_redirect(self):
         text = uuid.uuid4().hex
 
-        self.requests_mock.get(self.TEST_SP_URL, response_list=[
-            dict(headers=CONTENT_TYPE_PAOS_HEADER,
-                 content=utils.make_oneline(saml2_fixtures.SP_SOAP_RESPONSE)),
-            dict(text=text)
-        ])
+        self.requests_mock.get(
+            self.TEST_SP_URL,
+            response_list=[
+                {
+                    'headers': CONTENT_TYPE_PAOS_HEADER,
+                    'content': utils.make_oneline(
+                        saml2_fixtures.SP_SOAP_RESPONSE
+                    ),
+                },
+                {'text': text},
+            ],
+        )
 
-        authm = self.requests_mock.post(self.TEST_IDP_URL,
-                                        content=saml2_fixtures.SAML2_ASSERTION)
+        authm = self.requests_mock.post(
+            self.TEST_IDP_URL, content=saml2_fixtures.SAML2_ASSERTION
+        )
 
         self.requests_mock.post(
             self.TEST_CONSUMER_URL,
             status_code=302,
-            headers={'Location': self.TEST_SP_URL})
+            headers={'Location': self.TEST_SP_URL},
+        )
 
         resp = requests.get(self.TEST_SP_URL, auth=self.get_plugin())
         self.assertEqual(200, resp.status_code)
         self.assertEqual(text, resp.text)
 
-        self.assertEqual(self.calls, [self.TEST_SP_URL,
-                                      self.TEST_IDP_URL,
-                                      self.TEST_CONSUMER_URL,
-                                      self.TEST_SP_URL])
+        self.assertEqual(
+            self.calls,
+            [
+                self.TEST_SP_URL,
+                self.TEST_IDP_URL,
+                self.TEST_CONSUMER_URL,
+                self.TEST_SP_URL,
+            ],
+        )
 
-        self.assertEqual(self.basic_header(),
-                         authm.last_request.headers['Authorization'])
+        self.assertEqual(
+            self.basic_header(), authm.last_request.headers['Authorization']
+        )
 
         authn_request = self.requests_mock.request_history[1].text
-        self.assertThat(saml2_fixtures.AUTHN_REQUEST,
-                        matchers.XMLEquals(authn_request))
+        self.assertThat(
+            saml2_fixtures.AUTHN_REQUEST, matchers.XMLEquals(authn_request)
+        )
 
     def test_standard_workflow_303_redirect(self):
         text = uuid.uuid4().hex
 
-        self.requests_mock.get(self.TEST_SP_URL, response_list=[
-            dict(headers=CONTENT_TYPE_PAOS_HEADER,
-                 content=utils.make_oneline(saml2_fixtures.SP_SOAP_RESPONSE)),
-            dict(text=text)
-        ])
+        self.requests_mock.get(
+            self.TEST_SP_URL,
+            response_list=[
+                {
+                    'headers': CONTENT_TYPE_PAOS_HEADER,
+                    'content': utils.make_oneline(
+                        saml2_fixtures.SP_SOAP_RESPONSE
+                    ),
+                },
+                {'text': text},
+            ],
+        )
 
-        authm = self.requests_mock.post(self.TEST_IDP_URL,
-                                        content=saml2_fixtures.SAML2_ASSERTION)
+        authm = self.requests_mock.post(
+            self.TEST_IDP_URL, content=saml2_fixtures.SAML2_ASSERTION
+        )
 
         self.requests_mock.post(
             self.TEST_CONSUMER_URL,
             status_code=303,
-            headers={'Location': self.TEST_SP_URL})
+            headers={'Location': self.TEST_SP_URL},
+        )
 
         resp = requests.get(self.TEST_SP_URL, auth=self.get_plugin())
         self.assertEqual(200, resp.status_code)
         self.assertEqual(text, resp.text)
 
-        url_flow = [self.TEST_SP_URL,
-                    self.TEST_IDP_URL,
-                    self.TEST_CONSUMER_URL,
-                    self.TEST_SP_URL]
+        url_flow = [
+            self.TEST_SP_URL,
+            self.TEST_IDP_URL,
+            self.TEST_CONSUMER_URL,
+            self.TEST_SP_URL,
+        ]
 
         self.assertEqual(url_flow, [r.url.rstrip('/') for r in resp.history])
         self.assertEqual(url_flow, self.calls)
 
-        self.assertEqual(self.basic_header(),
-                         authm.last_request.headers['Authorization'])
+        self.assertEqual(
+            self.basic_header(), authm.last_request.headers['Authorization']
+        )
 
         authn_request = self.requests_mock.request_history[1].text
-        self.assertThat(saml2_fixtures.AUTHN_REQUEST,
-                        matchers.XMLEquals(authn_request))
+        self.assertThat(
+            saml2_fixtures.AUTHN_REQUEST, matchers.XMLEquals(authn_request)
+        )
 
     def test_initial_sp_call_invalid_response(self):
         """Send initial SP HTTP request and receive wrong server response."""
-        self.requests_mock.get(self.TEST_SP_URL,
-                               headers=CONTENT_TYPE_PAOS_HEADER,
-                               text='NON XML RESPONSE')
+        self.requests_mock.get(
+            self.TEST_SP_URL,
+            headers=CONTENT_TYPE_PAOS_HEADER,
+            text='NON XML RESPONSE',
+        )
 
-        self.assertRaises(InvalidResponse,
-                          requests.get,
-                          self.TEST_SP_URL,
-                          auth=self.get_plugin())
+        self.assertRaises(
+            InvalidResponse,
+            requests.get,
+            self.TEST_SP_URL,
+            auth=self.get_plugin(),
+        )
 
         self.assertEqual(self.calls, [self.TEST_SP_URL])
 
@@ -184,25 +222,28 @@ class SamlAuth2PluginTests(utils.TestCase):
         soap_response = saml2_fixtures.soap_response(consumer=consumer1)
         saml_assertion = saml2_fixtures.saml_assertion(destination=consumer2)
 
-        self.requests_mock.get(self.TEST_SP_URL,
-                               headers=CONTENT_TYPE_PAOS_HEADER,
-                               content=soap_response)
+        self.requests_mock.get(
+            self.TEST_SP_URL,
+            headers=CONTENT_TYPE_PAOS_HEADER,
+            content=soap_response,
+        )
 
         self.requests_mock.post(self.TEST_IDP_URL, content=saml_assertion)
 
         # receive the SAML error, body unchecked
         saml_error = self.requests_mock.post(consumer1)
 
-        self.assertRaises(saml2.v3.saml2.ConsumerMismatch,
-                          requests.get,
-                          self.TEST_SP_URL,
-                          auth=self.get_plugin())
+        self.assertRaises(
+            saml2.v3.saml2.ConsumerMismatch,
+            requests.get,
+            self.TEST_SP_URL,
+            auth=self.get_plugin(),
+        )
 
         self.assertTrue(saml_error.called)
 
 
 class AuthenticateviaSAML2Tests(utils.TestCase):
-
     TEST_USER = 'user'
     TEST_PASS = 'pass'
     TEST_IDP = 'tester'
@@ -226,8 +267,10 @@ class AuthenticateviaSAML2Tests(utils.TestCase):
         kwargs.setdefault('identity_provider', self.TEST_IDP)
         kwargs.setdefault('protocol', self.TEST_PROTOCOL)
 
-        templ = ('%(base)s/OS-FEDERATION/identity_providers/'
-                 '%(identity_provider)s/protocols/%(protocol)s/auth')
+        templ = (
+            '%(base)s/OS-FEDERATION/identity_providers/'
+            '%(identity_provider)s/protocols/%(protocol)s/auth'
+        )
         return templ % kwargs
 
     @property
@@ -235,11 +278,11 @@ class AuthenticateviaSAML2Tests(utils.TestCase):
         return [r.url.strip('/') for r in self.requests_mock.request_history]
 
     def basic_header(self, username=TEST_USER, password=TEST_PASS):
-        user_pass = ('%s:%s' % (username, password)).encode('utf-8')
-        return 'Basic %s' % base64.b64encode(user_pass).decode('utf-8')
+        user_pass = (f'{username}:{password}').encode()
+        return 'Basic {}'.format(base64.b64encode(user_pass).decode('utf-8'))
 
     def setUp(self):
-        super(AuthenticateviaSAML2Tests, self).setUp()
+        super().setUp()
         self.session = session.Session()
         self.default_sp_url = self.sp_url()
 
@@ -247,35 +290,51 @@ class AuthenticateviaSAML2Tests(utils.TestCase):
         token_id = uuid.uuid4().hex
         token = ksa_fixtures.V3Token()
 
-        self.requests_mock.get(self.default_sp_url, response_list=[
-            dict(headers=CONTENT_TYPE_PAOS_HEADER,
-                 content=utils.make_oneline(saml2_fixtures.SP_SOAP_RESPONSE)),
-            dict(headers={'X-Subject-Token': token_id}, json=token)
-        ])
+        self.requests_mock.get(
+            self.default_sp_url,
+            response_list=[
+                {
+                    'headers': CONTENT_TYPE_PAOS_HEADER,
+                    'content': utils.make_oneline(
+                        saml2_fixtures.SP_SOAP_RESPONSE
+                    ),
+                },
+                {'headers': {'X-Subject-Token': token_id}, 'json': token},
+            ],
+        )
 
-        authm = self.requests_mock.post(self.TEST_IDP_URL,
-                                        content=saml2_fixtures.SAML2_ASSERTION)
+        authm = self.requests_mock.post(
+            self.TEST_IDP_URL, content=saml2_fixtures.SAML2_ASSERTION
+        )
 
         self.requests_mock.post(
             self.TEST_CONSUMER_URL,
             status_code=302,
-            headers={'Location': self.sp_url()})
+            headers={'Location': self.sp_url()},
+        )
 
         auth_ref = self.get_plugin().get_auth_ref(self.session)
 
         self.assertEqual(token_id, auth_ref.auth_token)
 
-        self.assertEqual(self.calls, [self.default_sp_url,
-                                      self.TEST_IDP_URL,
-                                      self.TEST_CONSUMER_URL,
-                                      self.default_sp_url])
+        self.assertEqual(
+            self.calls,
+            [
+                self.default_sp_url,
+                self.TEST_IDP_URL,
+                self.TEST_CONSUMER_URL,
+                self.default_sp_url,
+            ],
+        )
 
-        self.assertEqual(self.basic_header(),
-                         authm.last_request.headers['Authorization'])
+        self.assertEqual(
+            self.basic_header(), authm.last_request.headers['Authorization']
+        )
 
         authn_request = self.requests_mock.request_history[1].text
-        self.assertThat(saml2_fixtures.AUTHN_REQUEST,
-                        matchers.XMLEquals(authn_request))
+        self.assertThat(
+            saml2_fixtures.AUTHN_REQUEST, matchers.XMLEquals(authn_request)
+        )
 
     def test_consumer_mismatch_error_workflow(self):
         consumer1 = 'http://keystone.test/Shibboleth.sso/SAML2/ECP'
@@ -284,29 +343,37 @@ class AuthenticateviaSAML2Tests(utils.TestCase):
         soap_response = saml2_fixtures.soap_response(consumer=consumer1)
         saml_assertion = saml2_fixtures.saml_assertion(destination=consumer2)
 
-        self.requests_mock.get(self.default_sp_url,
-                               headers=CONTENT_TYPE_PAOS_HEADER,
-                               content=soap_response)
+        self.requests_mock.get(
+            self.default_sp_url,
+            headers=CONTENT_TYPE_PAOS_HEADER,
+            content=soap_response,
+        )
 
         self.requests_mock.post(self.TEST_IDP_URL, content=saml_assertion)
 
         # receive the SAML error, body unchecked
         saml_error = self.requests_mock.post(consumer1)
 
-        self.assertRaises(exceptions.AuthorizationFailure,
-                          self.get_plugin().get_auth_ref,
-                          self.session)
+        self.assertRaises(
+            exceptions.AuthorizationFailure,
+            self.get_plugin().get_auth_ref,
+            self.session,
+        )
 
         self.assertTrue(saml_error.called)
 
     def test_initial_sp_call_invalid_response(self):
         """Send initial SP HTTP request and receive wrong server response."""
-        self.requests_mock.get(self.default_sp_url,
-                               headers=CONTENT_TYPE_PAOS_HEADER,
-                               text='NON XML RESPONSE')
+        self.requests_mock.get(
+            self.default_sp_url,
+            headers=CONTENT_TYPE_PAOS_HEADER,
+            text='NON XML RESPONSE',
+        )
 
-        self.assertRaises(exceptions.AuthorizationFailure,
-                          self.get_plugin().get_auth_ref,
-                          self.session)
+        self.assertRaises(
+            exceptions.AuthorizationFailure,
+            self.get_plugin().get_auth_ref,
+            self.session,
+        )
 
         self.assertEqual(self.calls, [self.default_sp_url])

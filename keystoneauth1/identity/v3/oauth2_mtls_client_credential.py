@@ -27,10 +27,10 @@ class OAuth2mTlsClientCredential(base.BaseAuth, metaclass=abc.ABCMeta):
     :param string oauth2_client_id: OAuth2.0 client credential id.
     """
 
-    def __init__(self, auth_url, oauth2_endpoint, oauth2_client_id,
-                 *args, **kwargs):
-        super(OAuth2mTlsClientCredential, self).__init__(
-            auth_url, *args, **kwargs)
+    def __init__(
+        self, auth_url, oauth2_endpoint, oauth2_client_id, *args, **kwargs
+    ):
+        super().__init__(auth_url, *args, **kwargs)
         self.auth_url = auth_url
         self.oauth2_endpoint = oauth2_endpoint
         self.oauth2_client_id = oauth2_client_id
@@ -64,12 +64,16 @@ class OAuth2mTlsClientCredential(base.BaseAuth, metaclass=abc.ABCMeta):
         """
         # Get OAuth2.0 access token and add the field 'Authorization' when
         # using the HTTPS protocol.
-        data = {'grant_type': 'client_credentials',
-                'client_id': self.oauth2_client_id}
-        resp = session.post(url=self.oauth2_endpoint,
-                            authenticated=False,
-                            raise_exc=False,
-                            data=data)
+        data = {
+            'grant_type': 'client_credentials',
+            'client_id': self.oauth2_client_id,
+        }
+        resp = session.post(
+            url=self.oauth2_endpoint,
+            authenticated=False,
+            raise_exc=False,
+            data=data,
+        )
         if resp.status_code == 200:
             oauth2 = resp.json()
             self.oauth2_access_token = oauth2.get('access_token')
@@ -78,17 +82,18 @@ class OAuth2mTlsClientCredential(base.BaseAuth, metaclass=abc.ABCMeta):
             msg = error.get('error_description')
             raise exceptions.ClientException(msg)
 
-        headers = {'Accept': 'application/json',
-                   'X-Auth-Token': self.oauth2_access_token,
-                   'X-Subject-Token': self.oauth2_access_token}
+        headers = {
+            'Accept': 'application/json',
+            'X-Auth-Token': self.oauth2_access_token,
+            'X-Subject-Token': self.oauth2_access_token,
+        }
 
-        token_url = '%s/auth/tokens' % self.auth_url.rstrip('/')
+        token_url = '{}/auth/tokens'.format(self.auth_url.rstrip('/'))
         if not self.auth_url.rstrip('/').endswith('v3'):
-            token_url = '%s/v3/auth/tokens' % self.auth_url.rstrip('/')
-        resp = session.get(url=token_url,
-                           authenticated=False,
-                           headers=headers,
-                           log=False)
+            token_url = '{}/v3/auth/tokens'.format(self.auth_url.rstrip('/'))
+        resp = session.get(
+            url=token_url, authenticated=False, headers=headers, log=False
+        )
         try:
             resp_data = resp.json()
         except ValueError:
@@ -96,8 +101,9 @@ class OAuth2mTlsClientCredential(base.BaseAuth, metaclass=abc.ABCMeta):
         if 'token' not in resp_data:
             raise exceptions.InvalidResponse(response=resp)
 
-        return access.AccessInfoV3(auth_token=self.oauth2_access_token,
-                                   body=resp_data)
+        return access.AccessInfoV3(
+            auth_token=self.oauth2_access_token, body=resp_data
+        )
 
     def get_headers(self, session, **kwargs):
         """Fetch authentication headers for message.
@@ -111,8 +117,7 @@ class OAuth2mTlsClientCredential(base.BaseAuth, metaclass=abc.ABCMeta):
         :rtype: dict
         """
         # get headers for X-Auth-Token
-        headers = super(OAuth2mTlsClientCredential, self).get_headers(
-            session, **kwargs)
+        headers = super().get_headers(session, **kwargs)
 
         # add OAuth2.0 access token to the headers
         if headers:

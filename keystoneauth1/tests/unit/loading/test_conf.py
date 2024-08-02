@@ -25,17 +25,17 @@ from keystoneauth1.tests.unit.loading import utils
 
 
 class ConfTests(utils.TestCase):
-
     def setUp(self):
-        super(ConfTests, self).setUp()
+        super().setUp()
         self.conf_fixture = self.useFixture(config.Config())
 
         # NOTE(jamielennox): we register the basic config options first because
         # we need them in place before we can stub them. We will need to run
         # the register again after we stub the auth section and auth plugin so
         # it can load the plugin specific options.
-        loading.register_auth_conf_options(self.conf_fixture.conf,
-                                           group=self.GROUP)
+        loading.register_auth_conf_options(
+            self.conf_fixture.conf, group=self.GROUP
+        )
 
     def test_loading_v2(self):
         section = uuid.uuid4().hex
@@ -46,22 +46,26 @@ class ConfTests(utils.TestCase):
         tenant_id = uuid.uuid4().hex
 
         self.conf_fixture.config(auth_section=section, group=self.GROUP)
-        loading.register_auth_conf_options(self.conf_fixture.conf,
-                                           group=self.GROUP)
+        loading.register_auth_conf_options(
+            self.conf_fixture.conf, group=self.GROUP
+        )
 
         opts = loading.get_auth_plugin_conf_options(v2.Password())
         self.conf_fixture.register_opts(opts, group=section)
 
-        self.conf_fixture.config(auth_type=self.V2PASS,
-                                 auth_url=auth_url,
-                                 username=username,
-                                 password=password,
-                                 trust_id=trust_id,
-                                 tenant_id=tenant_id,
-                                 group=section)
+        self.conf_fixture.config(
+            auth_type=self.V2PASS,
+            auth_url=auth_url,
+            username=username,
+            password=password,
+            trust_id=trust_id,
+            tenant_id=tenant_id,
+            group=section,
+        )
 
-        a = loading.load_auth_from_conf_options(self.conf_fixture.conf,
-                                                self.GROUP)
+        a = loading.load_auth_from_conf_options(
+            self.conf_fixture.conf, self.GROUP
+        )
 
         self.assertEqual(auth_url, a.auth_url)
         self.assertEqual(username, a.username)
@@ -71,29 +75,33 @@ class ConfTests(utils.TestCase):
 
     def test_loading_v3(self):
         section = uuid.uuid4().hex
-        auth_url = uuid.uuid4().hex,
+        auth_url = (uuid.uuid4().hex,)
         token = uuid.uuid4().hex
         trust_id = uuid.uuid4().hex
         project_id = uuid.uuid4().hex
         project_domain_name = uuid.uuid4().hex
 
         self.conf_fixture.config(auth_section=section, group=self.GROUP)
-        loading.register_auth_conf_options(self.conf_fixture.conf,
-                                           group=self.GROUP)
+        loading.register_auth_conf_options(
+            self.conf_fixture.conf, group=self.GROUP
+        )
 
         opts = loading.get_auth_plugin_conf_options(v3.Token())
         self.conf_fixture.register_opts(opts, group=section)
 
-        self.conf_fixture.config(auth_type=self.V3TOKEN,
-                                 auth_url=auth_url,
-                                 token=token,
-                                 trust_id=trust_id,
-                                 project_id=project_id,
-                                 project_domain_name=project_domain_name,
-                                 group=section)
+        self.conf_fixture.config(
+            auth_type=self.V3TOKEN,
+            auth_url=auth_url,
+            token=token,
+            trust_id=trust_id,
+            project_id=project_id,
+            project_domain_name=project_domain_name,
+            group=section,
+        )
 
-        a = loading.load_auth_from_conf_options(self.conf_fixture.conf,
-                                                self.GROUP)
+        a = loading.load_auth_from_conf_options(
+            self.conf_fixture.conf, self.GROUP
+        )
 
         self.assertEqual(token, a.auth_methods[0].token)
         self.assertEqual(trust_id, a.trust_id)
@@ -102,19 +110,21 @@ class ConfTests(utils.TestCase):
 
     def test_loading_invalid_plugin(self):
         auth_type = uuid.uuid4().hex
-        self.conf_fixture.config(auth_type=auth_type,
-                                 group=self.GROUP)
+        self.conf_fixture.config(auth_type=auth_type, group=self.GROUP)
 
-        e = self.assertRaises(exceptions.NoMatchingPlugin,
-                              loading.load_auth_from_conf_options,
-                              self.conf_fixture.conf,
-                              self.GROUP)
+        e = self.assertRaises(
+            exceptions.NoMatchingPlugin,
+            loading.load_auth_from_conf_options,
+            self.conf_fixture.conf,
+            self.GROUP,
+        )
 
         self.assertEqual(auth_type, e.name)
 
     def test_loading_with_no_data(self):
-        lo = loading.load_auth_from_conf_options(self.conf_fixture.conf,
-                                                 self.GROUP)
+        lo = loading.load_auth_from_conf_options(
+            self.conf_fixture.conf, self.GROUP
+        )
         self.assertIsNone(lo)
 
     @mock.patch('stevedore.DriverManager')
@@ -124,31 +134,36 @@ class ConfTests(utils.TestCase):
 
         opts = loading.get_auth_plugin_conf_options(utils.MockLoader())
         self.conf_fixture.register_opts(opts, group=self.GROUP)
-        self.conf_fixture.config(auth_type=driver_name,
-                                 group=self.GROUP,
-                                 **self.TEST_VALS)
+        self.conf_fixture.config(
+            auth_type=driver_name, group=self.GROUP, **self.TEST_VALS
+        )
 
-        a = loading.load_auth_from_conf_options(self.conf_fixture.conf,
-                                                self.GROUP)
+        a = loading.load_auth_from_conf_options(
+            self.conf_fixture.conf, self.GROUP
+        )
         self.assertTestVals(a)
 
-        m.assert_called_once_with(namespace=loading.PLUGIN_NAMESPACE,
-                                  name=driver_name,
-                                  invoke_on_load=True)
+        m.assert_called_once_with(
+            namespace=loading.PLUGIN_NAMESPACE,
+            name=driver_name,
+            invoke_on_load=True,
+        )
 
     @utils.mock_plugin()
     def test_same_section(self, m):
         opts = loading.get_auth_plugin_conf_options(utils.MockLoader())
         self.conf_fixture.register_opts(opts, group=self.GROUP)
 
-        loading.register_auth_conf_options(self.conf_fixture.conf,
-                                           group=self.GROUP)
-        self.conf_fixture.config(auth_type=uuid.uuid4().hex,
-                                 group=self.GROUP,
-                                 **self.TEST_VALS)
+        loading.register_auth_conf_options(
+            self.conf_fixture.conf, group=self.GROUP
+        )
+        self.conf_fixture.config(
+            auth_type=uuid.uuid4().hex, group=self.GROUP, **self.TEST_VALS
+        )
 
-        a = loading.load_auth_from_conf_options(self.conf_fixture.conf,
-                                                self.GROUP)
+        a = loading.load_auth_from_conf_options(
+            self.conf_fixture.conf, self.GROUP
+        )
         self.assertTestVals(a)
 
     @utils.mock_plugin()
@@ -156,22 +171,25 @@ class ConfTests(utils.TestCase):
         section = uuid.uuid4().hex
 
         self.conf_fixture.config(auth_section=section, group=self.GROUP)
-        loading.register_auth_conf_options(self.conf_fixture.conf,
-                                           group=self.GROUP)
+        loading.register_auth_conf_options(
+            self.conf_fixture.conf, group=self.GROUP
+        )
 
         opts = loading.get_auth_plugin_conf_options(utils.MockLoader())
         self.conf_fixture.register_opts(opts, group=section)
-        self.conf_fixture.config(group=section,
-                                 auth_type=uuid.uuid4().hex,
-                                 **self.TEST_VALS)
+        self.conf_fixture.config(
+            group=section, auth_type=uuid.uuid4().hex, **self.TEST_VALS
+        )
 
-        a = loading.load_auth_from_conf_options(self.conf_fixture.conf,
-                                                self.GROUP)
+        a = loading.load_auth_from_conf_options(
+            self.conf_fixture.conf, self.GROUP
+        )
         self.assertTestVals(a)
 
     def test_plugins_are_all_opts(self):
-        manager = stevedore.ExtensionManager(loading.PLUGIN_NAMESPACE,
-                                             propagate_map_exceptions=True)
+        manager = stevedore.ExtensionManager(
+            loading.PLUGIN_NAMESPACE, propagate_map_exceptions=True
+        )
 
         def inner(driver):
             for p in driver.plugin().get_options():
@@ -189,14 +207,15 @@ class ConfTests(utils.TestCase):
         loaded_opts = loading.get_plugin_options('v2password')
         plugin_opts = v2.Password().get_options()
 
-        loaded_names = set([o.name for o in loaded_opts])
-        plugin_names = set([o.name for o in plugin_opts])
+        loaded_names = {o.name for o in loaded_opts}
+        plugin_names = {o.name for o in plugin_opts}
 
         self.assertEqual(plugin_names, loaded_names)
 
     def test_register_cfg(self):
-        loading.register_auth_conf_options(self.conf_fixture.conf,
-                                           group=self.GROUP)
+        loading.register_auth_conf_options(
+            self.conf_fixture.conf, group=self.GROUP
+        )
 
     def test_common_conf_options(self):
         opts = loading.get_auth_common_conf_options()

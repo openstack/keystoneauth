@@ -21,9 +21,8 @@ from keystoneauth1.tests.unit import utils
 
 
 class AccessInfoPluginTests(utils.TestCase):
-
     def setUp(self):
-        super(AccessInfoPluginTests, self).setUp()
+        super().setUp()
         self.session = session.Session()
         self.auth_token = uuid.uuid4().hex
 
@@ -37,19 +36,22 @@ class AccessInfoPluginTests(utils.TestCase):
 
     def test_auth_ref(self):
         plugin_obj = self._plugin()
-        self.assertEqual(self.TEST_ROOT_URL,
-                         plugin_obj.get_endpoint(self.session,
-                                                 service_type='identity',
-                                                 interface='public'))
+        self.assertEqual(
+            self.TEST_ROOT_URL,
+            plugin_obj.get_endpoint(
+                self.session, service_type='identity', interface='public'
+            ),
+        )
         self.assertEqual(self.auth_token, plugin_obj.get_token(session))
 
     def test_auth_url(self):
         auth_url = 'http://keystone.test.url'
         obj = self._plugin(auth_url=auth_url)
 
-        self.assertEqual(auth_url,
-                         obj.get_endpoint(self.session,
-                                          interface=plugin.AUTH_INTERFACE))
+        self.assertEqual(
+            auth_url,
+            obj.get_endpoint(self.session, interface=plugin.AUTH_INTERFACE),
+        )
 
     def test_invalidate(self):
         plugin = self._plugin()

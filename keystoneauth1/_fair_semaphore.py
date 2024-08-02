@@ -15,7 +15,7 @@ import threading
 import time
 
 
-class FairSemaphore(object):
+class FairSemaphore:
     """Semaphore class that notifies in order of request.
 
     We cannot use a normal Semaphore because it doesn't give any ordering,

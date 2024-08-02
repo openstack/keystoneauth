@@ -31,11 +31,14 @@ class NoAuth(loading.BaseLoader):
         return noauth.NoAuth
 
     def get_options(self):
-        options = super(NoAuth, self).get_options()
+        options = super().get_options()
 
-        options.extend([
-            loading.Opt('endpoint',
-                        help='The endpoint that will always be used'),
-        ])
+        options.extend(
+            [
+                loading.Opt(
+                    'endpoint', help='The endpoint that will always be used'
+                )
+            ]
+        )
 
         return options
