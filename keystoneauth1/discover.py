@@ -32,14 +32,20 @@ import os_service_types
 from keystoneauth1 import _utils as utils
 from keystoneauth1 import exceptions
 
+if ty.TYPE_CHECKING:
+    from keystoneauth1 import session as ks_session
 
 _LOGGER = utils.get_logger(__name__)
-
 LATEST = float('inf')
 _SERVICE_TYPES = os_service_types.ServiceTypes()
 
+_RAW_VERSION_T = ty.Union[
+    str, int, float, ty.Iterable[ty.Union[str, int, float]]
+]
+_PARSED_VERSION_T = ty.Tuple[ty.Union[int, float], ...]
 
-def _str_or_latest(val):
+
+def _str_or_latest(val: ty.Union[str, int, float]) -> str:
     """Convert val to a string, handling LATEST => 'latest'.
 
     :param val: An int or the special value LATEST.
@@ -49,7 +55,7 @@ def _str_or_latest(val):
     return 'latest' if val == LATEST else str(val)
 
 
-def _int_or_latest(val):
+def _int_or_latest(val: ty.Union[str, float]) -> ty.Union[int, float]:
     """Convert val to an int or the special value LATEST.
 
     :param val: An int()-able, or the string 'latest', or the special value
@@ -59,7 +65,12 @@ def _int_or_latest(val):
     return LATEST if val == 'latest' or val == LATEST else int(val)
 
 
-def get_version_data(session, url, authenticated=None, version_header=None):
+def get_version_data(
+    session: 'ks_session.Session',
+    url: str,
+    authenticated: ty.Optional[bool] = None,
+    version_header: ty.Optional[str] = None,
+) -> ty.List[ty.Dict[str, ty.Any]]:
     """Retrieve raw version data from a url.
 
     The return is a list of dicts of the form::
@@ -120,21 +131,25 @@ def get_version_data(session, url, authenticated=None, version_header=None):
         # In the event of querying a root URL we will get back a list of
         # available versions.
         try:
-            return body_resp['versions']['values']
+            return ty.cast(
+                ty.List[ty.Dict[str, ty.Any]], body_resp['versions']['values']
+            )
         except (KeyError, TypeError):
             pass
 
         # Most servers don't have a 'values' element so accept a simple
         # versions dict if available.
         try:
-            return body_resp['versions']
+            return ty.cast(
+                ty.List[ty.Dict[str, ty.Any]], body_resp['versions']
+            )
         except KeyError:
             pass
 
         # Otherwise if we query an endpoint like /v2.0 then we will get back
         # just the one available version.
         try:
-            return [body_resp['version']]
+            return [ty.cast(ty.Dict[str, ty.Any], body_resp['version'])]
         except KeyError:
             pass
 
@@ -166,7 +181,7 @@ def get_version_data(session, url, authenticated=None, version_header=None):
     )
 
 
-def normalize_version_number(version):
+def normalize_version_number(version: _RAW_VERSION_T) -> _PARSED_VERSION_T:
     """Turn a version representation into a tuple.
 
     Examples:
@@ -223,7 +238,7 @@ def normalize_version_number(version):
     # If it's a non-string iterable, turn it into a string for subsequent
     # processing.  This ensures at least 1 decimal point if e.g. [1] is given.
     elif isinstance(ver, collections.abc.Iterable):
-        ver = '.'.join(map(_str_or_latest, ver))
+        ver = '.'.join(_str_or_latest(x) for x in ver)
     # If it's anything else, error out early
     else:
         raise TypeError(f'Invalid version specified: {version}')
@@ -241,14 +256,19 @@ def normalize_version_number(version):
         ver += (0,)
 
     try:
-        return tuple(map(_int_or_latest, ver))
+        return tuple(_int_or_latest(x) for x in ver)
     except (TypeError, ValueError):
         raise TypeError(f'Invalid version specified: {version}')
 
 
 def _normalize_version_args(
-    version, min_version, max_version, service_type=None
-):
+    version: ty.Optional[_RAW_VERSION_T],
+    min_version: ty.Optional[_RAW_VERSION_T],
+    max_version: ty.Optional[_RAW_VERSION_T],
+    service_type: ty.Optional[str] = None,
+) -> ty.Tuple[ty.Optional[_PARSED_VERSION_T], ty.Optional[_PARSED_VERSION_T]]:
+    normalized_min_version: ty.Optional[_PARSED_VERSION_T]
+    normalized_max_version: ty.Optional[_PARSED_VERSION_T]
     # The sins of our fathers become the blood on our hands.
     # If a user requests an old-style service type such as volumev2, then they
     # are inherently requesting the major API version 2. It's not a good
@@ -278,16 +298,16 @@ def _normalize_version_args(
 
     if version:
         # Explode this into min_version and max_version
-        min_version = normalize_version_number(version)
-        max_version = (min_version[0], LATEST)
+        normalized_min_version = normalize_version_number(version)
+        normalized_max_version = (normalized_min_version[0], LATEST)
         if implied_version:
-            if min_version[0] != implied_version[0]:
+            if normalized_min_version[0] != implied_version[0]:
                 raise exceptions.ImpliedVersionMismatch(
                     service_type=service_type,
                     implied=implied_version,
-                    given=version_to_string(version),
+                    given=version_to_string(normalized_min_version),
                 )
-        return min_version, max_version
+        return normalized_min_version, normalized_max_version
 
     if min_version == 'latest':
         if max_version not in (None, 'latest'):
@@ -297,51 +317,59 @@ def _normalize_version_args(
             )
         max_version = 'latest'
 
+    if min_version and not max_version:
+        max_version = 'latest'
+
     # Normalize e.g. empty string to None
     min_version = min_version or None
     max_version = max_version or None
 
+    normalized_min_version = None
+    normalized_max_version = None
+
     if min_version:
-        min_version = normalize_version_number(min_version)
-        # If min_version was specified but max_version was not, max is latest.
-        max_version = normalize_version_number(max_version or 'latest')
+        normalized_min_version = normalize_version_number(min_version)
 
     # NOTE(efried): We should be doing this instead:
     # max_version = normalize_version_number(max_version or 'latest')
     # However, see first NOTE(jamielennox) in EndpointData._set_version_info.
     if max_version:
-        max_version = normalize_version_number(max_version)
+        normalized_max_version = normalize_version_number(max_version)
 
-    if None not in (min_version, max_version) and max_version < min_version:
+    if (
+        normalized_min_version is not None
+        and normalized_max_version is not None
+        and normalized_max_version < normalized_min_version
+    ):
         raise ValueError("min_version cannot be greater than max_version")
 
     if implied_version:
-        if min_version:
-            if min_version[0] != implied_version[0]:
+        if normalized_min_version:
+            if normalized_min_version[0] != implied_version[0]:
                 raise exceptions.ImpliedMinVersionMismatch(
                     service_type=service_type,
                     implied=implied_version,
-                    given=version_to_string(min_version),
+                    given=version_to_string(normalized_min_version),
                 )
         else:
-            min_version = implied_version
+            normalized_min_version = implied_version
 
         # If 'latest' is provided with a versioned service-type like
         # volumev2 - the user wants the latest of volumev2, not the latest
         # of block-storage.
-        if max_version and max_version[0] != LATEST:
-            if max_version[0] != implied_version[0]:
+        if normalized_max_version and normalized_max_version[0] != LATEST:
+            if normalized_max_version[0] != implied_version[0]:
                 raise exceptions.ImpliedMaxVersionMismatch(
                     service_type=service_type,
                     implied=implied_version,
-                    given=version_to_string(max_version),
+                    given=version_to_string(normalized_max_version),
                 )
         else:
-            max_version = (implied_version[0], LATEST)
-    return min_version, max_version
+            normalized_max_version = (implied_version[0], LATEST)
+    return normalized_min_version, normalized_max_version
 
 
-def version_to_string(version):
+def version_to_string(version: _PARSED_VERSION_T) -> str:
     """Turn a version tuple into a string.
 
     :param tuple version: A version represented as a tuple of ints.  As a
@@ -353,10 +381,14 @@ def version_to_string(version):
     if all(ver == LATEST for ver in version):
         return 'latest'
 
-    return ".".join(map(_str_or_latest, version))
+    return ".".join(_str_or_latest(x) for x in version)
 
 
-def version_between(min_version, max_version, candidate):
+def version_between(
+    min_version: ty.Optional[_RAW_VERSION_T],
+    max_version: ty.Optional[_RAW_VERSION_T],
+    candidate: _RAW_VERSION_T,
+) -> bool:
     """Determine whether a candidate version is within a specified range.
 
     :param min_version: The minimum version that is acceptable.
@@ -371,28 +403,38 @@ def version_between(min_version, max_version, candidate):
     """
     if not candidate:
         raise ValueError("candidate is required.")
-    candidate = normalize_version_number(candidate)
+    normalized_candidate = normalize_version_number(candidate)
 
     # Normalize up front to validate any malformed inputs
+    normalized_min_version = None
+    normalized_max_version = None
     if min_version:
-        min_version = normalize_version_number(min_version)
+        normalized_min_version = normalize_version_number(min_version)
     if max_version:
-        max_version = normalize_version_number(max_version)
+        normalized_max_version = normalize_version_number(max_version)
 
     # If the candidate is less than the min_version, it's not a match.
     # No min_version means no lower bound.
-    if min_version and candidate < min_version:
+    if (
+        normalized_min_version
+        and normalized_candidate < normalized_min_version
+    ):
         return False
 
     # If the candidate is higher than the max_version, it's not a match.
     # No max_version means no upper bound.
-    if max_version and candidate > max_version:
+    if (
+        normalized_max_version
+        and normalized_candidate > normalized_max_version
+    ):
         return False
 
     return True
 
 
-def version_match(required, candidate):
+def version_match(
+    required: _PARSED_VERSION_T, candidate: _PARSED_VERSION_T
+) -> bool:
     """Test that an available version satisfies the required version.
 
     To be suitable a version must be of the same major version as required
@@ -418,7 +460,9 @@ def version_match(required, candidate):
     return True
 
 
-def _latest_soft_match(required, candidate):
+def _latest_soft_match(
+    required: ty.Optional[_PARSED_VERSION_T], candidate: _PARSED_VERSION_T
+) -> bool:
     if not required:
         return False
 
@@ -436,7 +480,7 @@ def _latest_soft_match(required, candidate):
     return False
 
 
-def _combine_relative_url(discovery_url, version_url):
+def _combine_relative_url(discovery_url: str, version_url: str) -> str:
     # NOTE(jamielennox): urllib.parse.urljoin allows the url to be relative
     # or even protocol-less. The additional trailing '/' makes urljoin respect
     # the current path as canonical even if the url doesn't include it. for
@@ -478,12 +522,11 @@ def _combine_relative_url(discovery_url, version_url):
     ).geturl()
 
 
-def _version_from_url(url):
+def _version_from_url(url: ty.Optional[str]) -> ty.Optional[_PARSED_VERSION_T]:
     if not url:
-        return url
+        return None
 
-    url = urllib.parse.urlparse(url)
-    for part in reversed(url.path.split('/')):
+    for part in reversed(urllib.parse.urlparse(url).path.split('/')):
         try:
             # All integer project ids can parse as valid versions. In URLs
             # all known instances of versions start with a v. So check to make
@@ -497,6 +540,7 @@ def _version_from_url(url):
     return None
 
 
+# TODO(stephenfin): Make this an enum?
 class Status:
     CURRENT = 'CURRENT'
     SUPPORTED = 'SUPPORTED'
@@ -506,7 +550,7 @@ class Status:
     KNOWN = (CURRENT, SUPPORTED, DEPRECATED, EXPERIMENTAL)
 
     @classmethod
-    def normalize(cls, raw_status):
+    def normalize(cls, raw_status: str) -> str:
         """Turn a status into a canonical status value.
 
         If the status from the version discovery document does not match one
@@ -531,7 +575,12 @@ class Discover:
     DEPRECATED_STATUSES = ('deprecated',)
     EXPERIMENTAL_STATUSES = ('experimental',)
 
-    def __init__(self, session, url, authenticated=None):
+    def __init__(
+        self,
+        session: 'ks_session.Session',
+        url: str,
+        authenticated: ty.Optional[bool] = None,
+    ):
         self._url = url
         self._data = get_version_data(
             session, url, authenticated=authenticated
@@ -539,10 +588,10 @@ class Discover:
 
     def raw_version_data(
         self,
-        allow_experimental=False,
-        allow_deprecated=True,
-        allow_unknown=False,
-    ):
+        allow_experimental: bool = False,
+        allow_deprecated: bool = True,
+        allow_unknown: bool = False,
+    ) -> ty.List[ty.Dict[str, ty.Any]]:
         """Get raw version information from URL.
 
         Raw data indicates that only minimal validation processing is performed
@@ -585,12 +634,12 @@ class Discover:
 
     def version_data(
         self,
-        reverse=False,
+        reverse: bool = False,
         *,
-        allow_experimental=False,
-        allow_deprecated=True,
-        allow_unknown=False,
-    ):
+        allow_experimental: bool = False,
+        allow_deprecated: bool = True,
+        allow_unknown: bool = False,
+    ) -> ty.List['VersionData']:
         """Get normalized version data.
 
         Return version data in a structured way.
@@ -684,12 +733,12 @@ class Discover:
 
     def version_string_data(
         self,
-        reverse=False,
+        reverse: bool = False,
         *,
-        allow_experimental=False,
-        allow_deprecated=True,
-        allow_unknown=False,
-    ):
+        allow_experimental: bool = False,
+        allow_deprecated: bool = True,
+        allow_unknown: bool = False,
+    ) -> ty.List['VersionData']:
         """Get normalized version data with versions as strings.
 
         Return version data in a structured way.
@@ -714,12 +763,12 @@ class Discover:
 
     def data_for(
         self,
-        version,
+        version: _RAW_VERSION_T,
         *,
-        allow_experimental=False,
-        allow_deprecated=True,
-        allow_unknown=False,
-    ):
+        allow_experimental: bool = False,
+        allow_deprecated: bool = True,
+        allow_unknown: bool = False,
+    ) -> ty.Optional['VersionData']:
         """Return endpoint data for a version.
 
         NOTE: This method raises a TypeError if version is None. It is
@@ -735,7 +784,7 @@ class Discover:
                   match.
         :rtype: dict
         """
-        version = normalize_version_number(version)
+        normalized_version = normalize_version_number(version)
 
         for data in self.version_data(
             reverse=True,
@@ -745,21 +794,21 @@ class Discover:
         ):
             # Since the data is reversed, the latest version is first.  If
             # latest was requested, return it.
-            if _latest_soft_match(version, data['version']):
+            if _latest_soft_match(normalized_version, data['version']):
                 return data
-            if version_match(version, data['version']):
+            if version_match(normalized_version, data['version']):
                 return data
 
         return None
 
     def url_for(
         self,
-        version,
+        version: _RAW_VERSION_T,
         *,
-        allow_experimental=False,
-        allow_deprecated=True,
-        allow_unknown=False,
-    ):
+        allow_experimental: bool = False,
+        allow_deprecated: bool = True,
+        allow_unknown: bool = False,
+    ) -> ty.Optional[str]:
         """Get the endpoint url for a version.
 
         NOTE: This method raises a TypeError if version is None. It is
@@ -783,14 +832,18 @@ class Discover:
 
     def versioned_data_for(
         self,
-        url=None,
-        min_version=None,
-        max_version=None,
+        url: ty.Optional[str] = None,
+        min_version: ty.Union[
+            str, int, float, ty.Iterable[ty.Union[str, int, float]], None
+        ] = None,
+        max_version: ty.Union[
+            str, int, float, ty.Iterable[ty.Union[str, int, float]], None
+        ] = None,
         *,
-        allow_experimental=False,
-        allow_deprecated=True,
-        allow_unknown=False,
-    ):
+        allow_experimental: bool = False,
+        allow_deprecated: bool = True,
+        allow_unknown: bool = False,
+    ) -> ty.Optional['VersionData']:
         """Return endpoint data for the service at a url.
 
         min_version and max_version can be given either as strings or tuples.
@@ -811,10 +864,10 @@ class Discover:
                   match.
         :rtype: dict
         """
-        min_version, max_version = _normalize_version_args(
-            None, min_version, max_version
+        normalized_min_version, normalized_max_version = (
+            _normalize_version_args(None, min_version, max_version)
         )
-        no_version = not max_version and not min_version
+        no_version = not normalized_max_version and not normalized_min_version
 
         version_data = self.version_data(
             reverse=True,
@@ -823,10 +876,11 @@ class Discover:
             allow_unknown=allow_unknown,
         )
 
-        # If we don't have to check a min_version, we can short
+        # If we don't have to check a normalized_min_version, we can short
         # circuit anything else
-        if max_version == (LATEST, LATEST) and (
-            not min_version or min_version == (LATEST, LATEST)
+        if normalized_max_version == (LATEST, LATEST) and (
+            not normalized_min_version
+            or normalized_min_version == (LATEST, LATEST)
         ):
             # because we reverse we can just take the first entry
             return version_data[0]
@@ -843,13 +897,17 @@ class Discover:
         for data in version_data:
             if url and data['url'] and data['url'].rstrip('/') + '/' == url:
                 return data
-            if _latest_soft_match(min_version, data['version']):
+            if _latest_soft_match(normalized_min_version, data['version']):
                 return data
             # Only validate version bounds if versions were specified
             if (
-                min_version
-                and max_version
-                and version_between(min_version, max_version, data['version'])
+                normalized_min_version
+                and normalized_max_version
+                and version_between(
+                    normalized_min_version,
+                    normalized_max_version,
+                    data['version'],
+                )
             ):
                 return data
 
@@ -867,13 +925,17 @@ class Discover:
 
     def versioned_url_for(
         self,
-        min_version=None,
-        max_version=None,
+        min_version: ty.Union[
+            str, int, float, ty.Iterable[ty.Union[str, int, float]], None
+        ] = None,
+        max_version: ty.Union[
+            str, int, float, ty.Iterable[ty.Union[str, int, float]], None
+        ] = None,
         *,
-        allow_experimental=False,
-        allow_deprecated=True,
-        allow_unknown=False,
-    ):
+        allow_experimental: bool = False,
+        allow_deprecated: bool = True,
+        allow_unknown: bool = False,
+    ) -> ty.Optional[str]:
         """Get the endpoint url for a version.
 
         min_version and max_version can be given either as strings or tuples.
@@ -898,20 +960,21 @@ class Discover:
         return data['url'] if data else None
 
 
+# TODO(stephenfin): Make this normal class or dataclass to avoid all the casts
 class VersionData(ty.Dict[str, ty.Any]):
     """Normalized Version Data about an endpoint."""
 
     def __init__(
         self,
-        version,
-        url,
-        collection=None,
-        max_microversion=None,
-        min_microversion=None,
-        next_min_version=None,
-        not_before=None,
-        status='CURRENT',
-        raw_status=None,
+        version: ty.Union[_PARSED_VERSION_T, str, None],
+        url: str,
+        collection: ty.Optional[str] = None,
+        max_microversion: ty.Union[_PARSED_VERSION_T, str, None] = None,
+        min_microversion: ty.Union[_PARSED_VERSION_T, str, None] = None,
+        next_min_version: ty.Union[_PARSED_VERSION_T, str, None] = None,
+        not_before: ty.Optional[str] = None,
+        status: str = 'CURRENT',
+        raw_status: ty.Optional[str] = None,
     ):
         super().__init__()
         self['version'] = version
@@ -925,51 +988,56 @@ class VersionData(ty.Dict[str, ty.Any]):
         self['raw_status'] = raw_status
 
     @property
-    def version(self):
+    def version(self) -> ty.Optional[_PARSED_VERSION_T]:
         """The normalized version of the endpoint."""
-        return self.get('version')
+        return ty.cast(ty.Optional[_PARSED_VERSION_T], self.get('version'))
 
     @property
-    def url(self):
+    def url(self) -> str:
         """The url for the endpoint."""
-        return self.get('url')
+        return ty.cast(str, self.get('url'))
 
     @property
-    def collection(self):
+    def collection(self) -> ty.Optional[str]:
         """The URL for the discovery document.
 
         May be None.
         """
-        return self.get('collection')
+        return ty.cast(ty.Optional[str], self.get('collection'))
 
     @property
-    def min_microversion(self):
+    def min_microversion(self) -> ty.Optional[_PARSED_VERSION_T]:
         """The minimum microversion supported by the endpoint.
 
         May be None.
         """
-        return self.get('min_microversion')
+        return ty.cast(
+            ty.Optional[_PARSED_VERSION_T], self.get('min_microversion')
+        )
 
     @property
-    def max_microversion(self):
+    def max_microversion(self) -> ty.Optional[_PARSED_VERSION_T]:
         """The maximum microversion supported by the endpoint.
 
         May be None.
         """
-        return self.get('max_microversion')
+        return ty.cast(
+            ty.Optional[_PARSED_VERSION_T], self.get('max_microversion')
+        )
 
+    # TODO(stephenfin): Use enum
     @property
-    def status(self):
+    def status(self) -> str:
         """A canonicalized version of the status.
 
         Valid values are CURRENT, SUPPORTED, DEPRECATED and EXPERIMENTAL.
         """
-        return self.get('status')
+        return ty.cast(str, self.get('status'))
 
     @property
-    def raw_status(self):
+    def raw_status(self) -> ty.Optional[str]:
         """The status as provided by the server."""
-        return self.get('raw_status')
+        return ty.cast(ty.Optional[str], self.get('raw_status'))
 
 
 class EndpointData:
@@ -981,26 +1049,34 @@ class EndpointData:
     desired by the user. It is returned so that a user can know which qualities
     a discovered endpoint had, in case their request allowed for a range of
     possibilities.
+
+    Refer to the microversion specification for more information.
+
+    https://specs.openstack.org/openstack/api-wg/guidelines/microversion_specification.html
     """
 
+    # TODO(stephenfin): The 'major_version', 'next_min_version' and
+    # 'not_before' attributes are documented in the microversion spec but no
+    # one appears to use them. Should we remove support? If not, we currently
+    # do not normalize these. Should we?
     def __init__(
         self,
-        catalog_url=None,
-        service_url=None,
-        service_type=None,
-        service_name=None,
-        service_id=None,
-        region_name=None,
-        interface=None,
-        endpoint_id=None,
-        raw_endpoint=None,
-        api_version=None,
-        major_version=None,
-        min_microversion=None,
-        max_microversion=None,
-        next_min_version=None,
-        not_before=None,
-        status=None,
+        catalog_url: ty.Optional[str] = None,
+        service_url: ty.Optional[str] = None,
+        service_type: ty.Optional[str] = None,
+        service_name: ty.Optional[str] = None,
+        service_id: ty.Optional[str] = None,
+        region_name: ty.Optional[str] = None,
+        interface: ty.Optional[str] = None,
+        endpoint_id: ty.Optional[str] = None,
+        raw_endpoint: ty.Optional[str] = None,
+        api_version: ty.Optional[_PARSED_VERSION_T] = None,
+        major_version: ty.Optional[str] = None,
+        min_microversion: ty.Optional[_PARSED_VERSION_T] = None,
+        max_microversion: ty.Optional[_PARSED_VERSION_T] = None,
+        next_min_version: ty.Optional[str] = None,
+        not_before: ty.Optional[str] = None,
+        status: ty.Optional[str] = None,
     ):
         self.catalog_url = catalog_url
         self.service_url = service_url
@@ -1017,14 +1093,14 @@ class EndpointData:
         self.next_min_version = next_min_version
         self.not_before = not_before
         self.status = status
-        self._saved_project_id = None
-        self._catalog_matches_version = False
-        self._catalog_matches_exactly = False
-        self._disc = None
-
         self.api_version = api_version or _version_from_url(self.url)
 
-    def __copy__(self):
+        self._saved_project_id: ty.Optional[str] = None
+        self._catalog_matches_version = False
+        self._catalog_matches_exactly: bool = False
+        self._disc: ty.Optional[Discover] = None
+
+    def __copy__(self) -> 'EndpointData':
         """Return a new EndpointData based on this one."""
         new_data = EndpointData(
             catalog_url=self.catalog_url,
@@ -1050,7 +1126,7 @@ class EndpointData:
         new_data._saved_project_id = self._saved_project_id
         return new_data
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Produce a string like EndpointData{key=val, ...}, for debugging."""
         str_attrs = (
             'api_version',
@@ -1076,12 +1152,16 @@ class EndpointData:
         )
 
     @property
-    def url(self):
+    def url(self) -> ty.Optional[str]:
         return self.service_url or self.catalog_url
 
     def get_current_versioned_data(
-        self, session, allow=None, cache=None, project_id=None
-    ):
+        self,
+        session: 'ks_session.Session',
+        allow: ty.Optional[ty.Dict[str, ty.Any]] = None,
+        cache: ty.Optional[ty.Dict[str, Discover]] = None,
+        project_id: ty.Optional[str] = None,
+    ) -> 'EndpointData':
         """Run version discovery on the current endpoint.
 
         A simplified version of get_versioned_data, get_current_versioned_data
@@ -1122,15 +1202,19 @@ class EndpointData:
 
     def get_versioned_data(
         self,
-        session,
-        allow=None,
-        cache=None,
-        allow_version_hack=True,
-        project_id=None,
-        discover_versions=True,
-        min_version=None,
-        max_version=None,
-    ):
+        session: 'ks_session.Session',
+        allow: ty.Optional[ty.Dict[str, ty.Any]] = None,
+        cache: ty.Optional[ty.Dict[str, ty.Any]] = None,
+        allow_version_hack: bool = True,
+        project_id: ty.Optional[str] = None,
+        discover_versions: bool = True,
+        min_version: ty.Union[
+            str, int, float, ty.Iterable[ty.Union[str, int, float]], None
+        ] = None,
+        max_version: ty.Union[
+            str, int, float, ty.Iterable[ty.Union[str, int, float]], None
+        ] = None,
+    ) -> 'EndpointData':
         """Run version discovery for the service described.
 
         Performs Version Discovery and returns a new EndpointData object with
@@ -1169,8 +1253,8 @@ class EndpointData:
                                                     appropriate versioned data
                                                     could not be discovered.
         """
-        min_version, max_version = _normalize_version_args(
-            None, min_version, max_version
+        normalized_min_version, normalized_max_version = (
+            _normalize_version_args(None, min_version, max_version)
         )
 
         if not allow:
@@ -1186,12 +1270,16 @@ class EndpointData:
             allow_version_hack=allow_version_hack,
             project_id=project_id,
             discover_versions=discover_versions,
-            min_version=min_version,
-            max_version=max_version,
+            min_version=normalized_min_version,
+            max_version=normalized_max_version,
         )
         return new_data
 
-    def get_all_version_string_data(self, session, project_id=None):
+    def get_all_version_string_data(
+        self,
+        session: 'ks_session.Session',
+        project_id: ty.Optional[str] = None,
+    ) -> ty.List['VersionData']:
         """Return version data for all versions discovery can find.
 
         :param string project_id: ID of the currently scoped project. Used for
@@ -1216,7 +1304,9 @@ class EndpointData:
             break
         return versions or self._infer_version_data(project_id)
 
-    def _infer_version_data(self, project_id=None):
+    def _infer_version_data(
+        self, project_id: ty.Optional[str] = None
+    ) -> ty.List['VersionData']:
         """Return version data dict for when discovery fails.
 
         :param string project_id: ID of the currently scoped project. Used for
@@ -1225,8 +1315,10 @@ class EndpointData:
         :returns: A list of :class:`VersionData` sorted by version number.
         :rtype: list(VersionData)
         """
-        version = self.api_version
-        if version:
+        assert self.url is not None  # nosec B101
+
+        version = None
+        if self.api_version:
             version = version_to_string(self.api_version)
 
         url = self.url.rstrip("/")
@@ -1238,15 +1330,15 @@ class EndpointData:
 
     def _set_version_info(
         self,
-        session,
-        allow=None,
-        cache=None,
-        allow_version_hack=True,
-        project_id=None,
-        discover_versions=False,
-        min_version=None,
-        max_version=None,
-    ):
+        session: 'ks_session.Session',
+        allow: ty.Dict[str, ty.Any],
+        cache: ty.Optional[ty.Dict[str, Discover]],
+        allow_version_hack: bool,
+        project_id: ty.Optional[str],
+        discover_versions: bool,
+        min_version: ty.Optional[_PARSED_VERSION_T],
+        max_version: ty.Optional[_PARSED_VERSION_T],
+    ) -> None:
         match_url = None
 
         no_version = not max_version and not min_version
@@ -1291,6 +1383,9 @@ class EndpointData:
                 url=match_url,
                 **allow,
             )
+
+        # hint for mypy: we would have returned early if this wasn't set
+        assert self._disc is not None  # nosec B101
 
         if not discovered_data:
             if min_version and not max_version:
@@ -1341,14 +1436,14 @@ class EndpointData:
 
     def _run_discovery(
         self,
-        session,
-        cache,
-        min_version,
-        max_version,
-        project_id,
-        allow_version_hack,
-        discover_versions,
-    ):
+        session: 'ks_session.Session',
+        cache: ty.Optional[ty.Dict[str, Discover]],
+        min_version: ty.Optional[_PARSED_VERSION_T],
+        max_version: ty.Optional[_PARSED_VERSION_T],
+        project_id: ty.Optional[str],
+        allow_version_hack: bool,
+        discover_versions: bool,
+    ) -> None:
         tried = set()
 
         for vers_url in self._get_discovery_url_choices(
@@ -1418,16 +1513,18 @@ class EndpointData:
 
     def _get_discovery_url_choices(
         self,
-        project_id=None,
-        allow_version_hack=True,
-        min_version=None,
-        max_version=None,
-    ):
+        project_id: ty.Optional[str],
+        allow_version_hack: bool = True,
+        min_version: ty.Optional[_PARSED_VERSION_T] = None,
+        max_version: ty.Optional[_PARSED_VERSION_T] = None,
+    ) -> ty.Generator[str, None, None]:
         """Find potential locations for version discovery URLs.
 
         min_version and max_version are already normalized, so will either be
         None or a tuple.
         """
+        assert self.url is not None  # nosec B101
+
         url = urllib.parse.urlparse(self.url.rstrip('/'))
         url_parts = url.path.split('/')
 
@@ -1470,7 +1567,7 @@ class EndpointData:
                 and max_version
                 and version_between(min_version, max_version, url_version)
             )
-            exact_match = (
+            exact_match = bool(
                 is_between and max_version and max_version[0] == url_version[0]
             )
             high_match = (
@@ -1552,9 +1649,10 @@ class EndpointData:
 
         # As a final fallthrough case, return the actual unmodified url from
         # the catalog.
-        yield self.catalog_url
+        if self.catalog_url:
+            yield self.catalog_url
 
-    def _get_catalog_discover_hack(self):
+    def _get_catalog_discover_hack(self) -> str:
         """Apply the catalog hacks and figure out an unversioned endpoint.
 
         This function is internal to keystoneauth1.
@@ -1562,10 +1660,17 @@ class EndpointData:
         :returns: A url that has been transformed by the regex hacks that
                   match the service_type.
         """
+        assert self.service_type is not None  # nosec B101
+        assert self.url is not None  # nosec B101
         return _VERSION_HACKS.get_discover_hack(self.service_type, self.url)
 
 
-def get_discovery(session, url, cache=None, authenticated=False):
+def get_discovery(
+    session: 'ks_session.Session',
+    url: str,
+    cache: ty.Optional[ty.Dict[str, Discover]] = None,
+    authenticated: ty.Optional[bool] = False,
+) -> Discover:
     """Return the discovery object for a URL.
 
     Check the session and the plugin cache to see if we have already
@@ -1601,7 +1706,7 @@ def get_discovery(session, url, cache=None, authenticated=False):
     # There are between one and three different caches. The user may have
     # passed one in. There is definitely one on the session, and there is
     # one on the auth plugin if the Session has an auth plugin.
-    caches = []
+    caches: ty.List[ty.Dict[str, Discover]] = []
 
     # If a cache was passed in, check it first.
     if cache is not None:
@@ -1654,10 +1759,14 @@ class _VersionHacks:
     make for easier testing.
     """
 
-    def __init__(self):
-        self._discovery_data = {}
+    def __init__(self) -> None:
+        self._discovery_data: ty.Dict[
+            str, ty.List[ty.Tuple[re.Pattern[str], str]]
+        ] = {}
 
-    def add_discover_hack(self, service_type, old, new=''):
+    def add_discover_hack(
+        self, service_type: str, old: re.Pattern[str], new: str = ''
+    ) -> None:
         """Add a new hack for a service type.
 
         :param str service_type: The service_type in the catalog.
@@ -1667,7 +1776,7 @@ class _VersionHacks:
         hacks = self._discovery_data.setdefault(service_type, [])
         hacks.append((old, new))
 
-    def get_discover_hack(self, service_type, url):
+    def get_discover_hack(self, service_type: str, url: str) -> str:
         """Apply the catalog hacks and figure out an unversioned endpoint.
 
         :param str service_type: the service_type to look up.
@@ -1688,7 +1797,9 @@ _VERSION_HACKS = _VersionHacks()
 _VERSION_HACKS.add_discover_hack('identity', re.compile('/v2.0/?$'), '/')
 
 
-def add_catalog_discover_hack(service_type, old, new):
+def add_catalog_discover_hack(
+    service_type: str, old: re.Pattern[str], new: str
+) -> None:
     """Add a version removal rule for a particular service.
 
     Originally deployments of OpenStack would contain a versioned endpoint in
