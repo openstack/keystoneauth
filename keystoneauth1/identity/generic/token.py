@@ -34,6 +34,14 @@ class Token(base.BaseGenericPlugin):
             return v3.Token(url, self._token, **self._v3_params)
 
     def get_cache_id_elements(self):
-        elements = super().get_cache_id_elements(_implemented=True)
-        elements['token'] = self._token
-        return elements
+        return {
+            'auth_url': self.auth_url,
+            'project_id': self._project_id,
+            'project_name': self._project_name,
+            'project_domain_id': self.project_domain_id,
+            'project_domain_name': self.project_domain_name,
+            'domain_id': self._domain_id,
+            'domain_name': self._domain_name,
+            'trust_id': self._trust_id,
+            'token': self._token,
+        }

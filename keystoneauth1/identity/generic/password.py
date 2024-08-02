@@ -89,10 +89,18 @@ class Password(base.BaseGenericPlugin):
         self._user_domain_name = value
 
     def get_cache_id_elements(self):
-        elements = super().get_cache_id_elements(_implemented=True)
-        elements['username'] = self._username
-        elements['user_id'] = self._user_id
-        elements['password'] = self._password
-        elements['user_domain_id'] = self.user_domain_id
-        elements['user_domain_name'] = self.user_domain_name
-        return elements
+        return {
+            'auth_url': self.auth_url,
+            'project_id': self._project_id,
+            'project_name': self._project_name,
+            'project_domain_id': self.project_domain_id,
+            'project_domain_name': self.project_domain_name,
+            'domain_id': self._domain_id,
+            'domain_name': self._domain_name,
+            'trust_id': self._trust_id,
+            'username': self._username,
+            'user_id': self._user_id,
+            'password': self._password,
+            'user_domain_id': self.user_domain_id,
+            'user_domain_name': self.user_domain_name,
+        }
