@@ -22,6 +22,8 @@ class TokenMethod(base.AuthMethod):
     :param string token: Token for authentication.
     """
 
+    token: str
+
     _method_parameters = ['token']
 
     # TODO(stephenfin): Deprecate and remove unused kwargs

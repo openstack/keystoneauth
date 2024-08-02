@@ -28,6 +28,10 @@ class OAuth2ClientCredentialMethod(base.AuthMethod):
     :param string oauth2_client_secret: OAuth2.0 client credential secret.
     """
 
+    oauth2_endpoint: str
+    oauth2_client_id: str
+    oauth2_client_secret: str
+
     _method_parameters = [
         'oauth2_endpoint',
         'oauth2_client_id',
