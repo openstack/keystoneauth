@@ -204,6 +204,37 @@ class BaseAuthPlugin:
 
         return None
 
+    def get_all_version_data(
+        self,
+        session: 'ks_session.Session',
+        interface: str = 'public',
+        region_name: ty.Optional[str] = None,
+        service_type: ty.Optional[str] = None,
+        **kwargs: ty.Any,
+    ) -> ty.Dict[
+        str, ty.Dict[str, ty.Dict[str, ty.List[discover.VersionData]]]
+    ]:
+        """Get version data for all services in the catalog.
+
+        :param session: A session object that can be used for communication.
+        :type session: keystoneauth1.session.Session
+        :param interface:
+            Type of endpoint to get version data for. Can be a single value
+            or a list of values. A value of None indicates that all interfaces
+            should be queried. (optional, defaults to public)
+        :param string region_name:
+            Region of endpoints to get version data for. A valueof None
+            indicates that all regions should be queried. (optional, defaults
+            to None)
+        :param string service_type:
+            Limit the version data to a single service. (optional, defaults
+            to None)
+        :returns: A dictionary keyed by region_name with values containing
+            dictionaries keyed by interface with values being a list of
+            :class:`~keystoneauth1.discover.VersionData`.
+        """
+        raise NotImplementedError()
+
     def get_endpoint(
         self, session: 'ks_session.Session', **kwargs: ty.Any
     ) -> ty.Optional[str]:
