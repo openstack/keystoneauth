@@ -10,7 +10,13 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import typing as ty
+
 from keystoneauth1 import discover
+
+if ty.TYPE_CHECKING:
+    from keystoneauth1.access import access
+    from keystoneauth1 import session as ks_session
 
 # NOTE(jamielennox): The AUTH_INTERFACE is a special value that can be
 # requested from get_endpoint. If a plugin receives this as the value of
@@ -29,10 +35,12 @@ class BaseAuthPlugin:
 
     """
 
-    def __init__(self):
-        self._discovery_cache = {}
+    def __init__(self) -> None:
+        self._discovery_cache: ty.Dict[str, discover.Discover] = {}
 
-    def get_token(self, session, **kwargs):
+    def get_token(
+        self, session: 'ks_session.Session', **kwargs: ty.Any
+    ) -> ty.Optional[str]:
         """Obtain a token.
 
         How the token is obtained is up to the plugin. If it is still valid
@@ -61,7 +69,9 @@ class BaseAuthPlugin:
         """
         return None
 
-    def get_auth_ref(self, session, **kwargs):
+    def get_auth_ref(
+        self, session: 'ks_session.Session', **kwargs: ty.Any
+    ) -> ty.Optional['access.AccessInfo']:
         """Return the authentication reference of an auth plugin.
 
         There are no required kwargs. They are passed directly to the auth
@@ -72,7 +82,9 @@ class BaseAuthPlugin:
         """
         return None
 
-    def get_headers(self, session, **kwargs):
+    def get_headers(
+        self, session: 'ks_session.Session', **kwargs: ty.Any
+    ) -> ty.Optional[ty.Dict[str, str]]:
         """Fetch authentication headers for message.
 
         This is a more generalized replacement of the older get_token to allow
@@ -112,12 +124,12 @@ class BaseAuthPlugin:
 
     def get_endpoint_data(
         self,
-        session,
+        session: 'ks_session.Session',
         *,
-        endpoint_override=None,
-        discover_versions=True,
-        **kwargs,
-    ):
+        endpoint_override: ty.Optional[str] = None,
+        discover_versions: bool = True,
+        **kwargs: ty.Any,
+    ) -> ty.Optional[discover.EndpointData]:
         """Return a valid endpoint data for a the service.
 
         :param session: A session object that can be used for communication.
@@ -150,8 +162,12 @@ class BaseAuthPlugin:
         )
 
     def get_api_major_version(
-        self, session, *, endpoint_override=None, **kwargs
-    ):
+        self,
+        session: 'ks_session.Session',
+        *,
+        endpoint_override: ty.Optional[str] = None,
+        **kwargs: ty.Any,
+    ) -> ty.Optional[ty.Tuple[ty.Union[int, float], ...]]:
         """Get the major API version from the endpoint.
 
         :param session: A session object that can be used for communication.
@@ -172,7 +188,7 @@ class BaseAuthPlugin:
             **kwargs,
         )
         if endpoint_data is None:
-            return
+            return None
 
         if endpoint_data.api_version is None:
             # No version detected from the URL, trying full discovery.
@@ -188,7 +204,9 @@ class BaseAuthPlugin:
 
         return None
 
-    def get_endpoint(self, session, **kwargs):
+    def get_endpoint(
+        self, session: 'ks_session.Session', **kwargs: ty.Any
+    ) -> ty.Optional[str]:
         """Return an endpoint for the client.
 
         There are no required keyword arguments to ``get_endpoint`` as a plugin
@@ -215,7 +233,9 @@ class BaseAuthPlugin:
             return None
         return endpoint_data.url
 
-    def get_connection_params(self, session, **kwargs):
+    def get_connection_params(
+        self, session: 'ks_session.Session', **kwargs: ty.Any
+    ) -> ty.Dict[str, ty.Any]:
         """Return any additional connection parameters required for the plugin.
 
         :param session: The session object that the auth_plugin belongs to.
@@ -228,7 +248,7 @@ class BaseAuthPlugin:
         """
         return {}
 
-    def invalidate(self):
+    def invalidate(self) -> bool:
         """Invalidate the current authentication data.
 
         This should result in fetching a new token on next call.
@@ -244,7 +264,9 @@ class BaseAuthPlugin:
         """
         return False
 
-    def get_user_id(self, session, **kwargs):
+    def get_user_id(
+        self, session: 'ks_session.Session', **kwargs: ty.Any
+    ) -> ty.Optional[str]:
         """Return a unique user identifier of the plugin.
 
         Wherever possible the user id should be inferred from the token however
@@ -259,7 +281,9 @@ class BaseAuthPlugin:
         """
         return None
 
-    def get_project_id(self, session, **kwargs):
+    def get_project_id(
+        self, session: 'ks_session.Session', **kwargs: ty.Any
+    ) -> ty.Optional[str]:
         """Return the project id that we are authenticated to.
 
         Wherever possible the project id should be inferred from the token
@@ -274,7 +298,9 @@ class BaseAuthPlugin:
         """
         return None
 
-    def get_sp_auth_url(self, session, sp_id, **kwargs):
+    def get_sp_auth_url(
+        self, session: 'ks_session.Session', sp_id: str, **kwargs: ty.Any
+    ) -> ty.Optional[str]:
         """Return auth_url from the Service Provider object.
 
         This url is used for obtaining unscoped federated token from remote
@@ -289,7 +315,9 @@ class BaseAuthPlugin:
         """
         return None
 
-    def get_sp_url(self, session, sp_id, **kwargs):
+    def get_sp_url(
+        self, session: 'ks_session.Session', sp_id: str, **kwargs: ty.Any
+    ) -> ty.Optional[str]:
         """Return sp_url from the Service Provider object.
 
         This url is used for passing SAML2 assertion to the remote cloud.
@@ -303,7 +331,7 @@ class BaseAuthPlugin:
         """
         return None
 
-    def get_cache_id(self):
+    def get_cache_id(self) -> ty.Optional[str]:
         """Fetch an identifier that uniquely identifies the auth options.
 
         The returned identifier need not be decomposable or otherwise provide
@@ -322,7 +350,7 @@ class BaseAuthPlugin:
         """
         return None
 
-    def get_auth_state(self):
+    def get_auth_state(self) -> object:
         """Retrieve the current authentication state for the plugin.
 
         Retrieve any internal state that represents the authenticated plugin.
@@ -339,7 +367,7 @@ class BaseAuthPlugin:
         """
         raise NotImplementedError()
 
-    def set_auth_state(self, data):
+    def set_auth_state(self, data: str) -> None:
         """Install existing authentication state for a plugin.
 
         Take the output of get_auth_state and install that authentication state
@@ -354,11 +382,13 @@ class BaseAuthPlugin:
 class FixedEndpointPlugin(BaseAuthPlugin):
     """A base class for plugins that have one fixed endpoint."""
 
-    def __init__(self, endpoint=None):
+    def __init__(self, endpoint: ty.Optional[str] = None):
         super().__init__()
         self.endpoint = endpoint
 
-    def get_endpoint(self, session, **kwargs):
+    def get_endpoint(
+        self, session: 'ks_session.Session', **kwargs: ty.Any
+    ) -> ty.Optional[str]:
         """Return the supplied endpoint.
 
         Using this plugin the same endpoint is returned regardless of the
@@ -369,12 +399,12 @@ class FixedEndpointPlugin(BaseAuthPlugin):
 
     def get_endpoint_data(
         self,
-        session,
+        session: 'ks_session.Session',
         *,
-        endpoint_override=None,
-        discover_versions=True,
-        **kwargs,
-    ):
+        endpoint_override: ty.Optional[str] = None,
+        discover_versions: bool = True,
+        **kwargs: ty.Any,
+    ) -> ty.Optional[discover.EndpointData]:
         """Return a valid endpoint data for a the service.
 
         :param session: A session object that can be used for communication.
