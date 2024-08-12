@@ -444,8 +444,8 @@ class Adapter:
         """
         adapter_group = parser.add_argument_group(
             'Service Options',
-            'Options controlling the specialization of the API'
-            ' Connection from information found in the catalog',
+            'Options controlling the specialization of the API '
+            'Connection from information found in the catalog',
         )
 
         adapter_group.add_argument(
@@ -503,8 +503,9 @@ class Adapter:
         service_env = service_type.upper().replace('-', '_')
         adapter_group = parser.add_argument_group(
             f'{service_type.title()} Service Options',
-            f'Options controlling the specialization of the {service_type.title()}'
-            ' API Connection from information found in the catalog',
+            f'Options controlling the specialization of the '
+            f'{service_type.title()} API Connection from information found in '
+            f'the catalog',
         )
 
         adapter_group.add_argument(
@@ -512,8 +513,8 @@ class Adapter:
             metavar='<name>',
             default=os.environ.get(f'OS_{service_env}_SERVICE_TYPE', None),
             help=(
-                'Service type to request from the catalog for the'
-                f' {service_type} service'
+                f'Service type to request from the catalog for the '
+                f'{service_type} service'
             ),
         )
 
@@ -522,8 +523,8 @@ class Adapter:
             metavar='<name>',
             default=os.environ.get(f'OS_{service_env}_SERVICE_NAME', None),
             help=(
-                'Service name to request from the catalog for the'
-                f' {service_type} service'
+                f'Service name to request from the catalog for the '
+                f'{service_type} service'
             ),
         )
 
@@ -532,8 +533,8 @@ class Adapter:
             metavar='<name>',
             default=os.environ.get(f'OS_{service_env}_INTERFACE', None),
             help=(
-                f'API Interface to use for the {service_type} service'
-                ' [public, internal, admin]'
+                f'API Interface to use for the {service_type} service '
+                f'[public, internal, admin]'
             ),
         )
 
@@ -542,8 +543,8 @@ class Adapter:
             metavar='<name>',
             default=os.environ.get(f'OS_{service_env}_API_VERSION', None),
             help=(
-                'Which version of the service API to use for'
-                f' the {service_type} service'
+                f'Which version of the service API to use for '
+                f'the {service_type} service'
             ),
         )
 
@@ -554,8 +555,8 @@ class Adapter:
                 f'OS_{service_env}_ENDPOINT_OVERRIDE', None
             ),
             help=(
-                f'Endpoint to use for the {service_type} service'
-                ' instead of the endpoint in the catalog'
+                f'Endpoint to use for the {service_type} service '
+                f'instead of the endpoint in the catalog'
             ),
         )
 
