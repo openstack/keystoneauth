@@ -13,6 +13,8 @@
 import queue
 import threading
 import time
+import types
+import typing as ty
 
 
 class FairSemaphore:
@@ -29,7 +31,7 @@ class FairSemaphore:
         semaphore.
     """
 
-    def __init__(self, concurrency, rate_delay):
+    def __init__(self, concurrency: ty.Optional[int], rate_delay: float):
         self._lock = threading.Lock()
         self._concurrency = concurrency
         if concurrency:
@@ -39,7 +41,7 @@ class FairSemaphore:
         self._rate_delay = rate_delay
         self._rate_last_ts = time.time()
 
-    def __enter__(self):
+    def __enter__(self) -> None:
         """Aquire a semaphore."""
         # If concurrency is None, everyone is free to immediately execute.
         if not self._concurrency:
@@ -51,13 +53,17 @@ class FairSemaphore:
             execution_time = self._get_ticket()
         return self._wait_for_execution(execution_time)
 
-    def _wait_for_execution(self, execution_time):
+    def _wait_for_execution(self, execution_time: float) -> None:
         """Wait until the pre-calculated time to run."""
         wait_time = execution_time - time.time()
         if wait_time > 0:
             time.sleep(wait_time)
 
-    def _get_ticket(self):
+    def _get_ticket(self) -> float:
+        # narrow types - we will only get here if self._concurrency is set
+        assert self._concurrency is not None  # nosec B101
+        assert self._count is not None  # nosec B101
+
         ticket = threading.Event()
         with self._lock:
             if self._count <= self._concurrency:
@@ -74,7 +80,7 @@ class FairSemaphore:
         with self._lock:
             return self._advance_timer()
 
-    def _advance_timer(self):
+    def _advance_timer(self) -> float:
         """Calculate the time when it's ok to run a command again.
 
         This runs inside of the mutex, serializing the calculation
@@ -85,7 +91,12 @@ class FairSemaphore:
         self._rate_last_ts = self._rate_last_ts + self._rate_delay
         return self._rate_last_ts
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(
+        self,
+        exc_type: ty.Optional[ty.Type[BaseException]],
+        exc_value: ty.Optional[BaseException],
+        traceback: ty.Optional[types.TracebackType],
+    ) -> None:
         """Release the semaphore."""
         # If concurrency is None, everyone is free to immediately execute
         if not self._concurrency:
