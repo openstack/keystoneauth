@@ -301,6 +301,7 @@ def _normalize_version_args(
         normalized_min_version = normalize_version_number(version)
         normalized_max_version = (normalized_min_version[0], LATEST)
         if implied_version:
+            assert service_type is not None  # nosec B101
             if normalized_min_version[0] != implied_version[0]:
                 raise exceptions.ImpliedVersionMismatch(
                     service_type=service_type,
@@ -344,6 +345,7 @@ def _normalize_version_args(
         raise ValueError("min_version cannot be greater than max_version")
 
     if implied_version:
+        assert service_type is not None  # nosec B101
         if normalized_min_version:
             if normalized_min_version[0] != implied_version[0]:
                 raise exceptions.ImpliedMinVersionMismatch(

@@ -10,7 +10,12 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import typing as ty
+
 from keystoneauth1.exceptions import base
+
+if ty.TYPE_CHECKING:
+    from keystoneauth1 import loading
 
 
 __all__ = (
@@ -41,7 +46,7 @@ class NoMatchingPlugin(AuthPluginException):
         The name of the plugin that was attempted to load.
     """
 
-    def __init__(self, name):
+    def __init__(self, name: str):
         self.name = name
         msg = f'The plugin {name} could not be found'
         super().__init__(msg)
@@ -57,7 +62,7 @@ class UnsupportedParameters(AuthPluginException):
         Names of the unsupported parameters.
     """
 
-    def __init__(self, names):
+    def __init__(self, names: ty.Sequence[str]):
         self.names = names
 
         m = 'The following parameters were given that are unsupported: %s'
@@ -87,7 +92,7 @@ class MissingRequiredOptions(OptionError):
         List of the missing options.
     """
 
-    def __init__(self, options):
+    def __init__(self, options: ty.Sequence['loading.Opt']):
         self.options = options
 
         names = ", ".join(o.dest for o in options)

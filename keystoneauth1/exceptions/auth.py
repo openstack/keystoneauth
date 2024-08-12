@@ -10,6 +10,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import requests
+
 from keystoneauth1 import _utils as utils
 from keystoneauth1.exceptions import base
 
@@ -21,7 +23,7 @@ class AuthorizationFailure(base.ClientException):
 class MissingAuthMethods(base.ClientException):
     message = "Not all required auth rules were satisfied"
 
-    def __init__(self, response):
+    def __init__(self, response: requests.Response):
         self.response = response
         self.receipt = response.headers.get("Openstack-Auth-Receipt")
         body = response.json()

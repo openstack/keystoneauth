@@ -18,7 +18,7 @@ __all__ = ('ServiceProviderNotFound',)
 class ServiceProviderNotFound(base.ClientException):
     """A Service Provider cannot be found."""
 
-    def __init__(self, sp_id):
+    def __init__(self, sp_id: str):
         self.sp_id = sp_id
         msg = f'The Service Provider {sp_id} could not be found'
         super().__init__(msg)

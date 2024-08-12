@@ -812,7 +812,7 @@ class OidcDeviceAuthorization(_OidcBase):
                         sanitized_response,
                     )
             except exceptions.http.BadRequest as exc:
-                error = exc.response.json().get("error")
+                error = exc.response and exc.response.json().get("error")
                 if error != "authorization_pending":
                     raise
                 time.sleep(self.interval)

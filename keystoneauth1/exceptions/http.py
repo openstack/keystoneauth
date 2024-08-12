@@ -18,8 +18,9 @@
 
 """HTTP Exceptions used by keystoneauth1."""
 
-import inspect
-import sys
+import typing as ty
+
+import requests
 
 from keystoneauth1.exceptions import auth
 from keystoneauth1.exceptions import base
@@ -66,14 +67,14 @@ class HttpError(base.ClientException):
 
     def __init__(
         self,
-        message=None,
-        details=None,
-        response=None,
-        request_id=None,
-        url=None,
-        method=None,
-        http_status=None,
-        retry_after=0,
+        message: ty.Optional[str] = None,
+        details: ty.Optional[str] = None,
+        response: ty.Optional[requests.Response] = None,
+        request_id: ty.Optional[str] = None,
+        url: ty.Optional[str] = None,
+        method: ty.Optional[str] = None,
+        http_status: ty.Optional[int] = None,
+        retry_after: int = 0,
     ):
         self.http_status = http_status or self.http_status
         self.message = message or self.message
@@ -256,13 +257,31 @@ class RequestEntityTooLarge(HTTPClientError):
     http_status = 413
     message = "Request Entity Too Large"
 
-    def __init__(self, *args, **kwargs):
+    def __init__(
+        self,
+        message: ty.Optional[str] = None,
+        details: ty.Optional[str] = None,
+        response: ty.Optional[requests.Response] = None,
+        request_id: ty.Optional[str] = None,
+        url: ty.Optional[str] = None,
+        method: ty.Optional[str] = None,
+        http_status: ty.Optional[int] = None,
+        retry_after: int = 0,
+    ):
         try:
-            self.retry_after = int(kwargs.pop('retry_after'))
+            self.retry_after = int(retry_after)
         except (KeyError, ValueError):
             self.retry_after = 0
 
-        super().__init__(*args, **kwargs)
+        super().__init__(
+            message=message,
+            details=details,
+            response=response,
+            request_id=request_id,
+            url=url,
+            method=method,
+            http_status=http_status,
+        )
 
 
 class RequestUriTooLong(HTTPClientError):
@@ -384,13 +403,37 @@ class HttpVersionNotSupported(HttpServerError):
 
 # _code_map contains all the classes that have http_status attribute.
 _code_map = {
-    getattr(obj, 'http_status', None): obj
-    for name, obj in vars(sys.modules[__name__]).items()
-    if inspect.isclass(obj) and getattr(obj, 'http_status', False)
+    400: BadRequest,
+    401: Unauthorized,
+    402: PaymentRequired,
+    403: Forbidden,
+    404: NotFound,
+    405: MethodNotAllowed,
+    406: NotAcceptable,
+    407: ProxyAuthenticationRequired,
+    408: RequestTimeout,
+    409: Conflict,
+    410: Gone,
+    411: LengthRequired,
+    412: PreconditionFailed,
+    413: RequestEntityTooLarge,
+    414: RequestUriTooLong,
+    415: UnsupportedMediaType,
+    416: RequestedRangeNotSatisfiable,
+    417: ExpectationFailed,
+    422: UnprocessableEntity,
+    500: InternalServerError,
+    501: HttpNotImplemented,
+    502: BadGateway,
+    503: ServiceUnavailable,
+    504: GatewayTimeout,
+    505: HttpVersionNotSupported,
 }
 
 
-def from_response(response, method, url):
+def from_response(
+    response: requests.Response, method: str, url: str
+) -> ty.Union[HttpError, auth.MissingAuthMethods]:
     """Return an instance of :class:`HttpError` or subclass based on response.
 
     :param response: instance of `requests.Response` class
@@ -468,4 +511,4 @@ def from_response(response, method, url):
             cls = HTTPClientError
         else:
             cls = HttpError
-    return cls(**kwargs)
+    return cls(**kwargs)  # type: ignore

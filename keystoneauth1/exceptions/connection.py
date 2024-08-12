@@ -48,6 +48,6 @@ class SSLError(ConnectionError):
 class UnknownConnectionError(ConnectionError):
     """An error was encountered but we don't know what it is."""
 
-    def __init__(self, msg, original):
+    def __init__(self, msg: str, original: Exception):
         super().__init__(msg)
         self.original = original

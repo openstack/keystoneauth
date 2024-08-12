@@ -10,6 +10,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import requests
 
 from keystoneauth1.exceptions import base
 
@@ -20,6 +21,6 @@ __all__ = ('InvalidResponse',)
 class InvalidResponse(base.ClientException):
     message = "Invalid response from server."
 
-    def __init__(self, response):
+    def __init__(self, response: requests.Response):
         super().__init__()
         self.response = response

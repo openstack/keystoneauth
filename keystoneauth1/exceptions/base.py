@@ -10,6 +10,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import typing as ty
 
 __all__ = ('ClientException',)
 
@@ -19,6 +20,6 @@ class ClientException(Exception):
 
     message = "ClientException"
 
-    def __init__(self, message=None):
+    def __init__(self, message: ty.Optional[str] = None):
         self.message = message or self.message
         super().__init__(self.message)

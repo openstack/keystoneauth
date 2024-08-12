@@ -10,6 +10,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import typing as ty
+
 import os_service_types
 
 from keystoneauth1.exceptions import base
@@ -25,6 +27,8 @@ __all__ = (
     'VersionNotAvailable',
 )
 
+_PARSED_VERSION_T = ty.Tuple[ty.Union[int, float], ...]
+
 
 class DiscoveryFailure(base.ClientException):
     message = "Discovery of client versions failed."
@@ -37,12 +41,14 @@ class VersionNotAvailable(DiscoveryFailure):
 class ImpliedVersionMismatch(ValueError):
     label = 'version'
 
-    def __init__(self, service_type, implied, given):
+    def __init__(
+        self, service_type: str, implied: _PARSED_VERSION_T, given: str
+    ):
         super().__init__(
-            f"service_type {service_type} was given which implies"
-            f" major API version {str(implied[0])} but {self.label} of"
-            f" {given} was also given. Please update your code"
-            f" to use the official service_type {_SERVICE_TYPES.get_service_type(service_type)}."
+            f"service_type {service_type} was given which implies major API "
+            f"version {str(implied[0])} but {self.label} of {given} was also "
+            f"given. Please update your code to use the official service_type "
+            f"{_SERVICE_TYPES.get_service_type(service_type)}."
         )
 
 
