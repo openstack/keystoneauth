@@ -10,6 +10,9 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import argparse
+import collections
+import logging
 import os
 import typing as ty
 import warnings
@@ -17,10 +20,14 @@ import warnings
 import requests
 
 from keystoneauth1 import _fair_semaphore
+from keystoneauth1 import discover
 from keystoneauth1 import session
 
+if ty.TYPE_CHECKING:
+    from keystoneauth1 import plugin
 
-class Adapter:
+
+class _BaseAdapter:
     """An instance of a session with local variables.
 
     A session is a global object that is shared around amongst many clients. It
@@ -116,38 +123,40 @@ class Adapter:
         a maximum of 60 seconds is used.
     """
 
-    client_name = None
-    client_version = None
+    client_name: ty.Optional[str] = None
+    client_version: ty.Optional[str] = None
 
     def __init__(
         self,
-        session,
-        service_type=None,
-        service_name=None,
-        interface=None,
-        region_name=None,
-        endpoint_override=None,
-        version=None,
-        auth=None,
-        user_agent=None,
-        connect_retries=None,
-        logger=None,
-        allow=None,
-        additional_headers=None,
-        client_name=None,
-        client_version=None,
-        allow_version_hack=None,
-        global_request_id=None,
-        min_version=None,
-        max_version=None,
-        default_microversion=None,
-        status_code_retries=None,
-        retriable_status_codes=None,
-        raise_exc=None,
-        rate_limit=None,
-        concurrency=None,
-        connect_retry_delay=None,
-        status_code_retry_delay=None,
+        session: session.Session,
+        service_type: ty.Optional[str] = None,
+        service_name: ty.Optional[str] = None,
+        interface: ty.Optional[str] = None,
+        region_name: ty.Optional[str] = None,
+        endpoint_override: ty.Optional[str] = None,
+        version: ty.Optional[str] = None,
+        auth: ty.Optional['plugin.BaseAuthPlugin'] = None,
+        user_agent: ty.Optional[str] = None,
+        connect_retries: ty.Optional[int] = None,
+        logger: ty.Optional[logging.Logger] = None,
+        allow: ty.Optional[ty.Dict[str, ty.Any]] = None,
+        additional_headers: ty.Optional[
+            collections.abc.MutableMapping[str, str]
+        ] = None,
+        client_name: ty.Optional[str] = None,
+        client_version: ty.Optional[str] = None,
+        allow_version_hack: ty.Optional[bool] = None,
+        global_request_id: ty.Optional[str] = None,
+        min_version: ty.Optional[str] = None,
+        max_version: ty.Optional[str] = None,
+        default_microversion: ty.Optional[str] = None,
+        status_code_retries: ty.Optional[int] = None,
+        retriable_status_codes: ty.Optional[ty.List[int]] = None,
+        raise_exc: ty.Optional[bool] = None,
+        rate_limit: ty.Optional[float] = None,
+        concurrency: ty.Optional[int] = None,
+        connect_retry_delay: ty.Optional[float] = None,
+        status_code_retry_delay: ty.Optional[float] = None,
     ):
         if version and (min_version or max_version):
             raise TypeError(
@@ -199,7 +208,9 @@ class Adapter:
             concurrency, rate_delay
         )
 
-    def _set_endpoint_filter_kwargs(self, kwargs):
+    def _set_endpoint_filter_kwargs(
+        self, kwargs: ty.Dict[str, object]
+    ) -> None:
         if self.service_type:
             kwargs.setdefault('service_type', self.service_type)
         if self.service_name:
@@ -217,10 +228,12 @@ class Adapter:
         if self.allow_version_hack is not None:
             kwargs.setdefault('allow_version_hack', self.allow_version_hack)
 
-    def request(self, url, method, **kwargs):
+    def _request(
+        self, url: str, method: str, **kwargs: ty.Any
+    ) -> requests.Response:
         endpoint_filter = kwargs.setdefault('endpoint_filter', {})
         self._set_endpoint_filter_kwargs(endpoint_filter)
-        # NOTE(gmann): Convert r initlize the headers to
+        # NOTE(gmann): Convert or initlize the headers to
         # CaseInsensitiveDict to make sure headers are
         # case insensitive.
         if kwargs.get('headers'):
@@ -282,7 +295,9 @@ class Adapter:
 
         return self.session.request(url, method, **kwargs)
 
-    def get_token(self, auth=None):
+    def get_token(
+        self, auth: ty.Optional['plugin.BaseAuthPlugin'] = None
+    ) -> ty.Optional[str]:
         """Return a token as provided by the auth plugin.
 
         :param auth: The auth plugin to use for token. Overrides the plugin
@@ -297,7 +312,11 @@ class Adapter:
         """
         return self.session.get_token(auth or self.auth)
 
-    def get_endpoint(self, auth=None, **kwargs):
+    def get_endpoint(
+        self,
+        auth: ty.Optional['plugin.BaseAuthPlugin'] = None,
+        **kwargs: ty.Any,
+    ) -> ty.Optional[str]:
         """Get an endpoint as provided by the auth plugin.
 
         :param auth: The auth plugin to use for token. Overrides the plugin on
@@ -316,7 +335,9 @@ class Adapter:
         self._set_endpoint_filter_kwargs(kwargs)
         return self.session.get_endpoint(auth or self.auth, **kwargs)
 
-    def get_endpoint_data(self, auth=None):
+    def get_endpoint_data(
+        self, auth: ty.Optional['plugin.BaseAuthPlugin'] = None
+    ) -> ty.Optional['discover.EndpointData']:
         """Get the endpoint data for this Adapter's endpoint.
 
         :param auth: The auth plugin to use for token. Overrides the plugin on
@@ -337,7 +358,11 @@ class Adapter:
 
         return self.session.get_endpoint_data(auth or self.auth, **kwargs)
 
-    def get_all_version_data(self, interface='public', region_name=None):
+    def get_all_version_data(
+        self, interface: str = 'public', region_name: ty.Optional[str] = None
+    ) -> ty.Dict[
+        str, ty.Dict[str, ty.Dict[str, ty.List[discover.VersionData]]]
+    ]:
         """Get data about all versions of a service.
 
         :param interface:
@@ -358,7 +383,11 @@ class Adapter:
             service_type=self.service_type,
         )
 
-    def get_api_major_version(self, auth=None, **kwargs):
+    def get_api_major_version(
+        self,
+        auth: ty.Optional['plugin.BaseAuthPlugin'] = None,
+        **kwargs: ty.Any,
+    ) -> ty.Optional[ty.Tuple[ty.Union[int, float], ...]]:
         """Get the major API version as provided by the auth plugin.
 
         :param auth: The auth plugin to use for token. Overrides the plugin on
@@ -377,11 +406,20 @@ class Adapter:
 
         return self.session.get_api_major_version(auth or self.auth, **kwargs)
 
-    def invalidate(self, auth=None):
-        """Invalidate an authentication plugin."""
+    def invalidate(
+        self, auth: ty.Optional['plugin.BaseAuthPlugin'] = None
+    ) -> bool:
+        """Invalidate an authentication plugin.
+
+        :param auth: The auth plugin to invalidate. Overrides the plugin on the
+                     session. (optional)
+        :type auth: keystoneauth1.plugin.BaseAuthPlugin
+        """
         return self.session.invalidate(auth or self.auth)
 
-    def get_user_id(self, auth=None):
+    def get_user_id(
+        self, auth: ty.Optional['plugin.BaseAuthPlugin'] = None
+    ) -> ty.Optional[str]:
         """Return the authenticated user_id as provided by the auth plugin.
 
         :param auth: The auth plugin to use for token. Overrides the plugin
@@ -398,7 +436,9 @@ class Adapter:
         """
         return self.session.get_user_id(auth or self.auth)
 
-    def get_project_id(self, auth=None):
+    def get_project_id(
+        self, auth: ty.Optional['plugin.BaseAuthPlugin'] = None
+    ) -> ty.Optional[str]:
         """Return the authenticated project_id as provided by the auth plugin.
 
         :param auth: The auth plugin to use for token. Overrides the plugin
@@ -415,27 +455,13 @@ class Adapter:
         """
         return self.session.get_project_id(auth or self.auth)
 
-    def get(self, url, **kwargs):
-        return self.request(url, 'GET', **kwargs)
-
-    def head(self, url, **kwargs):
-        return self.request(url, 'HEAD', **kwargs)
-
-    def post(self, url, **kwargs):
-        return self.request(url, 'POST', **kwargs)
-
-    def put(self, url, **kwargs):
-        return self.request(url, 'PUT', **kwargs)
-
-    def patch(self, url, **kwargs):
-        return self.request(url, 'PATCH', **kwargs)
-
-    def delete(self, url, **kwargs):
-        return self.request(url, 'DELETE', **kwargs)
-
     # TODO(efried): Move this to loading.adapter.Adapter
     @classmethod
-    def register_argparse_arguments(cls, parser, service_type=None):
+    def register_argparse_arguments(
+        cls,
+        parser: argparse.ArgumentParser,
+        service_type: ty.Optional[str] = None,
+    ) -> None:
         """Attach arguments to a given argparse Parser for Adapters.
 
         :param parser: The argparse parser to attach options to.
@@ -492,7 +518,9 @@ class Adapter:
 
     # TODO(efried): Move this to loading.adapter.Adapter
     @classmethod
-    def register_service_argparse_arguments(cls, parser, service_type):
+    def register_service_argparse_arguments(
+        cls, parser: argparse.ArgumentParser, service_type: str
+    ) -> None:
         """Attach arguments to a given argparse Parser for Adapters.
 
         :param parser: The argparse parser to attach options to.
@@ -561,7 +589,56 @@ class Adapter:
         )
 
 
-class LegacyJsonAdapter(Adapter):
+class Adapter(_BaseAdapter):
+    def request(
+        self, url: str, method: str, **kwargs: ty.Any
+    ) -> requests.Response:
+        return self._request(url, method, **kwargs)
+
+    def get(self, url: str, **kwargs: ty.Any) -> requests.Response:
+        """Perform a GET request.
+
+        This calls :py:meth:`.request()` with ``method`` set to ``GET``.
+        """
+        return self.request(url, 'GET', **kwargs)
+
+    def head(self, url: str, **kwargs: ty.Any) -> requests.Response:
+        """Perform a HEAD request.
+
+        This calls :py:meth:`.request()` with ``method`` set to ``HEAD``.
+        """
+        return self.request(url, 'HEAD', **kwargs)
+
+    def post(self, url: str, **kwargs: ty.Any) -> requests.Response:
+        """Perform a POST request.
+
+        This calls :py:meth:`.request()` with ``method`` set to ``POST``.
+        """
+        return self.request(url, 'POST', **kwargs)
+
+    def put(self, url: str, **kwargs: ty.Any) -> requests.Response:
+        """Perform a PUT request.
+
+        This calls :py:meth:`.request()` with ``method`` set to ``PUT``.
+        """
+        return self.request(url, 'PUT', **kwargs)
+
+    def patch(self, url: str, **kwargs: ty.Any) -> requests.Response:
+        """Perform a PATCH request.
+
+        This calls :py:meth:`.request()` with ``method`` set to ``PATCH``.
+        """
+        return self.request(url, 'PATCH', **kwargs)
+
+    def delete(self, url: str, **kwargs: ty.Any) -> requests.Response:
+        """Perform a DELETE request.
+
+        This calls :py:meth:`.request()` with ``method`` set to ``DELETE``.
+        """
+        return self.request(url, 'DELETE', **kwargs)
+
+
+class LegacyJsonAdapter(_BaseAdapter):
     """Make something that looks like an old HTTPClient.
 
     A common case when using an adapter is that we want an interface similar to
@@ -570,7 +647,9 @@ class LegacyJsonAdapter(Adapter):
     You probably don't want this if you are starting from scratch.
     """
 
-    def request(self, *args, **kwargs):
+    def request(
+        self, url: str, method: str, **kwargs: ty.Any
+    ) -> ty.Tuple[requests.Response, object]:
         headers = kwargs.setdefault('headers', {})
         headers.setdefault('Accept', 'application/json')
 
@@ -579,7 +658,7 @@ class LegacyJsonAdapter(Adapter):
         except KeyError:
             pass
 
-        resp = super().request(*args, **kwargs)
+        resp = self._request(url, method, **kwargs)
 
         try:
             body = resp.json()
@@ -588,14 +667,76 @@ class LegacyJsonAdapter(Adapter):
 
         return resp, body
 
+    def get(
+        self, url: str, **kwargs: ty.Any
+    ) -> ty.Tuple[requests.Response, object]:
+        """Perform a GET request.
+
+        This calls :py:meth:`.request()` with ``method`` set to ``GET``.
+        """
+        return self.request(url, 'GET', **kwargs)
+
+    def head(
+        self, url: str, **kwargs: ty.Any
+    ) -> ty.Tuple[requests.Response, object]:
+        """Perform a HEAD request.
+
+        This calls :py:meth:`.request()` with ``method`` set to ``HEAD``.
+        """
+        return self.request(url, 'HEAD', **kwargs)
+
+    def post(
+        self, url: str, **kwargs: ty.Any
+    ) -> ty.Tuple[requests.Response, object]:
+        """Perform a POST request.
+
+        This calls :py:meth:`.request()` with ``method`` set to ``POST``.
+        """
+        return self.request(url, 'POST', **kwargs)
+
+    def put(
+        self, url: str, **kwargs: ty.Any
+    ) -> ty.Tuple[requests.Response, object]:
+        """Perform a PUT request.
+
+        This calls :py:meth:`.request()` with ``method`` set to ``PUT``.
+        """
+        return self.request(url, 'PUT', **kwargs)
+
+    def patch(
+        self, url: str, **kwargs: ty.Any
+    ) -> ty.Tuple[requests.Response, object]:
+        """Perform a PATCH request.
+
+        This calls :py:meth:`.request()` with ``method`` set to ``PATCH``.
+        """
+        return self.request(url, 'PATCH', **kwargs)
+
+    def delete(
+        self, url: str, **kwargs: ty.Any
+    ) -> ty.Tuple[requests.Response, object]:
+        """Perform a DELETE request.
+
+        This calls :py:meth:`.request()` with ``method`` set to ``DELETE``.
+        """
+        return self.request(url, 'DELETE', **kwargs)
+
 
 # TODO(efried): Deprecate this in favor of
 #               loading.adapter.register_argparse_arguments
-def register_adapter_argparse_arguments(*args, **kwargs):
-    return Adapter.register_argparse_arguments(*args, **kwargs)
+def register_adapter_argparse_arguments(
+    parser: argparse.ArgumentParser, service_type: ty.Optional[str] = None
+) -> None:
+    return Adapter.register_argparse_arguments(
+        parser=parser, service_type=service_type
+    )
 
 
 # TODO(efried): Deprecate this in favor of
 #               loading.adapter.register_service_argparse_arguments
-def register_service_adapter_argparse_arguments(*args, **kwargs):
-    return Adapter.register_service_argparse_arguments(*args, **kwargs)
+def register_service_adapter_argparse_arguments(
+    parser: argparse.ArgumentParser, service_type: str
+) -> None:
+    return Adapter.register_service_argparse_arguments(
+        parser=parser, service_type=service_type
+    )
