@@ -11,8 +11,12 @@
 # under the License.
 
 import base64
+import typing as ty
 
 from keystoneauth1 import plugin
+
+if ty.TYPE_CHECKING:
+    from keystoneauth1 import session as ks_session
 
 AUTH_HEADER_NAME = 'Authorization'
 
@@ -24,19 +28,28 @@ class HTTPBasicAuth(plugin.FixedEndpointPlugin):
     that might be deployed in standalone mode.
     """
 
-    def __init__(self, endpoint=None, username=None, password=None):
+    def __init__(
+        self,
+        endpoint: ty.Optional[str] = None,
+        username: ty.Optional[str] = None,
+        password: ty.Optional[str] = None,
+    ):
         super().__init__(endpoint)
         self.username = username
         self.password = password
 
-    def get_token(self, session, **kwargs):
+    def get_token(
+        self, session: 'ks_session.Session', **kwargs: ty.Any
+    ) -> ty.Optional[str]:
         if self.username is None or self.password is None:
             return None
         token = bytes(f'{self.username}:{self.password}', encoding='utf-8')
         encoded = base64.b64encode(token)
         return str(encoded, encoding='utf-8')
 
-    def get_headers(self, session, **kwargs):
+    def get_headers(
+        self, session: 'ks_session.Session', **kwargs: ty.Any
+    ) -> ty.Optional[ty.Dict[str, str]]:
         token = self.get_token(session)
         if not token:
             return None

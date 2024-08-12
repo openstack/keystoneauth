@@ -10,7 +10,14 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import typing as ty
+
+from keystoneauth1 import discover
 from keystoneauth1 import plugin
+
+if ty.TYPE_CHECKING:
+    from keystoneauth1.access import access
+    from keystoneauth1 import session as ks_session
 
 
 class Token(plugin.BaseAuthPlugin):
@@ -20,24 +27,26 @@ class Token(plugin.BaseAuthPlugin):
     have a known endpoint and admin token that you want to use.
     """
 
-    def __init__(self, endpoint, token):
+    def __init__(self, endpoint: ty.Optional[str], token: ty.Optional[str]):
         super().__init__()
         # NOTE(jamielennox): endpoint is reserved for when plugins
         # can be used to provide that information
         self.endpoint = endpoint
         self.token = token
 
-    def get_token(self, session, **kwargs):
+    def get_token(
+        self, session: 'ks_session.Session', **kwargs: ty.Any
+    ) -> ty.Optional[str]:
         return self.token
 
     def get_endpoint_data(
         self,
-        session,
+        session: 'ks_session.Session',
         *,
-        endpoint_override=None,
-        discover_versions=True,
-        **kwargs,
-    ):
+        endpoint_override: ty.Optional[str] = None,
+        discover_versions: bool = True,
+        **kwargs: ty.Any,
+    ) -> ty.Optional[discover.EndpointData]:
         """Return a valid endpoint data for a the service.
 
         :param session: A session object that can be used for communication.
@@ -65,7 +74,9 @@ class Token(plugin.BaseAuthPlugin):
             **kwargs,
         )
 
-    def get_endpoint(self, session, **kwargs):
+    def get_endpoint(
+        self, session: 'ks_session.Session', **kwargs: ty.Any
+    ) -> ty.Optional[str]:
         """Return the supplied endpoint.
 
         Using this plugin the same endpoint is returned regardless of the
@@ -73,7 +84,9 @@ class Token(plugin.BaseAuthPlugin):
         """
         return self.endpoint
 
-    def get_auth_ref(self, session, **kwargs):
+    def get_auth_ref(
+        self, session: 'ks_session.Session', **kwargs: ty.Any
+    ) -> ty.Optional['access.AccessInfo']:
         """Return the authentication reference of an auth plugin.
 
         :param session: A session object to be used for communication

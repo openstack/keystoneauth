@@ -109,8 +109,10 @@ class ServiceTokenTests(utils.TestCase):
         )
 
         self.assertEqual(
-            self.user_auth.get_endpoint(self.session, 'identity'),
-            self.combined_auth.get_endpoint(self.session, 'identity'),
+            self.user_auth.get_endpoint(self.session, service_type='identity'),
+            self.combined_auth.get_endpoint(
+                self.session, service_type='identity'
+            ),
         )
 
         self.assertEqual(

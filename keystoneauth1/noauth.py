@@ -10,7 +10,12 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import typing as ty
+
 from keystoneauth1 import plugin
+
+if ty.TYPE_CHECKING:
+    from keystoneauth1 import session as ks_session
 
 
 class NoAuth(plugin.FixedEndpointPlugin):
@@ -20,5 +25,7 @@ class NoAuth(plugin.FixedEndpointPlugin):
     that might be deployed in standalone/noauth mode.
     """
 
-    def get_token(self, session, **kwargs):
+    def get_token(
+        self, session: 'ks_session.Session', **kwargs: ty.Any
+    ) -> ty.Optional[str]:
         return 'notused'
