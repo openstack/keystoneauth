@@ -604,8 +604,12 @@ class AccessInfoV3(AccessInfo):
         return 'catalog' in self._data['token']
 
     @property
+    def _token(self):
+        return self._data.get('token', {})
+
+    @property
     def _user(self):
-        return self._data['token']['user']
+        return self._token['user']
 
     @property
     def is_federated(self):
@@ -615,13 +619,13 @@ class AccessInfoV3(AccessInfo):
     def is_admin_project(self):
         return self._data.get('token', {}).get('is_admin_project', True)
 
-    @_missingproperty
+    @property
     def expires(self):
-        return utils.parse_isotime(self._data['token']['expires_at'])
+        return utils.parse_isotime(self._token['expires_at'])
 
     @_missingproperty
     def issued(self):
-        return utils.parse_isotime(self._data['token']['issued_at'])
+        return utils.parse_isotime(self._token['issued_at'])
 
     @_missingproperty
     def user_id(self):
@@ -647,11 +651,11 @@ class AccessInfoV3(AccessInfo):
 
     @_missingproperty
     def role_ids(self):
-        return [r['id'] for r in self._data['token'].get('roles', [])]
+        return [r['id'] for r in self._token.get('roles', [])]
 
     @_missingproperty
     def role_names(self):
-        return [r['name'] for r in self._data['token'].get('roles', [])]
+        return [r['name'] for r in self._token.get('roles', [])]
 
     @_missingproperty
     def username(self):
@@ -659,11 +663,11 @@ class AccessInfoV3(AccessInfo):
 
     @_missingproperty
     def system(self):
-        return self._data['token']['system']
+        return self._token['system']
 
     @property
     def _domain(self):
-        return self._data['token']['domain']
+        return self._token['domain']
 
     @_missingproperty
     def domain_name(self):
@@ -675,15 +679,19 @@ class AccessInfoV3(AccessInfo):
 
     @property
     def _project(self):
-        return self._data['token']['project']
+        return self._token['project']
 
     @_missingproperty
     def project_id(self):
         return self._project['id']
 
     @_missingproperty
+    def project_name(self):
+        return self._project['name']
+
+    @_missingproperty
     def project_is_domain(self):
-        return self._data['token']['is_domain']
+        return self._token['is_domain']
 
     @_missingproperty
     def project_domain_id(self):
@@ -692,10 +700,6 @@ class AccessInfoV3(AccessInfo):
     @_missingproperty
     def project_domain_name(self):
         return self._project['domain']['name']
-
-    @_missingproperty
-    def project_name(self):
-        return self._project['name']
 
     @property
     def domain_scoped(self):
@@ -706,11 +710,11 @@ class AccessInfoV3(AccessInfo):
 
     @_missingproperty
     def system_scoped(self):
-        return self._data['token']['system'].get('all', False)
+        return self._token['system'].get('all', False)
 
     @property
     def _trust(self):
-        return self._data['token']['OS-TRUST:trust']
+        return self._token['OS-TRUST:trust']
 
     @_missingproperty
     def trust_id(self):
@@ -733,19 +737,23 @@ class AccessInfoV3(AccessInfo):
 
     @property
     def application_credential(self):
-        return self._data['token']['application_credential']
+        return self._token['application_credential']
+
+    @property
+    def _application_credential(self):
+        return self._token['application_credential']
 
     @_missingproperty
     def application_credential_id(self):
-        return self._data['token']['application_credential']['id']
+        return self._application_credential['id']
 
     @_missingproperty
     def application_credential_access_rules(self):
-        return self._data['token']['application_credential']['access_rules']
+        return self._application_credential['access_rules']
 
     @property
     def _oauth(self):
-        return self._data['token']['OS-OAUTH1']
+        return self._token['OS-OAUTH1']
 
     @_missingproperty
     def oauth_access_token_id(self):
@@ -758,14 +766,14 @@ class AccessInfoV3(AccessInfo):
     @_missingproperty
     def audit_id(self):
         try:
-            return self._data['token']['audit_ids'][0]
+            return self._token['audit_ids'][0]
         except IndexError:
             return None
 
     @_missingproperty
     def audit_chain_id(self):
         try:
-            return self._data['token']['audit_ids'][1]
+            return self._token['audit_ids'][1]
         except IndexError:
             return None
 
@@ -780,12 +788,16 @@ class AccessInfoV3(AccessInfo):
 
     @_missingproperty
     def bind(self):
-        return self._data['token']['bind']
+        return self._token['bind']
 
     @property
     def oauth2_credential(self):
-        return self._data['token']['oauth2_credential']
+        return self._token['oauth2_credential']
+
+    @property
+    def _oauth2_credential(self):
+        return self._token['oauth2_credential']
 
     @_missingproperty
     def oauth2_credential_thumbprint(self):
-        return self._data['token']['oauth2_credential']['x5t#S256']
+        return self._oauth2_credential['x5t#S256']
