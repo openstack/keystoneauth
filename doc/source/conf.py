@@ -112,3 +112,17 @@ openstackdocs_pdf_link = True
 openstackdocs_auto_name = False
 openstackdocs_bug_project = 'keystoneauth'
 openstackdocs_bug_tag = 'doc'
+
+
+# -- Options for autodoc
+
+
+def maybe_skip_member(app, what, name, obj, skip, options):
+    # workaround for https://github.com/sphinx-doc/sphinx/issues/10322
+    if '-' in name or '#' in name:
+        return True
+    return False
+
+
+def setup(app):
+    app.connect('autodoc-skip-member', maybe_skip_member)

@@ -10,14 +10,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import typing as ty
+
+from keystoneauth1.access import types
 from keystoneauth1 import exceptions
 
 
 class ServiceProviders:
     """Helper methods for dealing with Service Providers."""
 
+    def __init__(self, service_providers: ty.List[types.ServiceProviderV3]):
+        self._service_providers = {
+            sp['id']: sp for sp in service_providers if 'id' in sp
+        }
+
     @classmethod
-    def from_token(cls, token):
+    def from_token(cls, token: types.TokenResponseV3) -> 'ServiceProviders':
         if 'token' not in token:
             raise ValueError(
                 'Token format does not support service providers.'
@@ -25,22 +33,14 @@ class ServiceProviders:
 
         return cls(token['token'].get('service_providers', []))
 
-    def __init__(self, service_providers):
-        def normalize(service_providers_list):
-            return {
-                sp['id']: sp for sp in service_providers_list if 'id' in sp
-            }
-
-        self._service_providers = normalize(service_providers)
-
-    def _get_service_provider(self, sp_id):
+    def _get_service_provider(self, sp_id: str) -> types.ServiceProviderV3:
         try:
             return self._service_providers[sp_id]
         except KeyError:
             raise exceptions.ServiceProviderNotFound(sp_id)
 
-    def get_sp_url(self, sp_id):
-        return self._get_service_provider(sp_id).get('sp_url')
+    def get_sp_url(self, sp_id: str) -> str:
+        return self._get_service_provider(sp_id)['sp_url']
 
-    def get_auth_url(self, sp_id):
-        return self._get_service_provider(sp_id).get('auth_url')
+    def get_auth_url(self, sp_id: str) -> str:
+        return self._get_service_provider(sp_id)['auth_url']
