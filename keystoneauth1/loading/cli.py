@@ -12,14 +12,22 @@
 
 import argparse
 import os
+import typing as ty
 
 from keystoneauth1.loading import base
+
+if ty.TYPE_CHECKING:
+    from keystoneauth1.loading import opts
+    from keystoneauth1 import plugin
 
 
 __all__ = ('register_argparse_arguments', 'load_from_argparse_arguments')
 
 
-def _register_plugin_argparse_arguments(parser, plugin):
+def _register_plugin_argparse_arguments(
+    parser: ty.Union[argparse.ArgumentParser, argparse._ArgumentGroup],
+    plugin: base.BaseLoader,
+) -> None:
     for opt in plugin.get_options():
         parser.add_argument(
             *opt.argparse_args,
@@ -30,7 +38,9 @@ def _register_plugin_argparse_arguments(parser, plugin):
         )
 
 
-def register_argparse_arguments(parser, argv, default=None):
+def register_argparse_arguments(
+    parser: argparse.ArgumentParser, argv: ty.List[str], default: ty.Any = None
+) -> ty.Optional[base.BaseLoader]:
     """Register CLI options needed to create a plugin.
 
     The function inspects the provided arguments so that it can also register
@@ -43,7 +53,7 @@ def register_argparse_arguments(parser, argv, default=None):
                               if one isn't specified by the CLI. default: None.
 
     :returns: The plugin class that will be loaded or None if not provided.
-    :rtype: :class:`keystoneauth1.plugin.BaseAuthPlugin`
+    :rtype: :class:`keystoneauth1.loader.BaseLoader`
 
     :raises keystoneauth1.exceptions.auth_plugins.NoMatchingPlugin:
         if a plugin cannot be created.
@@ -78,7 +88,9 @@ def register_argparse_arguments(parser, argv, default=None):
     return plugin
 
 
-def load_from_argparse_arguments(namespace, **kwargs):
+def load_from_argparse_arguments(
+    namespace: argparse.Namespace, **kwargs: ty.Any
+) -> ty.Optional['plugin.BaseAuthPlugin']:
     """Retrieve the created plugin from the completed argparse results.
 
     Loads and creates the auth plugin from the information parsed from the
@@ -100,7 +112,7 @@ def load_from_argparse_arguments(namespace, **kwargs):
     else:
         plugin = base.get_plugin_loader(namespace.os_auth_type)
 
-    def _getter(opt):
+    def _getter(opt: 'opts.Opt') -> ty.Any:
         return getattr(namespace, f'os_{opt.dest}')
 
     return plugin.load_from_options_getter(_getter, **kwargs)
