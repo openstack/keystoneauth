@@ -11,10 +11,16 @@
 # under the License.
 
 import abc
+import typing as ty
 
 import stevedore
+from stevedore import extension
 
 from keystoneauth1 import exceptions
+
+if ty.TYPE_CHECKING:
+    from keystoneauth1.loading import opts
+    from keystoneauth1 import plugin
 
 PLUGIN_NAMESPACE = 'keystoneauth1.plugin'
 
@@ -29,12 +35,12 @@ __all__ = (
 )
 
 
-def _auth_plugin_available(ext):
+def _auth_plugin_available(ext: extension.Extension) -> bool:
     """Read the value of available for whether to load this plugin."""
-    return ext.obj.available
+    return ty.cast(bool, ext.obj.available)
 
 
-def get_available_plugin_names():
+def get_available_plugin_names() -> ty.FrozenSet[str]:
     """Get the names of all the plugins that are available on the system.
 
     This is particularly useful for help and error text to prompt a user for
@@ -52,7 +58,7 @@ def get_available_plugin_names():
     return frozenset(mgr.names())
 
 
-def get_available_plugin_loaders():
+def get_available_plugin_loaders() -> ty.Dict[str, 'BaseLoader']:
     """Retrieve all the plugin classes available on the system.
 
     :returns: A dict with plugin entrypoint name as the key and the plugin
@@ -69,7 +75,7 @@ def get_available_plugin_loaders():
     return dict(mgr.map(lambda ext: (ext.entry_point.name, ext.obj)))
 
 
-def get_plugin_loader(name):
+def get_plugin_loader(name: str) -> 'BaseLoader':
     """Retrieve a plugin class by its entrypoint name.
 
     :param str name: The name of the object to get.
@@ -87,10 +93,10 @@ def get_plugin_loader(name):
     except RuntimeError:
         raise exceptions.NoMatchingPlugin(name)
 
-    return mgr.driver
+    return ty.cast('BaseLoader', mgr.driver)
 
 
-def get_plugin_options(name):
+def get_plugin_options(name: str) -> ty.List['opts.Opt']:
     """Get the options for a specific plugin.
 
     This will be the list of options that is registered and loaded by the
@@ -106,10 +112,10 @@ def get_plugin_options(name):
 
 class BaseLoader(metaclass=abc.ABCMeta):
     @property
-    def plugin_class(self):
+    def plugin_class(self) -> ty.Type['plugin.BaseAuthPlugin']:
         raise NotImplementedError()
 
-    def create_plugin(self, **kwargs):
+    def create_plugin(self, **kwargs: ty.Any) -> 'plugin.BaseAuthPlugin':
         """Create a plugin from the options available for the loader.
 
         Given the options that were specified by the loader create an
@@ -128,7 +134,7 @@ class BaseLoader(metaclass=abc.ABCMeta):
         return self.plugin_class(**kwargs)
 
     @abc.abstractmethod
-    def get_options(self):
+    def get_options(self) -> ty.List['opts.Opt']:
         """Return the list of parameters associated with the auth plugin.
 
         This list may be used to generate CLI or config arguments.
@@ -140,7 +146,7 @@ class BaseLoader(metaclass=abc.ABCMeta):
         return []
 
     @property
-    def available(self):
+    def available(self) -> bool:
         """Return if the plugin is available for loading.
 
         If a plugin is missing dependencies or for some other reason should not
@@ -151,7 +157,7 @@ class BaseLoader(metaclass=abc.ABCMeta):
         """
         return True
 
-    def load_from_options(self, **kwargs):
+    def load_from_options(self, **kwargs: ty.Any) -> 'plugin.BaseAuthPlugin':
         """Create a plugin from the arguments retrieved from get_options.
 
         A client can override this function to do argument validation or to
@@ -169,7 +175,9 @@ class BaseLoader(metaclass=abc.ABCMeta):
 
         return self.create_plugin(**kwargs)
 
-    def load_from_options_getter(self, getter, **kwargs):
+    def load_from_options_getter(
+        self, getter: ty.Callable[['opts.Opt'], ty.Any], **kwargs: ty.Any
+    ) -> 'plugin.BaseAuthPlugin':
         """Load a plugin from getter function that returns appropriate values.
 
         To handle cases other than the provided CONF and CLI loading you can

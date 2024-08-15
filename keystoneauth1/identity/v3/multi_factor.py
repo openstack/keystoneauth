@@ -56,13 +56,18 @@ class MultiFactor(base.Auth):
         include_catalog: bool = True,
         **kwargs: ty.Any,
     ):
-        method_instances = []
-        method_keys = set()
+        method_instances: ty.List[base.AuthMethod] = []
+        method_keys: ty.Set[str] = set()
         for method in auth_methods:
             # Using the loaders we pull the related auth method class
-            method_class = loading.get_plugin_loader(
-                method
-            ).plugin_class._auth_method_class
+            plugin_class = loading.get_plugin_loader(method).plugin_class
+            if not issubclass(plugin_class, base.AuthConstructor):
+                raise TypeError(
+                    'The multifactor auth method can only be used with v3 '
+                    'auth plugins'
+                )
+
+            method_class = plugin_class._auth_method_class
             # We build some new kwargs for the method from required parameters
             method_kwargs = {}
             for key in method_class._method_parameters:
