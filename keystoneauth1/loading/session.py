@@ -12,10 +12,16 @@
 
 import argparse
 import os
+import typing as ty
 
 from keystoneauth1.loading import _utils
 from keystoneauth1.loading import base
 from keystoneauth1 import session
+
+if ty.TYPE_CHECKING:
+    from oslo_config import cfg
+
+    from keystoneauth1.loading import opts
 
 
 __all__ = (
@@ -27,7 +33,9 @@ __all__ = (
 )
 
 
-def _positive_non_zero_float(argument_value):
+def _positive_non_zero_float(
+    argument_value: ty.Optional[str],
+) -> ty.Optional[float]:
     if argument_value is None:
         return None
     try:
@@ -41,23 +49,23 @@ def _positive_non_zero_float(argument_value):
     return value
 
 
-class Session(base.BaseLoader):
+class Session(base._BaseLoader[session.Session]):
     @property
-    def plugin_class(self):
+    def plugin_class(self) -> ty.Type[session.Session]:
         return session.Session
 
-    def get_options(self):
+    def get_options(self) -> ty.List['opts.Opt']:
         return []
 
     def load_from_options(
         self,
-        insecure=False,
-        verify=None,
-        cacert=None,
-        cert=None,
-        key=None,
-        **kwargs,
-    ):
+        insecure: bool = False,
+        verify: ty.Union[bool, str, None] = None,
+        cacert: ty.Optional[str] = None,
+        cert: ty.Optional[str] = None,
+        key: ty.Optional[str] = None,
+        **kwargs: ty.Any,
+    ) -> session.Session:
         """Create a session with individual certificate parameters.
 
         Some parameters used to create a session don't lend themselves to be
@@ -70,14 +78,17 @@ class Session(base.BaseLoader):
             else:
                 verify = cacert or True
 
+        cert_: ty.Union[str, None, ty.Tuple[str, str]] = cert
         if cert and key:
             # passing cert and key together is deprecated in favour of the
             # requests lib form of having the cert and key as a tuple
-            cert = (cert, key)
+            cert_ = (cert, key)
 
-        return super().load_from_options(verify=verify, cert=cert, **kwargs)
+        return super().load_from_options(verify=verify, cert=cert_, **kwargs)
 
-    def register_argparse_arguments(self, parser):
+    def register_argparse_arguments(
+        self, parser: argparse.ArgumentParser
+    ) -> None:
         session_group = parser.add_argument_group(
             'API Connection Options',
             'Options controlling the HTTP API Connections',
@@ -136,7 +147,9 @@ class Session(base.BaseLoader):
             help='Collect per-API call timing information.',
         )
 
-    def load_from_argparse_arguments(self, namespace, **kwargs):
+    def load_from_argparse_arguments(
+        self, namespace: argparse.Namespace, **kwargs: ty.Any
+    ) -> session.Session:
         kwargs.setdefault('insecure', namespace.insecure)
         kwargs.setdefault('cacert', namespace.os_cacert)
         kwargs.setdefault('cert', namespace.os_cert)
@@ -146,7 +159,12 @@ class Session(base.BaseLoader):
 
         return self.load_from_options(**kwargs)
 
-    def get_conf_options(self, deprecated_opts=None):
+    def get_conf_options(
+        self,
+        deprecated_opts: ty.Optional[
+            ty.Dict[str, ty.List['cfg.DeprecatedOpt']]
+        ] = None,
+    ) -> ty.List['cfg.Opt']:
         """Get oslo_config options that are needed for a :py:class:`.Session`.
 
         These may be useful without being registered for config file generation
@@ -221,7 +239,14 @@ class Session(base.BaseLoader):
             ),
         ]
 
-    def register_conf_options(self, conf, group, deprecated_opts=None):
+    def register_conf_options(
+        self,
+        conf: 'cfg.ConfigOpts',
+        group: str,
+        deprecated_opts: ty.Optional[
+            ty.Dict[str, ty.List['cfg.DeprecatedOpt']]
+        ] = None,
+    ) -> ty.List['cfg.Opt']:
         """Register the oslo_config options that are needed for a session.
 
         The options that are set are:
@@ -253,7 +278,9 @@ class Session(base.BaseLoader):
         conf.register_opts(opts, group=group)
         return opts
 
-    def load_from_conf_options(self, conf, group, **kwargs):
+    def load_from_conf_options(
+        self, conf: 'cfg.ConfigOpts', group: str, **kwargs: ty.Any
+    ) -> session.Session:
         """Create a session object from an oslo_config object.
 
         The options must have been previously registered with
@@ -279,21 +306,37 @@ class Session(base.BaseLoader):
         return self.load_from_options(**kwargs)
 
 
-def register_argparse_arguments(*args, **kwargs):
-    return Session().register_argparse_arguments(*args, **kwargs)
+def register_argparse_arguments(parser: argparse.ArgumentParser) -> None:
+    Session().register_argparse_arguments(parser)
 
 
-def load_from_argparse_arguments(*args, **kwargs):
-    return Session().load_from_argparse_arguments(*args, **kwargs)
+def load_from_argparse_arguments(
+    namespace: argparse.Namespace, **kwargs: ty.Any
+) -> session.Session:
+    return Session().load_from_argparse_arguments(namespace, **kwargs)
 
 
-def register_conf_options(*args, **kwargs):
-    return Session().register_conf_options(*args, **kwargs)
+def register_conf_options(
+    conf: 'cfg.ConfigOpts',
+    group: str,
+    deprecated_opts: ty.Optional[
+        ty.Dict[str, ty.List['cfg.DeprecatedOpt']]
+    ] = None,
+) -> ty.List['cfg.Opt']:
+    return Session().register_conf_options(
+        conf, group, deprecated_opts=deprecated_opts
+    )
 
 
-def load_from_conf_options(*args, **kwargs):
-    return Session().load_from_conf_options(*args, **kwargs)
+def load_from_conf_options(
+    conf: 'cfg.ConfigOpts', group: str, **kwargs: ty.Any
+) -> session.Session:
+    return Session().load_from_conf_options(conf, group, **kwargs)
 
 
-def get_conf_options(*args, **kwargs):
-    return Session().get_conf_options(*args, **kwargs)
+def get_conf_options(
+    deprecated_opts: ty.Optional[
+        ty.Dict[str, ty.List['cfg.DeprecatedOpt']]
+    ] = None,
+) -> ty.List['cfg.Opt']:
+    return Session().get_conf_options(deprecated_opts=deprecated_opts)
