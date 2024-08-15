@@ -10,9 +10,14 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import typing as ty
+
 from keystoneauth1 import exceptions
 from keystoneauth1.loading import base
 from keystoneauth1.loading import opts
+
+if ty.TYPE_CHECKING:
+    from keystoneauth1 import plugin
 
 __all__ = (
     'BaseIdentityLoader',
@@ -32,7 +37,7 @@ class BaseIdentityLoader(base.BaseLoader):
     :py:class:`keystoneauth1.identity.BaseIdentityPlugin` class.
     """
 
-    def get_options(self):
+    def get_options(self) -> ty.List[opts.Opt]:
         options = super().get_options()
 
         options.extend(
@@ -50,7 +55,7 @@ class BaseV2Loader(BaseIdentityLoader):
     :py:class:`keystoneauth1.identity.v2.Auth` class.
     """
 
-    def get_options(self):
+    def get_options(self) -> ty.List[opts.Opt]:
         options = super().get_options()
 
         options.extend(
@@ -74,7 +79,7 @@ class BaseV3Loader(BaseIdentityLoader):
     :py:class:`keystoneauth1.identity.v3.Auth` class.
     """
 
-    def get_options(self):
+    def get_options(self) -> ty.List[opts.Opt]:
         options = super().get_options()
 
         options.extend(
@@ -99,7 +104,7 @@ class BaseV3Loader(BaseIdentityLoader):
 
         return options
 
-    def load_from_options(self, **kwargs):
+    def load_from_options(self, **kwargs: ty.Any) -> 'plugin.BaseAuthPlugin':
         if kwargs.get('project_name') and not (
             kwargs.get('project_domain_name')
             or kwargs.get('project_domain_id')
@@ -123,7 +128,7 @@ class BaseFederationLoader(BaseV3Loader):
     :py:class:`keystoneauth1.identity.v3.FederationBaseAuth` class.
     """
 
-    def get_options(self):
+    def get_options(self) -> ty.List[opts.Opt]:
         options = super().get_options()
 
         options.extend(
@@ -153,7 +158,7 @@ class BaseGenericLoader(BaseIdentityLoader):
     by the :py:class:`keystoneauth1.identity.v3.BaseGenericPlugin` class.
     """
 
-    def get_options(self):
+    def get_options(self) -> ty.List[opts.Opt]:
         options = super().get_options()
 
         options.extend(
