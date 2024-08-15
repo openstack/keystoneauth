@@ -10,7 +10,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import typing as ty
+
 from keystoneauth1 import loading
+from keystoneauth1.loading import opts
 from keystoneauth1 import noauth
 
 
@@ -27,10 +30,10 @@ class NoAuth(loading.BaseLoader):
     """
 
     @property
-    def plugin_class(self):
+    def plugin_class(self) -> ty.Type[noauth.NoAuth]:
         return noauth.NoAuth
 
-    def get_options(self):
+    def get_options(self) -> ty.List[opts.Opt]:
         options = super().get_options()
 
         options.extend(

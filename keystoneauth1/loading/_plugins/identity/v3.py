@@ -10,12 +10,18 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import typing as ty
+
 from keystoneauth1 import exceptions
 from keystoneauth1 import identity
 from keystoneauth1 import loading
+from keystoneauth1.loading import opts
+
+if ty.TYPE_CHECKING:
+    from keystoneauth1.identity.v3 import oidc
 
 
-def _add_common_identity_options(options):
+def _add_common_identity_options(options: ty.List[opts.Opt]) -> None:
     options.extend(
         [
             loading.Opt('user-id', help='User ID'),
@@ -30,7 +36,7 @@ def _add_common_identity_options(options):
     )
 
 
-def _assert_identity_options(options):
+def _assert_identity_options(options: ty.Dict[str, ty.Any]) -> None:
     if options.get('username') and not (
         options.get('user_domain_name') or options.get('user_domain_id')
     ):
@@ -44,10 +50,10 @@ def _assert_identity_options(options):
 
 class Password(loading.BaseV3Loader):
     @property
-    def plugin_class(self):
+    def plugin_class(self) -> ty.Type[identity.V3Password]:
         return identity.V3Password
 
-    def get_options(self):
+    def get_options(self) -> ty.List[opts.Opt]:
         options = super().get_options()
         _add_common_identity_options(options)
 
@@ -64,18 +70,20 @@ class Password(loading.BaseV3Loader):
 
         return options
 
-    def load_from_options(self, **kwargs):
+    def load_from_options(self, **kwargs: ty.Any) -> identity.V3Password:
         _assert_identity_options(kwargs)
-
-        return super().load_from_options(**kwargs)
+        # TODO(stephenfin): Avoid the need for this cast with generics?
+        return ty.cast(
+            identity.V3Password, super().load_from_options(**kwargs)
+        )
 
 
 class Token(loading.BaseV3Loader):
     @property
-    def plugin_class(self):
+    def plugin_class(self) -> ty.Type[identity.V3Token]:
         return identity.V3Token
 
-    def get_options(self):
+    def get_options(self) -> ty.List[opts.Opt]:
         options = super().get_options()
 
         options.extend(
@@ -88,9 +96,13 @@ class Token(loading.BaseV3Loader):
 
         return options
 
+    def load_from_options(self, **kwargs: ty.Any) -> identity.V3Token:
+        # TODO(stephenfin): Avoid the need for this cast with generics?
+        return ty.cast(identity.V3Token, super().load_from_options(**kwargs))
+
 
 class _OpenIDConnectBase(loading.BaseFederationLoader):
-    def load_from_options(self, **kwargs):
+    def load_from_options(self, **kwargs: ty.Any) -> 'oidc._OidcBase':
         if not (
             kwargs.get('access_token_endpoint')
             or kwargs.get('discovery_endpoint')
@@ -101,9 +113,10 @@ class _OpenIDConnectBase(loading.BaseFederationLoader):
             )
             raise exceptions.OptionError(m)
 
-        return super().load_from_options(**kwargs)
+        # TODO(stephenfin): Avoid the need for this cast with generics?
+        return ty.cast('oidc._OidcBase', super().load_from_options(**kwargs))
 
-    def get_options(self):
+    def get_options(self) -> ty.List[opts.Opt]:
         options = super().get_options()
 
         options.extend(
@@ -155,21 +168,30 @@ class _OpenIDConnectBase(loading.BaseFederationLoader):
 
 class OpenIDConnectClientCredentials(_OpenIDConnectBase):
     @property
-    def plugin_class(self):
+    def plugin_class(self) -> ty.Type[identity.V3OidcClientCredentials]:
         return identity.V3OidcClientCredentials
 
-    def get_options(self):
+    def get_options(self) -> ty.List[opts.Opt]:
         options = super().get_options()
 
         return options
 
+    def load_from_options(
+        self, **kwargs: ty.Any
+    ) -> identity.V3OidcClientCredentials:
+        # TODO(stephenfin): Avoid the need for this cast with generics?
+        return ty.cast(
+            identity.V3OidcClientCredentials,
+            super().load_from_options(**kwargs),
+        )
+
 
 class OpenIDConnectPassword(_OpenIDConnectBase):
     @property
-    def plugin_class(self):
+    def plugin_class(self) -> ty.Type[identity.V3OidcPassword]:
         return identity.V3OidcPassword
 
-    def get_options(self):
+    def get_options(self) -> ty.List[opts.Opt]:
         options = super().get_options()
 
         options.extend(
@@ -189,13 +211,19 @@ class OpenIDConnectPassword(_OpenIDConnectBase):
 
         return options
 
+    def load_from_options(self, **kwargs: ty.Any) -> identity.V3OidcPassword:
+        # TODO(stephenfin): Avoid the need for this cast with generics?
+        return ty.cast(
+            identity.V3OidcPassword, super().load_from_options(**kwargs)
+        )
+
 
 class OpenIDConnectAuthorizationCode(_OpenIDConnectBase):
     @property
-    def plugin_class(self):
+    def plugin_class(self) -> ty.Type[identity.V3OidcAuthorizationCode]:
         return identity.V3OidcAuthorizationCode
 
-    def get_options(self):
+    def get_options(self) -> ty.List[opts.Opt]:
         options = super().get_options()
 
         options.extend(
@@ -215,13 +243,22 @@ class OpenIDConnectAuthorizationCode(_OpenIDConnectBase):
 
         return options
 
+    def load_from_options(
+        self, **kwargs: ty.Any
+    ) -> identity.V3OidcAuthorizationCode:
+        # TODO(stephenfin): Avoid the need for this cast with generics?
+        return ty.cast(
+            identity.V3OidcAuthorizationCode,
+            super().load_from_options(**kwargs),
+        )
+
 
 class OpenIDConnectAccessToken(loading.BaseFederationLoader):
     @property
-    def plugin_class(self):
+    def plugin_class(self) -> ty.Type[identity.V3OidcAccessToken]:
         return identity.V3OidcAccessToken
 
-    def get_options(self):
+    def get_options(self) -> ty.List[opts.Opt]:
         options = super().get_options()
 
         options.extend(
@@ -236,13 +273,21 @@ class OpenIDConnectAccessToken(loading.BaseFederationLoader):
         )
         return options
 
+    def load_from_options(
+        self, **kwargs: ty.Any
+    ) -> identity.V3OidcAccessToken:
+        # TODO(stephenfin): Avoid the need for this cast with generics?
+        return ty.cast(
+            identity.V3OidcAccessToken, super().load_from_options(**kwargs)
+        )
+
 
 class OpenIDConnectDeviceAuthorization(_OpenIDConnectBase):
     @property
-    def plugin_class(self):
+    def plugin_class(self) -> ty.Type[identity.V3OidcDeviceAuthorization]:
         return identity.V3OidcDeviceAuthorization
 
-    def get_options(self):
+    def get_options(self) -> ty.List[opts.Opt]:
         options = super().get_options()
 
         # RFC 8628 doesn't support id_token
@@ -266,13 +311,22 @@ class OpenIDConnectDeviceAuthorization(_OpenIDConnectBase):
 
         return options
 
+    def load_from_options(
+        self, **kwargs: ty.Any
+    ) -> identity.V3OidcDeviceAuthorization:
+        # TODO(stephenfin): Avoid the need for this cast with generics?
+        return ty.cast(
+            identity.V3OidcDeviceAuthorization,
+            super().load_from_options(**kwargs),
+        )
+
 
 class TOTP(loading.BaseV3Loader):
     @property
-    def plugin_class(self):
+    def plugin_class(self) -> ty.Type[identity.V3TOTP]:
         return identity.V3TOTP
 
-    def get_options(self):
+    def get_options(self) -> ty.List[opts.Opt]:
         options = super().get_options()
         _add_common_identity_options(options)
 
@@ -289,18 +343,18 @@ class TOTP(loading.BaseV3Loader):
 
         return options
 
-    def load_from_options(self, **kwargs):
+    def load_from_options(self, **kwargs: ty.Any) -> identity.V3TOTP:
         _assert_identity_options(kwargs)
-
-        return super().load_from_options(**kwargs)
+        # TODO(stephenfin): Avoid the need for this cast with generics?
+        return ty.cast(identity.V3TOTP, super().load_from_options(**kwargs))
 
 
 class TokenlessAuth(loading.BaseLoader):
     @property
-    def plugin_class(self):
+    def plugin_class(self) -> ty.Type[identity.V3TokenlessAuth]:
         return identity.V3TokenlessAuth
 
-    def get_options(self):
+    def get_options(self) -> ty.List[opts.Opt]:
         options = super().get_options()
 
         options.extend(
@@ -324,7 +378,7 @@ class TokenlessAuth(loading.BaseLoader):
 
         return options
 
-    def load_from_options(self, **kwargs):
+    def load_from_options(self, **kwargs: ty.Any) -> identity.V3TokenlessAuth:
         if (
             not kwargs.get('domain_id')
             and not kwargs.get('domain_name')
@@ -348,15 +402,19 @@ class TokenlessAuth(loading.BaseLoader):
             )
             raise exceptions.OptionError(m)
 
-        return super().load_from_options(**kwargs)
+        return ty.cast(
+            # TODO(stephenfin): Avoid the need for this cast with generics?
+            identity.V3TokenlessAuth,
+            super().load_from_options(**kwargs),
+        )
 
 
 class ApplicationCredential(loading.BaseV3Loader):
     @property
-    def plugin_class(self):
+    def plugin_class(self) -> ty.Type[identity.V3ApplicationCredential]:
         return identity.V3ApplicationCredential
 
-    def get_options(self):
+    def get_options(self) -> ty.List[opts.Opt]:
         options = super().get_options()
         _add_common_identity_options(options)
 
@@ -381,7 +439,9 @@ class ApplicationCredential(loading.BaseV3Loader):
 
         return options
 
-    def load_from_options(self, **kwargs):
+    def load_from_options(
+        self, **kwargs: ty.Any
+    ) -> identity.V3ApplicationCredential:
         _assert_identity_options(kwargs)
         if not kwargs.get('application_credential_id') and not kwargs.get(
             'application_credential_name'
@@ -395,19 +455,23 @@ class ApplicationCredential(loading.BaseV3Loader):
             m = 'You must provide an auth secret.'
             raise exceptions.OptionError(m)
 
-        return super().load_from_options(**kwargs)
+        # TODO(stephenfin): Avoid the need for this cast with generics?
+        return ty.cast(
+            identity.V3ApplicationCredential,
+            super().load_from_options(**kwargs),
+        )
 
 
 class MultiFactor(loading.BaseV3Loader):
-    def __init__(self, *args, **kwargs):
+    def __init__(self) -> None:
+        super().__init__()
         self._methods = None
-        return super().__init__(*args, **kwargs)
 
     @property
-    def plugin_class(self):
+    def plugin_class(self) -> ty.Type[identity.V3MultiFactor]:
         return identity.V3MultiFactor
 
-    def get_options(self):
+    def get_options(self) -> ty.List[opts.Opt]:
         options = super().get_options()
 
         options.extend(
@@ -429,7 +493,7 @@ class MultiFactor(loading.BaseV3Loader):
             options = list(options_dict.values())
         return options
 
-    def load_from_options(self, **kwargs):
+    def load_from_options(self, **kwargs: ty.Any) -> identity.V3MultiFactor:
         _assert_identity_options(kwargs)
 
         if 'auth_methods' not in kwargs:
@@ -437,15 +501,18 @@ class MultiFactor(loading.BaseV3Loader):
 
         self._methods = kwargs['auth_methods']
 
-        return super().load_from_options(**kwargs)
+        # TODO(stephenfin): Avoid the need for this cast with generics?
+        return ty.cast(
+            identity.V3MultiFactor, super().load_from_options(**kwargs)
+        )
 
 
 class OAuth2ClientCredential(loading.BaseV3Loader):
     @property
-    def plugin_class(self):
+    def plugin_class(self) -> ty.Type[identity.V3OAuth2ClientCredential]:
         return identity.V3OAuth2ClientCredential
 
-    def get_options(self):
+    def get_options(self) -> ty.List[opts.Opt]:
         options = super().get_options()
         options.extend(
             [
@@ -470,7 +537,9 @@ class OAuth2ClientCredential(loading.BaseV3Loader):
 
         return options
 
-    def load_from_options(self, **kwargs):
+    def load_from_options(
+        self, **kwargs: ty.Any
+    ) -> identity.V3OAuth2ClientCredential:
         if not kwargs.get('oauth2_endpoint'):
             m = 'You must provide an OAuth2.0 endpoint.'
             raise exceptions.OptionError(m)
@@ -481,15 +550,19 @@ class OAuth2ClientCredential(loading.BaseV3Loader):
             m = 'You must provide an OAuth2.0 client credential auth secret.'
             raise exceptions.OptionError(m)
 
-        return super().load_from_options(**kwargs)
+        # TODO(stephenfin): Avoid the need for this cast with generics?
+        return ty.cast(
+            identity.V3OAuth2ClientCredential,
+            super().load_from_options(**kwargs),
+        )
 
 
 class OAuth2mTlsClientCredential(loading.BaseV3Loader):
     @property
-    def plugin_class(self):
+    def plugin_class(self) -> ty.Type[identity.V3OAuth2mTlsClientCredential]:
         return identity.V3OAuth2mTlsClientCredential
 
-    def get_options(self):
+    def get_options(self) -> ty.List[opts.Opt]:
         options = super().get_options()
         options.extend(
             [
@@ -508,7 +581,9 @@ class OAuth2mTlsClientCredential(loading.BaseV3Loader):
         )
         return options
 
-    def load_from_options(self, **kwargs):
+    def load_from_options(
+        self, **kwargs: ty.Any
+    ) -> identity.V3OAuth2mTlsClientCredential:
         if not kwargs.get('oauth2_endpoint'):
             m = 'You must provide an OAuth2.0 Mutual-TLS endpoint.'
             raise exceptions.OptionError(m)
@@ -518,4 +593,8 @@ class OAuth2mTlsClientCredential(loading.BaseV3Loader):
                 'OAuth2.0 Mutual-TLS Authorization.'
             )
             raise exceptions.OptionError(m)
-        return super().load_from_options(**kwargs)
+        # TODO(stephenfin): Avoid the need for this cast with generics?
+        return ty.cast(
+            identity.V3OAuth2mTlsClientCredential,
+            super().load_from_options(**kwargs),
+        )
