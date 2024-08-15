@@ -12,9 +12,12 @@
 
 import itertools
 import os
+import typing as ty
 
 from keystoneauth1.loading import _utils
 
+if ty.TYPE_CHECKING:
+    from oslo_config import cfg
 
 __all__ = ('Opt',)
 
@@ -48,8 +51,8 @@ class Opt:
     :param str dest: the name of the argument that will be passed to __init__.
         This allows you to have a different name in loading than is used by the
         __init__ function. Defaults to the value of name.
-    :param keystoneauth1.loading.Opt: A list of other options that are
-        deprecated in favour of this one. This ensures the old options are
+    :param keystoneauth1.loading.Opt deprecated: A list of other options that
+        are deprecated in favour of this one. This ensures the old options are
         still registered.
     :type opt: list(Opt)
     :param default: A default value that can be used if one is not provided.
@@ -62,16 +65,16 @@ class Opt:
 
     def __init__(
         self,
-        name,
-        type=str,
-        help=None,
-        secret=False,
-        dest=None,
-        deprecated=None,
-        default=None,
-        metavar=None,
-        required=False,
-        prompt=None,
+        name: str,
+        type: ty.Type[ty.Any] = str,
+        help: ty.Optional[str] = None,
+        secret: bool = False,
+        dest: ty.Optional[str] = None,
+        deprecated: ty.Optional[ty.List['Opt']] = None,
+        default: ty.Any = None,
+        metavar: ty.Optional[str] = None,
+        required: bool = False,
+        prompt: ty.Optional[str] = None,
     ):
         if not callable(type):
             raise TypeError('type must be callable')
@@ -91,15 +94,15 @@ class Opt:
         self.prompt = prompt
         # These are for oslo.config compat
         self.deprecated_opts = self.deprecated
-        self.deprecated_for_removal = []
+        self.deprecated_for_removal = False
         self.sample_default = None
         self.group = None
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Return string representation of option name."""
         return f'<Opt: {self.name}>'
 
-    def _to_oslo_opt(self):
+    def _to_oslo_opt(self) -> 'cfg.Opt':
         cfg = _utils.get_oslo_config()
         deprecated_opts = [cfg.DeprecatedOpt(o.name) for o in self.deprecated]
 
@@ -114,7 +117,7 @@ class Opt:
             metavar=self.metavar,
         )
 
-    def __eq__(self, other):
+    def __eq__(self, other: ty.Any) -> bool:
         """Define equality operator on option parameters."""
         return (
             type(self) is type(other)
@@ -130,15 +133,15 @@ class Opt:
         )
 
     @property
-    def _all_opts(self):
+    def _all_opts(self) -> itertools.chain['Opt']:
         return itertools.chain([self], self.deprecated)
 
     @property
-    def argparse_args(self):
+    def argparse_args(self) -> ty.List[str]:
         return [f'--os-{o.name}' for o in self._all_opts]
 
     @property
-    def argparse_default(self):
+    def argparse_default(self) -> ty.Any:
         # select the first ENV that is not false-y or return None
         for o in self._all_opts:
             v = os.environ.get(
