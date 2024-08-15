@@ -10,11 +10,16 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import typing as ty
+
+if ty.TYPE_CHECKING:
+    from oslo_config import cfg as _cfg
+
 cfg = None
 _NOT_FOUND = object()
 
 
-def get_oslo_config():
+def get_oslo_config() -> '_cfg':
     """Runtime load the oslo.config object.
 
     In performance optimization of openstackclient it was determined that even
