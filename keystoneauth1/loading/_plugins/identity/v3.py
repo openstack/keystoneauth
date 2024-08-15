@@ -303,12 +303,8 @@ class ApplicationCredential(loading.BaseV3Loader):
             loading.Opt('application_credential_secret', secret=True,
                         required=True,
                         help="Application credential auth secret"),
-        ]),
-        options.extend([
             loading.Opt('application_credential_id',
                         help='Application credential ID'),
-        ]),
-        options.extend([
             loading.Opt('application_credential_name',
                         help='Application credential name'),
         ])
@@ -381,13 +377,9 @@ class OAuth2ClientCredential(loading.BaseV3Loader):
             loading.Opt('oauth2_endpoint',
                         required=True,
                         help='Endpoint for OAuth2.0'),
-        ]),
-        options.extend([
             loading.Opt('oauth2_client_id',
                         required=True,
                         help='Client id for OAuth2.0'),
-        ]),
-        options.extend([
             loading.Opt('oauth2_client_secret',
                         secret=True,
                         required=True,
