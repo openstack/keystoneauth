@@ -10,8 +10,15 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import typing as ty
+
 from keystoneauth1.loading import base
 from keystoneauth1.loading import opts
+import keystoneauth1.plugin
+
+if ty.TYPE_CHECKING:
+    from oslo_config import cfg
+
 
 _AUTH_TYPE_OPT = opts.Opt(
     'auth_type',
@@ -31,7 +38,7 @@ __all__ = (
 )
 
 
-def get_common_conf_options():
+def get_common_conf_options() -> ty.List['cfg.Opt']:
     """Get the oslo_config options common for all auth plugins.
 
     These may be useful without being registered for config file generation
@@ -46,7 +53,9 @@ def get_common_conf_options():
     return [_AUTH_TYPE_OPT._to_oslo_opt(), _AUTH_SECTION_OPT._to_oslo_opt()]
 
 
-def get_plugin_conf_options(plugin):
+def get_plugin_conf_options(
+    plugin: ty.Union[base.BaseLoader, str],
+) -> ty.List['cfg.Opt']:
     """Get the oslo_config options for a specific plugin.
 
     This will be the list of config options that is registered and loaded by
@@ -57,17 +66,15 @@ def get_plugin_conf_options(plugin):
 
     :returns: A list of oslo_config options.
     """
-    try:
-        getter = plugin.get_options
-    except AttributeError:
+    if isinstance(plugin, str):
         opts = base.get_plugin_options(plugin)
     else:
-        opts = getter()
+        opts = plugin.get_options()
 
     return [o._to_oslo_opt() for o in opts]
 
 
-def register_conf_options(conf, group):
+def register_conf_options(conf: 'cfg.ConfigOpts', group: str) -> None:
     """Register the oslo_config options that are needed for a plugin.
 
     This only registers the basic options shared by all plugins. Options that
@@ -98,7 +105,9 @@ def register_conf_options(conf, group):
     conf.register_opt(_AUTH_TYPE_OPT._to_oslo_opt(), group=group)
 
 
-def load_from_conf_options(conf, group, **kwargs):
+def load_from_conf_options(
+    conf: 'cfg.ConfigOpts', group: str, **kwargs: ty.Any
+) -> ty.Optional['keystoneauth1.plugin.BaseAuthPlugin']:
     """Load a plugin from an oslo_config CONF object.
 
     Each plugin will register their own required options and so there is no
@@ -127,13 +136,13 @@ def load_from_conf_options(conf, group, **kwargs):
     if not name:
         return None
 
-    plugin = base.get_plugin_loader(name)
-    plugin_opts = plugin.get_options()
-    oslo_opts = [o._to_oslo_opt() for o in plugin_opts]
+    loader = base.get_plugin_loader(name)
+    loader_opts = loader.get_options()
+    oslo_opts = [o._to_oslo_opt() for o in loader_opts]
 
     conf.register_opts(oslo_opts, group=group)
 
-    def _getter(opt):
+    def _getter(opt: opts.Opt) -> ty.Any:
         return conf[group][opt.dest]
 
-    return plugin.load_from_options_getter(_getter, **kwargs)
+    return loader.load_from_options_getter(_getter, **kwargs)
