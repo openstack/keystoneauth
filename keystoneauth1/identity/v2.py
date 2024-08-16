@@ -11,11 +11,14 @@
 # under the License.
 
 import abc
+import collections.abc
+import typing as ty
 
 from keystoneauth1 import _utils as utils
 from keystoneauth1 import access
 from keystoneauth1 import exceptions
 from keystoneauth1.identity import base
+from keystoneauth1 import session as ks_session
 
 _logger = utils.get_logger(__name__)
 
@@ -35,11 +38,11 @@ class Auth(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
 
     def __init__(
         self,
-        auth_url,
-        trust_id=None,
-        tenant_id=None,
-        tenant_name=None,
-        reauthenticate=True,
+        auth_url: str,
+        trust_id: ty.Optional[str] = None,
+        tenant_id: ty.Optional[str] = None,
+        tenant_name: ty.Optional[str] = None,
+        reauthenticate: bool = True,
     ):
         super().__init__(auth_url=auth_url, reauthenticate=reauthenticate)
 
@@ -48,7 +51,9 @@ class Auth(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
         self.tenant_name = tenant_name
 
     # TODO(stephenfin): Deprecate and remove unused kwargs
-    def get_auth_ref(self, session, **kwargs):
+    def get_auth_ref(
+        self, session: ks_session.Session, **kwargs: ty.Any
+    ) -> access.AccessInfoV2:
         headers = {'Accept': 'application/json'}
         url = self.auth_url.rstrip('/') + '/tokens'
         params = {'auth': self.get_auth_data(headers)}
@@ -76,7 +81,10 @@ class Auth(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
         return access.AccessInfoV2(resp_data)
 
     @abc.abstractmethod
-    def get_auth_data(self, headers=None):
+    def get_auth_data(
+        self,
+        headers: ty.Optional[collections.abc.MutableMapping[str, str]] = None,
+    ) -> ty.Dict[str, object]:
         """Return the authentication section of an auth plugin.
 
         :param dict headers: The headers that will be sent with the auth
@@ -86,12 +94,9 @@ class Auth(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
         """
 
     @property
-    def has_scope_parameters(self):
+    def has_scope_parameters(self) -> bool:
         """Return true if parameters can be used to create a scoped token."""
-        return self.tenant_id or self.tenant_name or self.trust_id
-
-
-_NOT_PASSED = object()
+        return bool(self.tenant_id or self.tenant_name or self.trust_id)
 
 
 class Password(Auth):
@@ -114,15 +119,15 @@ class Password(Auth):
 
     def __init__(
         self,
-        auth_url,
-        username=_NOT_PASSED,
-        password=None,
-        user_id=_NOT_PASSED,
+        auth_url: str,
+        username: ty.Optional[str] = None,
+        password: ty.Optional[str] = None,
+        user_id: ty.Optional[str] = None,
         *,
-        trust_id=None,
-        tenant_id=None,
-        tenant_name=None,
-        reauthenticate=True,
+        trust_id: ty.Optional[str] = None,
+        tenant_id: ty.Optional[str] = None,
+        tenant_name: ty.Optional[str] = None,
+        reauthenticate: bool = True,
     ):
         super().__init__(
             auth_url,
@@ -132,20 +137,18 @@ class Password(Auth):
             reauthenticate=reauthenticate,
         )
 
-        if username is _NOT_PASSED and user_id is _NOT_PASSED:
+        if username is None and user_id is None:
             msg = 'You need to specify either a username or user_id'
             raise TypeError(msg)
-
-        if username is _NOT_PASSED:
-            username = None
-        if user_id is _NOT_PASSED:
-            user_id = None
 
         self.user_id = user_id
         self.username = username
         self.password = password
 
-    def get_auth_data(self, headers=None):
+    def get_auth_data(
+        self,
+        headers: ty.Optional[collections.abc.MutableMapping[str, str]] = None,
+    ) -> ty.Dict[str, object]:
         auth = {'password': self.password}
 
         if self.username:
@@ -155,7 +158,7 @@ class Password(Auth):
 
         return {'passwordCredentials': auth}
 
-    def get_cache_id_elements(self):
+    def get_cache_id_elements(self) -> ty.Dict[str, ty.Optional[str]]:
         return {
             'username': self.username,
             'user_id': self.user_id,
@@ -181,13 +184,13 @@ class Token(Auth):
 
     def __init__(
         self,
-        auth_url,
-        token,
+        auth_url: str,
+        token: str,
         *,
-        trust_id=None,
-        tenant_id=None,
-        tenant_name=None,
-        reauthenticate=True,
+        trust_id: ty.Optional[str] = None,
+        tenant_id: ty.Optional[str] = None,
+        tenant_name: ty.Optional[str] = None,
+        reauthenticate: bool = True,
     ):
         super().__init__(
             auth_url,
@@ -198,12 +201,15 @@ class Token(Auth):
         )
         self.token = token
 
-    def get_auth_data(self, headers=None):
+    def get_auth_data(
+        self,
+        headers: ty.Optional[collections.abc.MutableMapping[str, str]] = None,
+    ) -> ty.Dict[str, object]:
         if headers is not None:
             headers['X-Auth-Token'] = self.token
         return {'token': {'id': self.token}}
 
-    def get_cache_id_elements(self):
+    def get_cache_id_elements(self) -> ty.Dict[str, ty.Optional[str]]:
         return {
             'token': self.token,
             'auth_url': self.auth_url,
