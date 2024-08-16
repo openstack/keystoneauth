@@ -23,6 +23,7 @@ from keystoneauth1 import access
 from keystoneauth1 import discover
 from keystoneauth1 import exceptions
 from keystoneauth1 import plugin
+from keystoneauth1 import session as ks_session
 
 LOG = utils.get_logger(__name__)
 
@@ -30,9 +31,15 @@ LOG = utils.get_logger(__name__)
 class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
     # we count a token as valid (not needing refreshing) if it is valid for at
     # least this many seconds before the token expiry time
-    MIN_TOKEN_LIFE_SECONDS = 120
+    MIN_TOKEN_LIFE_SECONDS: int = 120
 
-    def __init__(self, auth_url=None, reauthenticate=True):
+    auth_url: ty.Optional[str]
+    auth_ref: ty.Optional[access.AccessInfo]
+    reauthenticate: bool
+
+    def __init__(
+        self, auth_url: ty.Optional[str] = None, reauthenticate: bool = True
+    ):
         super().__init__()
 
         self.auth_url = auth_url
@@ -42,7 +49,9 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         self._lock = threading.Lock()
 
     @abc.abstractmethod
-    def get_auth_ref(self, session, **kwargs):
+    def get_auth_ref(
+        self, session: ks_session.Session, **kwargs: ty.Any
+    ) -> access.AccessInfo:
         """Obtain a token from an OpenStack Identity Service.
 
         This method is overridden by the various token version plugins.
@@ -67,7 +76,9 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         :rtype: :class:`keystoneauth1.access.AccessInfo`
         """
 
-    def get_token(self, session, **kwargs):
+    def get_token(
+        self, session: ks_session.Session, **kwargs: ty.Any
+    ) -> ty.Optional[str]:
         """Return a valid auth token.
 
         If a valid token is not present then a new one will be fetched.
@@ -83,7 +94,7 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         """
         return self.get_access(session).auth_token
 
-    def _needs_reauthenticate(self):
+    def _needs_reauthenticate(self) -> bool:
         """Return if the existing token needs to be re-authenticated.
 
         The token should be refreshed if it is about to expire.
@@ -105,7 +116,9 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         # otherwise it's fine and use the existing one.
         return False
 
-    def get_access(self, session, **kwargs):
+    def get_access(
+        self, session: ks_session.Session, **kwargs: ty.Any
+    ) -> access.AccessInfo:
         """Fetch or return a current AccessInfo object.
 
         If a valid AccessInfo is present then it is returned otherwise a new
@@ -129,9 +142,12 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
             if self._needs_reauthenticate():
                 self.auth_ref = self.get_auth_ref(session)
 
+        # narrow type
+        assert self.auth_ref is not None  # nosec B101
+
         return self.auth_ref
 
-    def invalidate(self):
+    def invalidate(self) -> bool:
         """Invalidate the current authentication data.
 
         This should result in fetching a new token on next call.
@@ -153,21 +169,21 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
 
     def get_endpoint_data(
         self,
-        session,
+        session: ks_session.Session,
         *,
-        endpoint_override=None,
-        discover_versions=True,
-        service_type=None,
-        interface=None,
-        region_name=None,
-        service_name=None,
-        allow=None,
-        allow_version_hack=True,
-        skip_discovery=False,
-        min_version=None,
-        max_version=None,
-        **kwargs,
-    ):
+        endpoint_override: ty.Optional[str] = None,
+        discover_versions: bool = True,
+        service_type: ty.Optional[str] = None,
+        interface: ty.Optional[str] = None,
+        region_name: ty.Optional[str] = None,
+        service_name: ty.Optional[str] = None,
+        allow: ty.Optional[ty.Dict[str, ty.Any]] = None,
+        allow_version_hack: bool = True,
+        skip_discovery: bool = False,
+        min_version: ty.Optional[discover._RAW_VERSION_T] = None,
+        max_version: ty.Optional[discover._RAW_VERSION_T] = None,
+        **kwargs: ty.Any,
+    ) -> ty.Optional[discover.EndpointData]:
         """Return a valid endpoint data for a service.
 
         If a valid token is not present then a new one will be fetched using
@@ -323,19 +339,19 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
 
     def get_endpoint(
         self,
-        session,
-        service_type=None,
-        interface=None,
-        region_name=None,
-        service_name=None,
-        version=None,
-        allow=None,
-        allow_version_hack=True,
-        skip_discovery=False,
-        min_version=None,
-        max_version=None,
-        **kwargs,
-    ):
+        session: ks_session.Session,
+        service_type: ty.Optional[str] = None,
+        interface: ty.Optional[str] = None,
+        region_name: ty.Optional[str] = None,
+        service_name: ty.Optional[str] = None,
+        version: ty.Optional[discover._RAW_VERSION_T] = None,
+        allow: ty.Optional[ty.Dict[str, ty.Any]] = None,
+        allow_version_hack: bool = True,
+        skip_discovery: bool = False,
+        min_version: ty.Optional[discover._RAW_VERSION_T] = None,
+        max_version: ty.Optional[discover._RAW_VERSION_T] = None,
+        **kwargs: ty.Any,
+    ) -> ty.Optional[str]:
         """Return a valid endpoint for a service.
 
         If a valid token is not present then a new one will be fetched using
@@ -418,22 +434,22 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
 
     def get_api_major_version(
         self,
-        session,
+        session: ks_session.Session,
         *,
-        endpoint_override=None,
-        service_type=None,
-        interface=None,
-        region_name=None,
-        service_name=None,
-        version=None,
-        allow=None,
-        allow_version_hack=True,
-        skip_discovery=False,
-        discover_versions=False,
-        min_version=None,
-        max_version=None,
-        **kwargs,
-    ):
+        endpoint_override: ty.Optional[str] = None,
+        service_type: ty.Optional[str] = None,
+        interface: ty.Optional[str] = None,
+        region_name: ty.Optional[str] = None,
+        service_name: ty.Optional[str] = None,
+        version: ty.Optional[str] = None,
+        allow: ty.Optional[ty.Dict[str, ty.Any]] = None,
+        allow_version_hack: bool = True,
+        skip_discovery: bool = False,
+        discover_versions: bool = False,
+        min_version: ty.Optional[discover._RAW_VERSION_T] = None,
+        max_version: ty.Optional[discover._RAW_VERSION_T] = None,
+        **kwargs: ty.Any,
+    ) -> ty.Optional[discover._PARSED_VERSION_T]:
         """Return the major API version for a service.
 
         If a valid token is not present then a new one will be fetched using
@@ -568,12 +584,14 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
 
     def get_all_version_data(
         self,
-        session,
-        interface='public',
-        region_name=None,
-        service_type=None,
-        **kwargs,
-    ):
+        session: ks_session.Session,
+        interface: str = 'public',
+        region_name: ty.Optional[str] = None,
+        service_type: ty.Optional[str] = None,
+        **kwargs: ty.Any,
+    ) -> ty.Dict[
+        str, ty.Dict[str, ty.Dict[str, ty.List[discover.VersionData]]]
+    ]:
         """Get version data for all services in the catalog.
 
         :param session: A session object that can be used for communication.
@@ -611,6 +629,9 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
                 )
 
             for service in services:
+                if not service.region_name or not service.interface:
+                    continue
+
                 versions = service.get_all_version_string_data(
                     session=session, project_id=self.get_project_id(session)
                 )
@@ -626,27 +647,44 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
 
         return version_data
 
-    def get_user_id(self, session, **kwargs):
+    def get_user_id(
+        self, session: ks_session.Session, **kwargs: ty.Any
+    ) -> ty.Optional[str]:
         return self.get_access(session).user_id
 
-    def get_project_id(self, session, **kwargs):
+    def get_project_id(
+        self, session: ks_session.Session, **kwargs: ty.Any
+    ) -> ty.Optional[str]:
         return self.get_access(session).project_id
 
-    def get_sp_auth_url(self, session, sp_id, **kwargs):
+    def get_sp_auth_url(
+        self, session: ks_session.Session, sp_id: str, **kwargs: ty.Any
+    ) -> ty.Optional[str]:
+        service_providers = self.get_access(session).service_providers
+        if not service_providers:
+            return None
         try:
-            return self.get_access(session).service_providers.get_auth_url(
-                sp_id
-            )
+            return service_providers.get_auth_url(sp_id)
         except exceptions.ServiceProviderNotFound:
             return None
 
-    def get_sp_url(self, session, sp_id, **kwargs):
+    def get_sp_url(
+        self, session: ks_session.Session, sp_id: str, **kwargs: ty.Any
+    ) -> ty.Optional[str]:
+        service_providers = self.get_access(session).service_providers
+        if not service_providers:
+            return None
         try:
-            return self.get_access(session).service_providers.get_sp_url(sp_id)
+            return service_providers.get_sp_url(sp_id)
         except exceptions.ServiceProviderNotFound:
             return None
 
-    def get_discovery(self, session, url, authenticated=None):
+    def get_discovery(
+        self,
+        session: ks_session.Session,
+        url: str,
+        authenticated: ty.Optional[bool] = None,
+    ) -> discover.Discover:
         """Return the discovery object for a URL.
 
         Check the session and the plugin cache to see if we have already
@@ -677,7 +715,7 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
             authenticated=authenticated,
         )
 
-    def get_cache_id_elements(self):
+    def get_cache_id_elements(self) -> ty.Dict[str, ty.Optional[str]]:
         """Get the elements for this auth plugin that make it unique.
 
         As part of the get_cache_id requirement we need to determine what
@@ -692,7 +730,7 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         """
         raise NotImplementedError()
 
-    def get_cache_id(self):
+    def get_cache_id(self) -> ty.Optional[str]:
         """Fetch an identifier that uniquely identifies the auth options.
 
         The returned identifier need not be decomposable or otherwise provide
@@ -714,18 +752,12 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
 
         for k, v in sorted(elements.items()):
             if v is not None:
-                # NOTE(jamielennox): in python3 you need to pass bytes to hash
-                if isinstance(k, str):
-                    k = k.encode('utf-8')
-                if isinstance(v, str):
-                    v = v.encode('utf-8')
-
-                hasher.update(k)
-                hasher.update(v)
+                hasher.update(k.encode('utf-8'))
+                hasher.update(v.encode('utf-8'))
 
         return base64.b64encode(hasher.digest()).decode('utf-8')
 
-    def get_auth_state(self):
+    def get_auth_state(self) -> ty.Optional[str]:
         """Retrieve the current authentication state for the plugin.
 
         Retrieve any internal state that represents the authenticated plugin.
@@ -737,15 +769,17 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
                   set_auth_state to set the same authentication.
         :rtype: str or None if no auth present.
         """
-        if self.auth_ref:
-            data = {
-                'auth_token': self.auth_ref.auth_token,
-                'body': self.auth_ref._data,
-            }
+        if not self.auth_ref:
+            return None
 
-            return json.dumps(data)
+        data = {
+            'auth_token': self.auth_ref.auth_token,
+            'body': self.auth_ref._data,
+        }
 
-    def set_auth_state(self, data):
+        return json.dumps(data)
+
+    def set_auth_state(self, data: str) -> None:
         """Install existing authentication state for a plugin.
 
         Take the output of get_auth_state and install that authentication state

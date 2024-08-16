@@ -44,6 +44,8 @@ class BaseAuth(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
                                  token. (optional) default True.
     """
 
+    auth_url: str
+
     def __init__(
         self,
         auth_url,

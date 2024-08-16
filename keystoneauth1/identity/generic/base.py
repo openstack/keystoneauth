@@ -29,6 +29,8 @@ class BaseGenericPlugin(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
     URL and then proxy all calls from the base plugin to the versioned one.
     """
 
+    auth_url: str
+
     def __init__(
         self,
         auth_url,

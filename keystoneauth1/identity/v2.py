@@ -31,6 +31,8 @@ class Auth(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
                                 is going to expire. (optional) default True
     """
 
+    auth_url: str
+
     def __init__(
         self,
         auth_url,
