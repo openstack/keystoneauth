@@ -36,7 +36,24 @@ class MultiFactor(base.Auth):
     Also accepts various keyword args based on which methods are specified.
     """
 
-    def __init__(self, auth_url, auth_methods, **kwargs):
+    def __init__(
+        self,
+        auth_url,
+        auth_methods,
+        *,
+        unscoped=False,
+        trust_id=None,
+        system_scope=None,
+        domain_id=None,
+        domain_name=None,
+        project_id=None,
+        project_name=None,
+        project_domain_id=None,
+        project_domain_name=None,
+        reauthenticate=True,
+        include_catalog=True,
+        **kwargs,
+    ):
         method_instances = []
         method_keys = set()
         for method in auth_methods:
@@ -57,4 +74,21 @@ class MultiFactor(base.Auth):
         # to the super class and throw errors
         for key in method_keys:
             kwargs.pop(key, None)
-        super().__init__(auth_url, method_instances, **kwargs)
+
+        assert kwargs == {}  # nosec B101
+
+        super().__init__(
+            auth_url,
+            method_instances,
+            unscoped=unscoped,
+            trust_id=trust_id,
+            system_scope=system_scope,
+            domain_id=domain_id,
+            domain_name=domain_name,
+            project_id=project_id,
+            project_name=project_name,
+            project_domain_id=project_domain_id,
+            project_domain_name=project_domain_name,
+            reauthenticate=reauthenticate,
+            include_catalog=include_catalog,
+        )

@@ -118,9 +118,19 @@ class Password(Auth):
         username=_NOT_PASSED,
         password=None,
         user_id=_NOT_PASSED,
-        **kwargs,
+        *,
+        trust_id=None,
+        tenant_id=None,
+        tenant_name=None,
+        reauthenticate=True,
     ):
-        super().__init__(auth_url, **kwargs)
+        super().__init__(
+            auth_url,
+            trust_id=trust_id,
+            tenant_id=tenant_id,
+            tenant_name=tenant_name,
+            reauthenticate=reauthenticate,
+        )
 
         if username is _NOT_PASSED and user_id is _NOT_PASSED:
             msg = 'You need to specify either a username or user_id'
@@ -169,8 +179,23 @@ class Token(Auth):
                                 is going to expire. (optional) default True
     """
 
-    def __init__(self, auth_url, token, **kwargs):
-        super().__init__(auth_url, **kwargs)
+    def __init__(
+        self,
+        auth_url,
+        token,
+        *,
+        trust_id=None,
+        tenant_id=None,
+        tenant_name=None,
+        reauthenticate=True,
+    ):
+        super().__init__(
+            auth_url,
+            trust_id=trust_id,
+            tenant_id=tenant_id,
+            tenant_name=tenant_name,
+            reauthenticate=reauthenticate,
+        )
         self.token = token
 
     def get_auth_data(self, headers=None):

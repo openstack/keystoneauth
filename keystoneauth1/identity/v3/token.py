@@ -53,5 +53,36 @@ class Token(base.AuthConstructor):
 
     _auth_method_class = TokenMethod
 
-    def __init__(self, auth_url, token, **kwargs):
-        super().__init__(auth_url, token=token, **kwargs)
+    def __init__(
+        self,
+        auth_url,
+        token,
+        *,
+        unscoped=False,
+        trust_id=None,
+        system_scope=None,
+        domain_id=None,
+        domain_name=None,
+        project_id=None,
+        project_name=None,
+        project_domain_id=None,
+        project_domain_name=None,
+        reauthenticate=True,
+        include_catalog=True,
+        **kwargs,
+    ):
+        super().__init__(
+            auth_url,
+            token=token,
+            unscoped=unscoped,
+            trust_id=trust_id,
+            system_scope=system_scope,
+            domain_id=domain_id,
+            domain_name=domain_name,
+            project_id=project_id,
+            project_name=project_name,
+            project_domain_id=project_domain_id,
+            project_domain_name=project_domain_name,
+            reauthenticate=reauthenticate,
+            include_catalog=include_catalog,
+        )

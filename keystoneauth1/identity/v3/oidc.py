@@ -54,10 +54,20 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
         client_id,
         client_secret,
         access_token_type,
-        scope="openid profile",
-        access_token_endpoint=None,
-        discovery_endpoint=None,
-        **kwargs,
+        scope,
+        access_token_endpoint,
+        discovery_endpoint,
+        *,
+        trust_id,
+        system_scope,
+        domain_id,
+        domain_name,
+        project_id,
+        project_name,
+        project_domain_id,
+        project_domain_name,
+        reauthenticate,
+        include_catalog,
     ):
         """The OpenID Connect plugin expects the following.
 
@@ -103,7 +113,21 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
                       states that "openid" must be always specified.
         :type scope: string
         """
-        super().__init__(auth_url, identity_provider, protocol, **kwargs)
+        super().__init__(
+            auth_url,
+            identity_provider,
+            protocol,
+            trust_id=trust_id,
+            system_scope=system_scope,
+            domain_id=domain_id,
+            domain_name=domain_name,
+            project_id=project_id,
+            project_name=project_name,
+            project_domain_id=project_domain_id,
+            project_domain_name=project_domain_name,
+            reauthenticate=reauthenticate,
+            include_catalog=include_catalog,
+        )
         self.client_id = client_id
         self.client_secret = client_secret
 
@@ -332,16 +356,27 @@ class OidcPassword(_OidcBase):
         self,
         auth_url,
         identity_provider,
-        protocol,  # nosec
+        protocol,
         client_id,
         client_secret,
+        access_token_type='access_token',  # nosec B107
+        scope='openid profile',
         access_token_endpoint=None,
         discovery_endpoint=None,
-        access_token_type='access_token',
         username=None,
         password=None,
         idp_otp_key=None,
-        **kwargs,
+        *,
+        trust_id=None,
+        system_scope=None,
+        domain_id=None,
+        domain_name=None,
+        project_id=None,
+        project_name=None,
+        project_domain_id=None,
+        project_domain_name=None,
+        reauthenticate=True,
+        include_catalog=True,
     ):
         """The OpenID Password plugin expects the following.
 
@@ -357,10 +392,20 @@ class OidcPassword(_OidcBase):
             protocol=protocol,
             client_id=client_id,
             client_secret=client_secret,
+            access_token_type=access_token_type,
+            scope=scope,
             access_token_endpoint=access_token_endpoint,
             discovery_endpoint=discovery_endpoint,
-            access_token_type=access_token_type,
-            **kwargs,
+            trust_id=trust_id,
+            system_scope=system_scope,
+            domain_id=domain_id,
+            domain_name=domain_name,
+            project_id=project_id,
+            project_name=project_name,
+            project_domain_id=project_domain_id,
+            project_domain_name=project_domain_name,
+            reauthenticate=reauthenticate,
+            include_catalog=include_catalog,
         )
         self.username = username
         self.password = password
@@ -427,13 +472,24 @@ class OidcClientCredentials(_OidcBase):
         self,
         auth_url,
         identity_provider,
-        protocol,  # nosec
+        protocol,
         client_id,
         client_secret,
+        access_token_type='access_token',  # nosec B107
+        scope='openid profile',
         access_token_endpoint=None,
         discovery_endpoint=None,
-        access_token_type='access_token',
-        **kwargs,
+        *,
+        trust_id=None,
+        system_scope=None,
+        domain_id=None,
+        domain_name=None,
+        project_id=None,
+        project_name=None,
+        project_domain_id=None,
+        project_domain_name=None,
+        reauthenticate=True,
+        include_catalog=True,
     ):
         """The OpenID Client Credentials expects the following.
 
@@ -449,10 +505,20 @@ class OidcClientCredentials(_OidcBase):
             protocol=protocol,
             client_id=client_id,
             client_secret=client_secret,
+            access_token_type=access_token_type,
+            scope=scope,
             access_token_endpoint=access_token_endpoint,
             discovery_endpoint=discovery_endpoint,
-            access_token_type=access_token_type,
-            **kwargs,
+            trust_id=trust_id,
+            system_scope=system_scope,
+            domain_id=domain_id,
+            domain_name=domain_name,
+            project_id=project_id,
+            project_name=project_name,
+            project_domain_id=project_domain_id,
+            project_domain_name=project_domain_name,
+            reauthenticate=reauthenticate,
+            include_catalog=include_catalog,
         )
 
     def get_payload(self, session):
@@ -477,15 +543,26 @@ class OidcAuthorizationCode(_OidcBase):
         self,
         auth_url,
         identity_provider,
-        protocol,  # nosec
+        protocol,
         client_id,
         client_secret,
+        access_token_type='access_token',  # nosec B107
+        scope='openid profile',
         access_token_endpoint=None,
         discovery_endpoint=None,
-        access_token_type='access_token',
         redirect_uri=None,
         code=None,
-        **kwargs,
+        *,
+        trust_id=None,
+        system_scope=None,
+        domain_id=None,
+        domain_name=None,
+        project_id=None,
+        project_name=None,
+        project_domain_id=None,
+        project_domain_name=None,
+        reauthenticate=True,
+        include_catalog=True,
     ):
         """The OpenID Authorization Code plugin expects the following.
 
@@ -502,10 +579,20 @@ class OidcAuthorizationCode(_OidcBase):
             protocol=protocol,
             client_id=client_id,
             client_secret=client_secret,
+            access_token_type=access_token_type,
+            scope=scope,
             access_token_endpoint=access_token_endpoint,
             discovery_endpoint=discovery_endpoint,
-            access_token_type=access_token_type,
-            **kwargs,
+            trust_id=trust_id,
+            system_scope=system_scope,
+            domain_id=domain_id,
+            domain_name=domain_name,
+            project_id=project_id,
+            project_name=project_name,
+            project_domain_id=project_domain_id,
+            project_domain_name=project_domain_name,
+            reauthenticate=reauthenticate,
+            include_catalog=include_catalog,
         )
         self.redirect_uri = redirect_uri
         self.code = code
@@ -524,11 +611,27 @@ class OidcAuthorizationCode(_OidcBase):
         return payload
 
 
-class OidcAccessToken(_OidcBase):
+# We don't inherit from _OidcBase since most of this is completely different
+class OidcAccessToken(federation.FederationBaseAuth):
     """Implementation for OpenID Connect access token reuse."""
 
     def __init__(
-        self, auth_url, identity_provider, protocol, access_token, **kwargs
+        self,
+        auth_url,
+        identity_provider,
+        protocol,
+        access_token,
+        *,
+        trust_id=None,
+        system_scope=None,
+        domain_id=None,
+        domain_name=None,
+        project_id=None,
+        project_name=None,
+        project_domain_id=None,
+        project_domain_name=None,
+        reauthenticate=True,
+        include_catalog=True,
     ):
         """The OpenID Connect plugin based on the Access Token.
 
@@ -551,17 +654,46 @@ class OidcAccessToken(_OidcBase):
             auth_url,
             identity_provider,
             protocol,
-            client_id=None,
-            client_secret=None,
-            access_token_endpoint=None,
-            access_token_type=None,
-            **kwargs,
+            trust_id=trust_id,
+            system_scope=system_scope,
+            domain_id=domain_id,
+            domain_name=domain_name,
+            project_id=project_id,
+            project_name=project_name,
+            project_domain_id=project_domain_id,
+            project_domain_name=project_domain_name,
+            reauthenticate=reauthenticate,
+            include_catalog=include_catalog,
         )
         self.access_token = access_token
 
     def get_payload(self, session):
         """OidcAccessToken does not require a payload."""  # noqa: D403
         return {}
+
+    def _get_keystone_token(self, session, access_token):
+        r"""Exchange an access token for a keystone token.
+
+        By Sending the access token in an `Authorization: Bearer` header, to
+        an OpenID Connect protected endpoint (Federated Token URL). The
+        OpenID Connect server will use the access token to look up information
+        about the authenticated user (this technique is called instrospection).
+        The output of the instrospection will be an OpenID Connect Claim, that
+        will be used against the mapping engine. Should the mapping engine
+        succeed, a Keystone token will be presented to the user.
+
+        :param session: a session object to send out HTTP requests.
+        :type session: keystoneauth1.session.Session
+
+        :param access_token: The OpenID Connect access token.
+        :type access_token: str
+        """
+        # use access token against protected URL
+        headers = {'Authorization': 'Bearer ' + access_token}
+        auth_response = session.post(
+            self.federated_token_url, headers=headers, authenticated=False
+        )
+        return auth_response
 
     # TODO(stephenfin): Deprecate and remove unused kwargs
     def get_unscoped_auth_ref(self, session, **kwargs):
@@ -597,12 +729,24 @@ class OidcDeviceAuthorization(_OidcBase):
         protocol,  # nosec
         client_id,
         client_secret=None,
+        # access_token_type intentionally skipped
+        scope='openid profile',
         access_token_endpoint=None,
         device_authorization_endpoint=None,
         discovery_endpoint=None,
         code_challenge=None,
         code_challenge_method=None,
-        **kwargs,
+        *,
+        trust_id=None,
+        system_scope=None,
+        domain_id=None,
+        domain_name=None,
+        project_id=None,
+        project_name=None,
+        project_domain_id=None,
+        project_domain_name=None,
+        reauthenticate=True,
+        include_catalog=True,
     ):
         """The OAuth 2.0 Device Authorization plugin expects the following.
 
@@ -628,10 +772,20 @@ class OidcDeviceAuthorization(_OidcBase):
             protocol=protocol,
             client_id=client_id,
             client_secret=client_secret,
+            access_token_type=self.access_token_type,
+            scope=scope,
             access_token_endpoint=access_token_endpoint,
             discovery_endpoint=discovery_endpoint,
-            access_token_type=self.access_token_type,
-            **kwargs,
+            trust_id=trust_id,
+            system_scope=system_scope,
+            domain_id=domain_id,
+            domain_name=domain_name,
+            project_id=project_id,
+            project_name=project_name,
+            project_domain_id=project_domain_id,
+            project_domain_name=project_domain_name,
+            reauthenticate=reauthenticate,
+            include_catalog=include_catalog,
         )
 
     def _get_device_authorization_endpoint(self, session):

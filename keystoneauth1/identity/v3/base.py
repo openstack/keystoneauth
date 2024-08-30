@@ -49,6 +49,7 @@ class BaseAuth(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
     def __init__(
         self,
         auth_url,
+        *,
         trust_id=None,
         system_scope=None,
         domain_id=None,
@@ -123,9 +124,37 @@ class Auth(BaseAuth):
                           a default_project_id is set for this user.
     """
 
-    def __init__(self, auth_url, auth_methods, **kwargs):
-        self.unscoped = kwargs.pop('unscoped', False)
-        super().__init__(auth_url=auth_url, **kwargs)
+    def __init__(
+        self,
+        auth_url,
+        auth_methods,
+        *,
+        unscoped=False,
+        trust_id=None,
+        system_scope=None,
+        domain_id=None,
+        domain_name=None,
+        project_id=None,
+        project_name=None,
+        project_domain_id=None,
+        project_domain_name=None,
+        reauthenticate=True,
+        include_catalog=True,
+    ):
+        super().__init__(
+            auth_url=auth_url,
+            trust_id=trust_id,
+            system_scope=system_scope,
+            domain_id=domain_id,
+            domain_name=domain_name,
+            project_id=project_id,
+            project_name=project_name,
+            project_domain_id=project_domain_id,
+            project_domain_name=project_domain_name,
+            reauthenticate=reauthenticate,
+            include_catalog=include_catalog,
+        )
+        self.unscoped = unscoped
         self.auth_methods = auth_methods
 
     def add_method(self, method):
@@ -329,7 +358,39 @@ class AuthConstructor(Auth, metaclass=abc.ABCMeta):
 
     _auth_method_class: ty.Type[AuthMethod]
 
-    def __init__(self, auth_url, *args, **kwargs):
+    def __init__(
+        self,
+        auth_url,
+        *args,
+        unscoped=False,
+        trust_id=None,
+        system_scope=None,
+        domain_id=None,
+        domain_name=None,
+        project_id=None,
+        project_name=None,
+        project_domain_id=None,
+        project_domain_name=None,
+        reauthenticate=True,
+        include_catalog=True,
+        **kwargs,
+    ):
         method_kwargs = self._auth_method_class._extract_kwargs(kwargs)
+        # we should have consumed all "unknown" arguments by now
+        assert kwargs == {}  # nosec B101
         method = self._auth_method_class(*args, **method_kwargs)
-        super().__init__(auth_url, [method], **kwargs)
+        super().__init__(
+            auth_url,
+            [method],
+            unscoped=unscoped,
+            trust_id=trust_id,
+            system_scope=system_scope,
+            domain_id=domain_id,
+            domain_name=domain_name,
+            project_id=project_id,
+            project_name=project_name,
+            project_domain_id=project_domain_id,
+            project_domain_name=project_domain_name,
+            reauthenticate=reauthenticate,
+            include_catalog=include_catalog,
+        )

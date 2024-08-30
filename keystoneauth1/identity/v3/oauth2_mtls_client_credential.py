@@ -28,10 +28,35 @@ class OAuth2mTlsClientCredential(base.BaseAuth, metaclass=abc.ABCMeta):
     """
 
     def __init__(
-        self, auth_url, oauth2_endpoint, oauth2_client_id, *args, **kwargs
+        self,
+        auth_url,
+        oauth2_endpoint,
+        oauth2_client_id,
+        *,
+        trust_id=None,
+        system_scope=None,
+        domain_id=None,
+        domain_name=None,
+        project_id=None,
+        project_name=None,
+        project_domain_id=None,
+        project_domain_name=None,
+        reauthenticate=True,
+        include_catalog=True,
     ):
-        super().__init__(auth_url, *args, **kwargs)
-        self.auth_url = auth_url
+        super().__init__(
+            auth_url=auth_url,
+            trust_id=trust_id,
+            system_scope=system_scope,
+            domain_id=domain_id,
+            domain_name=domain_name,
+            project_id=project_id,
+            project_name=project_name,
+            project_domain_id=project_domain_id,
+            project_domain_name=project_domain_name,
+            reauthenticate=reauthenticate,
+            include_catalog=include_catalog,
+        )
         self.oauth2_endpoint = oauth2_endpoint
         self.oauth2_client_id = oauth2_client_id
         self.oauth2_access_token = None

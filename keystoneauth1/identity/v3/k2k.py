@@ -42,8 +42,35 @@ class Keystone2Keystone(federation._Rescoped):
     HTTP_MOVED_TEMPORARILY = 302
     HTTP_SEE_OTHER = 303
 
-    def __init__(self, base_plugin, service_provider, **kwargs):
-        super().__init__(auth_url=None, **kwargs)
+    def __init__(
+        self,
+        base_plugin,
+        service_provider,
+        *,
+        trust_id=None,
+        system_scope=None,
+        domain_id=None,
+        domain_name=None,
+        project_id=None,
+        project_name=None,
+        project_domain_id=None,
+        project_domain_name=None,
+        reauthenticate=True,
+        include_catalog=True,
+    ):
+        super().__init__(
+            auth_url=None,
+            trust_id=trust_id,
+            system_scope=system_scope,
+            domain_id=domain_id,
+            domain_name=domain_name,
+            project_id=project_id,
+            project_name=project_name,
+            project_domain_id=project_domain_id,
+            project_domain_name=project_domain_name,
+            reauthenticate=reauthenticate,
+            include_catalog=include_catalog,
+        )
 
         self._local_cloud_plugin = base_plugin
         self._sp_id = service_provider
