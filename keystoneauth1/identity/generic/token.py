@@ -10,10 +10,13 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import typing as ty
+
 from keystoneauth1 import discover
 from keystoneauth1.identity.generic import base
 from keystoneauth1.identity import v2
 from keystoneauth1.identity import v3
+from keystoneauth1 import session as ks_session
 
 
 class Token(base.BaseGenericPlugin):
@@ -22,11 +25,53 @@ class Token(base.BaseGenericPlugin):
     :param string token: Token for authentication.
     """
 
-    def __init__(self, auth_url, token=None, **kwargs):
-        super().__init__(auth_url, **kwargs)
+    def __init__(
+        self,
+        auth_url: str,
+        token: ty.Optional[str] = None,
+        tenant_id: ty.Optional[str] = None,
+        tenant_name: ty.Optional[str] = None,
+        project_id: ty.Optional[str] = None,
+        project_name: ty.Optional[str] = None,
+        project_domain_id: ty.Optional[str] = None,
+        project_domain_name: ty.Optional[str] = None,
+        domain_id: ty.Optional[str] = None,
+        domain_name: ty.Optional[str] = None,
+        system_scope: ty.Optional[str] = None,
+        trust_id: ty.Optional[str] = None,
+        default_domain_id: ty.Optional[str] = None,
+        default_domain_name: ty.Optional[str] = None,
+        reauthenticate: bool = True,
+    ):
+        super().__init__(
+            auth_url=auth_url,
+            tenant_id=tenant_id,
+            tenant_name=tenant_name,
+            project_id=project_id,
+            project_name=project_name,
+            project_domain_id=project_domain_id,
+            project_domain_name=project_domain_name,
+            domain_id=domain_id,
+            domain_name=domain_name,
+            system_scope=system_scope,
+            trust_id=trust_id,
+            default_domain_id=default_domain_id,
+            default_domain_name=default_domain_name,
+            reauthenticate=reauthenticate,
+        )
+
         self._token = token
 
-    def create_plugin(self, session, version, url, raw_status=None):
+    def create_plugin(
+        self,
+        session: ks_session.Session,
+        version: discover._PARSED_VERSION_T,
+        url: str,
+        raw_status: ty.Optional[str] = None,
+    ) -> ty.Union[None, v2.Token, v3.Token]:
+        # TODO(stephenfin): Replace with a proper exception
+        assert self._token is not None  # nosec B101
+
         if discover.version_match((2,), version):
             return v2.Token(
                 url,
@@ -37,7 +82,7 @@ class Token(base.BaseGenericPlugin):
                 reauthenticate=self.reauthenticate,
             )
 
-        elif discover.version_match((3,), version):
+        if discover.version_match((3,), version):
             return v3.Token(
                 url,
                 self._token,
@@ -52,7 +97,9 @@ class Token(base.BaseGenericPlugin):
                 reauthenticate=self.reauthenticate,
             )
 
-    def get_cache_id_elements(self):
+        return None
+
+    def get_cache_id_elements(self) -> ty.Dict[str, ty.Optional[str]]:
         return {
             'auth_url': self.auth_url,
             'project_id': self._project_id,

@@ -11,12 +11,17 @@
 # under the License.
 
 import abc
+import typing as ty
 import urllib.parse
 
 from keystoneauth1 import _utils as utils
+from keystoneauth1 import access
 from keystoneauth1 import discover
 from keystoneauth1 import exceptions
 from keystoneauth1.identity import base
+from keystoneauth1.identity import v2
+from keystoneauth1.identity.v3 import base as v3
+from keystoneauth1 import session as ks_session
 
 
 LOG = utils.get_logger(__name__)
@@ -33,20 +38,20 @@ class BaseGenericPlugin(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
 
     def __init__(
         self,
-        auth_url,
-        tenant_id=None,
-        tenant_name=None,
-        project_id=None,
-        project_name=None,
-        project_domain_id=None,
-        project_domain_name=None,
-        domain_id=None,
-        domain_name=None,
-        system_scope=None,
-        trust_id=None,
-        default_domain_id=None,
-        default_domain_name=None,
-        reauthenticate=True,
+        auth_url: ty.Optional[str] = None,
+        tenant_id: ty.Optional[str] = None,
+        tenant_name: ty.Optional[str] = None,
+        project_id: ty.Optional[str] = None,
+        project_name: ty.Optional[str] = None,
+        project_domain_id: ty.Optional[str] = None,
+        project_domain_name: ty.Optional[str] = None,
+        domain_id: ty.Optional[str] = None,
+        domain_name: ty.Optional[str] = None,
+        system_scope: ty.Optional[str] = None,
+        trust_id: ty.Optional[str] = None,
+        default_domain_id: ty.Optional[str] = None,
+        default_domain_name: ty.Optional[str] = None,
+        reauthenticate: bool = True,
     ):
         super().__init__(auth_url=auth_url, reauthenticate=reauthenticate)
 
@@ -61,10 +66,16 @@ class BaseGenericPlugin(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
         self._default_domain_id = default_domain_id
         self._default_domain_name = default_domain_name
 
-        self._plugin = None
+        self._plugin: ty.Union[v2.Auth, v3.AuthConstructor, None] = None
 
     @abc.abstractmethod
-    def create_plugin(self, session, version, url, raw_status=None):
+    def create_plugin(
+        self,
+        session: ks_session.Session,
+        version: discover._PARSED_VERSION_T,
+        url: str,
+        raw_status: ty.Optional[str] = None,
+    ) -> ty.Union[None, v2.Auth, v3.AuthConstructor]:
         """Create a plugin from the given parameters.
 
         This function will be called multiple times with the version and url
@@ -83,7 +94,7 @@ class BaseGenericPlugin(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
         return None
 
     @property
-    def _has_domain_scope(self):
+    def _has_domain_scope(self) -> bool:
         """Are there domain parameters.
 
         Domain parameters are v3 only so returns if any are set.
@@ -100,22 +111,24 @@ class BaseGenericPlugin(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
         )
 
     @property
-    def project_domain_id(self):
+    def project_domain_id(self) -> ty.Optional[str]:
         return self._project_domain_id or self._default_domain_id
 
     @project_domain_id.setter
-    def project_domain_id(self, value):
+    def project_domain_id(self, value: ty.Optional[str]) -> None:
         self._project_domain_id = value
 
     @property
-    def project_domain_name(self):
+    def project_domain_name(self) -> ty.Optional[str]:
         return self._project_domain_name or self._default_domain_name
 
     @project_domain_name.setter
-    def project_domain_name(self, value):
+    def project_domain_name(self, value: ty.Optional[str]) -> None:
         self._project_domain_name = value
 
-    def _do_create_plugin(self, session):
+    def _do_create_plugin(
+        self, session: ks_session.Session
+    ) -> ty.Union[v2.Auth, v3.AuthConstructor]:
         plugin = None
 
         try:
@@ -157,9 +170,10 @@ class BaseGenericPlugin(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
             # order. This is fine normally because we explicitly skip v2 below
             # if there is domain data present. With default_domain params
             # though we want a v3 plugin if available and fall back to v2 so we
-            # have to process in reverse order.  FIXME(jamielennox): if we ever
-            # go for another version we should reverse this logic as we always
-            # want to favour the newest available version.
+            # have to process in reverse order.
+            # FIXME(jamielennox): if we ever go for another version we should
+            # reverse this logic as we always want to favour the newest
+            # available version.
             reverse = self._default_domain_id or self._default_domain_name
             disc_data = disc.version_data(reverse=bool(reverse))
 
@@ -199,12 +213,14 @@ class BaseGenericPlugin(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
             'to authenticate. Please check that your auth_url is correct.'
         )
 
-    def get_auth_ref(self, session, **kwargs):
+    def get_auth_ref(
+        self, session: ks_session.Session, **kwargs: ty.Any
+    ) -> access.AccessInfo:
         if not self._plugin:
             self._plugin = self._do_create_plugin(session)
 
         return self._plugin.get_auth_ref(session, **kwargs)
 
     @abc.abstractmethod
-    def get_cache_id_elements(self):
+    def get_cache_id_elements(self) -> ty.Dict[str, ty.Optional[str]]:
         raise NotImplementedError()
