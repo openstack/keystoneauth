@@ -189,7 +189,11 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
                            'password': self.password, 'scope': self.scope}
         :type payload: dict
         """
-        client_auth = (self.client_id, self.client_secret)
+        if self.client_secret:
+            client_auth = (self.client_id, self.client_secret)
+        else:
+            client_auth = None
+            payload.setdefault('client_id', self.client_id)
         access_token_endpoint = self._get_access_token_endpoint(session)
 
         op_response = session.post(access_token_endpoint,
