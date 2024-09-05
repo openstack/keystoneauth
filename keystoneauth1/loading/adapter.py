@@ -10,9 +10,17 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import argparse
+import typing as ty
+
 from keystoneauth1 import adapter
 from keystoneauth1.loading import _utils
 from keystoneauth1.loading import base
+
+if ty.TYPE_CHECKING:
+    from oslo_config import cfg
+
+    from keystoneauth1.loading import opts
 
 
 __all__ = (
@@ -24,16 +32,21 @@ __all__ = (
 )
 
 
-class Adapter(base.BaseLoader):
+class Adapter(base._BaseLoader[adapter.Adapter]):
     @property
-    def plugin_class(self):
+    def plugin_class(self) -> ty.Type[adapter.Adapter]:
         return adapter.Adapter
 
-    def get_options(self):
+    def get_options(self) -> ty.List['opts.Opt']:
         return []
 
     @staticmethod
-    def get_conf_options(include_deprecated=True, deprecated_opts=None):
+    def get_conf_options(
+        include_deprecated: bool = True,
+        deprecated_opts: ty.Optional[
+            ty.Dict[str, ty.List['cfg.DeprecatedOpt']]
+        ] = None,
+    ) -> ty.List['cfg.Opt']:
         """Get oslo_config options that are needed for a :py:class:`.Adapter`.
 
         These may be useful without being registered for config file generation
@@ -206,8 +219,14 @@ class Adapter(base.BaseLoader):
         return opts
 
     def register_conf_options(
-        self, conf, group, include_deprecated=True, deprecated_opts=None
-    ):
+        self,
+        conf: 'cfg.ConfigOpts',
+        group: str,
+        include_deprecated: bool = True,
+        deprecated_opts: ty.Optional[
+            ty.Dict[str, ty.List['cfg.DeprecatedOpt']]
+        ] = None,
+    ) -> ty.List['cfg.Opt']:
         """Register the oslo_config options that are needed for an Adapter.
 
         The options that are set are:
@@ -265,7 +284,9 @@ class Adapter(base.BaseLoader):
         conf.register_opts(opts, group=group)
         return opts
 
-    def load_from_conf_options(self, conf, group, **kwargs):
+    def load_from_conf_options(
+        self, conf: 'cfg.ConfigOpts', group: str, **kwargs: ty.Any
+    ) -> adapter.Adapter:
         """Create an Adapter object from an oslo_config object.
 
         The options must have been previously registered with
@@ -283,10 +304,12 @@ class Adapter(base.BaseLoader):
         return self.load_from_options(**kwargs)
 
 
-def process_conf_options(confgrp, kwargs):
+def process_conf_options(
+    confgrp: 'cfg.OptGroup', kwargs: ty.Dict[str, ty.Any]
+) -> None:
     """Set Adapter constructor kwargs based on conf options.
 
-    :param oslo_config.cfg.GroupAttr confgrp: Config object group containing
+    :param oslo_config.cfg.OptGroup confgrp: Config object group containing
             options to inspect.
     :param dict kwargs: Keyword arguments suitable for the constructor of
             keystoneauth1.adapter.Adapter. Will be modified by this method.
@@ -330,21 +353,46 @@ def process_conf_options(confgrp, kwargs):
     kwargs.setdefault('retriable_status_codes', confgrp.retriable_status_codes)
 
 
-def register_argparse_arguments(*args, **kwargs):
-    return adapter.register_adapter_argparse_arguments(*args, **kwargs)
+def register_argparse_arguments(
+    parser: argparse.ArgumentParser, service_type: ty.Optional[str] = None
+) -> None:
+    return adapter.register_adapter_argparse_arguments(parser, service_type)
 
 
-def register_service_argparse_arguments(*args, **kwargs):
-    return adapter.register_service_adapter_argparse_arguments(*args, **kwargs)
+def register_service_argparse_arguments(
+    parser: argparse.ArgumentParser, service_type: str
+) -> None:
+    return adapter.register_service_adapter_argparse_arguments(
+        parser, service_type
+    )
 
 
-def register_conf_options(*args, **kwargs):
-    return Adapter().register_conf_options(*args, **kwargs)
+def register_conf_options(
+    conf: 'cfg.ConfigOpts',
+    group: str,
+    include_deprecated: bool = True,
+    deprecated_opts: ty.Optional[
+        ty.Dict[str, ty.List['cfg.DeprecatedOpt']]
+    ] = None,
+) -> ty.List['cfg.Opt']:
+    return Adapter().register_conf_options(
+        conf,
+        group,
+        include_deprecated=include_deprecated,
+        deprecated_opts=deprecated_opts,
+    )
 
 
-def load_from_conf_options(*args, **kwargs):
-    return Adapter().load_from_conf_options(*args, **kwargs)
+def load_from_conf_options(
+    conf: 'cfg.ConfigOpts', group: str, **kwargs: ty.Any
+) -> adapter.Adapter:
+    return Adapter().load_from_conf_options(conf, group, **kwargs)
 
 
-def get_conf_options(*args, **kwargs):
-    return Adapter.get_conf_options(*args, **kwargs)
+def get_conf_options(
+    include_deprecated: bool = True,
+    deprecated_opts: ty.Optional[
+        ty.Dict[str, ty.List['cfg.DeprecatedOpt']]
+    ] = None,
+) -> ty.List['cfg.Opt']:
+    return Adapter.get_conf_options(include_deprecated, deprecated_opts)

@@ -20,7 +20,7 @@ from keystoneauth1 import exceptions
 
 if ty.TYPE_CHECKING:
     from keystoneauth1.loading import opts
-    from keystoneauth1 import plugin
+    from keystoneauth1 import plugin  # noqa: F401
 
 PLUGIN_NAMESPACE = 'keystoneauth1.plugin'
 
@@ -110,12 +110,15 @@ def get_plugin_options(name: str) -> ty.List['opts.Opt']:
     return get_plugin_loader(name).get_options()
 
 
-class BaseLoader(metaclass=abc.ABCMeta):
+T = ty.TypeVar('T')
+
+
+class _BaseLoader(ty.Generic[T], metaclass=abc.ABCMeta):
     @property
-    def plugin_class(self) -> ty.Type['plugin.BaseAuthPlugin']:
+    def plugin_class(self) -> ty.Type[T]:
         raise NotImplementedError()
 
-    def create_plugin(self, **kwargs: ty.Any) -> 'plugin.BaseAuthPlugin':
+    def create_plugin(self, **kwargs: ty.Any) -> T:
         """Create a plugin from the options available for the loader.
 
         Given the options that were specified by the loader create an
@@ -157,7 +160,7 @@ class BaseLoader(metaclass=abc.ABCMeta):
         """
         return True
 
-    def load_from_options(self, **kwargs: ty.Any) -> 'plugin.BaseAuthPlugin':
+    def load_from_options(self, **kwargs: ty.Any) -> T:
         """Create a plugin from the arguments retrieved from get_options.
 
         A client can override this function to do argument validation or to
@@ -177,7 +180,7 @@ class BaseLoader(metaclass=abc.ABCMeta):
 
     def load_from_options_getter(
         self, getter: ty.Callable[['opts.Opt'], ty.Any], **kwargs: ty.Any
-    ) -> 'plugin.BaseAuthPlugin':
+    ) -> T:
         """Load a plugin from getter function that returns appropriate values.
 
         To handle cases other than the provided CONF and CLI loading you can
@@ -199,3 +202,6 @@ class BaseLoader(metaclass=abc.ABCMeta):
             kwargs[opt.dest] = val
 
         return self.load_from_options(**kwargs)
+
+
+class BaseLoader(_BaseLoader['plugin.BaseAuthPlugin']): ...
