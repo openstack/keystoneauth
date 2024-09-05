@@ -1,0 +1,5 @@
+---
+features:
+  - |
+    All modules except for ``keystoneauth1.fixtures`` and
+    ``keystoneauth1.hacking`` now provide full type hints.
