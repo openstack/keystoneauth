@@ -17,7 +17,7 @@ from keystoneauth1 import loading
 from keystoneauth1.loading import opts
 
 
-class Token(loading.BaseGenericLoader):
+class Token(loading.BaseGenericLoader[identity.Token]):
     """Given an existing token rescope it to another target.
 
     This plugin uses the Identity service's rescope mechanism to get a new
@@ -49,7 +49,7 @@ class Token(loading.BaseGenericLoader):
         return options
 
 
-class Password(loading.BaseGenericLoader):
+class Password(loading.BaseGenericLoader[identity.Password]):
     """Authenticate via a username and password.
 
     Authenticate to the identity service using an inbuilt username and

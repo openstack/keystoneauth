@@ -17,10 +17,10 @@ import stevedore
 from stevedore import extension
 
 from keystoneauth1 import exceptions
+from keystoneauth1 import plugin
 
 if ty.TYPE_CHECKING:
     from keystoneauth1.loading import opts
-    from keystoneauth1 import plugin  # noqa: F401
 
 PLUGIN_NAMESPACE = 'keystoneauth1.plugin'
 
@@ -33,6 +33,8 @@ __all__ = (
     'BaseLoader',
     'PLUGIN_NAMESPACE',
 )
+
+T = ty.TypeVar('T', covariant=True)
 
 
 def _auth_plugin_available(ext: extension.Extension) -> bool:
@@ -58,7 +60,9 @@ def get_available_plugin_names() -> ty.FrozenSet[str]:
     return frozenset(mgr.names())
 
 
-def get_available_plugin_loaders() -> ty.Dict[str, 'BaseLoader']:
+def get_available_plugin_loaders() -> (
+    ty.Dict[str, 'BaseLoader[plugin.BaseAuthPluginT]']
+):
     """Retrieve all the plugin classes available on the system.
 
     :returns: A dict with plugin entrypoint name as the key and the plugin
@@ -75,7 +79,7 @@ def get_available_plugin_loaders() -> ty.Dict[str, 'BaseLoader']:
     return dict(mgr.map(lambda ext: (ext.entry_point.name, ext.obj)))
 
 
-def get_plugin_loader(name: str) -> 'BaseLoader':
+def get_plugin_loader(name: str) -> 'BaseLoader[plugin.BaseAuthPluginT]':
     """Retrieve a plugin class by its entrypoint name.
 
     :param str name: The name of the object to get.
@@ -93,7 +97,7 @@ def get_plugin_loader(name: str) -> 'BaseLoader':
     except RuntimeError:
         raise exceptions.NoMatchingPlugin(name)
 
-    return ty.cast('BaseLoader', mgr.driver)
+    return ty.cast('BaseLoader[plugin.BaseAuthPluginT]', mgr.driver)
 
 
 def get_plugin_options(name: str) -> ty.List['opts.Opt']:
@@ -108,9 +112,6 @@ def get_plugin_options(name: str) -> ty.List['opts.Opt']:
         if a plugin cannot be created.
     """
     return get_plugin_loader(name).get_options()
-
-
-T = ty.TypeVar('T')
 
 
 class _BaseLoader(ty.Generic[T], metaclass=abc.ABCMeta):
@@ -204,4 +205,4 @@ class _BaseLoader(ty.Generic[T], metaclass=abc.ABCMeta):
         return self.load_from_options(**kwargs)
 
 
-class BaseLoader(_BaseLoader['plugin.BaseAuthPlugin']): ...
+class BaseLoader(_BaseLoader[plugin.BaseAuthPluginT]): ...

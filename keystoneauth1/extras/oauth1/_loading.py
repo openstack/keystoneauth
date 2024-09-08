@@ -19,7 +19,7 @@ from keystoneauth1.loading import opts
 
 # NOTE(jamielennox): This is not a BaseV3Loader because we don't want to
 # include the scoping options like project-id in the option list
-class V3OAuth1(loading.BaseIdentityLoader):
+class V3OAuth1(loading.BaseIdentityLoader[v3.OAuth1]):
     @property
     def plugin_class(self) -> ty.Type[v3.OAuth1]:
         return v3.OAuth1

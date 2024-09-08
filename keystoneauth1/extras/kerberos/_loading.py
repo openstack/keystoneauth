@@ -18,7 +18,7 @@ from keystoneauth1 import loading
 from keystoneauth1.loading import opts
 
 
-class Kerberos(loading.BaseV3Loader):
+class Kerberos(loading.BaseV3Loader[kerberos.Kerberos]):
     @property
     def plugin_class(self) -> ty.Type[kerberos.Kerberos]:
         return kerberos.Kerberos
@@ -54,12 +54,10 @@ class Kerberos(loading.BaseV3Loader):
                 )
                 raise exceptions.OptionError(m)
 
-        # NOTE(stephenfin): Cast is here because I can't figure out how to make
-        # ensure a loader always maps 1:1 with a plugin
-        return ty.cast(kerberos.Kerberos, super().load_from_options(**kwargs))
+        return super().load_from_options(**kwargs)
 
 
-class MappedKerberos(loading.BaseFederationLoader):
+class MappedKerberos(loading.BaseFederationLoader[kerberos.MappedKerberos]):
     @property
     def plugin_class(self) -> ty.Type[kerberos.MappedKerberos]:
         return kerberos.MappedKerberos
@@ -95,6 +93,4 @@ class MappedKerberos(loading.BaseFederationLoader):
                 )
                 raise exceptions.OptionError(m)
 
-        return ty.cast(
-            kerberos.MappedKerberos, super().load_from_options(**kwargs)
-        )
+        return super().load_from_options(**kwargs)

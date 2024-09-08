@@ -17,7 +17,10 @@ from keystoneauth1.loading import base
 from keystoneauth1.loading import opts
 
 if ty.TYPE_CHECKING:
-    from keystoneauth1 import plugin
+    from keystoneauth1.identity import base as base_plugins
+    from keystoneauth1.identity import generic as generic_plugins
+    from keystoneauth1.identity import v2 as v2_plugins
+    from keystoneauth1.identity import v3 as v3_plugins
 
 __all__ = (
     'BaseIdentityLoader',
@@ -28,7 +31,18 @@ __all__ = (
 )
 
 
-class BaseIdentityLoader(base.BaseLoader):
+PluginT = ty.TypeVar('PluginT', bound='base_plugins.BaseIdentityPlugin')
+V2PluginT = ty.TypeVar('V2PluginT', bound='v2_plugins.Auth')
+V3PluginT = ty.TypeVar('V3PluginT', bound='v3_plugins.BaseAuth')
+V3FederationPluginT = ty.TypeVar(
+    'V3FederationPluginT', bound='v3_plugins.FederationBaseAuth'
+)
+GenericPluginT = ty.TypeVar(
+    'GenericPluginT', bound='generic_plugins.BaseGenericPlugin'
+)
+
+
+class BaseIdentityLoader(base.BaseLoader[PluginT]):
     """Base Option handling for identity plugins.
 
     This class defines options and handling that should be common across all
@@ -47,7 +61,7 @@ class BaseIdentityLoader(base.BaseLoader):
         return options
 
 
-class BaseV2Loader(BaseIdentityLoader):
+class BaseV2Loader(BaseIdentityLoader[V2PluginT]):
     """Base Option handling for identity plugins.
 
     This class defines options and handling that should be common to the V2
@@ -71,7 +85,7 @@ class BaseV2Loader(BaseIdentityLoader):
         return options
 
 
-class BaseV3Loader(BaseIdentityLoader):
+class BaseV3Loader(BaseIdentityLoader[V3PluginT]):
     """Base Option handling for identity plugins.
 
     This class defines options and handling that should be common to the V3
@@ -104,7 +118,7 @@ class BaseV3Loader(BaseIdentityLoader):
 
         return options
 
-    def load_from_options(self, **kwargs: ty.Any) -> 'plugin.BaseAuthPlugin':
+    def load_from_options(self, **kwargs: ty.Any) -> V3PluginT:
         if kwargs.get('project_name') and not (
             kwargs.get('project_domain_name')
             or kwargs.get('project_domain_id')
@@ -120,7 +134,7 @@ class BaseV3Loader(BaseIdentityLoader):
         return super().load_from_options(**kwargs)
 
 
-class BaseFederationLoader(BaseV3Loader):
+class BaseFederationLoader(BaseV3Loader[V3FederationPluginT]):
     """Base Option handling for federation plugins.
 
     This class defines options and handling that should be common to the V3
@@ -149,7 +163,7 @@ class BaseFederationLoader(BaseV3Loader):
         return options
 
 
-class BaseGenericLoader(BaseIdentityLoader):
+class BaseGenericLoader(BaseIdentityLoader[GenericPluginT]):
     """Base Option handling for generic plugins.
 
     This class defines options and handling that should be common to generic

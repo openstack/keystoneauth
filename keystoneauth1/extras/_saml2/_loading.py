@@ -17,7 +17,7 @@ from keystoneauth1 import loading
 from keystoneauth1.loading import opts
 
 
-class Saml2Password(loading.BaseFederationLoader):
+class Saml2Password(loading.BaseFederationLoader[_saml2.V3Saml2Password]):
     @property
     def plugin_class(self) -> ty.Type[_saml2.V3Saml2Password]:
         return _saml2.V3Saml2Password
@@ -49,7 +49,7 @@ class Saml2Password(loading.BaseFederationLoader):
         return options
 
 
-class ADFSPassword(loading.BaseFederationLoader):
+class ADFSPassword(loading.BaseFederationLoader[_saml2.V3ADFSPassword]):
     @property
     def plugin_class(self) -> ty.Type[_saml2.V3ADFSPassword]:
         return _saml2.V3ADFSPassword

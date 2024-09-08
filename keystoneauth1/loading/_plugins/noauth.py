@@ -17,7 +17,7 @@ from keystoneauth1.loading import opts
 from keystoneauth1 import noauth
 
 
-class NoAuth(loading.BaseLoader):
+class NoAuth(loading.BaseLoader[noauth.NoAuth]):
     """Use no tokens to perform requests.
 
     This can be used to instantiate clients for services deployed in

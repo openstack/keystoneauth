@@ -17,7 +17,7 @@ from keystoneauth1 import loading
 from keystoneauth1.loading import opts
 
 
-class Token(loading.BaseV2Loader):
+class Token(loading.BaseV2Loader[identity.V2Token]):
     @property
     def plugin_class(self) -> ty.Type[identity.V2Token]:
         return identity.V2Token
@@ -30,7 +30,7 @@ class Token(loading.BaseV2Loader):
         return options
 
 
-class Password(loading.BaseV2Loader):
+class Password(loading.BaseV2Loader[identity.V2Password]):
     @property
     def plugin_class(self) -> ty.Type[identity.V2Password]:
         return identity.V2Password

@@ -26,6 +26,11 @@ AUTH_INTERFACE = object()
 IDENTITY_AUTH_HEADER_NAME = 'X-Auth-Token'
 
 
+BaseAuthPluginT = ty.TypeVar(
+    'BaseAuthPluginT', bound='BaseAuthPlugin', covariant=True
+)
+
+
 class BaseAuthPlugin:
     """The basic structure of an authentication plugin.
 

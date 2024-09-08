@@ -17,7 +17,7 @@ from keystoneauth1.loading import opts
 from keystoneauth1 import token_endpoint
 
 
-class AdminToken(loading.BaseLoader):
+class AdminToken(loading.BaseLoader[token_endpoint.Token]):
     """Use an existing token and a known endpoint to perform requests.
 
     This plugin is primarily useful for development or for use with identity

@@ -40,6 +40,9 @@ __all__ = (
 SENSITIVE_KEYS = ("password", "code", "token", "secret")
 
 
+_OidcBaseT = ty.TypeVar('_OidcBaseT', bound='_OidcBase')
+
+
 class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
     """Base class for different OpenID Connect based flows.
 

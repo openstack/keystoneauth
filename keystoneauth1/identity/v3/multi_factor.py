@@ -14,7 +14,7 @@ import typing as ty
 
 from keystoneauth1.identity.v3 import base
 from keystoneauth1 import loading
-
+from keystoneauth1 import plugin
 
 __all__ = ('MultiFactor',)
 
@@ -60,7 +60,10 @@ class MultiFactor(base.Auth):
         method_keys: ty.Set[str] = set()
         for method in auth_methods:
             # Using the loaders we pull the related auth method class
-            plugin_class = loading.get_plugin_loader(method).plugin_class
+            loader: loading.BaseLoader[plugin.BaseAuthPlugin] = (
+                loading.get_plugin_loader(method)
+            )
+            plugin_class = loader.plugin_class
             if not issubclass(plugin_class, base.AuthConstructor):
                 raise TypeError(
                     'The multifactor auth method can only be used with v3 '

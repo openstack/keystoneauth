@@ -92,7 +92,7 @@ class TestPlugin(plugin.BaseAuthPlugin):
     # functions, everything else is on a best effort basis.
 
 
-class _TestPluginLoader(loading.BaseLoader):
+class _TestPluginLoader(loading.BaseLoader[TestPlugin]):
     def __init__(self, plugin):
         super().__init__()
         self._plugin = plugin

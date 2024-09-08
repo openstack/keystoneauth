@@ -26,7 +26,7 @@ __all__ = ('register_argparse_arguments', 'load_from_argparse_arguments')
 
 def _register_plugin_argparse_arguments(
     parser: ty.Union[argparse.ArgumentParser, argparse._ArgumentGroup],
-    plugin: base.BaseLoader,
+    plugin: base.BaseLoader['plugin.BaseAuthPluginT'],
 ) -> None:
     for opt in plugin.get_options():
         parser.add_argument(
@@ -40,7 +40,7 @@ def _register_plugin_argparse_arguments(
 
 def register_argparse_arguments(
     parser: argparse.ArgumentParser, argv: ty.List[str], default: ty.Any = None
-) -> ty.Optional[base.BaseLoader]:
+) -> ty.Optional[base.BaseLoader['plugin.BaseAuthPluginT']]:
     """Register CLI options needed to create a plugin.
 
     The function inspects the provided arguments so that it can also register
@@ -90,7 +90,7 @@ def register_argparse_arguments(
 
 def load_from_argparse_arguments(
     namespace: argparse.Namespace, **kwargs: ty.Any
-) -> ty.Optional['plugin.BaseAuthPlugin']:
+) -> ty.Optional['plugin.BaseAuthPluginT']:
     """Retrieve the created plugin from the completed argparse results.
 
     Loads and creates the auth plugin from the information parsed from the
@@ -104,15 +104,18 @@ def load_from_argparse_arguments(
     :raises keystoneauth1.exceptions.auth_plugins.NoMatchingPlugin:
         if a plugin cannot be created.
     """
-    if not namespace.os_auth_type:
+    os_auth_type = namespace.os_auth_type
+
+    if not os_auth_type:
         return None
 
-    if isinstance(namespace.os_auth_type, base.BaseLoader):
-        plugin = namespace.os_auth_type
+    loader: base.BaseLoader[plugin.BaseAuthPluginT]
+    if isinstance(os_auth_type, base.BaseLoader):
+        loader = os_auth_type
     else:
-        plugin = base.get_plugin_loader(namespace.os_auth_type)
+        loader = base.get_plugin_loader(os_auth_type)
 
     def _getter(opt: 'opts.Opt') -> ty.Any:
         return getattr(namespace, f'os_{opt.dest}')
 
-    return plugin.load_from_options_getter(_getter, **kwargs)
+    return loader.load_from_options_getter(_getter, **kwargs)

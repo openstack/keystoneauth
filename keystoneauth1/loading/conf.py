@@ -54,7 +54,9 @@ def get_common_conf_options() -> ty.List['cfg.Opt']:
 
 
 def get_plugin_conf_options(
-    plugin: ty.Union[base.BaseLoader, str],
+    plugin: ty.Union[
+        base.BaseLoader[keystoneauth1.plugin.BaseAuthPluginT], str
+    ],
 ) -> ty.List['cfg.Opt']:
     """Get the oslo_config options for a specific plugin.
 
@@ -62,7 +64,7 @@ def get_plugin_conf_options(
     the specified plugin.
 
     :param plugin: The name of the plugin loader or a plugin loader object
-    :type plugin: str or keystoneauth1._loading.BaseLoader
+    :type plugin: str or keystoneauth1.loading.BaseLoader
 
     :returns: A list of oslo_config options.
     """
@@ -136,7 +138,9 @@ def load_from_conf_options(
     if not name:
         return None
 
-    loader = base.get_plugin_loader(name)
+    loader: base.BaseLoader[keystoneauth1.plugin.BaseAuthPlugin] = (
+        base.get_plugin_loader(name)
+    )
     loader_opts = loader.get_options()
     oslo_opts = [o._to_oslo_opt() for o in loader_opts]
 

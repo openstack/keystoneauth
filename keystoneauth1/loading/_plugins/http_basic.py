@@ -17,7 +17,7 @@ from keystoneauth1 import loading
 from keystoneauth1.loading import opts
 
 
-class HTTPBasicAuth(loading.BaseLoader):
+class HTTPBasicAuth(loading.BaseLoader[http_basic.HTTPBasicAuth]):
     """Use HTTP Basic authentication to perform requests.
 
     This can be used to instantiate clients for services deployed in
