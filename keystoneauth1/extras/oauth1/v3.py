@@ -18,10 +18,10 @@
     occur. The extra package can be installed using::
 
       $ pip install keystoneauth['oauth1']
-
 """
 
 import logging
+import typing as ty
 
 try:
     # explicitly re-export symbol
@@ -31,6 +31,7 @@ except ImportError:
     oauth1 = None
 
 from keystoneauth1.identity import v3
+from keystoneauth1 import session as ks_session
 
 __all__ = ('OAuth1Method', 'OAuth1')
 
@@ -59,7 +60,16 @@ class OAuth1Method(v3.AuthMethod):
     ]
 
     # TODO(stephenfin): Deprecate and remove unused kwargs
-    def get_auth_data(self, session, auth, headers, request_kwargs, **kwargs):
+    def get_auth_data(
+        self,
+        session: ks_session.Session,
+        auth: v3.Auth,
+        headers: ty.Dict[str, str],
+        request_kwargs: ty.Dict[str, object],
+        **kwargs: ty.Any,
+    ) -> ty.Union[
+        ty.Tuple[None, None], ty.Tuple[str, ty.Mapping[str, object]]
+    ]:
         # Add the oauth specific content into the headers
         oauth_client = oauth1.Client(
             self.consumer_key,
@@ -76,7 +86,7 @@ class OAuth1Method(v3.AuthMethod):
 
         return 'oauth1', {}
 
-    def get_cache_id_elements(self):
+    def get_cache_id_elements(self) -> ty.Dict[str, ty.Optional[str]]:
         return {
             f'oauth1_{p}': getattr(self, p) for p in self._method_parameters
         }
@@ -85,8 +95,39 @@ class OAuth1Method(v3.AuthMethod):
 class OAuth1(v3.AuthConstructor):
     _auth_method_class = OAuth1Method
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(
+        self,
+        auth_url: str,
+        *args: ty.Any,
+        unscoped: bool = False,
+        trust_id: ty.Optional[str] = None,
+        system_scope: ty.Optional[str] = None,
+        domain_id: ty.Optional[str] = None,
+        domain_name: ty.Optional[str] = None,
+        project_id: ty.Optional[str] = None,
+        project_name: ty.Optional[str] = None,
+        project_domain_id: ty.Optional[str] = None,
+        project_domain_name: ty.Optional[str] = None,
+        reauthenticate: bool = True,
+        include_catalog: bool = True,
+        **kwargs: ty.Any,
+    ):
+        super().__init__(
+            auth_url,
+            *args,
+            unscoped=unscoped,
+            trust_id=trust_id,
+            system_scope=system_scope,
+            domain_id=domain_id,
+            domain_name=domain_name,
+            project_id=project_id,
+            project_name=project_name,
+            project_domain_id=project_domain_id,
+            project_domain_name=project_domain_name,
+            reauthenticate=reauthenticate,
+            include_catalog=include_catalog,
+            **kwargs,
+        )
 
         if self.has_scope_parameters:
             LOG.warning(

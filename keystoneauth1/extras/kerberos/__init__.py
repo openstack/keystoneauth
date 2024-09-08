@@ -21,6 +21,8 @@
       $ pip install keystoneauth1[kerberos]
 """
 
+import typing as ty
+
 try:
     # explicitly re-export symbol
     # https://mypy.readthedocs.io/en/stable/command_line.html#cmdoption-mypy-no-implicit-reexport
@@ -31,25 +33,30 @@ except ImportError:
 from keystoneauth1 import access
 from keystoneauth1.identity import v3
 from keystoneauth1.identity.v3 import federation
+from keystoneauth1 import session as ks_session
 
 
-def _mutual_auth(value):
+# TODO(stephenfin): This should return an enum
+def _mutual_auth(value: ty.Optional[str]) -> str:
+    default = ty.cast(str, requests_kerberos.OPTIONAL)
     if value is None:
-        return requests_kerberos.OPTIONAL
+        return default
     return {
-        'required': requests_kerberos.REQUIRED,
-        'optional': requests_kerberos.OPTIONAL,
-        'disabled': requests_kerberos.DISABLED,
-    }.get(value.lower(), requests_kerberos.OPTIONAL)
+        'required': ty.cast(str, requests_kerberos.REQUIRED),
+        'optional': ty.cast(str, requests_kerberos.OPTIONAL),
+        'disabled': ty.cast(str, requests_kerberos.DISABLED),
+    }.get(value.lower(), default)
 
 
-def _requests_auth(mutual_authentication):
+def _requests_auth(
+    mutual_authentication: ty.Optional[str],
+) -> 'requests_kerberos.HTTPKerberosAuth':
     return requests_kerberos.HTTPKerberosAuth(
         mutual_authentication=_mutual_auth(mutual_authentication)
     )
 
 
-def _dependency_check():
+def _dependency_check() -> None:
     if requests_kerberos is None:
         raise ImportError("""
 Using the kerberos authentication plugin requires installation of additional
@@ -64,12 +71,21 @@ class KerberosMethod(v3.AuthMethod):
 
     _method_parameters = ['mutual_auth']
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, **kwargs: object):
         _dependency_check()
-        super().__init__(*args, **kwargs)
+        super().__init__(**kwargs)
 
     # TODO(stephenfin): Deprecate and remove unused kwargs
-    def get_auth_data(self, session, auth, headers, request_kwargs, **kwargs):
+    def get_auth_data(
+        self,
+        session: ks_session.Session,
+        auth: v3.Auth,
+        headers: ty.Dict[str, str],
+        request_kwargs: ty.Dict[str, object],
+        **kwargs: ty.Any,
+    ) -> ty.Union[
+        ty.Tuple[None, None], ty.Tuple[str, ty.Mapping[str, object]]
+    ]:
         # NOTE(jamielennox): request_kwargs is passed as a kwarg however it is
         # required and always present when called from keystoneclient.
         request_kwargs['requests_auth'] = _requests_auth(self.mutual_auth)
@@ -88,18 +104,52 @@ class MappedKerberos(federation.FederationBaseAuth):
     """
 
     def __init__(
-        self, auth_url, identity_provider, protocol, mutual_auth=None, **kwargs
+        self,
+        auth_url: str,
+        identity_provider: str,
+        protocol: str,
+        mutual_auth: ty.Optional[str] = None,
+        *,
+        trust_id: ty.Optional[str] = None,
+        system_scope: ty.Optional[str] = None,
+        domain_id: ty.Optional[str] = None,
+        domain_name: ty.Optional[str] = None,
+        project_id: ty.Optional[str] = None,
+        project_name: ty.Optional[str] = None,
+        project_domain_id: ty.Optional[str] = None,
+        project_domain_name: ty.Optional[str] = None,
+        reauthenticate: bool = True,
+        include_catalog: bool = True,
     ):
         _dependency_check()
         self.mutual_auth = mutual_auth
-        super().__init__(auth_url, identity_provider, protocol, **kwargs)
+        super().__init__(
+            auth_url,
+            identity_provider,
+            protocol,
+            trust_id=trust_id,
+            system_scope=system_scope,
+            domain_id=domain_id,
+            domain_name=domain_name,
+            project_id=project_id,
+            project_name=project_name,
+            project_domain_id=project_domain_id,
+            project_domain_name=project_domain_name,
+            reauthenticate=reauthenticate,
+            include_catalog=include_catalog,
+        )
 
     # TODO(stephenfin): Deprecate and remove unused kwargs
-    def get_unscoped_auth_ref(self, session, **kwargs):
+    def get_unscoped_auth_ref(
+        self, session: ks_session.Session, **kwargs: ty.Any
+    ) -> access.AccessInfoV3:
         resp = session.get(
             self.federated_token_url,
             requests_auth=_requests_auth(self.mutual_auth),
             authenticated=False,
         )
 
-        return access.create(body=resp.json(), resp=resp)
+        access_info = access.create(body=resp.json(), resp=resp)
+        # narrow type
+        assert isinstance(access_info, access.AccessInfoV3)  # nosec B101
+        return access_info

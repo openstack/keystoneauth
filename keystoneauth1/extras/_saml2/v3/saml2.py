@@ -11,6 +11,7 @@
 # under the License.
 
 import abc
+import typing as ty
 
 try:
     # explicitly re-export symbol
@@ -25,6 +26,7 @@ import requests.auth
 from keystoneauth1 import access
 from keystoneauth1 import exceptions
 from keystoneauth1.identity import v3
+from keystoneauth1 import session as ks_session
 
 _PAOS_NAMESPACE = 'urn:liberty:paos:2003-08'
 _ECP_NAMESPACE = 'urn:oasis:names:tc:SAML:2.0:profiles:SSO:ecp'
@@ -39,7 +41,6 @@ _XML_NAMESPACES = {
 }
 
 _XBASE = '/S:Envelope/S:Header/'
-
 _XPATH_SP_RELAY_STATE = '//ecp:RelayState'
 _XPATH_SP_CONSUMER_URL = _XBASE + 'paos:Request/@responseConsumerURL'
 _XPATH_IDP_CONSUMER_URL = _XBASE + 'ecp:Response/@AssertionConsumerServiceURL'
@@ -70,7 +71,7 @@ class ConsumerMismatch(SamlException):
     """The SP and IDP consumers do not match."""
 
 
-def _response_xml(response, name):
+def _response_xml(response: requests.Response, name: str) -> etree._Element:
     try:
         return etree.XML(response.content)
     except etree.XMLSyntaxError as e:
@@ -78,11 +79,17 @@ def _response_xml(response, name):
         raise InvalidResponse(msg)
 
 
-def _str_from_xml(xml, path):
+def _str_from_xml(xml: etree._Element, path: str) -> str:
     li = xml.xpath(path, namespaces=_XML_NAMESPACES)
     if len(li) != 1:
         raise IndexError(f'{path} should provide a single element list')
-    return li[0]
+    result = li[0]
+    return str(result)  # case from _ElementUnicodeResult
+
+
+_PreparedRequestT = ty.TypeVar(
+    '_PreparedRequestT', bound=requests.PreparedRequest
+)
 
 
 class _SamlAuth(requests.auth.AuthBase):
@@ -116,12 +123,18 @@ class _SamlAuth(requests.auth.AuthBase):
         federated user is a member of.
     """
 
-    def __init__(self, identity_provider_url, requests_auth):
+    def __init__(
+        self,
+        identity_provider_url: str,
+        requests_auth: ty.Union[
+            None, requests.auth.AuthBase, ty.Tuple[str, str]
+        ],
+    ):
         super().__init__()
         self.identity_provider_url = identity_provider_url
         self.requests_auth = requests_auth
 
-    def __call__(self, request):
+    def __call__(self, request: _PreparedRequestT) -> _PreparedRequestT:
         try:
             accept = request.headers['Accept']
         except KeyError:
@@ -133,7 +146,9 @@ class _SamlAuth(requests.auth.AuthBase):
         request.register_hook('response', self._handle_response)
         return request
 
-    def _handle_response(self, response, **kwargs):
+    def _handle_response(
+        self, response: requests.Response, **kwargs: ty.Any
+    ) -> requests.Response:
         if (
             response.status_code == 200
             and response.headers.get('Content-Type') == _PAOS_HEADER
@@ -142,15 +157,35 @@ class _SamlAuth(requests.auth.AuthBase):
 
         return response
 
-    def _ecp_retry(self, sp_response, **kwargs):
+    def _ecp_retry(
+        self, sp_response: requests.Response, **kwargs: ty.Any
+    ) -> requests.Response:
         history = [sp_response]
 
-        def send(*send_args, **send_kwargs):
-            req = requests.Request(*send_args, **send_kwargs)
+        def send(
+            method: str,
+            url: str,
+            headers: ty.Mapping[str, str],
+            data: bytes,
+            auth: ty.Union[
+                None, requests.auth.AuthBase, ty.Tuple[str, str]
+            ] = None,
+            cookies: ty.Optional[requests.cookies.RequestsCookieJar] = None,
+        ) -> requests.Response:
+            req = requests.Request(
+                method=method,
+                url=url,
+                headers=headers,
+                data=data,
+                auth=auth,
+                cookies=cookies,
+            )
             return sp_response.connection.send(req.prepare(), **kwargs)
 
         authn_request = _response_xml(sp_response, 'Service Provider')
-        relay_state = _str_from_xml(authn_request, _XPATH_SP_RELAY_STATE)
+        relay_state = authn_request.xpath(
+            _XPATH_SP_RELAY_STATE, namespaces=_XML_NAMESPACES
+        )[0]
         sp_consumer_url = _str_from_xml(authn_request, _XPATH_SP_CONSUMER_URL)
 
         authn_request.remove(authn_request[0])
@@ -174,7 +209,7 @@ class _SamlAuth(requests.auth.AuthBase):
             send(
                 'POST',
                 sp_consumer_url,
-                data=_SOAP_FAULT,
+                data=_SOAP_FAULT.encode('utf-8'),
                 headers={'Content-Type': _PAOS_HEADER},
             )
 
@@ -193,6 +228,7 @@ class _SamlAuth(requests.auth.AuthBase):
 
             raise ConsumerMismatch(msg)
 
+        # FIXME(stephenfin): We need a better type here
         authn_response[0][0] = relay_state
 
         # idp_consumer_url is the URL on the SP that handles the ECP body
@@ -232,21 +268,47 @@ class _SamlAuth(requests.auth.AuthBase):
 class _FederatedSaml(v3.FederationBaseAuth):
     def __init__(
         self,
-        auth_url,
-        identity_provider,
-        protocol,
-        identity_provider_url,
-        **kwargs,
+        auth_url: str,
+        identity_provider: str,
+        protocol: str,
+        identity_provider_url: str,
+        *,
+        trust_id: ty.Optional[str] = None,
+        system_scope: ty.Optional[str] = None,
+        domain_id: ty.Optional[str] = None,
+        domain_name: ty.Optional[str] = None,
+        project_id: ty.Optional[str] = None,
+        project_name: ty.Optional[str] = None,
+        project_domain_id: ty.Optional[str] = None,
+        project_domain_name: ty.Optional[str] = None,
+        reauthenticate: bool = True,
+        include_catalog: bool = True,
     ):
-        super().__init__(auth_url, identity_provider, protocol, **kwargs)
+        super().__init__(
+            auth_url,
+            identity_provider,
+            protocol,
+            trust_id=trust_id,
+            system_scope=system_scope,
+            domain_id=domain_id,
+            domain_name=domain_name,
+            project_id=project_id,
+            project_name=project_name,
+            project_domain_id=project_domain_id,
+            project_domain_name=project_domain_name,
+            reauthenticate=reauthenticate,
+            include_catalog=include_catalog,
+        )
         self.identity_provider_url = identity_provider_url
 
     @abc.abstractmethod
-    def get_requests_auth(self):
+    def get_requests_auth(self) -> requests.auth.AuthBase:
         raise NotImplementedError()
 
     # TODO(stephenfin): Deprecate and remove unused kwargs
-    def get_unscoped_auth_ref(self, session, **kwargs):
+    def get_unscoped_auth_ref(
+        self, session: ks_session.Session, **kwargs: ty.Any
+    ) -> access.AccessInfoV3:
         method = self.get_requests_auth()
         auth = _SamlAuth(self.identity_provider_url, method)
 
@@ -259,7 +321,9 @@ class _FederatedSaml(v3.FederationBaseAuth):
         except SamlException as e:
             raise exceptions.AuthorizationFailure(str(e))
 
-        return access.create(resp=resp)
+        access_info = access.create(resp=resp)
+        assert isinstance(access_info, access.AccessInfoV3)  # nosec B101
+        return access_info
 
 
 class Password(_FederatedSaml):
@@ -308,23 +372,42 @@ class Password(_FederatedSaml):
 
     def __init__(
         self,
-        auth_url,
-        identity_provider,
-        protocol,
-        identity_provider_url,
-        username,
-        password,
-        **kwargs,
+        auth_url: str,
+        identity_provider: str,
+        protocol: str,
+        identity_provider_url: str,
+        username: str,
+        password: str,
+        *,
+        trust_id: ty.Optional[str] = None,
+        system_scope: ty.Optional[str] = None,
+        domain_id: ty.Optional[str] = None,
+        domain_name: ty.Optional[str] = None,
+        project_id: ty.Optional[str] = None,
+        project_name: ty.Optional[str] = None,
+        project_domain_id: ty.Optional[str] = None,
+        project_domain_name: ty.Optional[str] = None,
+        reauthenticate: bool = True,
+        include_catalog: bool = True,
     ):
         super().__init__(
             auth_url,
             identity_provider,
             protocol,
             identity_provider_url,
-            **kwargs,
+            trust_id=trust_id,
+            system_scope=system_scope,
+            domain_id=domain_id,
+            domain_name=domain_name,
+            project_id=project_id,
+            project_name=project_name,
+            project_domain_id=project_domain_id,
+            project_domain_name=project_domain_name,
+            reauthenticate=reauthenticate,
+            include_catalog=include_catalog,
         )
         self.username = username
         self.password = password
 
-    def get_requests_auth(self):
+    def get_requests_auth(self) -> requests.auth.AuthBase:
         return requests.auth.HTTPBasicAuth(self.username, self.password)

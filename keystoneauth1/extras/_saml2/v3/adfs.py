@@ -11,6 +11,7 @@
 # under the License.
 
 import datetime
+import typing as ty
 import urllib
 import uuid
 
@@ -24,6 +25,7 @@ except ImportError:
 from keystoneauth1 import access
 from keystoneauth1 import exceptions
 from keystoneauth1.extras._saml2.v3 import base
+from keystoneauth1 import session as ks_session
 
 
 class Password(base.BaseSAMLPlugin):
@@ -55,15 +57,25 @@ class Password(base.BaseSAMLPlugin):
 
     def __init__(
         self,
-        auth_url,
-        identity_provider,
-        identity_provider_url,
-        service_provider_endpoint,
-        username,
-        password,
-        protocol,
-        service_provider_entity_id=None,
-        **kwargs,
+        auth_url: str,
+        identity_provider: str,
+        identity_provider_url: str,
+        service_provider_endpoint: str,
+        username: str,
+        password: str,
+        protocol: str,
+        service_provider_entity_id: ty.Optional[str] = None,
+        *,
+        trust_id: ty.Optional[str] = None,
+        system_scope: ty.Optional[str] = None,
+        domain_id: ty.Optional[str] = None,
+        domain_name: ty.Optional[str] = None,
+        project_id: ty.Optional[str] = None,
+        project_name: ty.Optional[str] = None,
+        project_domain_id: ty.Optional[str] = None,
+        project_domain_name: ty.Optional[str] = None,
+        reauthenticate: bool = True,
+        include_catalog: bool = True,
     ):
         """Constructor for ``ADFSPassword``.
 
@@ -100,13 +112,22 @@ class Password(base.BaseSAMLPlugin):
             username=username,
             password=password,
             protocol=protocol,
-            **kwargs,
+            trust_id=trust_id,
+            system_scope=system_scope,
+            domain_id=domain_id,
+            domain_name=domain_name,
+            project_id=project_id,
+            project_name=project_name,
+            project_domain_id=project_domain_id,
+            project_domain_name=project_domain_name,
+            reauthenticate=reauthenticate,
+            include_catalog=include_catalog,
         )
 
         self.service_provider_endpoint = service_provider_endpoint
         self.service_provider_entity_id = service_provider_entity_id
 
-    def _cookies(self, session):
+    def _cookies(self, session: ks_session.Session) -> bool:
         """Check if cookie jar is not empty.
 
         keystoneauth1.session.Session object doesn't have a cookies attribute.
@@ -114,19 +135,15 @@ class Password(base.BaseSAMLPlugin):
         requests.Session object. If that fails too, there is something wrong
         and let Python raise the AttributeError.
 
-        :param session
+        :param session: A session object to extract cookies from
         :returns: True if cookie jar is nonempty, False otherwise
         :raises AttributeError: in case cookies are not find anywhere
-
         """
-        try:
-            return bool(session.cookies)
-        except AttributeError:
-            pass
-
         return bool(session.session.cookies)
 
-    def _token_dates(self, fmt='%Y-%m-%dT%H:%M:%S.%fZ'):
+    def _token_dates(
+        self, fmt: str = '%Y-%m-%dT%H:%M:%S.%fZ'
+    ) -> ty.Tuple[str, str]:
         """Calculate created and expires datetime objects.
 
         The method is going to be used for building ADFS Request Security
@@ -148,9 +165,9 @@ class Password(base.BaseSAMLPlugin):
         date_expires = date_created + datetime.timedelta(
             seconds=self.DEFAULT_ADFS_TOKEN_EXPIRATION
         )
-        return [_time.strftime(fmt) for _time in (date_created, date_expires)]
+        return date_created.strftime(fmt), date_expires.strftime(fmt)
 
-    def _prepare_adfs_request(self):
+    def _prepare_adfs_request(self) -> None:
         """Build the ADFS Request Security Token SOAP message.
 
         Some values like username or password are inserted in the request.
@@ -342,7 +359,7 @@ class Password(base.BaseSAMLPlugin):
 
         self.prepared_request = root
 
-    def _get_adfs_security_token(self, session):
+    def _get_adfs_security_token(self, session: ks_session.Session) -> None:
         """Send ADFS Security token to the ADFS server.
 
         Store the result in the instance attribute and raise an exception in
@@ -368,24 +385,6 @@ class Password(base.BaseSAMLPlugin):
 
         """
 
-        def _get_failure(e):
-            xpath = '/s:Envelope/s:Body/s:Fault/s:Code/s:Subcode/s:Value'
-            content = e.response.content
-            try:
-                obj = self.str_to_xml(content).xpath(
-                    xpath, namespaces=self.NAMESPACES
-                )
-                obj = self._first(obj)
-                return obj.text
-            # NOTE(marek-denis): etree.Element.xpath() doesn't raise an
-            # exception, it just returns an empty list. In that case, _first()
-            # will raise IndexError and we should treat it as an indication XML
-            # is not valid. exceptions.AuthorizationFailure can be raised from
-            # str_to_xml(), however since server returned HTTP 500 we should
-            # re-raise exceptions.InternalServerError.
-            except (IndexError, exceptions.AuthorizationFailure):
-                raise e
-
         request_security_token = self.xml_to_str(self.prepared_request)
         try:
             response = session.post(
@@ -395,7 +394,24 @@ class Password(base.BaseSAMLPlugin):
                 authenticated=False,
             )
         except exceptions.InternalServerError as e:
-            reason = _get_failure(e)
+            if e.response is None:
+                raise
+
+            try:
+                obj = self.str_to_xml(e.response.content).xpath(
+                    '/s:Envelope/s:Body/s:Fault/s:Code/s:Subcode/s:Value',
+                    namespaces=self.NAMESPACES,
+                )
+                obj = self._first(obj)
+                reason = obj.text
+            # NOTE(marek-denis): etree.Element.xpath() doesn't raise an
+            # exception, it just returns an empty list. In that case, _first()
+            # will raise IndexError and we should treat it as an indication XML
+            # is not valid. exceptions.AuthorizationFailure can be raised from
+            # str_to_xml(), however since server returned HTTP 500 we should
+            # re-raise exceptions.InternalServerError.
+            except (IndexError, exceptions.AuthorizationFailure):
+                raise e
             raise exceptions.AuthorizationFailure(reason)
         msg = (
             'Error parsing XML returned from '
@@ -403,7 +419,7 @@ class Password(base.BaseSAMLPlugin):
         )
         self.adfs_token = self.str_to_xml(response.content, msg)
 
-    def _prepare_sp_request(self):
+    def _prepare_sp_request(self) -> None:
         """Prepare ADFS Security Token to be sent to the Service Provider.
 
         The method works as follows:
@@ -430,7 +446,9 @@ class Password(base.BaseSAMLPlugin):
         encoded_assertion = urllib.parse.quote(assertion)
         self.encoded_assertion = 'wa=wsignin1.0&wresult=' + encoded_assertion
 
-    def _send_assertion_to_service_provider(self, session):
+    def _send_assertion_to_service_provider(
+        self, session: ks_session.Session
+    ) -> None:
         """Send prepared assertion to a service provider.
 
         As the assertion doesn't contain a protected resource, the value from
@@ -452,7 +470,7 @@ class Password(base.BaseSAMLPlugin):
             authenticated=False,
         )
 
-    def _access_service_provider(self, session):
+    def _access_service_provider(self, session: ks_session.Session) -> None:
         """Access protected endpoint and fetch unscoped token.
 
         After federated authentication workflow a protected endpoint should be
@@ -480,7 +498,9 @@ class Password(base.BaseSAMLPlugin):
         )
 
     # TODO(stephenfin): Deprecate and remove unused kwargs
-    def get_unscoped_auth_ref(self, session, **kwargs):
+    def get_unscoped_auth_ref(
+        self, session: ks_session.Session, **kwargs: ty.Any
+    ) -> access.AccessInfoV3:
         """Retrieve unscoped token after authentcation with ADFS server.
 
         This is a multistep process:
@@ -522,4 +542,6 @@ class Password(base.BaseSAMLPlugin):
         self._send_assertion_to_service_provider(session)
         self._access_service_provider(session)
 
-        return access.create(resp=self.authenticated_response)
+        access_info = access.create(resp=self.authenticated_response)
+        assert isinstance(access_info, access.AccessInfoV3)  # nosec B101
+        return access_info

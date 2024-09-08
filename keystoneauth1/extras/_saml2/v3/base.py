@@ -10,6 +10,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import typing as ty
+
 try:
     # explicitly re-export symbol
     # https://mypy.readthedocs.io/en/stable/command_line.html#cmdoption-mypy-no-implicit-reexport
@@ -19,16 +21,29 @@ except ImportError:
 
 from keystoneauth1 import exceptions
 from keystoneauth1.identity import v3
+from keystoneauth1 import session as ks_session
 
 
 class _Saml2TokenAuthMethod(v3.AuthMethod):
     _method_parameters = []
 
     # TODO(stephenfin): Deprecate and remove unused kwargs
-    def get_auth_data(self, session, auth, headers, request_kwargs, **kwargs):
+    def get_auth_data(
+        self,
+        session: ks_session.Session,
+        auth: v3.Auth,
+        headers: ty.Dict[str, str],
+        request_kwargs: ty.Dict[str, object],
+        **kwargs: ty.Any,
+    ) -> ty.Union[
+        ty.Tuple[None, None], ty.Tuple[str, ty.Mapping[str, object]]
+    ]:
         raise exceptions.HttpNotImplemented(
             'This method should never be called'
         )
+
+
+_T = ty.TypeVar('_T')
 
 
 class BaseSAMLPlugin(v3.FederationBaseAuth):
@@ -39,13 +54,23 @@ class BaseSAMLPlugin(v3.FederationBaseAuth):
 
     def __init__(
         self,
-        auth_url,
-        identity_provider,
-        identity_provider_url,
-        username,
-        password,
-        protocol,
-        **kwargs,
+        auth_url: str,
+        identity_provider: str,
+        identity_provider_url: str,
+        username: str,
+        password: str,
+        protocol: str,
+        *,
+        trust_id: ty.Optional[str] = None,
+        system_scope: ty.Optional[str] = None,
+        domain_id: ty.Optional[str] = None,
+        domain_name: ty.Optional[str] = None,
+        project_id: ty.Optional[str] = None,
+        project_name: ty.Optional[str] = None,
+        project_domain_id: ty.Optional[str] = None,
+        project_domain_name: ty.Optional[str] = None,
+        reauthenticate: bool = True,
+        include_catalog: bool = True,
     ):
         """Class constructor accepting following parameters.
 
@@ -81,20 +106,31 @@ class BaseSAMLPlugin(v3.FederationBaseAuth):
             auth_url=auth_url,
             identity_provider=identity_provider,
             protocol=protocol,
-            **kwargs,
+            trust_id=trust_id,
+            system_scope=system_scope,
+            domain_id=domain_id,
+            domain_name=domain_name,
+            project_id=project_id,
+            project_name=project_name,
+            project_domain_id=project_domain_id,
+            project_domain_name=project_domain_name,
+            reauthenticate=reauthenticate,
+            include_catalog=include_catalog,
         )
         self.identity_provider_url = identity_provider_url
         self.username = username
         self.password = password
 
     @staticmethod
-    def _first(_list):
+    def _first(_list: ty.List[_T]) -> _T:
         if len(_list) != 1:
             raise IndexError('Only single element list is acceptable')
         return _list[0]
 
     @staticmethod
-    def str_to_xml(content, msg=None, include_exc=True):
+    def str_to_xml(
+        content: bytes, msg: ty.Optional[str] = None, include_exc: bool = True
+    ) -> etree._Element:
         try:
             return etree.XML(content)
         except etree.XMLSyntaxError as e:
@@ -105,5 +141,5 @@ class BaseSAMLPlugin(v3.FederationBaseAuth):
             raise exceptions.AuthorizationFailure(msg)
 
     @staticmethod
-    def xml_to_str(content, **kwargs):
-        return etree.tostring(content, **kwargs)
+    def xml_to_str(content: etree._Element, **kwargs: ty.Any) -> bytes:
+        return ty.cast(bytes, etree.tostring(content, **kwargs))
