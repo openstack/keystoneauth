@@ -10,21 +10,24 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import typing as ty
+
 from keystoneauth1 import exceptions
 from keystoneauth1.extras import kerberos
 from keystoneauth1 import loading
+from keystoneauth1.loading import opts
 
 
 class Kerberos(loading.BaseV3Loader):
     @property
-    def plugin_class(self):
+    def plugin_class(self) -> ty.Type[kerberos.Kerberos]:
         return kerberos.Kerberos
 
     @property
-    def available(self):
+    def available(self) -> bool:
         return kerberos.requests_kerberos is not None
 
-    def get_options(self):
+    def get_options(self) -> ty.List[opts.Opt]:
         options = super().get_options()
 
         options.extend(
@@ -40,7 +43,7 @@ class Kerberos(loading.BaseV3Loader):
 
         return options
 
-    def load_from_options(self, **kwargs):
+    def load_from_options(self, **kwargs: ty.Any) -> kerberos.Kerberos:
         if kwargs.get('mutual_auth'):
             value = kwargs['mutual_auth']
             if not (value.lower() in ['required', 'optional', 'disabled']):
@@ -51,19 +54,21 @@ class Kerberos(loading.BaseV3Loader):
                 )
                 raise exceptions.OptionError(m)
 
-        return super().load_from_options(**kwargs)
+        # NOTE(stephenfin): Cast is here because I can't figure out how to make
+        # ensure a loader always maps 1:1 with a plugin
+        return ty.cast(kerberos.Kerberos, super().load_from_options(**kwargs))
 
 
 class MappedKerberos(loading.BaseFederationLoader):
     @property
-    def plugin_class(self):
+    def plugin_class(self) -> ty.Type[kerberos.MappedKerberos]:
         return kerberos.MappedKerberos
 
     @property
-    def available(self):
+    def available(self) -> bool:
         return kerberos.requests_kerberos is not None
 
-    def get_options(self):
+    def get_options(self) -> ty.List[opts.Opt]:
         options = super().get_options()
 
         options.extend(
@@ -79,7 +84,7 @@ class MappedKerberos(loading.BaseFederationLoader):
 
         return options
 
-    def load_from_options(self, **kwargs):
+    def load_from_options(self, **kwargs: ty.Any) -> kerberos.MappedKerberos:
         if kwargs.get('mutual_auth'):
             value = kwargs['mutual_auth']
             if not (value.lower() in ['required', 'optional', 'disabled']):
@@ -90,4 +95,6 @@ class MappedKerberos(loading.BaseFederationLoader):
                 )
                 raise exceptions.OptionError(m)
 
-        return super().load_from_options(**kwargs)
+        return ty.cast(
+            kerberos.MappedKerberos, super().load_from_options(**kwargs)
+        )

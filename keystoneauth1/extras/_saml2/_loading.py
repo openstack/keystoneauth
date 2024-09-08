@@ -10,20 +10,23 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import typing as ty
+
 from keystoneauth1.extras import _saml2
 from keystoneauth1 import loading
+from keystoneauth1.loading import opts
 
 
 class Saml2Password(loading.BaseFederationLoader):
     @property
-    def plugin_class(self):
+    def plugin_class(self) -> ty.Type[_saml2.V3Saml2Password]:
         return _saml2.V3Saml2Password
 
     @property
-    def available(self):
+    def available(self) -> bool:
         return _saml2._V3_SAML2_AVAILABLE
 
-    def get_options(self):
+    def get_options(self) -> ty.List[opts.Opt]:
         options = super().get_options()
 
         options.extend(
@@ -48,14 +51,14 @@ class Saml2Password(loading.BaseFederationLoader):
 
 class ADFSPassword(loading.BaseFederationLoader):
     @property
-    def plugin_class(self):
+    def plugin_class(self) -> ty.Type[_saml2.V3ADFSPassword]:
         return _saml2.V3ADFSPassword
 
     @property
-    def available(self):
+    def available(self) -> bool:
         return _saml2._V3_ADFS_AVAILABLE
 
-    def get_options(self):
+    def get_options(self) -> ty.List[opts.Opt]:
         options = super().get_options()
 
         options.extend(
