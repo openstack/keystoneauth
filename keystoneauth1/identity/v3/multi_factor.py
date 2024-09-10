@@ -10,6 +10,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import typing as ty
+
 from keystoneauth1.identity.v3 import base
 from keystoneauth1 import loading
 
@@ -38,21 +40,21 @@ class MultiFactor(base.Auth):
 
     def __init__(
         self,
-        auth_url,
-        auth_methods,
+        auth_url: str,
+        auth_methods: ty.List[str],
         *,
-        unscoped=False,
-        trust_id=None,
-        system_scope=None,
-        domain_id=None,
-        domain_name=None,
-        project_id=None,
-        project_name=None,
-        project_domain_id=None,
-        project_domain_name=None,
-        reauthenticate=True,
-        include_catalog=True,
-        **kwargs,
+        unscoped: bool = False,
+        trust_id: ty.Optional[str] = None,
+        system_scope: ty.Optional[str] = None,
+        domain_id: ty.Optional[str] = None,
+        domain_name: ty.Optional[str] = None,
+        project_id: ty.Optional[str] = None,
+        project_name: ty.Optional[str] = None,
+        project_domain_id: ty.Optional[str] = None,
+        project_domain_name: ty.Optional[str] = None,
+        reauthenticate: bool = True,
+        include_catalog: bool = True,
+        **kwargs: ty.Any,
     ):
         method_instances = []
         method_keys = set()
@@ -75,11 +77,12 @@ class MultiFactor(base.Auth):
         for key in method_keys:
             kwargs.pop(key, None)
 
-        assert kwargs == {}  # nosec B101
+        # This should now be empty
+        assert not kwargs  # nosec B101
 
         super().__init__(
-            auth_url,
-            method_instances,
+            auth_url=auth_url,
+            auth_methods=method_instances,
             unscoped=unscoped,
             trust_id=trust_id,
             system_scope=system_scope,

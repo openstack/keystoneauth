@@ -15,6 +15,7 @@
 import typing as ty
 
 from keystoneauth1.identity.v3 import base
+from keystoneauth1 import session as ks_session
 
 
 __all__ = ('ApplicationCredentialMethod', 'ApplicationCredential')
@@ -58,7 +59,16 @@ class ApplicationCredentialMethod(base.AuthMethod):
     ]
 
     # TODO(stephenfin): Deprecate and remove unused kwargs
-    def get_auth_data(self, session, auth, headers, request_kwargs, **kwargs):
+    def get_auth_data(
+        self,
+        session: ks_session.Session,
+        auth: base.Auth,
+        headers: ty.Dict[str, str],
+        request_kwargs: ty.Dict[str, object],
+        **kwargs: ty.Any,
+    ) -> ty.Union[
+        ty.Tuple[None, None], ty.Tuple[str, ty.Mapping[str, object]]
+    ]:
         auth_data: ty.Dict[str, ty.Any] = {
             'secret': self.application_credential_secret
         }
@@ -82,7 +92,7 @@ class ApplicationCredentialMethod(base.AuthMethod):
 
         return 'application_credential', auth_data
 
-    def get_cache_id_elements(self):
+    def get_cache_id_elements(self) -> ty.Dict[str, ty.Optional[str]]:
         return {
             f'application_credential_{p}': getattr(self, p)
             for p in self._method_parameters

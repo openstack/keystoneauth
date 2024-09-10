@@ -20,6 +20,7 @@ from keystoneauth1 import _utils as utils
 from keystoneauth1 import access
 from keystoneauth1 import exceptions
 from keystoneauth1.identity import base
+from keystoneauth1 import session as ks_session
 
 _logger = utils.get_logger(__name__)
 
@@ -48,20 +49,21 @@ class BaseAuth(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
 
     def __init__(
         self,
-        auth_url,
+        auth_url: str,
         *,
-        trust_id=None,
-        system_scope=None,
-        domain_id=None,
-        domain_name=None,
-        project_id=None,
-        project_name=None,
-        project_domain_id=None,
-        project_domain_name=None,
-        reauthenticate=True,
-        include_catalog=True,
+        trust_id: ty.Optional[str] = None,
+        system_scope: ty.Optional[str] = None,
+        domain_id: ty.Optional[str] = None,
+        domain_name: ty.Optional[str] = None,
+        project_id: ty.Optional[str] = None,
+        project_name: ty.Optional[str] = None,
+        project_domain_id: ty.Optional[str] = None,
+        project_domain_name: ty.Optional[str] = None,
+        reauthenticate: bool = True,
+        include_catalog: bool = True,
     ):
         super().__init__(auth_url=auth_url, reauthenticate=reauthenticate)
+
         self.trust_id = trust_id
         self.system_scope = system_scope
         self.domain_id = domain_id
@@ -73,18 +75,14 @@ class BaseAuth(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
         self.include_catalog = include_catalog
 
     @property
-    def token_url(self):
+    def token_url(self) -> str:
         """The full URL where we will send authentication data."""
         return '{}/auth/tokens'.format(self.auth_url.rstrip('/'))
 
-    @abc.abstractmethod
-    def get_auth_ref(self, session, **kwargs):
-        return None
-
     @property
-    def has_scope_parameters(self):
+    def has_scope_parameters(self) -> bool:
         """Return true if parameters can be used to create a scoped token."""
-        return (
+        return bool(
             self.domain_id
             or self.domain_name
             or self.project_id
@@ -126,20 +124,20 @@ class Auth(BaseAuth):
 
     def __init__(
         self,
-        auth_url,
-        auth_methods,
+        auth_url: str,
+        auth_methods: ty.List['AuthMethod'],
         *,
-        unscoped=False,
-        trust_id=None,
-        system_scope=None,
-        domain_id=None,
-        domain_name=None,
-        project_id=None,
-        project_name=None,
-        project_domain_id=None,
-        project_domain_name=None,
-        reauthenticate=True,
-        include_catalog=True,
+        unscoped: bool = False,
+        trust_id: ty.Optional[str] = None,
+        system_scope: ty.Optional[str] = None,
+        domain_id: ty.Optional[str] = None,
+        domain_name: ty.Optional[str] = None,
+        project_id: ty.Optional[str] = None,
+        project_name: ty.Optional[str] = None,
+        project_domain_id: ty.Optional[str] = None,
+        project_domain_name: ty.Optional[str] = None,
+        reauthenticate: bool = True,
+        include_catalog: bool = True,
     ):
         super().__init__(
             auth_url=auth_url,
@@ -157,11 +155,13 @@ class Auth(BaseAuth):
         self.unscoped = unscoped
         self.auth_methods = auth_methods
 
-    def add_method(self, method):
+    def add_method(self, method: 'AuthMethod') -> None:
         """Add an additional initialized AuthMethod instance."""
         self.auth_methods.append(method)
 
-    def get_auth_ref(self, session, **kwargs):
+    def get_auth_ref(
+        self, session: ks_session.Session, **kwargs: ty.Any
+    ) -> access.AccessInfoV3:
         headers = {'Accept': 'application/json'}
         body: _AuthBody = {'auth': {'identity': {}}}
         ident = body['auth']['identity']
@@ -260,9 +260,9 @@ class Auth(BaseAuth):
             auth_token=resp.headers['X-Subject-Token'], body=resp_data
         )
 
-    def get_cache_id_elements(self):
+    def get_cache_id_elements(self) -> ty.Dict[str, ty.Optional[str]]:
         if not self.auth_methods:
-            return None
+            return {}
 
         params = {
             'auth_url': self.auth_url,
@@ -276,11 +276,9 @@ class Auth(BaseAuth):
         }
 
         for method in self.auth_methods:
-            try:
-                elements = method.get_cache_id_elements()
-            except NotImplementedError:
-                return None
-
+            # may raise NotImplementedError but that's handled by
+            # BaseIdentityPlugin.get_cache_id
+            elements = method.get_cache_id_elements()
             params.update(elements)
 
         return params
@@ -300,7 +298,7 @@ class AuthMethod(metaclass=abc.ABCMeta):
 
     _method_parameters: ty.List[str] = []
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: object):
         for param in self._method_parameters:
             setattr(self, param, kwargs.pop(param, None))
 
@@ -309,13 +307,24 @@ class AuthMethod(metaclass=abc.ABCMeta):
             raise AttributeError(msg)
 
     @classmethod
-    def _extract_kwargs(cls, kwargs):
+    def _extract_kwargs(
+        cls, kwargs: ty.Dict[str, object]
+    ) -> ty.Dict[str, object]:
         """Remove parameters related to this method from other kwargs."""
         return {p: kwargs.pop(p, None) for p in cls._method_parameters}
 
     # TODO(stephenfin): Deprecate and remove unused kwargs
     @abc.abstractmethod
-    def get_auth_data(self, session, auth, headers, request_kwargs, **kwargs):
+    def get_auth_data(
+        self,
+        session: ks_session.Session,
+        auth: Auth,
+        headers: ty.Dict[str, str],
+        request_kwargs: ty.Dict[str, object],
+        **kwargs: ty.Any,
+    ) -> ty.Union[
+        ty.Tuple[None, None], ty.Tuple[str, ty.Mapping[str, object]]
+    ]:
         """Return the authentication section of an auth plugin.
 
         :param session: The communication session.
@@ -327,8 +336,9 @@ class AuthMethod(metaclass=abc.ABCMeta):
                  data for the auth type.
         :rtype: tuple(string, dict)
         """
+        raise NotImplementedError()
 
-    def get_cache_id_elements(self):
+    def get_cache_id_elements(self) -> ty.Dict[str, ty.Optional[str]]:
         """Get the elements for this auth method that make it unique.
 
         These elements will be used as part of the
@@ -360,20 +370,20 @@ class AuthConstructor(Auth, metaclass=abc.ABCMeta):
 
     def __init__(
         self,
-        auth_url,
-        *args,
-        unscoped=False,
-        trust_id=None,
-        system_scope=None,
-        domain_id=None,
-        domain_name=None,
-        project_id=None,
-        project_name=None,
-        project_domain_id=None,
-        project_domain_name=None,
-        reauthenticate=True,
-        include_catalog=True,
-        **kwargs,
+        auth_url: str,
+        *args: ty.Any,
+        unscoped: bool = False,
+        trust_id: ty.Optional[str] = None,
+        system_scope: ty.Optional[str] = None,
+        domain_id: ty.Optional[str] = None,
+        domain_name: ty.Optional[str] = None,
+        project_id: ty.Optional[str] = None,
+        project_name: ty.Optional[str] = None,
+        project_domain_id: ty.Optional[str] = None,
+        project_domain_name: ty.Optional[str] = None,
+        reauthenticate: bool = True,
+        include_catalog: bool = True,
+        **kwargs: ty.Any,
     ):
         method_kwargs = self._auth_method_class._extract_kwargs(kwargs)
         # we should have consumed all "unknown" arguments by now

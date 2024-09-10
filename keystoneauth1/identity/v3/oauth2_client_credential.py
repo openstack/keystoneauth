@@ -12,10 +12,13 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import typing as ty
+
 import requests.auth
 
 from keystoneauth1.exceptions import ClientException
 from keystoneauth1.identity.v3 import base
+from keystoneauth1 import session as ks_session
 
 __all__ = ('OAuth2ClientCredentialMethod', 'OAuth2ClientCredential')
 
@@ -39,7 +42,16 @@ class OAuth2ClientCredentialMethod(base.AuthMethod):
     ]
 
     # TODO(stephenfin): Deprecate and remove unused kwargs
-    def get_auth_data(self, session, auth, headers, request_kwargs, **kwargs):
+    def get_auth_data(
+        self,
+        session: ks_session.Session,
+        auth: base.Auth,
+        headers: ty.Dict[str, str],
+        request_kwargs: ty.Dict[str, object],
+        **kwargs: ty.Any,
+    ) -> ty.Union[
+        ty.Tuple[None, None], ty.Tuple[str, ty.Mapping[str, object]]
+    ]:
         """Return the authentication section of an auth plugin.
 
         :param session: The communication session.
@@ -51,13 +63,13 @@ class OAuth2ClientCredentialMethod(base.AuthMethod):
                  data for the auth type.
         :rtype: tuple(string, dict)
         """
-        auth_data = {
+        auth_data: ty.Dict[str, object] = {
             'id': self.oauth2_client_id,
             'secret': self.oauth2_client_secret,
         }
         return 'application_credential', auth_data
 
-    def get_cache_id_elements(self):
+    def get_cache_id_elements(self) -> ty.Dict[str, ty.Optional[str]]:
         """Get the elements for this auth method that make it unique.
 
         These elements will be used as part of the
@@ -88,13 +100,48 @@ class OAuth2ClientCredential(base.AuthConstructor):
 
     _auth_method_class = OAuth2ClientCredentialMethod
 
-    def __init__(self, auth_url, *args, **kwargs):
-        super().__init__(auth_url, *args, **kwargs)
-        self._oauth2_endpoint = kwargs['oauth2_endpoint']
-        self._oauth2_client_id = kwargs['oauth2_client_id']
-        self._oauth2_client_secret = kwargs['oauth2_client_secret']
+    def __init__(
+        self,
+        auth_url: str,
+        oauth2_endpoint: str,
+        oauth2_client_id: str,
+        oauth2_client_secret: str,
+        *,
+        trust_id: ty.Optional[str] = None,
+        system_scope: ty.Optional[str] = None,
+        domain_id: ty.Optional[str] = None,
+        domain_name: ty.Optional[str] = None,
+        project_id: ty.Optional[str] = None,
+        project_name: ty.Optional[str] = None,
+        project_domain_id: ty.Optional[str] = None,
+        project_domain_name: ty.Optional[str] = None,
+        reauthenticate: bool = True,
+        include_catalog: bool = True,
+    ):
+        super().__init__(
+            auth_url=auth_url,
+            trust_id=trust_id,
+            system_scope=system_scope,
+            domain_id=domain_id,
+            domain_name=domain_name,
+            project_id=project_id,
+            project_name=project_name,
+            project_domain_id=project_domain_id,
+            project_domain_name=project_domain_name,
+            reauthenticate=reauthenticate,
+            include_catalog=include_catalog,
+            # these are consumed by the auth method
+            oauth2_endpoint=oauth2_endpoint,
+            oauth2_client_id=oauth2_client_id,
+            oauth2_client_secret=oauth2_client_secret,
+        )
+        self.oauth2_endpoint = oauth2_endpoint
+        self.oauth2_client_id = oauth2_client_id
+        self.oauth2_client_secret = oauth2_client_secret
 
-    def get_headers(self, session, **kwargs):
+    def get_headers(
+        self, session: 'ks_session.Session', **kwargs: ty.Any
+    ) -> ty.Optional[ty.Dict[str, str]]:
         """Fetch authentication headers for message.
 
         :param session: The session object that the auth_plugin belongs to.
@@ -111,10 +158,10 @@ class OAuth2ClientCredential(base.AuthConstructor):
         # Get OAuth2.0 access token and add the field 'Authorization'
         data = {"grant_type": "client_credentials"}
         auth = requests.auth.HTTPBasicAuth(
-            self._oauth2_client_id, self._oauth2_client_secret
+            self.oauth2_client_id, self.oauth2_client_secret
         )
         resp = session.request(
-            self._oauth2_endpoint,
+            self.oauth2_endpoint,
             "POST",
             authenticated=False,
             raise_exc=False,

@@ -10,7 +10,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import typing as ty
+
 from keystoneauth1.identity.v3 import base
+from keystoneauth1 import session as ks_session
 
 
 __all__ = ('TokenMethod', 'Token')
@@ -27,11 +30,20 @@ class TokenMethod(base.AuthMethod):
     _method_parameters = ['token']
 
     # TODO(stephenfin): Deprecate and remove unused kwargs
-    def get_auth_data(self, session, auth, headers, request_kwargs, **kwargs):
+    def get_auth_data(
+        self,
+        session: ks_session.Session,
+        auth: base.Auth,
+        headers: ty.Dict[str, str],
+        request_kwargs: ty.Dict[str, object],
+        **kwargs: ty.Any,
+    ) -> ty.Union[
+        ty.Tuple[None, None], ty.Tuple[str, ty.Mapping[str, object]]
+    ]:
         headers['X-Auth-Token'] = self.token
         return 'token', {'id': self.token}
 
-    def get_cache_id_elements(self):
+    def get_cache_id_elements(self) -> ty.Dict[str, ty.Optional[str]]:
         return {'token_token': self.token}
 
 
@@ -55,21 +67,21 @@ class Token(base.AuthConstructor):
 
     def __init__(
         self,
-        auth_url,
-        token,
+        auth_url: str,
+        token: str,
         *,
-        unscoped=False,
-        trust_id=None,
-        system_scope=None,
-        domain_id=None,
-        domain_name=None,
-        project_id=None,
-        project_name=None,
-        project_domain_id=None,
-        project_domain_name=None,
-        reauthenticate=True,
-        include_catalog=True,
-        **kwargs,
+        unscoped: bool = False,
+        trust_id: ty.Optional[str] = None,
+        system_scope: ty.Optional[str] = None,
+        domain_id: ty.Optional[str] = None,
+        domain_name: ty.Optional[str] = None,
+        project_id: ty.Optional[str] = None,
+        project_name: ty.Optional[str] = None,
+        project_domain_id: ty.Optional[str] = None,
+        project_domain_name: ty.Optional[str] = None,
+        reauthenticate: bool = True,
+        include_catalog: bool = True,
+        **kwargs: ty.Any,
     ):
         super().__init__(
             auth_url,

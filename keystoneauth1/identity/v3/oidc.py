@@ -20,10 +20,13 @@ import time
 import typing as ty
 from urllib import parse as urlparse
 
+import requests
+
 from keystoneauth1 import _utils as utils
 from keystoneauth1 import access
 from keystoneauth1 import exceptions
 from keystoneauth1.identity.v3 import federation
+from keystoneauth1 import session as ks_session
 
 _logger = utils.get_logger(__name__)
 
@@ -48,26 +51,26 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
 
     def __init__(
         self,
-        auth_url,
-        identity_provider,
-        protocol,
-        client_id,
-        client_secret,
-        access_token_type,
-        scope,
-        access_token_endpoint,
-        discovery_endpoint,
+        auth_url: str,
+        identity_provider: str,
+        protocol: str,
+        client_id: str,
+        client_secret: ty.Optional[str],
+        access_token_type: str,
+        scope: str,
+        access_token_endpoint: ty.Optional[str],
+        discovery_endpoint: ty.Optional[str],
         *,
-        trust_id,
-        system_scope,
-        domain_id,
-        domain_name,
-        project_id,
-        project_name,
-        project_domain_id,
-        project_domain_name,
-        reauthenticate,
-        include_catalog,
+        trust_id: ty.Optional[str],
+        system_scope: ty.Optional[str],
+        domain_id: ty.Optional[str],
+        domain_name: ty.Optional[str],
+        project_id: ty.Optional[str],
+        project_name: ty.Optional[str],
+        project_domain_id: ty.Optional[str],
+        project_domain_name: ty.Optional[str],
+        reauthenticate: bool,
+        include_catalog: bool,
     ):
         """The OpenID Connect plugin expects the following.
 
@@ -114,9 +117,9 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
         :type scope: string
         """
         super().__init__(
-            auth_url,
-            identity_provider,
-            protocol,
+            auth_url=auth_url,
+            identity_provider=identity_provider,
+            protocol=protocol,
             trust_id=trust_id,
             system_scope=system_scope,
             domain_id=domain_id,
@@ -128,17 +131,20 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
             reauthenticate=reauthenticate,
             include_catalog=include_catalog,
         )
+
         self.client_id = client_id
         self.client_secret = client_secret
 
         self.discovery_endpoint = discovery_endpoint
-        self._discovery_document = {}
+        self._discovery_document: ty.Dict[str, object] = {}
         self.access_token_endpoint = access_token_endpoint
 
         self.access_token_type = access_token_type
         self.scope = scope
 
-    def _get_discovery_document(self, session):
+    def _get_discovery_document(
+        self, session: ks_session.Session
+    ) -> ty.Dict[str, object]:
         """Get the contents of the OpenID Connect Discovery Document.
 
         This method grabs the contents of the OpenID Connect Discovery Document
@@ -178,7 +184,7 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
 
         return self._discovery_document
 
-    def _get_access_token_endpoint(self, session):
+    def _get_access_token_endpoint(self, session: ks_session.Session) -> str:
         """Get the "token_endpoint" for the OpenID Connect flow.
 
         This method will return the correct access token endpoint to be used.
@@ -191,7 +197,7 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
         :type session: keystoneauth1.session.Session
 
         :return: the endpoint to use
-        :rtype: string or None if no endpoint is found
+        :rtype: string
         """
         if self.access_token_endpoint is not None:
             return self.access_token_endpoint
@@ -200,16 +206,22 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
         endpoint = discovery.get("token_endpoint")
         if endpoint is None:
             raise exceptions.OidcAccessTokenEndpointNotFound()
-        return endpoint
+        return ty.cast(str, endpoint)
 
-    def _sanitize(self, data):
+    def _sanitize(
+        self, data: ty.Dict[str, ty.Optional[str]]
+    ) -> ty.Dict[str, ty.Optional[str]]:
         sanitized = copy.deepcopy(data)
         for key in sanitized:
             if any(s in key for s in SENSITIVE_KEYS):
                 sanitized[key] = "***"
         return sanitized
 
-    def _get_access_token(self, session, payload):
+    def _get_access_token(
+        self,
+        session: ks_session.Session,
+        payload: ty.Dict[str, ty.Optional[str]],
+    ) -> str:
         """Exchange a variety of user supplied values for an access token.
 
         :param session: a session object to send out HTTP requests.
@@ -257,9 +269,13 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
                 access_token_endpoint,
                 sanitized_response,
             )
-        return response[self.access_token_type]
+        access_token = response[self.access_token_type]
+        assert isinstance(access_token, str)  # nosec: B101
+        return access_token
 
-    def _get_keystone_token(self, session, access_token):
+    def _get_keystone_token(
+        self, session: ks_session.Session, access_token: str
+    ) -> requests.Response:
         r"""Exchange an access token for a keystone token.
 
         By Sending the access token in an `Authorization: Bearer` header, to
@@ -284,7 +300,9 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
         return auth_response
 
     # TODO(stephenfin): Deprecate and remove unused kwargs
-    def get_unscoped_auth_ref(self, session, **kwargs):
+    def get_unscoped_auth_ref(
+        self, session: ks_session.Session, **kwargs: ty.Any
+    ) -> access.AccessInfoV3:
         """Authenticate with OpenID Connect and get back claims.
 
         This is a multi-step process:
@@ -309,7 +327,9 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
         """
         # First of all, check if the grant type is supported
         discovery = self._get_discovery_document(session)
-        grant_types = discovery.get("grant_types_supported")
+        grant_types = ty.cast(
+            ty.Optional[ty.List[str]], discovery.get("grant_types_supported")
+        )
         if (
             grant_types
             and self.grant_type is not None
@@ -327,10 +347,14 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
         response = self._get_keystone_token(session, access_token)
 
         # grab the unscoped token
-        return access.create(resp=response)
+        access_info = access.create(resp=response)
+        assert isinstance(access_info, access.AccessInfoV3)  # nosec B101
+        return access_info
 
     @abc.abstractmethod
-    def get_payload(self, session):
+    def get_payload(
+        self, session: ks_session.Session
+    ) -> ty.Dict[str, ty.Optional[str]]:
         """Get the plugin specific payload for obtainin an access token.
 
         OpenID Connect supports different grant types. This method should
@@ -354,29 +378,29 @@ class OidcPassword(_OidcBase):
 
     def __init__(
         self,
-        auth_url,
-        identity_provider,
-        protocol,
-        client_id,
-        client_secret,
-        access_token_type='access_token',  # nosec B107
-        scope='openid profile',
-        access_token_endpoint=None,
-        discovery_endpoint=None,
-        username=None,
-        password=None,
-        idp_otp_key=None,
+        auth_url: str,
+        identity_provider: str,
+        protocol: str,
+        client_id: str,
+        client_secret: str,
+        access_token_type: str = 'access_token',  # nosec B107
+        scope: str = 'openid profile',
+        access_token_endpoint: ty.Optional[str] = None,
+        discovery_endpoint: ty.Optional[str] = None,
+        username: ty.Optional[str] = None,
+        password: ty.Optional[str] = None,
+        idp_otp_key: ty.Optional[str] = None,
         *,
-        trust_id=None,
-        system_scope=None,
-        domain_id=None,
-        domain_name=None,
-        project_id=None,
-        project_name=None,
-        project_domain_id=None,
-        project_domain_name=None,
-        reauthenticate=True,
-        include_catalog=True,
+        trust_id: ty.Optional[str] = None,
+        system_scope: ty.Optional[str] = None,
+        domain_id: ty.Optional[str] = None,
+        domain_name: ty.Optional[str] = None,
+        project_id: ty.Optional[str] = None,
+        project_name: ty.Optional[str] = None,
+        project_domain_id: ty.Optional[str] = None,
+        project_domain_name: ty.Optional[str] = None,
+        reauthenticate: bool = True,
+        include_catalog: bool = True,
     ):
         """The OpenID Password plugin expects the following.
 
@@ -411,7 +435,9 @@ class OidcPassword(_OidcBase):
         self.password = password
         self.idp_otp_key = idp_otp_key
 
-    def get_payload(self, session):
+    def get_payload(
+        self, session: ks_session.Session
+    ) -> ty.Dict[str, ty.Optional[str]]:
         """Get an authorization grant for the "password" grant type.
 
         :param session: a session object to send out HTTP requests.
@@ -431,7 +457,11 @@ class OidcPassword(_OidcBase):
 
         return payload
 
-    def manage_otp_from_session_or_request_to_the_user(self, payload, session):
+    def manage_otp_from_session_or_request_to_the_user(
+        self,
+        payload: ty.Dict[str, ty.Optional[str]],
+        session: ks_session.Session,
+    ) -> None:
         """Get the OTP code from the session or else request to the user.
 
         When the OS_IDP_OTP_KEY environment variable is set, this method will
@@ -470,26 +500,26 @@ class OidcClientCredentials(_OidcBase):
 
     def __init__(
         self,
-        auth_url,
-        identity_provider,
-        protocol,
-        client_id,
-        client_secret,
-        access_token_type='access_token',  # nosec B107
-        scope='openid profile',
-        access_token_endpoint=None,
-        discovery_endpoint=None,
+        auth_url: str,
+        identity_provider: str,
+        protocol: str,
+        client_id: str,
+        client_secret: str,
+        access_token_type: str = 'access_token',  # nosec B107
+        scope: str = 'openid profile',
+        access_token_endpoint: ty.Optional[str] = None,
+        discovery_endpoint: ty.Optional[str] = None,
         *,
-        trust_id=None,
-        system_scope=None,
-        domain_id=None,
-        domain_name=None,
-        project_id=None,
-        project_name=None,
-        project_domain_id=None,
-        project_domain_name=None,
-        reauthenticate=True,
-        include_catalog=True,
+        trust_id: ty.Optional[str] = None,
+        system_scope: ty.Optional[str] = None,
+        domain_id: ty.Optional[str] = None,
+        domain_name: ty.Optional[str] = None,
+        project_id: ty.Optional[str] = None,
+        project_name: ty.Optional[str] = None,
+        project_domain_id: ty.Optional[str] = None,
+        project_domain_name: ty.Optional[str] = None,
+        reauthenticate: bool = True,
+        include_catalog: bool = True,
     ):
         """The OpenID Client Credentials expects the following.
 
@@ -521,7 +551,9 @@ class OidcClientCredentials(_OidcBase):
             include_catalog=include_catalog,
         )
 
-    def get_payload(self, session):
+    def get_payload(
+        self, session: ks_session.Session
+    ) -> ty.Dict[str, ty.Optional[str]]:
         """Get an authorization grant for the client credentials grant type.
 
         :param session: a session object to send out HTTP requests.
@@ -530,7 +562,7 @@ class OidcClientCredentials(_OidcBase):
         :returns: a python dictionary containing the payload to be exchanged
         :rtype: dict
         """
-        payload = {'scope': self.scope}
+        payload: ty.Dict[str, ty.Optional[str]] = {'scope': self.scope}
         return payload
 
 
@@ -541,28 +573,28 @@ class OidcAuthorizationCode(_OidcBase):
 
     def __init__(
         self,
-        auth_url,
-        identity_provider,
-        protocol,
-        client_id,
-        client_secret,
-        access_token_type='access_token',  # nosec B107
-        scope='openid profile',
-        access_token_endpoint=None,
-        discovery_endpoint=None,
-        redirect_uri=None,
-        code=None,
+        auth_url: str,
+        identity_provider: str,
+        protocol: str,
+        client_id: str,
+        client_secret: str,
+        access_token_type: str = 'access_token',  # nosec B107
+        scope: str = 'openid profile',
+        access_token_endpoint: ty.Optional[str] = None,
+        discovery_endpoint: ty.Optional[str] = None,
+        code: ty.Optional[str] = None,
         *,
-        trust_id=None,
-        system_scope=None,
-        domain_id=None,
-        domain_name=None,
-        project_id=None,
-        project_name=None,
-        project_domain_id=None,
-        project_domain_name=None,
-        reauthenticate=True,
-        include_catalog=True,
+        trust_id: ty.Optional[str] = None,
+        system_scope: ty.Optional[str] = None,
+        domain_id: ty.Optional[str] = None,
+        domain_name: ty.Optional[str] = None,
+        project_id: ty.Optional[str] = None,
+        project_name: ty.Optional[str] = None,
+        project_domain_id: ty.Optional[str] = None,
+        project_domain_name: ty.Optional[str] = None,
+        reauthenticate: bool = True,
+        include_catalog: bool = True,
+        redirect_uri: ty.Optional[str] = None,
     ):
         """The OpenID Authorization Code plugin expects the following.
 
@@ -597,7 +629,9 @@ class OidcAuthorizationCode(_OidcBase):
         self.redirect_uri = redirect_uri
         self.code = code
 
-    def get_payload(self, session):
+    def get_payload(
+        self, session: ks_session.Session
+    ) -> ty.Dict[str, ty.Optional[str]]:
         """Get an authorization grant for the "authorization_code" grant type.
 
         :param session: a session object to send out HTTP requests.
@@ -611,27 +645,32 @@ class OidcAuthorizationCode(_OidcBase):
         return payload
 
 
-# We don't inherit from _OidcBase since most of this is completely different
-class OidcAccessToken(federation.FederationBaseAuth):
+class OidcAccessToken(_OidcBase):
     """Implementation for OpenID Connect access token reuse."""
 
     def __init__(
         self,
-        auth_url,
-        identity_provider,
-        protocol,
-        access_token,
+        auth_url: str,
+        identity_provider: str,
+        protocol: str,
+        # client_id and client_id intentionally omitted since they don't make
+        # sense with an access token
+        access_token_type: str = 'access_token',  # nosec B107
+        scope: str = 'openid profile',
+        access_token_endpoint: ty.Optional[str] = None,
+        discovery_endpoint: ty.Optional[str] = None,
+        access_token: ty.Optional[str] = None,
         *,
-        trust_id=None,
-        system_scope=None,
-        domain_id=None,
-        domain_name=None,
-        project_id=None,
-        project_name=None,
-        project_domain_id=None,
-        project_domain_name=None,
-        reauthenticate=True,
-        include_catalog=True,
+        trust_id: ty.Optional[str] = None,
+        system_scope: ty.Optional[str] = None,
+        domain_id: ty.Optional[str] = None,
+        domain_name: ty.Optional[str] = None,
+        project_id: ty.Optional[str] = None,
+        project_name: ty.Optional[str] = None,
+        project_domain_id: ty.Optional[str] = None,
+        project_domain_name: ty.Optional[str] = None,
+        reauthenticate: bool = True,
+        include_catalog: bool = True,
     ):
         """The OpenID Connect plugin based on the Access Token.
 
@@ -651,9 +690,17 @@ class OidcAccessToken(federation.FederationBaseAuth):
         :type access_token: string
         """
         super().__init__(
-            auth_url,
-            identity_provider,
-            protocol,
+            auth_url=auth_url,
+            identity_provider=identity_provider,
+            protocol=protocol,
+            # intentionally set client_id, client_secret to empty since we
+            # don't need then
+            client_id='',  # nosec B106
+            client_secret='',  # nosec B106
+            access_token_type=access_token_type,
+            scope=scope,
+            access_token_endpoint=access_token_endpoint,
+            discovery_endpoint=discovery_endpoint,
             trust_id=trust_id,
             system_scope=system_scope,
             domain_id=domain_id,
@@ -665,38 +712,19 @@ class OidcAccessToken(federation.FederationBaseAuth):
             reauthenticate=reauthenticate,
             include_catalog=include_catalog,
         )
+        assert access_token is not None  # nosec B101
         self.access_token = access_token
 
-    def get_payload(self, session):
+    def get_payload(
+        self, session: ks_session.Session
+    ) -> ty.Dict[str, ty.Optional[str]]:
         """OidcAccessToken does not require a payload."""  # noqa: D403
         return {}
 
-    def _get_keystone_token(self, session, access_token):
-        r"""Exchange an access token for a keystone token.
-
-        By Sending the access token in an `Authorization: Bearer` header, to
-        an OpenID Connect protected endpoint (Federated Token URL). The
-        OpenID Connect server will use the access token to look up information
-        about the authenticated user (this technique is called instrospection).
-        The output of the instrospection will be an OpenID Connect Claim, that
-        will be used against the mapping engine. Should the mapping engine
-        succeed, a Keystone token will be presented to the user.
-
-        :param session: a session object to send out HTTP requests.
-        :type session: keystoneauth1.session.Session
-
-        :param access_token: The OpenID Connect access token.
-        :type access_token: str
-        """
-        # use access token against protected URL
-        headers = {'Authorization': 'Bearer ' + access_token}
-        auth_response = session.post(
-            self.federated_token_url, headers=headers, authenticated=False
-        )
-        return auth_response
-
     # TODO(stephenfin): Deprecate and remove unused kwargs
-    def get_unscoped_auth_ref(self, session, **kwargs):
+    def get_unscoped_auth_ref(
+        self, session: ks_session.Session, **kwargs: ty.Any
+    ) -> access.AccessInfoV3:
         """Authenticate with OpenID Connect and get back claims.
 
         We exchange the access token upon accessing the protected Keystone
@@ -713,7 +741,9 @@ class OidcAccessToken(federation.FederationBaseAuth):
         :rtype: :py:class:`keystoneauth1.access.AccessInfoV3`
         """
         response = self._get_keystone_token(session, self.access_token)
-        return access.create(resp=response)
+        access_info = access.create(resp=response)
+        assert isinstance(access_info, access.AccessInfoV3)  # nosec B101
+        return access_info
 
 
 class OidcDeviceAuthorization(_OidcBase):
@@ -724,29 +754,29 @@ class OidcDeviceAuthorization(_OidcBase):
 
     def __init__(
         self,
-        auth_url,
-        identity_provider,
-        protocol,  # nosec
-        client_id,
-        client_secret=None,
+        auth_url: str,
+        identity_provider: str,
+        protocol: str,
+        client_id: str,
+        client_secret: ty.Optional[str],
         # access_token_type intentionally skipped
-        scope='openid profile',
-        access_token_endpoint=None,
-        device_authorization_endpoint=None,
-        discovery_endpoint=None,
-        code_challenge=None,
-        code_challenge_method=None,
+        scope: str = 'openid profile',
+        access_token_endpoint: ty.Optional[str] = None,
+        discovery_endpoint: ty.Optional[str] = None,
+        device_authorization_endpoint: ty.Optional[str] = None,
+        code_challenge: ty.Optional[str] = None,
+        code_challenge_method: ty.Optional[str] = None,
         *,
-        trust_id=None,
-        system_scope=None,
-        domain_id=None,
-        domain_name=None,
-        project_id=None,
-        project_name=None,
-        project_domain_id=None,
-        project_domain_name=None,
-        reauthenticate=True,
-        include_catalog=True,
+        trust_id: ty.Optional[str] = None,
+        system_scope: ty.Optional[str] = None,
+        domain_id: ty.Optional[str] = None,
+        domain_name: ty.Optional[str] = None,
+        project_id: ty.Optional[str] = None,
+        project_name: ty.Optional[str] = None,
+        project_domain_id: ty.Optional[str] = None,
+        project_domain_name: ty.Optional[str] = None,
+        reauthenticate: bool = True,
+        include_catalog: bool = True,
     ):
         """The OAuth 2.0 Device Authorization plugin expects the following.
 
@@ -788,7 +818,9 @@ class OidcDeviceAuthorization(_OidcBase):
             include_catalog=include_catalog,
         )
 
-    def _get_device_authorization_endpoint(self, session):
+    def _get_device_authorization_endpoint(
+        self, session: ks_session.Session
+    ) -> ty.Optional[str]:
         """Get the endpoint for the OAuth 2.0 Device Authorization flow.
 
         This method will return the correct device authorization endpoint to
@@ -811,9 +843,9 @@ class OidcDeviceAuthorization(_OidcBase):
         endpoint = discovery.get("device_authorization_endpoint")
         if endpoint is None:
             raise exceptions.oidc.OidcDeviceAuthorizationEndpointNotFound()
-        return endpoint
+        return ty.cast(str, endpoint)
 
-    def _generate_pkce_verifier(self):
+    def _generate_pkce_verifier(self) -> str:
         """Generate PKCE verifier string as defined in RFC 7636."""
         raw_bytes = 42  # 32 is the minimum from the RFC, let's use a bit more
         _rand = os.urandom(raw_bytes)
@@ -821,7 +853,7 @@ class OidcDeviceAuthorization(_OidcBase):
         code_verifier = _rand_b64.rstrip('=')  # strip padding as RFC says
         return code_verifier
 
-    def _generate_pkce_challenge(self):
+    def _generate_pkce_challenge(self) -> ty.Optional[str]:
         """Generate PKCE challenge string as defined in RFC 7636."""
         if self.code_challenge_method not in ('plain', 'S256'):
             raise exceptions.OidcInvalidCodeChallengeMethod()
@@ -832,11 +864,13 @@ class OidcDeviceAuthorization(_OidcBase):
         elif self.code_challenge_method == 'S256':
             _tmp = self.code_verifier.encode('ascii')
             _hash = hashlib.sha256(_tmp).digest()
-            _tmp = base64.urlsafe_b64encode(_hash).decode('ascii')
-            code_challenge = _tmp.rstrip('=')
-            return code_challenge
+            return base64.urlsafe_b64encode(_hash).decode('ascii').rstrip('=')
 
-    def get_payload(self, session):
+        return None
+
+    def get_payload(
+        self, session: ks_session.Session
+    ) -> ty.Dict[str, ty.Optional[str]]:
         """Get an authorization grant for the "device_code" grant type.
 
         :param session: a session object to send out HTTP requests.
@@ -845,9 +879,13 @@ class OidcDeviceAuthorization(_OidcBase):
         :returns: a python dictionary containing the payload to be exchanged
         :rtype: dict
         """
+        payload: ty.Dict[str, ty.Optional[str]]
         device_authz_endpoint = self._get_device_authorization_endpoint(
             session
         )
+
+        # TODO(stephenfin): This should be an error
+        assert device_authz_endpoint is not None  # nosec B101
 
         if self.client_secret:
             client_auth = (self.client_id, self.client_secret)
@@ -903,7 +941,11 @@ class OidcDeviceAuthorization(_OidcBase):
             payload.setdefault('code_verifier', self.code_verifier)
         return payload
 
-    def _get_access_token(self, session, payload):
+    def _get_access_token(
+        self,
+        session: ks_session.Session,
+        payload: ty.Dict[str, ty.Optional[str]],
+    ) -> str:
         """Poll token endpoint for an access token.
 
         :param session: a session object to send out HTTP requests.
@@ -969,4 +1011,5 @@ class OidcDeviceAuthorization(_OidcBase):
                 raise exceptions.oidc.OidcDeviceAuthorizationTimeOut()
 
         access_token = op_response.json()[self.access_token_type]
+        assert isinstance(access_token, str)  # nosec B101
         return access_token

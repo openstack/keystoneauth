@@ -11,9 +11,13 @@
 # under the License.
 
 import abc
+import typing as ty
 
 from keystoneauth1 import _utils as utils
 from keystoneauth1 import plugin
+
+if ty.TYPE_CHECKING:
+    from keystoneauth1 import session as ks_session
 
 LOG = utils.get_logger(__name__)
 
@@ -29,13 +33,13 @@ class TokenlessAuth(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
 
     def __init__(
         self,
-        auth_url,
-        domain_id=None,
-        domain_name=None,
-        project_id=None,
-        project_name=None,
-        project_domain_id=None,
-        project_domain_name=None,
+        auth_url: str,
+        domain_id: ty.Optional[str] = None,
+        domain_name: ty.Optional[str] = None,
+        project_id: ty.Optional[str] = None,
+        project_name: ty.Optional[str] = None,
+        project_domain_id: ty.Optional[str] = None,
+        project_domain_name: ty.Optional[str] = None,
     ):
         """A init method for TokenlessAuth.
 
@@ -57,7 +61,9 @@ class TokenlessAuth(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         self.project_domain_id = project_domain_id
         self.project_domain_name = project_domain_name
 
-    def get_headers(self, session, **kwargs):
+    def get_headers(
+        self, session: 'ks_session.Session', **kwargs: ty.Any
+    ) -> ty.Optional[ty.Dict[str, str]]:
         """Fetch authentication headers for message.
 
         This is to override the default get_headers method to provide
@@ -98,7 +104,12 @@ class TokenlessAuth(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
             return None
         return scope_headers
 
-    def get_endpoint(self, session, service_type=None, **kwargs):
+    def get_endpoint(
+        self,
+        session: 'ks_session.Session',
+        service_type: ty.Optional[str] = None,
+        **kwargs: ty.Any,
+    ) -> ty.Optional[str]:
         """Return a valid endpoint for a service.
 
         :param session: A session object that can be used for communication.
@@ -109,9 +120,8 @@ class TokenlessAuth(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         :return: A valid endpoint URL or None if not available.
         :rtype: string or None
         """
-        if (
-            service_type is plugin.AUTH_INTERFACE
-            or service_type.lower() == 'identity'
+        if service_type is plugin.AUTH_INTERFACE or (
+            service_type and service_type.lower() == 'identity'
         ):
             return self.auth_url
 

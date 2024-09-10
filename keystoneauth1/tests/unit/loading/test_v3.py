@@ -595,9 +595,9 @@ class V3Oauth2ClientCredentialTests(utils.TestCase):
         self.assertEqual(secret, client_method.oauth2_client_secret)
         self.assertEqual(oauth2_endpoint, client_method.oauth2_endpoint)
 
-        self.assertEqual(id, client_cred._oauth2_client_id)
-        self.assertEqual(secret, client_cred._oauth2_client_secret)
-        self.assertEqual(oauth2_endpoint, client_cred._oauth2_endpoint)
+        self.assertEqual(id, client_cred.oauth2_client_id)
+        self.assertEqual(secret, client_cred.oauth2_client_secret)
+        self.assertEqual(oauth2_endpoint, client_cred.oauth2_endpoint)
 
     def test_without_oauth2_endpoint(self):
         id = uuid.uuid4().hex

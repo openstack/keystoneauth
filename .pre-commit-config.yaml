@@ -43,6 +43,7 @@ repos:
           - types-PyYAML
           - types-requests
           - types-simplejson
+          - types-lxml
           - iso8601
         # keep this in-sync with '[mypy] exclude' in 'setup.cfg'
         exclude: |

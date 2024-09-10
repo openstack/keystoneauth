@@ -19,7 +19,7 @@ try:
     # https://mypy.readthedocs.io/en/stable/command_line.html#cmdoption-mypy-no-implicit-reexport
     from lxml import etree as etree
 except ImportError:
-    etree = None
+    etree = None  # type: ignore[assignment]
 
 from keystoneauth1 import access
 from keystoneauth1 import exceptions

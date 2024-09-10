@@ -11,9 +11,12 @@
 # under the License.
 
 import abc
+import typing as ty
 
+from keystoneauth1 import access
 from keystoneauth1.identity.v3 import base
 from keystoneauth1.identity.v3 import token
+from keystoneauth1 import session as ks_session
 
 __all__ = ('FederationBaseAuth',)
 
@@ -34,18 +37,9 @@ class _Rescoped(base.BaseAuth, metaclass=abc.ABCMeta):
 
     rescoping_plugin = token.Token
 
-    def _get_scoping_data(self):
-        return {
-            'trust_id': self.trust_id,
-            'domain_id': self.domain_id,
-            'domain_name': self.domain_name,
-            'project_id': self.project_id,
-            'project_name': self.project_name,
-            'project_domain_id': self.project_domain_id,
-            'project_domain_name': self.project_domain_name,
-        }
-
-    def get_auth_ref(self, session, **kwargs):
+    def get_auth_ref(
+        self, session: ks_session.Session, **kwargs: ty.Any
+    ) -> access.AccessInfoV3:
         """Authenticate retrieve token information.
 
         This is a multi-step process where a client does federated authn
@@ -62,11 +56,31 @@ class _Rescoped(base.BaseAuth, metaclass=abc.ABCMeta):
 
         """
         auth_ref = self.get_unscoped_auth_ref(session)
-        scoping = self._get_scoping_data()
 
-        if any(scoping.values()):
+        # narrow type
+        assert auth_ref.auth_token is not None  # nosec B101
+
+        if any(
+            [
+                self.trust_id,
+                self.domain_id,
+                self.domain_name,
+                self.project_id,
+                self.project_name,
+                self.project_domain_id,
+                self.project_domain_name,
+            ]
+        ):
             token_plugin = self.rescoping_plugin(
-                self.auth_url, token=auth_ref.auth_token, **scoping
+                self.auth_url,
+                token=auth_ref.auth_token,
+                trust_id=self.trust_id,
+                domain_id=self.domain_id,
+                domain_name=self.domain_name,
+                project_id=self.project_id,
+                project_name=self.project_name,
+                project_domain_id=self.project_domain_id,
+                project_domain_name=self.project_domain_name,
             )
 
             auth_ref = token_plugin.get_auth_ref(session)
@@ -75,7 +89,9 @@ class _Rescoped(base.BaseAuth, metaclass=abc.ABCMeta):
 
     # TODO(stephenfin): Deprecate and remove unused kwargs
     @abc.abstractmethod
-    def get_unscoped_auth_ref(self, session, **kwargs):
+    def get_unscoped_auth_ref(
+        self, session: ks_session.Session, **kwargs: ty.Any
+    ) -> access.AccessInfoV3:
         """Fetch unscoped federated token."""
 
 
@@ -97,20 +113,20 @@ class FederationBaseAuth(_Rescoped):
 
     def __init__(
         self,
-        auth_url,
-        identity_provider,
-        protocol,
+        auth_url: str,
+        identity_provider: str,
+        protocol: str,
         *,
-        trust_id=None,
-        system_scope=None,
-        domain_id=None,
-        domain_name=None,
-        project_id=None,
-        project_name=None,
-        project_domain_id=None,
-        project_domain_name=None,
-        reauthenticate=True,
-        include_catalog=True,
+        trust_id: ty.Optional[str] = None,
+        system_scope: ty.Optional[str] = None,
+        domain_id: ty.Optional[str] = None,
+        domain_name: ty.Optional[str] = None,
+        project_id: ty.Optional[str] = None,
+        project_name: ty.Optional[str] = None,
+        project_domain_id: ty.Optional[str] = None,
+        project_domain_name: ty.Optional[str] = None,
+        reauthenticate: bool = True,
+        include_catalog: bool = True,
     ):
         super().__init__(
             auth_url=auth_url,
@@ -129,7 +145,7 @@ class FederationBaseAuth(_Rescoped):
         self.protocol = protocol
 
     @property
-    def federated_token_url(self):
+    def federated_token_url(self) -> str:
         """Full URL where authorization data is sent."""
         host = self.auth_url.rstrip('/')
         if not host.endswith('v3'):

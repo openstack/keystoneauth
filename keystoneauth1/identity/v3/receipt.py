@@ -10,7 +10,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import typing as ty
+
 from keystoneauth1.identity.v3 import base
+from keystoneauth1 import session as ks_session
 
 
 __all__ = ('ReceiptMethod',)
@@ -27,7 +30,16 @@ class ReceiptMethod(base.AuthMethod):
     _method_parameters = ['receipt']
 
     # TODO(stephenfin): Deprecate and remove unused kwargs
-    def get_auth_data(self, session, auth, headers, request_kwargs, **kwargs):
+    def get_auth_data(
+        self,
+        session: ks_session.Session,
+        auth: base.Auth,
+        headers: ty.Dict[str, str],
+        request_kwargs: ty.Dict[str, object],
+        **kwargs: ty.Any,
+    ) -> ty.Union[
+        ty.Tuple[None, None], ty.Tuple[str, ty.Mapping[str, object]]
+    ]:
         """Add the auth receipt to the headers.
 
         We explicitly return None to avoid being added to the request
@@ -36,5 +48,5 @@ class ReceiptMethod(base.AuthMethod):
         headers['Openstack-Auth-Receipt'] = self.receipt
         return (None, None)
 
-    def get_cache_id_elements(self):
+    def get_cache_id_elements(self) -> ty.Dict[str, ty.Optional[str]]:
         return {'receipt_receipt': self.receipt}

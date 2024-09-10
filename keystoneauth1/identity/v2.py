@@ -39,6 +39,7 @@ class Auth(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
     def __init__(
         self,
         auth_url: str,
+        *,
         trust_id: ty.Optional[str] = None,
         tenant_id: ty.Optional[str] = None,
         tenant_name: ty.Optional[str] = None,

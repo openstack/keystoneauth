@@ -10,10 +10,16 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import typing as ty
+
+import requests
+
 from keystoneauth1 import access
 from keystoneauth1 import exceptions
+from keystoneauth1.identity import base
 from keystoneauth1.identity.v3 import federation
 from keystoneauth1 import plugin
+from keystoneauth1 import session as ks_session
 
 __all__ = ('Keystone2Keystone',)
 
@@ -44,22 +50,22 @@ class Keystone2Keystone(federation._Rescoped):
 
     def __init__(
         self,
-        base_plugin,
-        service_provider,
+        base_plugin: base.BaseIdentityPlugin,
+        service_provider: str,
         *,
-        trust_id=None,
-        system_scope=None,
-        domain_id=None,
-        domain_name=None,
-        project_id=None,
-        project_name=None,
-        project_domain_id=None,
-        project_domain_name=None,
-        reauthenticate=True,
-        include_catalog=True,
+        trust_id: ty.Optional[str] = None,
+        system_scope: ty.Optional[str] = None,
+        domain_id: ty.Optional[str] = None,
+        domain_name: ty.Optional[str] = None,
+        project_id: ty.Optional[str] = None,
+        project_name: ty.Optional[str] = None,
+        project_domain_id: ty.Optional[str] = None,
+        project_domain_name: ty.Optional[str] = None,
+        reauthenticate: bool = True,
+        include_catalog: bool = True,
     ):
         super().__init__(
-            auth_url=None,
+            auth_url='',
             trust_id=trust_id,
             system_scope=system_scope,
             domain_id=domain_id,
@@ -76,7 +82,7 @@ class Keystone2Keystone(federation._Rescoped):
         self._sp_id = service_provider
 
     @classmethod
-    def _remote_auth_url(cls, auth_url):
+    def _remote_auth_url(cls, auth_url: str) -> str:
         """Return auth_url of the remote Keystone Service Provider.
 
         Remote cloud's auth_url is an endpoint for getting federated unscoped
@@ -101,7 +107,7 @@ class Keystone2Keystone(federation._Rescoped):
         idx = auth_url.index(PATTERN) if PATTERN in auth_url else len(auth_url)
         return auth_url[:idx]
 
-    def _get_ecp_assertion(self, session):
+    def _get_ecp_assertion(self, session: ks_session.Session) -> str:
         body = {
             'auth': {
                 'identity': {
@@ -149,8 +155,8 @@ class Keystone2Keystone(federation._Rescoped):
         return str(resp.text)
 
     def _send_service_provider_ecp_authn_response(
-        self, session, sp_url, sp_auth_url
-    ):
+        self, session: ks_session.Session, sp_url: str, sp_auth_url: str
+    ) -> requests.Response:
         """Present ECP wrapped SAML assertion to the keystone SP.
 
         The assertion is issued by the keystone IdP and it is targeted to the
@@ -195,14 +201,20 @@ class Keystone2Keystone(federation._Rescoped):
         return response
 
     # TODO(stephenfin): Deprecate and remove unused kwargs
-    def get_unscoped_auth_ref(self, session, **kwargs):
+    def get_unscoped_auth_ref(
+        self, session: ks_session.Session, **kwargs: ty.Any
+    ) -> access.AccessInfoV3:
         sp_auth_url = self._local_cloud_plugin.get_sp_auth_url(
             session, self._sp_id
         )
         sp_url = self._local_cloud_plugin.get_sp_url(session, self._sp_id)
+        assert sp_auth_url is not None  # nosec B101
+        assert sp_url is not None  # nosec B101
         self.auth_url = self._remote_auth_url(sp_auth_url)
 
         response = self._send_service_provider_ecp_authn_response(
             session, sp_url, sp_auth_url
         )
-        return access.create(resp=response)
+        access_info = access.create(resp=response)
+        assert isinstance(access_info, access.AccessInfoV3)  # nosec B101
+        return access_info

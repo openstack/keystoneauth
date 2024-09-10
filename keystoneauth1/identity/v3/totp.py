@@ -14,6 +14,7 @@ import copy
 import typing as ty
 
 from keystoneauth1.identity.v3 import base
+from keystoneauth1 import session as ks_session
 
 
 __all__ = ('TOTPMethod', 'TOTP')
@@ -44,7 +45,16 @@ class TOTPMethod(base.AuthMethod):
     ]
 
     # TODO(stephenfin): Deprecate and remove unused kwargs
-    def get_auth_data(self, session, auth, headers, request_kwargs, **kwargs):
+    def get_auth_data(
+        self,
+        session: ks_session.Session,
+        auth: base.Auth,
+        headers: ty.Dict[str, str],
+        request_kwargs: ty.Dict[str, object],
+        **kwargs: ty.Any,
+    ) -> ty.Union[
+        ty.Tuple[None, None], ty.Tuple[str, ty.Mapping[str, object]]
+    ]:
         user: ty.Dict[str, ty.Any] = {'passcode': self.passcode}
 
         if self.user_id:
@@ -59,7 +69,7 @@ class TOTPMethod(base.AuthMethod):
 
         return 'totp', {'user': user}
 
-    def get_cache_id_elements(self):
+    def get_cache_id_elements(self) -> ty.Dict[str, ty.Optional[str]]:
         # NOTE(gyee): passcode is not static so we cannot use it as part of
         # the key in caching.
         params = copy.copy(self._method_parameters)

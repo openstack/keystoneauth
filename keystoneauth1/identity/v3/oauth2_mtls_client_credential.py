@@ -13,10 +13,12 @@
 # under the License.
 
 import abc
+import typing as ty
 
 from keystoneauth1 import access
 from keystoneauth1 import exceptions
 from keystoneauth1.identity.v3 import base
+from keystoneauth1 import session as ks_session
 
 
 class OAuth2mTlsClientCredential(base.BaseAuth, metaclass=abc.ABCMeta):
@@ -29,20 +31,20 @@ class OAuth2mTlsClientCredential(base.BaseAuth, metaclass=abc.ABCMeta):
 
     def __init__(
         self,
-        auth_url,
-        oauth2_endpoint,
-        oauth2_client_id,
+        auth_url: str,
+        oauth2_endpoint: str,
+        oauth2_client_id: str,
         *,
-        trust_id=None,
-        system_scope=None,
-        domain_id=None,
-        domain_name=None,
-        project_id=None,
-        project_name=None,
-        project_domain_id=None,
-        project_domain_name=None,
-        reauthenticate=True,
-        include_catalog=True,
+        trust_id: ty.Optional[str] = None,
+        system_scope: ty.Optional[str] = None,
+        domain_id: ty.Optional[str] = None,
+        domain_name: ty.Optional[str] = None,
+        project_id: ty.Optional[str] = None,
+        project_name: ty.Optional[str] = None,
+        project_domain_id: ty.Optional[str] = None,
+        project_domain_name: ty.Optional[str] = None,
+        reauthenticate: bool = True,
+        include_catalog: bool = True,
     ):
         super().__init__(
             auth_url=auth_url,
@@ -61,7 +63,9 @@ class OAuth2mTlsClientCredential(base.BaseAuth, metaclass=abc.ABCMeta):
         self.oauth2_client_id = oauth2_client_id
         self.oauth2_access_token = None
 
-    def get_auth_ref(self, session, **kwargs):
+    def get_auth_ref(
+        self, session: ks_session.Session, **kwargs: ty.Any
+    ) -> access.AccessInfoV3:
         """Obtain a token from an OpenStack Identity Service.
 
         This method is overridden by the various token version plugins.
@@ -130,7 +134,9 @@ class OAuth2mTlsClientCredential(base.BaseAuth, metaclass=abc.ABCMeta):
             auth_token=self.oauth2_access_token, body=resp_data
         )
 
-    def get_headers(self, session, **kwargs):
+    def get_headers(
+        self, session: 'ks_session.Session', **kwargs: ty.Any
+    ) -> ty.Optional[ty.Dict[str, str]]:
         """Fetch authentication headers for message.
 
         :param session: The session object that the auth_plugin belongs to.
