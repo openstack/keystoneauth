@@ -215,10 +215,13 @@ class BaseGenericPlugin(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
         )
 
     def get_auth_ref(self, session: ks_session.Session) -> access.AccessInfo:
-        if not self._plugin:
-            self._plugin = self._do_create_plugin(session)
+        if self._plugin:
+            plugin = self._plugin
+        else:
+            plugin = self._do_create_plugin(session)
+            self._plugin = plugin
 
-        return self._plugin.get_auth_ref(session)
+        return plugin.get_auth_ref(session)
 
     @abc.abstractmethod
     def get_cache_id_elements(self) -> dict[str, ty.Optional[str]]:

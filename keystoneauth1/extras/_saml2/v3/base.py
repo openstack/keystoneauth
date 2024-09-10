@@ -25,7 +25,7 @@ from keystoneauth1 import session as ks_session
 
 
 class _Saml2TokenAuthMethod(v3.AuthMethod):
-    _method_parameters = []
+    def __init__(self) -> None: ...
 
     def get_auth_data(
         self,
@@ -67,7 +67,7 @@ class BaseSAMLPlugin(v3.FederationBaseAuth):
         project_domain_name: ty.Optional[str] = None,
         reauthenticate: bool = True,
         include_catalog: bool = True,
-    ):
+    ) -> None:
         """Class constructor accepting following parameters.
 
         :param auth_url: URL of the Identity Service

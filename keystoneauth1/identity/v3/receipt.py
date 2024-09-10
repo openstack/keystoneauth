@@ -27,7 +27,8 @@ class ReceiptMethod(base.AuthMethod):
 
     receipt: str
 
-    _method_parameters = ['receipt']
+    def __init__(self, *, receipt: str) -> None:
+        self.receipt = receipt
 
     def get_auth_data(
         self,

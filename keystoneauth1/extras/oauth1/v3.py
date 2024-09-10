@@ -41,23 +41,29 @@ LOG = logging.getLogger(__name__)
 class OAuth1Method(v3.AuthMethod):
     """OAuth based authentication method.
 
-    :param string consumer_key: Consumer key.
-    :param string consumer_secret: Consumer secret.
     :param string access_key: Access token key.
     :param string access_secret: Access token secret.
+    :param string consumer_key: Consumer key.
+    :param string consumer_secret: Consumer secret.
     """
 
-    consumer_key: str
-    consumer_secret: str
     access_key: str
     access_secret: str
+    consumer_key: str
+    consumer_secret: str
 
-    _method_parameters = [
-        'consumer_key',
-        'consumer_secret',
-        'access_key',
-        'access_secret',
-    ]
+    def __init__(
+        self,
+        *,
+        access_key: str,
+        access_secret: str,
+        consumer_key: str,
+        consumer_secret: str,
+    ) -> None:
+        self.access_key = access_key
+        self.access_secret = access_secret
+        self.consumer_key = consumer_key
+        self.consumer_secret = consumer_secret
 
     def get_auth_data(
         self,
@@ -84,17 +90,24 @@ class OAuth1Method(v3.AuthMethod):
 
     def get_cache_id_elements(self) -> dict[str, ty.Optional[str]]:
         return {
-            f'oauth1_{p}': getattr(self, p) for p in self._method_parameters
+            'oauth1_access_key': self.access_key,
+            'oauth1_access_secret': self.access_secret,
+            'oauth1_consumer_key': self.consumer_key,
+            'oauth1_consumer_secret': self.consumer_secret,
         }
 
 
-class OAuth1(v3.AuthConstructor):
+class OAuth1(v3.Auth):
     _auth_method_class = OAuth1Method
 
     def __init__(
         self,
         auth_url: str,
-        *args: ty.Any,
+        consumer_key: str,
+        consumer_secret: str,
+        access_key: str,
+        access_secret: str,
+        *,
         unscoped: bool = False,
         trust_id: ty.Optional[str] = None,
         system_scope: ty.Optional[str] = None,
@@ -106,11 +119,16 @@ class OAuth1(v3.AuthConstructor):
         project_domain_name: ty.Optional[str] = None,
         reauthenticate: bool = True,
         include_catalog: bool = True,
-        **kwargs: ty.Any,
-    ):
+    ) -> None:
+        method = self._auth_method_class(
+            consumer_key=consumer_key,
+            consumer_secret=consumer_secret,
+            access_key=access_key,
+            access_secret=access_secret,
+        )
         super().__init__(
             auth_url,
-            *args,
+            [method],
             unscoped=unscoped,
             trust_id=trust_id,
             system_scope=system_scope,
@@ -122,7 +140,6 @@ class OAuth1(v3.AuthConstructor):
             project_domain_name=project_domain_name,
             reauthenticate=reauthenticate,
             include_catalog=include_catalog,
-            **kwargs,
         )
 
         if self.has_scope_parameters:

@@ -35,11 +35,16 @@ class OAuth2ClientCredentialMethod(base.AuthMethod):
     oauth2_client_id: str
     oauth2_client_secret: str
 
-    _method_parameters = [
-        'oauth2_endpoint',
-        'oauth2_client_id',
-        'oauth2_client_secret',
-    ]
+    def __init__(
+        self,
+        *,
+        oauth2_endpoint: str,
+        oauth2_client_id: str,
+        oauth2_client_secret: str,
+    ) -> None:
+        self.oauth2_endpoint = oauth2_endpoint
+        self.oauth2_client_id = oauth2_client_id
+        self.oauth2_client_secret = oauth2_client_secret
 
     def get_auth_data(
         self,
@@ -80,12 +85,13 @@ class OAuth2ClientCredentialMethod(base.AuthMethod):
         plugin returns its username value as 'password_username'.
         """
         return {
-            f'oauth2_client_credential_{p}': getattr(self, p)
-            for p in self._method_parameters
+            'oauth2_client_credential_oauth2_endpoint': self.oauth2_endpoint,
+            'oauth2_client_credential_oauth2_client_id': self.oauth2_client_id,
+            'oauth2_client_credential_oauth2_client_secret': self.oauth2_client_secret,
         }
 
 
-class OAuth2ClientCredential(base.AuthConstructor):
+class OAuth2ClientCredential(base.Auth):
     """A plugin for authenticating via an OAuth2.0 client credential.
 
     :param string auth_url: Identity service endpoint for authentication.
@@ -113,9 +119,15 @@ class OAuth2ClientCredential(base.AuthConstructor):
         project_domain_name: ty.Optional[str] = None,
         reauthenticate: bool = True,
         include_catalog: bool = True,
-    ):
+    ) -> None:
+        method = self._auth_method_class(
+            oauth2_endpoint=oauth2_endpoint,
+            oauth2_client_id=oauth2_client_id,
+            oauth2_client_secret=oauth2_client_secret,
+        )
         super().__init__(
-            auth_url=auth_url,
+            auth_url,
+            [method],
             trust_id=trust_id,
             system_scope=system_scope,
             domain_id=domain_id,
@@ -126,10 +138,6 @@ class OAuth2ClientCredential(base.AuthConstructor):
             project_domain_name=project_domain_name,
             reauthenticate=reauthenticate,
             include_catalog=include_catalog,
-            # these are consumed by the auth method
-            oauth2_endpoint=oauth2_endpoint,
-            oauth2_client_id=oauth2_client_id,
-            oauth2_client_secret=oauth2_client_secret,
         )
         self.oauth2_endpoint = oauth2_endpoint
         self.oauth2_client_id = oauth2_client_id

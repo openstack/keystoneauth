@@ -84,7 +84,14 @@ class Password(base.BaseGenericPlugin):
     ) -> ty.Union[None, v2.Password, v3.Password]:
         if discover.version_match((2,), version):
             if self._user_domain_id or self._user_domain_name:
+                # TODO(stephenfin): Shouldn't this be an error?
                 return None
+
+            if self._password is None:
+                # FIXME(stephenfin): It would be better is password was a
+                # non-optional paramter to this plugin but that requires
+                # changing the __init__ signature
+                raise Exception('password is a required attribute')
 
             return v2.Password(
                 auth_url=url,
@@ -98,6 +105,12 @@ class Password(base.BaseGenericPlugin):
             )
 
         elif discover.version_match((3,), version):
+            if self._password is None:
+                # FIXME(stephenfin): It would be better is password was a
+                # non-optional paramter to this plugin but that requires
+                # changing the __init__ signature
+                raise Exception('password is a required attribute')
+
             u_domain_id = self._user_domain_id or self._default_domain_id
             u_domain_name = self._user_domain_name or self._default_domain_name
 

@@ -67,13 +67,12 @@ packages. These can be installed with::
 
 
 class KerberosMethod(v3.AuthMethod):
-    mutual_auth: str
+    mutual_auth: ty.Optional[str]
 
-    _method_parameters = ['mutual_auth']
+    def __init__(self, *, mutual_auth: ty.Optional[str] = None) -> None:
+        self.mutual_auth = mutual_auth
 
-    def __init__(self, **kwargs: object):
         _dependency_check()
-        super().__init__(**kwargs)
 
     def get_auth_data(
         self,
@@ -88,8 +87,42 @@ class KerberosMethod(v3.AuthMethod):
         return 'kerberos', {}
 
 
-class Kerberos(v3.AuthConstructor):
+class Kerberos(v3.Auth):
     _auth_method_class = KerberosMethod
+
+    def __init__(
+        self,
+        auth_url: str,
+        mutual_auth: ty.Optional[str] = None,
+        *,
+        unscoped: bool = False,
+        trust_id: ty.Optional[str] = None,
+        system_scope: ty.Optional[str] = None,
+        domain_id: ty.Optional[str] = None,
+        domain_name: ty.Optional[str] = None,
+        project_id: ty.Optional[str] = None,
+        project_name: ty.Optional[str] = None,
+        project_domain_id: ty.Optional[str] = None,
+        project_domain_name: ty.Optional[str] = None,
+        reauthenticate: bool = True,
+        include_catalog: bool = True,
+    ) -> None:
+        method = self._auth_method_class(mutual_auth=mutual_auth)
+        super().__init__(
+            auth_url,
+            [method],
+            unscoped=unscoped,
+            trust_id=trust_id,
+            system_scope=system_scope,
+            domain_id=domain_id,
+            domain_name=domain_name,
+            project_id=project_id,
+            project_name=project_name,
+            project_domain_id=project_domain_id,
+            project_domain_name=project_domain_name,
+            reauthenticate=reauthenticate,
+            include_catalog=include_catalog,
+        )
 
 
 class MappedKerberos(federation.FederationBaseAuth):
@@ -116,7 +149,7 @@ class MappedKerberos(federation.FederationBaseAuth):
         project_domain_name: ty.Optional[str] = None,
         reauthenticate: bool = True,
         include_catalog: bool = True,
-    ):
+    ) -> None:
         _dependency_check()
         self.mutual_auth = mutual_auth
         super().__init__(

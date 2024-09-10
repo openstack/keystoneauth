@@ -13,6 +13,7 @@
 import abc
 import json
 import typing as ty
+import warnings
 
 import typing_extensions as ty_ext
 
@@ -285,20 +286,31 @@ class Auth(BaseAuth):
 class AuthMethod(metaclass=abc.ABCMeta):
     """One part of a V3 Authentication strategy.
 
-    V3 Tokens allow multiple methods to be presented when authentication
-    against the server. Each one of these methods is implemented by an
-    AuthMethod.
+    The v3 '/tokens' API allow multiple methods to be presented when
+    authentication against the server. Each one of these methods is implemented
+    by an AuthMethod.
 
-    Note: When implementing an AuthMethod use the method_parameters
-    and do not use positional arguments. Otherwise they can't be picked up by
-    the factory method and don't work as well with AuthConstructors.
+    Note: When implementing an AuthMethod use keyword arguments to ensure they
+    are supported by the MultiFactor auth plugin.
     """
 
-    _method_parameters: list[str] = []
+    #: Deprecated parameter for defining the parameters supported by the
+    #: plugin. These should now be defined by typed class attributes.
+    _method_parameters: ty.Optional[list[str]] = None
 
+    # TODO(stephenfin): Remove support for arbitrary arguments in 2025.2 or
+    # later
     def __init__(self, **kwargs: object):
-        for param in self._method_parameters:
-            setattr(self, param, kwargs.pop(param, None))
+        if self._method_parameters is not None:
+            warnings.warn(
+                "Defining method parameter via '_method_parameters' is "
+                "deprecated and will be removed in a future release. Migrate "
+                "to typed class attributes and define an '__init__' method.",
+                category=DeprecationWarning,
+            )
+
+            for param in self._method_parameters:
+                setattr(self, param, kwargs.pop(param, None))
 
         if kwargs:
             msg = "Unexpected Attributes: {}".format(", ".join(kwargs.keys()))
@@ -307,7 +319,8 @@ class AuthMethod(metaclass=abc.ABCMeta):
     @classmethod
     def _extract_kwargs(cls, kwargs: dict[str, object]) -> dict[str, object]:
         """Remove parameters related to this method from other kwargs."""
-        return {p: kwargs.pop(p, None) for p in cls._method_parameters}
+        _method_parameters = cls._method_parameters or []
+        return {p: kwargs.pop(p, None) for p in _method_parameters}
 
     @abc.abstractmethod
     def get_auth_data(
@@ -347,6 +360,11 @@ class AuthMethod(metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
 
+@ty.runtime_checkable
+class SupportsMultiFactor(ty.Protocol):
+    _auth_method_class: ty.ClassVar[ty.Type[AuthMethod]]
+
+
 class AuthConstructor(Auth, metaclass=abc.ABCMeta):
     """Abstract base class for creating an Auth Plugin.
 
@@ -358,7 +376,7 @@ class AuthConstructor(Auth, metaclass=abc.ABCMeta):
     creates the auth plugin with only that authentication method.
     """
 
-    _auth_method_class: ty.Type[AuthMethod]
+    _auth_method_class: ty.ClassVar[ty.Type[AuthMethod]]
 
     def __init__(
         self,
@@ -377,6 +395,14 @@ class AuthConstructor(Auth, metaclass=abc.ABCMeta):
         include_catalog: bool = True,
         **kwargs: ty.Any,
     ):
+        warnings.warn(
+            f"'{AuthConstructor.__qualname__}' is deprecated and will be "
+            f"removed in a future release. Subclass '{Auth.__qualname__}' "
+            f"instead and define typed class attributes and an '__init__' "
+            f"method.",
+            category=DeprecationWarning,
+        )
+
         method_kwargs = self._auth_method_class._extract_kwargs(kwargs)
         # we should have consumed all "unknown" arguments by now
         assert kwargs == {}  # nosec B101

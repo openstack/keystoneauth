@@ -27,7 +27,8 @@ class TokenMethod(base.AuthMethod):
 
     token: str
 
-    _method_parameters = ['token']
+    def __init__(self, *, token: str) -> None:
+        self.token = token
 
     def get_auth_data(
         self,
@@ -43,7 +44,7 @@ class TokenMethod(base.AuthMethod):
         return {'token_token': self.token}
 
 
-class Token(base.AuthConstructor):
+class Token(base.Auth):
     """A plugin for authenticating with an existing Token.
 
     :param string auth_url: Identity service endpoint for authentication.
@@ -77,11 +78,11 @@ class Token(base.AuthConstructor):
         project_domain_name: ty.Optional[str] = None,
         reauthenticate: bool = True,
         include_catalog: bool = True,
-        **kwargs: ty.Any,
-    ):
+    ) -> None:
+        method = self._auth_method_class(token=token)
         super().__init__(
             auth_url,
-            token=token,
+            [method],
             unscoped=unscoped,
             trust_id=trust_id,
             system_scope=system_scope,

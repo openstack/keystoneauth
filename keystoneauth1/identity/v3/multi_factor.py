@@ -11,6 +11,7 @@
 # under the License.
 
 import typing as ty
+import warnings
 
 from keystoneauth1.identity.v3 import base
 from keystoneauth1 import loading
@@ -64,22 +65,39 @@ class MultiFactor(base.Auth):
                 loading.get_plugin_loader(method)
             )
             plugin_class = loader.plugin_class
-            if not issubclass(plugin_class, base.AuthConstructor):
+
+            if issubclass(plugin_class, base.AuthConstructor):  # legacy path
+                warnings.warn(
+                    f"Support for {base.AuthConstructor.__qualname__} is "
+                    f"deprecated and will be removed in a future release. "
+                    f"Plugins should subclass for {base.Auth.__qualname__}.",
+                    category=DeprecationWarning,
+                )
+                method_class = plugin_class._auth_method_class
+                method_parameters = method_class._method_parameters or []
+            elif issubclass(plugin_class, base.Auth) and isinstance(
+                plugin_class, base.SupportsMultiFactor
+            ):
+                method_class = plugin_class._auth_method_class
+                method_parameters = list(method_class.__annotations__)
+            else:
                 raise TypeError(
                     'The multifactor auth method can only be used with v3 '
-                    'auth plugins'
+                    'auth plugins that implement the SupportsMultiFactor '
+                    'protocol'
                 )
 
-            method_class = plugin_class._auth_method_class
             # We build some new kwargs for the method from required parameters
             method_kwargs = {}
-            for key in method_class._method_parameters:
-                # we add them to method_keys to pop later from global kwargs
-                # rather than here as other methods may need them too
-                method_keys.add(key)
+            for key in method_parameters:
                 method_kwargs[key] = kwargs.get(key, None)
+                # we also add them to method_keys to pop later from global
+                # kwargs rather than here as other methods may need them too
+                method_keys.add(key)
+
             # We initialize the method class using just required kwargs
             method_instances.append(method_class(**method_kwargs))
+
         # We now pop all the keys used for methods as otherwise they get passed
         # to the super class and throw errors
         for key in method_keys:

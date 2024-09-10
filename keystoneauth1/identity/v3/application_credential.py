@@ -41,22 +41,31 @@ class ApplicationCredentialMethod(base.AuthMethod):
     """
 
     application_credential_secret: str
-    application_credential_id: str
-    application_credential_name: str
-    user_id: str
-    username: str
-    user_domain_id: str
-    user_domain_name: str
+    application_credential_id: ty.Optional[str] = None
+    application_credential_name: ty.Optional[str] = None
+    user_id: ty.Optional[str] = None
+    username: ty.Optional[str] = None
+    user_domain_id: ty.Optional[str] = None
+    user_domain_name: ty.Optional[str] = None
 
-    _method_parameters = [
-        'application_credential_secret',
-        'application_credential_id',
-        'application_credential_name',
-        'user_id',
-        'username',
-        'user_domain_id',
-        'user_domain_name',
-    ]
+    def __init__(
+        self,
+        *,
+        application_credential_secret: str,
+        application_credential_id: ty.Optional[str] = None,
+        application_credential_name: ty.Optional[str] = None,
+        user_id: ty.Optional[str] = None,
+        username: ty.Optional[str] = None,
+        user_domain_id: ty.Optional[str] = None,
+        user_domain_name: ty.Optional[str] = None,
+    ) -> None:
+        self.application_credential_secret = application_credential_secret
+        self.application_credential_id = application_credential_id
+        self.application_credential_name = application_credential_name
+        self.user_id = user_id
+        self.username = username
+        self.user_domain_id = user_domain_id
+        self.user_domain_name = user_domain_name
 
     def get_auth_data(
         self,
@@ -90,12 +99,17 @@ class ApplicationCredentialMethod(base.AuthMethod):
 
     def get_cache_id_elements(self) -> dict[str, ty.Optional[str]]:
         return {
-            f'application_credential_{p}': getattr(self, p)
-            for p in self._method_parameters
+            'application_credential_application_credential_secret': self.application_credential_secret,
+            'application_credential_application_credential_id': self.application_credential_id,
+            'application_credential_application_credential_name': self.application_credential_name,
+            'application_credential_user_id': self.user_id,
+            'application_credential_username': self.username,
+            'application_credential_user_domain_id': self.user_domain_id,
+            'application_credential_user_domain_name': self.user_domain_name,
         }
 
 
-class ApplicationCredential(base.AuthConstructor):
+class ApplicationCredential(base.Auth):
     """A plugin for authenticating with an application credential.
 
     :param string auth_url: Identity service endpoint for authentication.
@@ -111,3 +125,51 @@ class ApplicationCredential(base.AuthConstructor):
     """
 
     _auth_method_class = ApplicationCredentialMethod
+
+    def __init__(
+        self,
+        auth_url: str,
+        application_credential_secret: str,
+        application_credential_id: ty.Optional[str] = None,
+        application_credential_name: ty.Optional[str] = None,
+        user_id: ty.Optional[str] = None,
+        username: ty.Optional[str] = None,
+        user_domain_id: ty.Optional[str] = None,
+        user_domain_name: ty.Optional[str] = None,
+        *,
+        unscoped: bool = False,
+        trust_id: ty.Optional[str] = None,
+        system_scope: ty.Optional[str] = None,
+        domain_id: ty.Optional[str] = None,
+        domain_name: ty.Optional[str] = None,
+        project_id: ty.Optional[str] = None,
+        project_name: ty.Optional[str] = None,
+        project_domain_id: ty.Optional[str] = None,
+        project_domain_name: ty.Optional[str] = None,
+        reauthenticate: bool = True,
+        include_catalog: bool = True,
+    ) -> None:
+        method = self._auth_method_class(
+            application_credential_secret=application_credential_secret,
+            application_credential_id=application_credential_id,
+            application_credential_name=application_credential_name,
+            user_id=user_id,
+            username=username,
+            user_domain_id=user_domain_id,
+            user_domain_name=user_domain_name,
+        )
+        super().__init__(
+            auth_url,
+            [method],
+            unscoped=unscoped,
+            trust_id=trust_id,
+            system_scope=system_scope,
+            domain_id=domain_id,
+            domain_name=domain_name,
+            project_id=project_id,
+            project_name=project_name,
+            project_domain_id=project_domain_id,
+            project_domain_name=project_domain_name,
+            reauthenticate=reauthenticate,
+            include_catalog=include_catalog,
+        )
