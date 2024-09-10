@@ -1,0 +1,5 @@
+---
+upgrade:
+  - |
+    The OIDC plugins no longer accept a ``grant_type`` parameter. This was
+    deprecated in 2.10.0 (Newton) and has now been removed.

@@ -17,8 +17,8 @@ import hashlib
 import logging
 import os
 import time
+import typing as ty
 from urllib import parse as urlparse
-import warnings
 
 from keystoneauth1 import _utils as utils
 from keystoneauth1 import access
@@ -44,7 +44,7 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
     ``http://openid.net/specs/openid-connect-core-1_0.html``
     """
 
-    grant_type: str
+    grant_type: ty.ClassVar[str]
 
     def __init__(
         self,
@@ -57,7 +57,6 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
         scope="openid profile",
         access_token_endpoint=None,
         discovery_endpoint=None,
-        grant_type=None,
         **kwargs,
     ):
         """The OpenID Connect plugin expects the following.
@@ -114,21 +113,6 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
 
         self.access_token_type = access_token_type
         self.scope = scope
-
-        if grant_type is not None:
-            if grant_type != self.grant_type:
-                raise exceptions.OidcGrantTypeMissmatch()
-            warnings.warn(
-                "Passing grant_type as an argument has been "
-                "deprecated as it is now defined in the plugin "
-                "itself. You should stop passing this argument "
-                "to the plugin, as it will be ignored, since you "
-                "cannot pass a free text string as a grant_type. "
-                "This argument will be dropped from the plugin in "
-                "July 2017 or with the next major release of "
-                "keystoneauth (3.0.0)",
-                DeprecationWarning,
-            )
 
     def _get_discovery_document(self, session):
         """Get the contents of the OpenID Connect Discovery Document.
@@ -686,7 +670,7 @@ class OidcDeviceAuthorization(_OidcBase):
     def _generate_pkce_challenge(self):
         """Generate PKCE challenge string as defined in RFC 7636."""
         if self.code_challenge_method not in ('plain', 'S256'):
-            raise exceptions.OidcGrantTypeMissmatch()
+            raise exceptions.OidcInvalidCodeChallengeMethod()
         self.code_verifier = self._generate_pkce_verifier()
 
         if self.code_challenge_method == 'plain':

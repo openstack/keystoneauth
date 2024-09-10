@@ -18,7 +18,7 @@ __all__ = (
     'InvalidOidcDiscoveryDocument',
     'OidcAccessTokenEndpointNotFound',
     'OidcAuthorizationEndpointNotFound',
-    'OidcGrantTypeMissmatch',
+    'OidcInvalidCodeChallengeMethod',
     'OidcPluginNotSupported',
 )
 
@@ -49,8 +49,8 @@ class OidcDeviceAuthorizationTimeOut(auth_plugins.AuthPluginException):
     message = "Timeout for OpenID Connect device authorization."
 
 
-class OidcGrantTypeMissmatch(auth_plugins.AuthPluginException):
-    message = "Missmatch between OpenID Connect plugin and grant_type argument"
+class OidcInvalidCodeChallengeMethod(auth_plugins.AuthPluginException):
+    message = "Invalid code challenge method."
 
 
 class OidcPluginNotSupported(auth_plugins.AuthPluginException):

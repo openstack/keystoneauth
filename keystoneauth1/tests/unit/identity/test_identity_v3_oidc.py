@@ -15,7 +15,6 @@ import time
 from unittest import mock
 import urllib
 import uuid
-import warnings
 
 from keystoneauth1 import exceptions
 from keystoneauth1.identity.v3 import oidc
@@ -54,33 +53,6 @@ class BaseOIDCTests:
             'https://localhost:8020/oidc/.well-known/openid-configuration'
         )
         self.GRANT_TYPE = None
-
-    def test_grant_type_and_plugin_missmatch(self):
-        self.assertRaises(
-            exceptions.OidcGrantTypeMissmatch,
-            self.plugin.__class__,
-            self.AUTH_URL,
-            self.IDENTITY_PROVIDER,
-            self.PROTOCOL,
-            client_id=self.CLIENT_ID,
-            client_secret=self.CLIENT_SECRET,
-            grant_type=uuid.uuid4().hex,
-        )
-
-    def test_can_pass_grant_type_but_warning_is_issued(self):
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            self.plugin.__class__(
-                self.AUTH_URL,
-                self.IDENTITY_PROVIDER,
-                self.PROTOCOL,
-                client_id=self.CLIENT_ID,
-                client_secret=self.CLIENT_SECRET,
-                grant_type=self.GRANT_TYPE,
-            )
-            assert len(w) == 1
-            assert issubclass(w[-1].category, DeprecationWarning)
-            assert "grant_type" in str(w[-1].message)
 
     def test_discovery_not_found(self):
         self.requests_mock.get("http://not.found", status_code=404)
