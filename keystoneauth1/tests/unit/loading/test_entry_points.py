@@ -23,13 +23,12 @@ class EntryPointTests(utils.TestCase):
         errors = []
 
         def raise_exception_callback(manager, entrypoint, exc):
-            error = ("Cannot load '%(entrypoint)s' entry_point: %(error)s'" %
-                     {"entrypoint": entrypoint, "error": exc})
+            error = f"Cannot load '{entrypoint}' entry_point: {exc}'"
             errors.append(error)
 
         stevedore.ExtensionManager(
             namespace=loading.PLUGIN_NAMESPACE,
-            on_load_failure_callback=raise_exception_callback
+            on_load_failure_callback=raise_exception_callback,
         )
 
         self.assertEqual([], errors)

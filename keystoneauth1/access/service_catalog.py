@@ -114,7 +114,8 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
             service.setdefault('id', None)
 
             service['endpoints'] = self._normalize_endpoints(
-                service.get('endpoints', []))
+                service.get('endpoints', [])
+            )
 
             for endpoint in service['endpoints']:
                 endpoint['region_name'] = self._get_endpoint_region(endpoint)
@@ -129,9 +130,15 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
             interface = [interface]
         return [self.normalize_interface(i) for i in interface]
 
-    def get_endpoints_data(self, service_type=None, interface=None,
-                           region_name=None, service_name=None,
-                           service_id=None, endpoint_id=None):
+    def get_endpoints_data(
+        self,
+        service_type=None,
+        interface=None,
+        region_name=None,
+        service_name=None,
+        service_id=None,
+        endpoint_id=None,
+    ):
         """Fetch and filter endpoint data for the specified service(s).
 
         Returns endpoints for the specified service (or all) containing
@@ -164,17 +171,19 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
         matching_endpoints = {}
 
         for service in self.normalize_catalog():
-
             if service_type and not discover._SERVICE_TYPES.is_match(
-                    service_type, service['type']):
+                service_type, service['type']
+            ):
                 continue
 
-            if (service_name and service['name'] and
-                    service_name != service['name']):
+            if (
+                service_name
+                and service['name']
+                and service_name != service['name']
+            ):
                 continue
 
-            if (service_id and service['id'] and
-                    service_id != service['id']):
+            if service_id and service['id'] and service_id != service['id']:
                 continue
 
             matching_endpoints.setdefault(service['type'], [])
@@ -198,7 +207,9 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
                         interface=endpoint['interface'],
                         region_name=endpoint['region_name'],
                         endpoint_id=endpoint['id'],
-                        raw_endpoint=endpoint['raw_endpoint']))
+                        raw_endpoint=endpoint['raw_endpoint'],
+                    )
+                )
 
         if not interfaces:
             return self._endpoints_by_type(service_type, matching_endpoints)
@@ -212,8 +223,9 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
             for endpoint in endpoints:
                 matches_by_interface.setdefault(endpoint.interface, [])
                 matches_by_interface[endpoint.interface].append(endpoint)
-            best_interface = [i for i in interfaces
-                              if i in matches_by_interface.keys()][0]
+            best_interface = [
+                i for i in interfaces if i in matches_by_interface.keys()
+            ][0]
             ret[matched_service_type] = matches_by_interface[best_interface]
 
         return self._endpoints_by_type(service_type, ret)
@@ -279,9 +291,15 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
         # part if we do. Raise this so that we can panic in unit tests.
         raise ValueError("Programming error choosing an endpoint.")
 
-    def get_endpoints(self, service_type=None, interface=None,
-                      region_name=None, service_name=None,
-                      service_id=None, endpoint_id=None):
+    def get_endpoints(
+        self,
+        service_type=None,
+        interface=None,
+        region_name=None,
+        service_name=None,
+        service_id=None,
+        endpoint_id=None,
+    ):
         """Fetch and filter endpoint data for the specified service(s).
 
         Returns endpoints for the specified service (or all) containing
@@ -294,17 +312,27 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
         Returns a dict keyed by service_type with a list of endpoint dicts
         """
         endpoints_data = self.get_endpoints_data(
-            service_type=service_type, interface=interface,
-            region_name=region_name, service_name=service_name,
-            service_id=service_id, endpoint_id=endpoint_id)
+            service_type=service_type,
+            interface=interface,
+            region_name=region_name,
+            service_name=service_name,
+            service_id=service_id,
+            endpoint_id=endpoint_id,
+        )
         endpoints = {}
         for service_type, data in endpoints_data.items():
             endpoints[service_type] = self._denormalize_endpoints(data)
         return endpoints
 
-    def get_endpoint_data_list(self, service_type=None, interface='public',
-                               region_name=None, service_name=None,
-                               service_id=None, endpoint_id=None):
+    def get_endpoint_data_list(
+        self,
+        service_type=None,
+        interface='public',
+        region_name=None,
+        service_name=None,
+        service_id=None,
+        endpoint_id=None,
+    ):
         """Fetch a flat list of matching EndpointData objects.
 
         Fetch the endpoints from the service catalog for a particular
@@ -327,17 +355,25 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
         :returns: a list of matching EndpointData objects
         :rtype: list(`keystoneauth1.discover.EndpointData`)
         """
-        endpoints = self.get_endpoints_data(service_type=service_type,
-                                            interface=interface,
-                                            region_name=region_name,
-                                            service_name=service_name,
-                                            service_id=service_id,
-                                            endpoint_id=endpoint_id)
+        endpoints = self.get_endpoints_data(
+            service_type=service_type,
+            interface=interface,
+            region_name=region_name,
+            service_name=service_name,
+            service_id=service_id,
+            endpoint_id=endpoint_id,
+        )
         return [endpoint for data in endpoints.values() for endpoint in data]
 
-    def get_urls(self, service_type=None, interface='public',
-                 region_name=None, service_name=None,
-                 service_id=None, endpoint_id=None):
+    def get_urls(
+        self,
+        service_type=None,
+        interface='public',
+        region_name=None,
+        service_name=None,
+        service_id=None,
+        endpoint_id=None,
+    ):
         """Fetch endpoint urls from the service catalog.
 
         Fetch the urls of endpoints from the service catalog for a particular
@@ -359,17 +395,25 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
 
         :returns: tuple of urls
         """
-        endpoints = self.get_endpoint_data_list(service_type=service_type,
-                                                interface=interface,
-                                                region_name=region_name,
-                                                service_name=service_name,
-                                                service_id=service_id,
-                                                endpoint_id=endpoint_id)
+        endpoints = self.get_endpoint_data_list(
+            service_type=service_type,
+            interface=interface,
+            region_name=region_name,
+            service_name=service_name,
+            service_id=service_id,
+            endpoint_id=endpoint_id,
+        )
         return tuple([endpoint.url for endpoint in endpoints])
 
-    def url_for(self, service_type=None, interface='public',
-                region_name=None, service_name=None,
-                service_id=None, endpoint_id=None):
+    def url_for(
+        self,
+        service_type=None,
+        interface='public',
+        region_name=None,
+        service_name=None,
+        service_id=None,
+        endpoint_id=None,
+    ):
         """Fetch an endpoint from the service catalog.
 
         Fetch the specified endpoint from the service catalog for
@@ -389,16 +433,24 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
         :param string service_id: The identifier of a service.
         :param string endpoint_id: The identifier of an endpoint.
         """
-        return self.endpoint_data_for(service_type=service_type,
-                                      interface=interface,
-                                      region_name=region_name,
-                                      service_name=service_name,
-                                      service_id=service_id,
-                                      endpoint_id=endpoint_id).url
+        return self.endpoint_data_for(
+            service_type=service_type,
+            interface=interface,
+            region_name=region_name,
+            service_name=service_name,
+            service_id=service_id,
+            endpoint_id=endpoint_id,
+        ).url
 
-    def endpoint_data_for(self, service_type=None, interface='public',
-                          region_name=None, service_name=None,
-                          service_id=None, endpoint_id=None):
+    def endpoint_data_for(
+        self,
+        service_type=None,
+        interface='public',
+        region_name=None,
+        service_name=None,
+        service_id=None,
+        endpoint_id=None,
+    ):
         """Fetch endpoint data from the service catalog.
 
         Fetch the specified endpoint data from the service catalog for
@@ -427,34 +479,30 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
             region_name=region_name,
             service_name=service_name,
             service_id=service_id,
-            endpoint_id=endpoint_id)
+            endpoint_id=endpoint_id,
+        )
 
         if endpoint_data_list:
             return endpoint_data_list[0]
 
         if service_name and region_name:
-            msg = ('%(interface)s endpoint for %(service_type)s service '
-                   'named %(service_name)s in %(region_name)s region not '
-                   'found' %
-                   {'interface': interface,
-                    'service_type': service_type, 'service_name': service_name,
-                    'region_name': region_name})
+            msg = (
+                f'{interface} endpoint for {service_type} service '
+                f'named {service_name} in {region_name} region not '
+                'found'
+            )
         elif service_name:
-            msg = ('%(interface)s endpoint for %(service_type)s service '
-                   'named %(service_name)s not found' %
-                   {'interface': interface,
-                    'service_type': service_type,
-                    'service_name': service_name})
+            msg = (
+                f'{interface} endpoint for {service_type} service '
+                f'named {service_name} not found'
+            )
         elif region_name:
-            msg = ('%(interface)s endpoint for %(service_type)s service '
-                   'in %(region_name)s region not found' %
-                   {'interface': interface,
-                    'service_type': service_type, 'region_name': region_name})
+            msg = (
+                f'{interface} endpoint for {service_type} service '
+                f'in {region_name} region not found'
+            )
         else:
-            msg = ('%(interface)s endpoint for %(service_type)s service '
-                   'not found' %
-                   {'interface': interface,
-                    'service_type': service_type})
+            msg = f'{interface} endpoint for {service_type} service not found'
 
         raise exceptions.EndpointNotFound(msg)
 
@@ -498,8 +546,9 @@ class ServiceCatalogV2(ServiceCatalog):
         for endpoint in endpoints:
             raw_endpoint = endpoint.copy()
             interface_urls = {}
-            interface_keys = [key for key in endpoint.keys()
-                              if key.endswith('URL')]
+            interface_keys = [
+                key for key in endpoint.keys() if key.endswith('URL')
+            ]
             for key in interface_keys:
                 interface = self.normalize_interface(key)
                 interface_urls[interface] = endpoint.pop(key)
@@ -522,8 +571,7 @@ class ServiceCatalogV2(ServiceCatalog):
 
         :returns: List of endpoint description dicts in original catalog format
         """
-        raw_endpoints = super(ServiceCatalogV2, self)._denormalize_endpoints(
-            endpoints)
+        raw_endpoints = super()._denormalize_endpoints(endpoints)
         # The same raw endpoint content will be in the list once for each
         # v2 endpoint_type entry. We only need one of them in the resulting
         # list. So keep a list of the string versions.

@@ -31,9 +31,8 @@ def _load_xml(filename):
 
 
 class TestCase(utils.TestCase):
-
     TEST_URL = 'https://keystone:5000/v3'
 
     def setUp(self):
-        super(TestCase, self).setUp()
+        super().setUp()
         self.session = session.Session()

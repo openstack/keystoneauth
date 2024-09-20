@@ -25,38 +25,37 @@ from keystoneauth1.exceptions import auth
 from keystoneauth1.exceptions import base
 
 
-__all__ = ('HttpError',
-
-           'HTTPClientError',
-           'BadRequest',
-           'Unauthorized',
-           'PaymentRequired',
-           'Forbidden',
-           'NotFound',
-           'MethodNotAllowed',
-           'NotAcceptable',
-           'ProxyAuthenticationRequired',
-           'RequestTimeout',
-           'Conflict',
-           'Gone',
-           'LengthRequired',
-           'PreconditionFailed',
-           'RequestEntityTooLarge',
-           'RequestUriTooLong',
-           'UnsupportedMediaType',
-           'RequestedRangeNotSatisfiable',
-           'ExpectationFailed',
-           'UnprocessableEntity',
-
-           'HttpServerError',
-           'InternalServerError',
-           'HttpNotImplemented',
-           'BadGateway',
-           'ServiceUnavailable',
-           'GatewayTimeout',
-           'HttpVersionNotSupported',
-
-           'from_response')
+__all__ = (
+    'HttpError',
+    'HTTPClientError',
+    'BadRequest',
+    'Unauthorized',
+    'PaymentRequired',
+    'Forbidden',
+    'NotFound',
+    'MethodNotAllowed',
+    'NotAcceptable',
+    'ProxyAuthenticationRequired',
+    'RequestTimeout',
+    'Conflict',
+    'Gone',
+    'LengthRequired',
+    'PreconditionFailed',
+    'RequestEntityTooLarge',
+    'RequestUriTooLong',
+    'UnsupportedMediaType',
+    'RequestedRangeNotSatisfiable',
+    'ExpectationFailed',
+    'UnprocessableEntity',
+    'HttpServerError',
+    'InternalServerError',
+    'HttpNotImplemented',
+    'BadGateway',
+    'ServiceUnavailable',
+    'GatewayTimeout',
+    'HttpVersionNotSupported',
+    'from_response',
+)
 
 
 class HttpError(base.ClientException):
@@ -65,10 +64,17 @@ class HttpError(base.ClientException):
     http_status = 0
     message = "HTTP Error"
 
-    def __init__(self, message=None, details=None,
-                 response=None, request_id=None,
-                 url=None, method=None, http_status=None,
-                 retry_after=0):
+    def __init__(
+        self,
+        message=None,
+        details=None,
+        response=None,
+        request_id=None,
+        url=None,
+        method=None,
+        http_status=None,
+        retry_after=0,
+    ):
         self.http_status = http_status or self.http_status
         self.message = message or self.message
         self.details = details
@@ -76,11 +82,11 @@ class HttpError(base.ClientException):
         self.response = response
         self.url = url
         self.method = method
-        formatted_string = "%s (HTTP %s)" % (self.message, self.http_status)
+        formatted_string = f"{self.message} (HTTP {self.http_status})"
         self.retry_after = retry_after
         if request_id:
-            formatted_string += " (Request-ID: %s)" % request_id
-        super(HttpError, self).__init__(formatted_string)
+            formatted_string += f" (Request-ID: {request_id})"
+        super().__init__(formatted_string)
 
 
 class HTTPClientError(HttpError):
@@ -256,7 +262,7 @@ class RequestEntityTooLarge(HTTPClientError):
         except (KeyError, ValueError):
             self.retry_after = 0
 
-        super(RequestEntityTooLarge, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
 
 class RequestUriTooLong(HTTPClientError):
@@ -377,11 +383,11 @@ class HttpVersionNotSupported(HttpServerError):
 
 
 # _code_map contains all the classes that have http_status attribute.
-_code_map = dict(
-    (getattr(obj, 'http_status', None), obj)
+_code_map = {
+    getattr(obj, 'http_status', None): obj
     for name, obj in vars(sys.modules[__name__]).items()
     if inspect.isclass(obj) and getattr(obj, 'http_status', False)
-)
+}
 
 
 def from_response(response, method, url):
@@ -414,8 +420,9 @@ def from_response(response, method, url):
                 error = body["error"]
                 kwargs["message"] = error.get("message")
                 kwargs["details"] = error.get("details")
-            elif (isinstance(body, dict) and
-                  isinstance(body.get("errors"), list)):
+            elif isinstance(body, dict) and isinstance(
+                body.get("errors"), list
+            ):
                 # if the error response follows the API SIG guidelines, it
                 # will return a list of errors. in this case, only the first
                 # error is shown, but if there are multiple the user will be
@@ -429,13 +436,15 @@ def from_response(response, method, url):
                     if len(errors) > 1:
                         # if there is more than one error, let the user know
                         # that multiple were seen.
-                        msg_hdr = ("Multiple error responses, "
-                                   "showing first only: ")
+                        msg_hdr = (
+                            "Multiple error responses, showing first only: "
+                        )
                     else:
                         msg_hdr = ""
 
-                    kwargs["message"] = "{}{}".format(msg_hdr,
-                                                      errors[0].get("title"))
+                    kwargs["message"] = "{}{}".format(
+                        msg_hdr, errors[0].get("title")
+                    )
                     kwargs["details"] = errors[0].get("detail")
             else:
                 kwargs["message"] = "Unrecognized schema in response body."
@@ -444,8 +453,10 @@ def from_response(response, method, url):
         kwargs["details"] = response.text
 
     # we check explicity for 401 in case of auth receipts
-    if (response.status_code == 401
-            and "Openstack-Auth-Receipt" in response.headers):
+    if (
+        response.status_code == 401
+        and "Openstack-Auth-Receipt" in response.headers
+    ):
         return auth.MissingAuthMethods(response)
 
     try:

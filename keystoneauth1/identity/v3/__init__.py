@@ -27,40 +27,29 @@ from keystoneauth1.identity.v3.oauth2_client_credential import *  # noqa
 from keystoneauth1.identity.v3.oauth2_mtls_client_credential import *  # noqa
 
 
-__all__ = ('ApplicationCredential',
-           'ApplicationCredentialMethod',
-
-           'Auth',
-           'AuthConstructor',
-           'AuthMethod',
-           'BaseAuth',
-
-           'FederationBaseAuth',
-
-           'Keystone2Keystone',
-
-           'Password',
-           'PasswordMethod',
-
-           'Token',
-           'TokenMethod',
-
-           'OidcAccessToken',
-           'OidcAuthorizationCode',
-           'OidcClientCredentials',
-           'OidcPassword',
-
-           'TOTPMethod',
-           'TOTP',
-
-           'TokenlessAuth',
-
-           'ReceiptMethod',
-
-           'MultiFactor',
-
-           'OAuth2ClientCredential',
-           'OAuth2ClientCredentialMethod',
-
-           'OAuth2mTlsClientCredential',
-           )
+__all__ = (
+    'ApplicationCredential',
+    'ApplicationCredentialMethod',
+    'Auth',
+    'AuthConstructor',
+    'AuthMethod',
+    'BaseAuth',
+    'FederationBaseAuth',
+    'Keystone2Keystone',
+    'Password',
+    'PasswordMethod',
+    'Token',
+    'TokenMethod',
+    'OidcAccessToken',
+    'OidcAuthorizationCode',
+    'OidcClientCredentials',
+    'OidcPassword',
+    'TOTPMethod',
+    'TOTP',
+    'TokenlessAuth',
+    'ReceiptMethod',
+    'MultiFactor',
+    'OAuth2ClientCredential',
+    'OAuth2ClientCredentialMethod',
+    'OAuth2mTlsClientCredential',
+)

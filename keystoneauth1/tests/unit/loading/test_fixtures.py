@@ -21,12 +21,11 @@ from keystoneauth1.tests.unit import utils
 
 
 class FixturesTests(utils.TestCase):
-
     GROUP = uuid.uuid4().hex
     AUTH_TYPE = uuid.uuid4().hex
 
     def setUp(self):
-        super(FixturesTests, self).setUp()
+        super().setUp()
         self.conf_fixture = self.useFixture(config.Config())
 
         # conf loading will still try to read the auth_type from the config
@@ -35,8 +34,9 @@ class FixturesTests(utils.TestCase):
         # but it could be a useful differentiator and it also ensures that the
         # application has called register_auth_conf_options before simply
         # returning a fake plugin.
-        loading.register_auth_conf_options(self.conf_fixture.conf,
-                                           group=self.GROUP)
+        loading.register_auth_conf_options(
+            self.conf_fixture.conf, group=self.GROUP
+        )
 
         self.conf_fixture.config(auth_type=self.AUTH_TYPE, group=self.GROUP)
 
@@ -47,13 +47,16 @@ class FixturesTests(utils.TestCase):
         endpoint = "http://%(service_type)s/%(version)s/%(interface)s"
         loader = self.useLoadingFixture(endpoint=endpoint)
 
-        endpoint_filter = {'service_type': 'compute',
-                           'service_name': 'nova',
-                           'version': (2, 1),
-                           'interface': 'public'}
+        endpoint_filter = {
+            'service_type': 'compute',
+            'service_name': 'nova',
+            'version': (2, 1),
+            'interface': 'public',
+        }
 
-        auth = loading.load_auth_from_conf_options(self.conf_fixture.conf,
-                                                   self.GROUP)
+        auth = loading.load_auth_from_conf_options(
+            self.conf_fixture.conf, self.GROUP
+        )
         sess = session.Session(auth=auth)
 
         loader_endpoint = loader.get_endpoint(**endpoint_filter)
@@ -64,9 +67,11 @@ class FixturesTests(utils.TestCase):
 
     def test_conf_loaded(self):
         token = uuid.uuid4().hex
-        endpoint_filter = {'service_type': 'compute',
-                           'service_name': 'nova',
-                           'version': (2, 1)}
+        endpoint_filter = {
+            'service_type': 'compute',
+            'service_name': 'nova',
+            'version': (2, 1),
+        }
 
         loader = self.useLoadingFixture(token=token)
 
@@ -74,8 +79,9 @@ class FixturesTests(utils.TestCase):
 
         m = self.requests_mock.get(url)
 
-        auth = loading.load_auth_from_conf_options(self.conf_fixture.conf,
-                                                   self.GROUP)
+        auth = loading.load_auth_from_conf_options(
+            self.conf_fixture.conf, self.GROUP
+        )
         sess = session.Session(auth=auth)
         self.assertEqual(self.AUTH_TYPE, auth.auth_type)
 

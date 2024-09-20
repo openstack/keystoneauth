@@ -12,11 +12,7 @@
 
 from keystoneauth1 import _utils as utils
 
-__all__ = ('DiscoveryList',
-           'V2Discovery',
-           'V3Discovery',
-           'VersionDiscovery',
-           )
+__all__ = ('DiscoveryList', 'V2Discovery', 'V3Discovery', 'VersionDiscovery')
 
 _DEFAULT_DAYS_AGO = 30
 
@@ -32,7 +28,7 @@ class DiscoveryBase(dict):
     """
 
     def __init__(self, id, status=None, updated=None):
-        super(DiscoveryBase, self).__init__()
+        super().__init__()
 
         self.id = id
         self.status = status or 'stable'
@@ -103,7 +99,7 @@ class VersionDiscovery(DiscoveryBase):
     """
 
     def __init__(self, href, id, **kwargs):
-        super(VersionDiscovery, self).__init__(id, **kwargs)
+        super().__init__(id, **kwargs)
 
         self.add_link(href)
 
@@ -122,7 +118,7 @@ class MicroversionDiscovery(DiscoveryBase):
     """
 
     def __init__(self, href, id, min_version='', max_version='', **kwargs):
-        super(MicroversionDiscovery, self).__init__(id, **kwargs)
+        super().__init__(id, **kwargs)
 
         self.add_link(href)
 
@@ -160,7 +156,7 @@ class NovaMicroversionDiscovery(DiscoveryBase):
     """
 
     def __init__(self, href, id, min_version=None, version=None, **kwargs):
-        super(NovaMicroversionDiscovery, self).__init__(id, **kwargs)
+        super().__init__(id, **kwargs)
 
         self.add_link(href)
 
@@ -204,7 +200,7 @@ class V2Discovery(DiscoveryBase):
     _DESC_URL = 'https://developer.openstack.org/api-ref/identity/v2/'
 
     def __init__(self, href, id=None, html=True, pdf=True, **kwargs):
-        super(V2Discovery, self).__init__(id or 'v2.0', **kwargs)
+        super().__init__(id or 'v2.0', **kwargs)
 
         self.add_link(href)
 
@@ -219,9 +215,11 @@ class V2Discovery(DiscoveryBase):
         The standard structure includes a link to a HTML document with the
         API specification. Add it to this entry.
         """
-        self.add_link(href=self._DESC_URL + 'content',
-                      rel='describedby',
-                      type='text/html')
+        self.add_link(
+            href=self._DESC_URL + 'content',
+            rel='describedby',
+            type='text/html',
+        )
 
     def add_pdf_description(self):
         """Add the PDF described by links.
@@ -229,9 +227,11 @@ class V2Discovery(DiscoveryBase):
         The standard structure includes a link to a PDF document with the
         API specification. Add it to this entry.
         """
-        self.add_link(href=self._DESC_URL + 'identity-dev-guide-2.0.pdf',
-                      rel='describedby',
-                      type='application/pdf')
+        self.add_link(
+            href=self._DESC_URL + 'identity-dev-guide-2.0.pdf',
+            rel='describedby',
+            type='application/pdf',
+        )
 
 
 class V3Discovery(DiscoveryBase):
@@ -249,7 +249,7 @@ class V3Discovery(DiscoveryBase):
     """
 
     def __init__(self, href, id=None, json=True, xml=True, **kwargs):
-        super(V3Discovery, self).__init__(id or 'v3.0', **kwargs)
+        super().__init__(id or 'v3.0', **kwargs)
 
         self.add_link(href)
 
@@ -264,8 +264,10 @@ class V3Discovery(DiscoveryBase):
         The standard structure includes a list of media-types that the endpoint
         supports. Add JSON to the list.
         """
-        self.add_media_type(base='application/json',
-                            type='application/vnd.openstack.identity-v3+json')
+        self.add_media_type(
+            base='application/json',
+            type='application/vnd.openstack.identity-v3+json',
+        )
 
     def add_xml_media_type(self):
         """Add the XML media-type links.
@@ -273,8 +275,10 @@ class V3Discovery(DiscoveryBase):
         The standard structure includes a list of media-types that the endpoint
         supports. Add XML to the list.
         """
-        self.add_media_type(base='application/xml',
-                            type='application/vnd.openstack.identity-v3+xml')
+        self.add_media_type(
+            base='application/xml',
+            type='application/vnd.openstack.identity-v3+xml',
+        )
 
 
 class DiscoveryList(dict):
@@ -298,22 +302,47 @@ class DiscoveryList(dict):
 
     TEST_URL = 'http://keystone.host:5000/'
 
-    def __init__(self, href=None, v2=True, v3=True, v2_id=None, v3_id=None,
-                 v2_status=None, v2_updated=None, v2_html=True, v2_pdf=True,
-                 v3_status=None, v3_updated=None, v3_json=True, v3_xml=True):
-        super(DiscoveryList, self).__init__(versions={'values': []})
+    def __init__(
+        self,
+        href=None,
+        v2=True,
+        v3=True,
+        v2_id=None,
+        v3_id=None,
+        v2_status=None,
+        v2_updated=None,
+        v2_html=True,
+        v2_pdf=True,
+        v3_status=None,
+        v3_updated=None,
+        v3_json=True,
+        v3_xml=True,
+    ):
+        super().__init__(versions={'values': []})
 
         href = href or self.TEST_URL
 
         if v2:
             v2_href = href.rstrip('/') + '/v2.0'
-            self.add_v2(v2_href, id=v2_id, status=v2_status,
-                        updated=v2_updated, html=v2_html, pdf=v2_pdf)
+            self.add_v2(
+                v2_href,
+                id=v2_id,
+                status=v2_status,
+                updated=v2_updated,
+                html=v2_html,
+                pdf=v2_pdf,
+            )
 
         if v3:
             v3_href = href.rstrip('/') + '/v3'
-            self.add_v3(v3_href, id=v3_id, status=v3_status,
-                        updated=v3_updated, json=v3_json, xml=v3_xml)
+            self.add_v3(
+                v3_href,
+                id=v3_id,
+                status=v3_status,
+                updated=v3_updated,
+                json=v3_json,
+                xml=v3_xml,
+            )
 
     @property
     def versions(self):

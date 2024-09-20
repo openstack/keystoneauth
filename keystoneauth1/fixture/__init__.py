@@ -33,14 +33,15 @@ V2Token = v2.Token
 V3Token = v3.Token
 V3FederationToken = v3.V3FederationToken
 
-__all__ = ('DiscoveryList',
-           'FixtureValidationError',
-           'LoadingFixture',
-           'TestPlugin',
-           'V2Discovery',
-           'V3Discovery',
-           'V2Token',
-           'V3Token',
-           'V3FederationToken',
-           'VersionDiscovery',
-           )
+__all__ = (
+    'DiscoveryList',
+    'FixtureValidationError',
+    'LoadingFixture',
+    'TestPlugin',
+    'V2Discovery',
+    'V3Discovery',
+    'V2Token',
+    'V3Token',
+    'V3FederationToken',
+    'VersionDiscovery',
+)

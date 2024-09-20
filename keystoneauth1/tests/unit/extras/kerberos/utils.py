@@ -13,6 +13,7 @@
 import uuid
 
 import fixtures
+
 try:
     # requests_kerberos won't be available on py3, it doesn't work with py3.
     import requests_kerberos
@@ -24,29 +25,32 @@ from keystoneauth1.tests.unit import utils as test_utils
 
 
 class KerberosMock(fixtures.Fixture):
-
     def __init__(self, requests_mock):
-        super(KerberosMock, self).__init__()
+        super().__init__()
 
-        self.challenge_header = 'Negotiate %s' % uuid.uuid4().hex
-        self.pass_header = 'Negotiate %s' % uuid.uuid4().hex
+        self.challenge_header = f'Negotiate {uuid.uuid4().hex}'
+        self.pass_header = f'Negotiate {uuid.uuid4().hex}'
         self.requests_mock = requests_mock
 
     def setUp(self):
-        super(KerberosMock, self).setUp()
+        super().setUp()
 
         if requests_kerberos is None:
             return
 
-        m = fixtures.MockPatchObject(requests_kerberos.HTTPKerberosAuth,
-                                     'generate_request_header',
-                                     self._generate_request_header)
+        m = fixtures.MockPatchObject(
+            requests_kerberos.HTTPKerberosAuth,
+            'generate_request_header',
+            self._generate_request_header,
+        )
 
         self.header_fixture = self.useFixture(m)
 
-        m = fixtures.MockPatchObject(requests_kerberos.HTTPKerberosAuth,
-                                     'authenticate_server',
-                                     self._authenticate_server)
+        m = fixtures.MockPatchObject(
+            requests_kerberos.HTTPKerberosAuth,
+            'authenticate_server',
+            self._authenticate_server,
+        )
 
         self.authenticate_fixture = self.useFixture(m)
 
@@ -58,11 +62,12 @@ class KerberosMock(fixtures.Fixture):
         return response.headers.get('www-authenticate') == self.pass_header
 
     def mock_auth_success(
-            self,
-            token_id=None,
-            token_body=None,
-            method='POST',
-            url=test_utils.TestCase.TEST_ROOT_URL + 'v3/auth/tokens'):
+        self,
+        token_id=None,
+        token_body=None,
+        method='POST',
+        url=test_utils.TestCase.TEST_ROOT_URL + 'v3/auth/tokens',
+    ):
         if not token_id:
             token_id = uuid.uuid4().hex
         if not token_body:
@@ -70,17 +75,25 @@ class KerberosMock(fixtures.Fixture):
 
         self.called_auth_server = False
 
-        response_list = [{'text': 'Fail',
-                          'status_code': 401,
-                          'headers': {'WWW-Authenticate': 'Negotiate'}},
-                         {'headers': {'X-Subject-Token': token_id,
-                                      'Content-Type': 'application/json',
-                                      'WWW-Authenticate': self.pass_header},
-                          'status_code': 200,
-                          'json': token_body}]
+        response_list = [
+            {
+                'text': 'Fail',
+                'status_code': 401,
+                'headers': {'WWW-Authenticate': 'Negotiate'},
+            },
+            {
+                'headers': {
+                    'X-Subject-Token': token_id,
+                    'Content-Type': 'application/json',
+                    'WWW-Authenticate': self.pass_header,
+                },
+                'status_code': 200,
+                'json': token_body,
+            },
+        ]
 
-        self.requests_mock.register_uri(method,
-                                        url,
-                                        response_list=response_list)
+        self.requests_mock.register_uri(
+            method, url, response_list=response_list
+        )
 
         return token_id, token_body

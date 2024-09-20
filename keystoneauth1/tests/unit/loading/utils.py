@@ -22,7 +22,6 @@ from keystoneauth1.tests.unit import utils
 
 
 class TestCase(utils.TestCase):
-
     GROUP = 'auth'
     V2PASS = 'v2password'
     V3TOKEN = 'v3token'
@@ -31,9 +30,7 @@ class TestCase(utils.TestCase):
     a_float = 88.8
     a_bool = False
 
-    TEST_VALS = {'a_int': a_int,
-                 'a_float': a_float,
-                 'a_bool': a_bool}
+    TEST_VALS = {'a_int': a_int, 'a_float': a_float, 'a_bool': a_bool}
 
     def assertTestVals(self, plugin, vals=TEST_VALS):
         for k, v in vals.items():
@@ -41,9 +38,7 @@ class TestCase(utils.TestCase):
 
 
 def create_plugin(opts=[], token=None, endpoint=None):
-
     class Plugin(plugin.BaseAuthPlugin):
-
         def __init__(self, **kwargs):
             self._data = kwargs
 
@@ -57,7 +52,6 @@ def create_plugin(opts=[], token=None, endpoint=None):
             return endpoint
 
     class Loader(loading.BaseLoader):
-
         @property
         def plugin_class(self):
             return Plugin
@@ -68,8 +62,7 @@ def create_plugin(opts=[], token=None, endpoint=None):
     return Plugin, Loader
 
 
-class BoolType(object):
-
+class BoolType:
     def __eq__(self, other):
         """Define equiality for many bool types."""
         # hack around oslo.config equality comparison
@@ -100,12 +93,11 @@ MockPlugin, MockLoader = create_plugin(
         loading.Opt('a-bool', type=BoolType(), help=BOOL_DESC),
         loading.Opt('a-float', type=float, help=FLOAT_DESC),
         loading.Opt('a-str', help=STR_DESC, default=STR_DEFAULT),
-    ]
+    ],
 )
 
 
-class MockManager(object):
-
+class MockManager:
     def __init__(self, driver):
         self.driver = driver
 
@@ -120,4 +112,5 @@ def mock_plugin(loader=MockLoader):
                 return f(*args, **kwargs)
 
         return inner
+
     return _wrapper

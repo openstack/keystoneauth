@@ -21,7 +21,6 @@ from keystoneauth1.tests.unit import utils
 
 
 class AccessV2Test(utils.TestCase):
-
     def test_building_unscoped_accessinfo(self):
         token = fixture.V2Token(expires='2012-10-03T16:58:01Z')
 
@@ -115,12 +114,9 @@ class AccessV2Test(utils.TestCase):
                 'user': {
                     'id': 'user_id1',
                     'name': 'user_name1',
-                    'roles': [
-                        {'name': 'role1'},
-                        {'name': 'role2'},
-                    ],
+                    'roles': [{'name': 'role1'}, {'name': 'role2'}],
                 },
-            },
+            }
         }
 
         auth_ref = access.create(body=diablo_token)
@@ -148,12 +144,9 @@ class AccessV2Test(utils.TestCase):
                     'name': 'user_name1',
                     'tenantId': 'tenant_id1',
                     'tenantName': 'tenant_name1',
-                    'roles': [
-                        {'name': 'role1'},
-                        {'name': 'role2'},
-                    ],
+                    'roles': [{'name': 'role1'}, {'name': 'role2'}],
                 },
-            },
+            }
         }
 
         auth_ref = access.create(body=grizzly_token)
@@ -179,11 +172,13 @@ class AccessV2Test(utils.TestCase):
         self.assertIsInstance(auth_ref, access.AccessInfoV2)
 
         self.assertEqual([role_id], auth_ref.role_ids)
-        self.assertEqual([role_id],
-                         auth_ref._data['access']['metadata']['roles'])
+        self.assertEqual(
+            [role_id], auth_ref._data['access']['metadata']['roles']
+        )
         self.assertEqual([role_name], auth_ref.role_names)
-        self.assertEqual([{'name': role_name}],
-                         auth_ref._data['access']['user']['roles'])
+        self.assertEqual(
+            [{'name': role_name}], auth_ref._data['access']['user']['roles']
+        )
 
     def test_trusts(self):
         user_id = uuid.uuid4().hex

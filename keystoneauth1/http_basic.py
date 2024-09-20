@@ -25,15 +25,14 @@ class HTTPBasicAuth(plugin.FixedEndpointPlugin):
     """
 
     def __init__(self, endpoint=None, username=None, password=None):
-        super(HTTPBasicAuth, self).__init__(endpoint)
+        super().__init__(endpoint)
         self.username = username
         self.password = password
 
     def get_token(self, session, **kwargs):
         if self.username is None or self.password is None:
             return None
-        token = bytes('%s:%s' % (self.username, self.password),
-                      encoding='utf-8')
+        token = bytes(f'{self.username}:{self.password}', encoding='utf-8')
         encoded = base64.b64encode(token)
         return str(encoded, encoding='utf-8')
 
@@ -41,5 +40,5 @@ class HTTPBasicAuth(plugin.FixedEndpointPlugin):
         token = self.get_token(session)
         if not token:
             return None
-        auth = 'Basic %s' % token
+        auth = f'Basic {token}'
         return {AUTH_HEADER_NAME: auth}

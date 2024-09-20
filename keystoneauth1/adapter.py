@@ -19,7 +19,7 @@ from keystoneauth1 import _fair_semaphore
 from keystoneauth1 import session
 
 
-class Adapter(object):
+class Adapter:
     """An instance of a session with local variables.
 
     A session is a global object that is shared around amongst many clients. It
@@ -118,23 +118,41 @@ class Adapter(object):
     client_name = None
     client_version = None
 
-    def __init__(self, session, service_type=None, service_name=None,
-                 interface=None, region_name=None, endpoint_override=None,
-                 version=None, auth=None, user_agent=None,
-                 connect_retries=None, logger=None, allow=None,
-                 additional_headers=None, client_name=None,
-                 client_version=None, allow_version_hack=None,
-                 global_request_id=None,
-                 min_version=None, max_version=None,
-                 default_microversion=None, status_code_retries=None,
-                 retriable_status_codes=None, raise_exc=None,
-                 rate_limit=None, concurrency=None,
-                 connect_retry_delay=None, status_code_retry_delay=None,
-                 ):
+    def __init__(
+        self,
+        session,
+        service_type=None,
+        service_name=None,
+        interface=None,
+        region_name=None,
+        endpoint_override=None,
+        version=None,
+        auth=None,
+        user_agent=None,
+        connect_retries=None,
+        logger=None,
+        allow=None,
+        additional_headers=None,
+        client_name=None,
+        client_version=None,
+        allow_version_hack=None,
+        global_request_id=None,
+        min_version=None,
+        max_version=None,
+        default_microversion=None,
+        status_code_retries=None,
+        retriable_status_codes=None,
+        raise_exc=None,
+        rate_limit=None,
+        concurrency=None,
+        connect_retry_delay=None,
+        status_code_retry_delay=None,
+    ):
         if version and (min_version or max_version):
             raise TypeError(
                 "version is mutually exclusive with min_version and"
-                " max_version")
+                " max_version"
+            )
         # NOTE(jamielennox): when adding new parameters to adapter please also
         # add them to the adapter call in httpclient.HTTPClient.__init__ as
         # well as to load_adapter_from_argparse below if the argument is
@@ -177,7 +195,8 @@ class Adapter(object):
             rate_delay = 1.0 / rate_limit
 
         self._rate_semaphore = _fair_semaphore.FairSemaphore(
-            concurrency, rate_delay)
+            concurrency, rate_delay
+        )
 
     def _set_endpoint_filter_kwargs(self, kwargs):
         if self.service_type:
@@ -205,7 +224,8 @@ class Adapter(object):
         # case insensitive.
         if kwargs.get('headers'):
             kwargs['headers'] = requests.structures.CaseInsensitiveDict(
-                kwargs['headers'])
+                kwargs['headers']
+            )
         else:
             kwargs['headers'] = requests.structures.CaseInsensitiveDict()
         if self.endpoint_override:
@@ -215,9 +235,13 @@ class Adapter(object):
             kwargs.setdefault('auth', self.auth)
         if self.user_agent:
             kwargs.setdefault('user_agent', self.user_agent)
-        for arg in ('connect_retries', 'status_code_retries',
-                    'connect_retry_delay', 'status_code_retry_delay',
-                    'retriable_status_codes'):
+        for arg in (
+            'connect_retries',
+            'status_code_retries',
+            'connect_retry_delay',
+            'status_code_retry_delay',
+            'retriable_status_codes',
+        ):
             if getattr(self, arg) is not None:
                 kwargs.setdefault(arg, getattr(self, arg))
         if self.logger:
@@ -239,15 +263,18 @@ class Adapter(object):
                 kwargs.setdefault('rate_semaphore', self._rate_semaphore)
 
         else:
-            warnings.warn('Using keystoneclient sessions has been deprecated. '
-                          'Please update your software to use keystoneauth1.')
+            warnings.warn(
+                'Using keystoneclient sessions has been deprecated. '
+                'Please update your software to use keystoneauth1.'
+            )
 
         for k, v in self.additional_headers.items():
             kwargs.setdefault('headers', {}).setdefault(k, v)
 
         if self.global_request_id is not None:
             kwargs.setdefault('headers', {}).setdefault(
-                "X-OpenStack-Request-ID", self.global_request_id)
+                "X-OpenStack-Request-ID", self.global_request_id
+            )
 
         if self.raise_exc is not None:
             kwargs.setdefault('raise_exc', self.raise_exc)
@@ -309,10 +336,7 @@ class Adapter(object):
 
         return self.session.get_endpoint_data(auth or self.auth, **kwargs)
 
-    def get_all_version_data(
-            self,
-            interface='public',
-            region_name=None):
+    def get_all_version_data(self, interface='public', region_name=None):
         """Get data about all versions of a service.
 
         :param interface:
@@ -330,7 +354,8 @@ class Adapter(object):
         return self.session.get_all_version_data(
             interface=interface,
             region_name=region_name,
-            service_type=self.service_type)
+            service_type=self.service_type,
+        )
 
     def get_api_major_version(self, auth=None, **kwargs):
         """Get the major API version as provided by the auth plugin.
@@ -419,43 +444,50 @@ class Adapter(object):
         adapter_group = parser.add_argument_group(
             'Service Options',
             'Options controlling the specialization of the API'
-            ' Connection from information found in the catalog')
+            ' Connection from information found in the catalog',
+        )
 
         adapter_group.add_argument(
             '--os-service-type',
             metavar='<name>',
             default=os.environ.get('OS_SERVICE_TYPE', service_type),
-            help='Service type to request from the catalog')
+            help='Service type to request from the catalog',
+        )
 
         adapter_group.add_argument(
             '--os-service-name',
             metavar='<name>',
             default=os.environ.get('OS_SERVICE_NAME', None),
-            help='Service name to request from the catalog')
+            help='Service name to request from the catalog',
+        )
 
         adapter_group.add_argument(
             '--os-interface',
             metavar='<name>',
             default=os.environ.get('OS_INTERFACE', 'public'),
-            help='API Interface to use [public, internal, admin]')
+            help='API Interface to use [public, internal, admin]',
+        )
 
         adapter_group.add_argument(
             '--os-region-name',
             metavar='<name>',
             default=os.environ.get('OS_REGION_NAME', None),
-            help='Region of the cloud to use')
+            help='Region of the cloud to use',
+        )
 
         adapter_group.add_argument(
             '--os-endpoint-override',
             metavar='<name>',
             default=os.environ.get('OS_ENDPOINT_OVERRIDE', None),
-            help='Endpoint to use instead of the endpoint in the catalog')
+            help='Endpoint to use instead of the endpoint in the catalog',
+        )
 
         adapter_group.add_argument(
             '--os-api-version',
             metavar='<name>',
             default=os.environ.get('OS_API_VERSION', None),
-            help='Which version of the service API to use')
+            help='Which version of the service API to use',
+        )
 
     # TODO(efried): Move this to loading.adapter.Adapter
     @classmethod
@@ -469,66 +501,62 @@ class Adapter(object):
         """
         service_env = service_type.upper().replace('-', '_')
         adapter_group = parser.add_argument_group(
-            '{service_type} Service Options'.format(
-                service_type=service_type.title()),
-            'Options controlling the specialization of the {service_type}'
-            ' API Connection from information found in the catalog'.format(
-                service_type=service_type.title()))
+            f'{service_type.title()} Service Options',
+            f'Options controlling the specialization of the {service_type.title()}'
+            ' API Connection from information found in the catalog',
+        )
 
         adapter_group.add_argument(
-            '--os-{service_type}-service-type'.format(
-                service_type=service_type),
+            f'--os-{service_type}-service-type',
             metavar='<name>',
-            default=os.environ.get(
-                'OS_{service_type}_SERVICE_TYPE'.format(
-                    service_type=service_env), None),
-            help=('Service type to request from the catalog for the'
-                  ' {service_type} service'.format(
-                      service_type=service_type)))
+            default=os.environ.get(f'OS_{service_env}_SERVICE_TYPE', None),
+            help=(
+                'Service type to request from the catalog for the'
+                f' {service_type} service'
+            ),
+        )
 
         adapter_group.add_argument(
-            '--os-{service_type}-service-name'.format(
-                service_type=service_type),
+            f'--os-{service_type}-service-name',
             metavar='<name>',
-            default=os.environ.get(
-                'OS_{service_type}_SERVICE_NAME'.format(
-                    service_type=service_env), None),
-            help=('Service name to request from the catalog for the'
-                  ' {service_type} service'.format(
-                      service_type=service_type)))
+            default=os.environ.get(f'OS_{service_env}_SERVICE_NAME', None),
+            help=(
+                'Service name to request from the catalog for the'
+                f' {service_type} service'
+            ),
+        )
 
         adapter_group.add_argument(
-            '--os-{service_type}-interface'.format(
-                service_type=service_type),
+            f'--os-{service_type}-interface',
             metavar='<name>',
-            default=os.environ.get(
-                'OS_{service_type}_INTERFACE'.format(
-                    service_type=service_env), None),
-            help=('API Interface to use for the {service_type} service'
-                  ' [public, internal, admin]'.format(
-                      service_type=service_type)))
+            default=os.environ.get(f'OS_{service_env}_INTERFACE', None),
+            help=(
+                f'API Interface to use for the {service_type} service'
+                ' [public, internal, admin]'
+            ),
+        )
 
         adapter_group.add_argument(
-            '--os-{service_type}-api-version'.format(
-                service_type=service_type),
+            f'--os-{service_type}-api-version',
             metavar='<name>',
-            default=os.environ.get(
-                'OS_{service_type}_API_VERSION'.format(
-                    service_type=service_env), None),
-            help=('Which version of the service API to use for'
-                  ' the {service_type} service'.format(
-                      service_type=service_type)))
+            default=os.environ.get(f'OS_{service_env}_API_VERSION', None),
+            help=(
+                'Which version of the service API to use for'
+                f' the {service_type} service'
+            ),
+        )
 
         adapter_group.add_argument(
-            '--os-{service_type}-endpoint-override'.format(
-                service_type=service_type),
+            f'--os-{service_type}-endpoint-override',
             metavar='<name>',
             default=os.environ.get(
-                'OS_{service_type}_ENDPOINT_OVERRIDE'.format(
-                    service_type=service_env), None),
-            help=('Endpoint to use for the {service_type} service'
-                  ' instead of the endpoint in the catalog'.format(
-                      service_type=service_type)))
+                f'OS_{service_env}_ENDPOINT_OVERRIDE', None
+            ),
+            help=(
+                f'Endpoint to use for the {service_type} service'
+                ' instead of the endpoint in the catalog'
+            ),
+        )
 
 
 class LegacyJsonAdapter(Adapter):
@@ -549,7 +577,7 @@ class LegacyJsonAdapter(Adapter):
         except KeyError:
             pass
 
-        resp = super(LegacyJsonAdapter, self).request(*args, **kwargs)
+        resp = super().request(*args, **kwargs)
 
         try:
             body = resp.json()

@@ -55,9 +55,9 @@ actual =
     matches_matches = [matches_xml, equivalent_xml]
     matches_mismatches = [mismatches_xml]
     describe_examples = [
-        (mismatches_description, mismatches_xml, matches_matcher),
+        (mismatches_description, mismatches_xml, matches_matcher)
     ]
-    str_examples = [('XMLEquals(%r)' % matches_xml, matches_matcher)]
+    str_examples = [(f'XMLEquals({matches_xml!r})', matches_matcher)]
 
     def test_matches_match(self):
         matcher = self.matches_matcher

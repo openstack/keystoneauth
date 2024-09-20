@@ -19,12 +19,14 @@ from keystoneauth1 import exceptions
 PLUGIN_NAMESPACE = 'keystoneauth1.plugin'
 
 
-__all__ = ('get_available_plugin_names',
-           'get_available_plugin_loaders',
-           'get_plugin_loader',
-           'get_plugin_options',
-           'BaseLoader',
-           'PLUGIN_NAMESPACE')
+__all__ = (
+    'get_available_plugin_names',
+    'get_available_plugin_loaders',
+    'get_plugin_loader',
+    'get_plugin_options',
+    'BaseLoader',
+    'PLUGIN_NAMESPACE',
+)
 
 
 def _auth_plugin_available(ext):
@@ -41,10 +43,12 @@ def get_available_plugin_names():
     :returns: A list of names.
     :rtype: frozenset
     """
-    mgr = stevedore.EnabledExtensionManager(namespace=PLUGIN_NAMESPACE,
-                                            check_func=_auth_plugin_available,
-                                            invoke_on_load=True,
-                                            propagate_map_exceptions=True)
+    mgr = stevedore.EnabledExtensionManager(
+        namespace=PLUGIN_NAMESPACE,
+        check_func=_auth_plugin_available,
+        invoke_on_load=True,
+        propagate_map_exceptions=True,
+    )
     return frozenset(mgr.names())
 
 
@@ -55,10 +59,12 @@ def get_available_plugin_loaders():
               loader as the value.
     :rtype: dict
     """
-    mgr = stevedore.EnabledExtensionManager(namespace=PLUGIN_NAMESPACE,
-                                            check_func=_auth_plugin_available,
-                                            invoke_on_load=True,
-                                            propagate_map_exceptions=True)
+    mgr = stevedore.EnabledExtensionManager(
+        namespace=PLUGIN_NAMESPACE,
+        check_func=_auth_plugin_available,
+        invoke_on_load=True,
+        propagate_map_exceptions=True,
+    )
 
     return dict(mgr.map(lambda ext: (ext.entry_point.name, ext.obj)))
 
@@ -75,9 +81,9 @@ def get_plugin_loader(name):
         if a plugin cannot be created.
     """
     try:
-        mgr = stevedore.DriverManager(namespace=PLUGIN_NAMESPACE,
-                                      invoke_on_load=True,
-                                      name=name)
+        mgr = stevedore.DriverManager(
+            namespace=PLUGIN_NAMESPACE, invoke_on_load=True, name=name
+        )
     except RuntimeError:
         raise exceptions.NoMatchingPlugin(name)
 
@@ -99,7 +105,6 @@ def get_plugin_options(name):
 
 
 class BaseLoader(metaclass=abc.ABCMeta):
-
     @property
     def plugin_class(self):
         raise NotImplementedError()
@@ -153,8 +158,11 @@ class BaseLoader(metaclass=abc.ABCMeta):
         handle differences between the registered options and what is required
         to create the plugin.
         """
-        missing_required = [o for o in self.get_options()
-                            if o.required and kwargs.get(o.dest) is None]
+        missing_required = [
+            o
+            for o in self.get_options()
+            if o.required and kwargs.get(o.dest) is None
+        ]
 
         if missing_required:
             raise exceptions.MissingRequiredOptions(missing_required)

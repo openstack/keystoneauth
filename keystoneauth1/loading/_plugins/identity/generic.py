@@ -33,12 +33,15 @@ class Token(loading.BaseGenericLoader):
         return identity.Token
 
     def get_options(self):
-        options = super(Token, self).get_options()
+        options = super().get_options()
 
-        options.extend([
-            loading.Opt('token', secret=True,
-                        help='Token to authenticate with'),
-        ])
+        options.extend(
+            [
+                loading.Opt(
+                    'token', secret=True, help='Token to authenticate with'
+                )
+            ]
+        )
 
         return options
 
@@ -59,17 +62,23 @@ class Password(loading.BaseGenericLoader):
         return identity.Password
 
     def get_options(cls):
-        options = super(Password, cls).get_options()
-        options.extend([
-            loading.Opt('user-id', help='User id'),
-            loading.Opt('username',
-                        help='Username',
-                        deprecated=[loading.Opt('user-name')]),
-            loading.Opt('user-domain-id', help="User's domain id"),
-            loading.Opt('user-domain-name', help="User's domain name"),
-            loading.Opt('password',
-                        secret=True,
-                        prompt='Password: ',
-                        help="User's password"),
-        ])
+        options = super().get_options()
+        options.extend(
+            [
+                loading.Opt('user-id', help='User id'),
+                loading.Opt(
+                    'username',
+                    help='Username',
+                    deprecated=[loading.Opt('user-name')],
+                ),
+                loading.Opt('user-domain-id', help="User's domain id"),
+                loading.Opt('user-domain-name', help="User's domain name"),
+                loading.Opt(
+                    'password',
+                    secret=True,
+                    prompt='Password: ',
+                    help="User's password",
+                ),
+            ]
+        )
         return options

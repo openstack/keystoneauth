@@ -28,11 +28,13 @@ class TOTPMethod(base.AuthMethod):
     :param string user_domain_name: User's domain name for authentication.
     """
 
-    _method_parameters = ['user_id',
-                          'username',
-                          'user_domain_id',
-                          'user_domain_name',
-                          'passcode']
+    _method_parameters = [
+        'user_id',
+        'username',
+        'user_domain_id',
+        'user_domain_name',
+        'passcode',
+    ]
 
     def get_auth_data(self, session, auth, headers, **kwargs):
         user = {'passcode': self.passcode}
@@ -54,8 +56,7 @@ class TOTPMethod(base.AuthMethod):
         # the key in caching.
         params = copy.copy(self._method_parameters)
         params.remove('passcode')
-        return dict(('totp_%s' % p, getattr(self, p))
-                    for p in self._method_parameters)
+        return {f'totp_{p}': getattr(self, p) for p in self._method_parameters}
 
 
 class TOTP(base.AuthConstructor):

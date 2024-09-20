@@ -62,23 +62,18 @@ def get_version_data(session, url, authenticated=None, version_header=None):
 
     The return is a list of dicts of the form::
 
-      [{
-          'status': 'STABLE',
-          'id': 'v2.3',
-          'links': [
-              {
-                  'href': 'http://network.example.com/v2.3',
-                  'rel': 'self',
-              },
-              {
-                  'href': 'http://network.example.com/',
-                  'rel': 'collection',
-              },
-          ],
-          'min_version': '2.0',
-          'max_version': '2.7',
-       },
-       ...,
+      [
+          {
+              'status': 'STABLE',
+              'id': 'v2.3',
+              'links': [
+                  {'href': 'http://network.example.com/v2.3', 'rel': 'self'},
+                  {'href': 'http://network.example.com/', 'rel': 'collection'},
+              ],
+              'min_version': '2.0',
+              'max_version': '2.7',
+          },
+          ...,
       ]
 
     Note:
@@ -117,7 +112,8 @@ def get_version_data(session, url, authenticated=None, version_header=None):
         # it's the only thing returning a [] here - and that's ok.
         if isinstance(body_resp, list):
             raise exceptions.DiscoveryFailure(
-                'Invalid Response - List returned instead of dict')
+                'Invalid Response - List returned instead of dict'
+            )
 
         # In the event of querying a root URL we will get back a list of
         # available versions.
@@ -163,8 +159,9 @@ def get_version_data(session, url, authenticated=None, version_header=None):
             return [body_resp]
 
     err_text = resp.text[:50] + '...' if len(resp.text) > 50 else resp.text
-    raise exceptions.DiscoveryFailure('Invalid Response - Bad version data '
-                                      'returned: %s' % err_text)
+    raise exceptions.DiscoveryFailure(
+        'Invalid Response - Bad version data ' f'returned: {err_text}'
+    )
 
 
 def normalize_version_number(version):
@@ -253,11 +250,12 @@ def normalize_version_number(version):
     except (TypeError, ValueError):
         pass
 
-    raise TypeError('Invalid version specified: %s' % version)
+    raise TypeError(f'Invalid version specified: {version}')
 
 
 def _normalize_version_args(
-        version, min_version, max_version, service_type=None):
+    version, min_version, max_version, service_type=None
+):
     # The sins of our fathers become the blood on our hands.
     # If a user requests an old-style service type such as volumev2, then they
     # are inherently requesting the major API version 2. It's not a good
@@ -270,17 +268,20 @@ def _normalize_version_args(
     # as this, but in order to move forward without breaking people, we have
     # to just cry in the corner while striking ourselves with thorned branches.
     # That said, for sure only do this hack for officially known service_types.
-    if (service_type and
-            _SERVICE_TYPES.is_known(service_type) and
-            service_type[-1].isdigit() and
-            service_type[-2] == 'v'):
+    if (
+        service_type
+        and _SERVICE_TYPES.is_known(service_type)
+        and service_type[-1].isdigit()
+        and service_type[-2] == 'v'
+    ):
         implied_version = normalize_version_number(service_type[-1])
     else:
         implied_version = None
 
     if version and (min_version or max_version):
         raise ValueError(
-            "version is mutually exclusive with min_version and max_version")
+            "version is mutually exclusive with min_version and max_version"
+        )
 
     if version:
         # Explode this into min_version and max_version
@@ -291,15 +292,16 @@ def _normalize_version_args(
                 raise exceptions.ImpliedVersionMismatch(
                     service_type=service_type,
                     implied=implied_version,
-                    given=version_to_string(version))
+                    given=version_to_string(version),
+                )
         return min_version, max_version
 
     if min_version == 'latest':
         if max_version not in (None, 'latest'):
             raise ValueError(
-                "min_version is 'latest' and max_version is {max_version}"
-                " but is only allowed to be 'latest' or None".format(
-                    max_version=max_version))
+                f"min_version is 'latest' and max_version is {max_version}"
+                " but is only allowed to be 'latest' or None"
+            )
         max_version = 'latest'
 
     # Normalize e.g. empty string to None
@@ -326,7 +328,8 @@ def _normalize_version_args(
                 raise exceptions.ImpliedMinVersionMismatch(
                     service_type=service_type,
                     implied=implied_version,
-                    given=version_to_string(min_version))
+                    given=version_to_string(min_version),
+                )
         else:
             min_version = implied_version
 
@@ -338,7 +341,8 @@ def _normalize_version_args(
                 raise exceptions.ImpliedMaxVersionMismatch(
                     service_type=service_type,
                     implied=implied_version,
-                    given=version_to_string(max_version))
+                    given=version_to_string(max_version),
+                )
         else:
             max_version = (implied_version[0], LATEST)
     return min_version, max_version
@@ -477,7 +481,8 @@ def _combine_relative_url(discovery_url, version_url):
         path,
         parsed_version_url.params,
         parsed_version_url.query,
-        parsed_version_url.fragment).geturl()
+        parsed_version_url.fragment,
+    ).geturl()
 
 
 def _version_from_url(url):
@@ -499,7 +504,7 @@ def _version_from_url(url):
     return None
 
 
-class Status(object):
+class Status:
     CURRENT = 'CURRENT'
     SUPPORTED = 'SUPPORTED'
     DEPRECATED = 'DEPRECATED'
@@ -528,19 +533,23 @@ class Status(object):
         return status
 
 
-class Discover(object):
-
+class Discover:
     CURRENT_STATUSES = ('stable', 'current', 'supported')
     DEPRECATED_STATUSES = ('deprecated',)
     EXPERIMENTAL_STATUSES = ('experimental',)
 
     def __init__(self, session, url, authenticated=None):
         self._url = url
-        self._data = get_version_data(session, url,
-                                      authenticated=authenticated)
+        self._data = get_version_data(
+            session, url, authenticated=authenticated
+        )
 
-    def raw_version_data(self, allow_experimental=False,
-                         allow_deprecated=True, allow_unknown=False):
+    def raw_version_data(
+        self,
+        allow_experimental=False,
+        allow_deprecated=True,
+        allow_unknown=False,
+    ):
         """Get raw version information from URL.
 
         Raw data indicates that only minimal validation processing is performed
@@ -560,8 +569,10 @@ class Discover(object):
             try:
                 status = v['status']
             except KeyError:
-                _LOGGER.warning('Skipping over invalid version data. '
-                                'No stability status in version.')
+                _LOGGER.warning(
+                    'Skipping over invalid version data. '
+                    'No stability status in version.'
+                )
                 continue
 
             status = status.lower()
@@ -633,8 +644,10 @@ class Discover(object):
                     rel = link['rel']
                     url = _combine_relative_url(self._url, link['href'])
                 except (KeyError, TypeError):
-                    _LOGGER.info('Skipping invalid version link. '
-                                 'Missing link URL or relationship.')
+                    _LOGGER.info(
+                        'Skipping invalid version link. '
+                        'Missing link URL or relationship.'
+                    )
                     continue
 
                 if rel.lower() == 'self':
@@ -642,20 +655,25 @@ class Discover(object):
                 elif rel.lower() == 'collection':
                     collection_url = url
             if not self_url:
-                _LOGGER.info('Skipping invalid version data. '
-                             'Missing link to endpoint.')
+                _LOGGER.info(
+                    'Skipping invalid version data. '
+                    'Missing link to endpoint.'
+                )
                 continue
 
             versions.append(
-                VersionData(version=version_number,
-                            url=self_url,
-                            collection=collection_url,
-                            min_microversion=min_microversion,
-                            max_microversion=max_microversion,
-                            next_min_version=next_min_version,
-                            not_before=not_before,
-                            status=Status.normalize(v['status']),
-                            raw_status=v['status']))
+                VersionData(
+                    version=version_number,
+                    url=self_url,
+                    collection=collection_url,
+                    min_microversion=min_microversion,
+                    max_microversion=max_microversion,
+                    next_min_version=next_min_version,
+                    not_before=not_before,
+                    status=Status.normalize(v['status']),
+                    raw_status=v['status'],
+                )
+            )
 
         versions.sort(key=lambda v: v['version'], reverse=reverse)
         return versions
@@ -723,9 +741,9 @@ class Discover(object):
         data = self.data_for(version, **kwargs)
         return data['url'] if data else None
 
-    def versioned_data_for(self, url=None,
-                           min_version=None, max_version=None,
-                           **kwargs):
+    def versioned_data_for(
+        self, url=None, min_version=None, max_version=None, **kwargs
+    ):
         """Return endpoint data for the service at a url.
 
         min_version and max_version can be given either as strings or tuples.
@@ -747,15 +765,17 @@ class Discover(object):
         :rtype: dict
         """
         min_version, max_version = _normalize_version_args(
-            None, min_version, max_version)
+            None, min_version, max_version
+        )
         no_version = not max_version and not min_version
 
         version_data = self.version_data(reverse=True, **kwargs)
 
         # If we don't have to check a min_version, we can short
         # circuit anything else
-        if (max_version == (LATEST, LATEST) and
-                (not min_version or min_version == (LATEST, LATEST))):
+        if max_version == (LATEST, LATEST) and (
+            not min_version or min_version == (LATEST, LATEST)
+        ):
             # because we reverse we can just take the first entry
             return version_data[0]
 
@@ -774,8 +794,11 @@ class Discover(object):
             if _latest_soft_match(min_version, data['version']):
                 return data
             # Only validate version bounds if versions were specified
-            if min_version and max_version and version_between(
-                    min_version, max_version, data['version']):
+            if (
+                min_version
+                and max_version
+                and version_between(min_version, max_version, data['version'])
+            ):
                 return data
 
         # If there is no version requested and we could not find a matching
@@ -805,8 +828,9 @@ class Discover(object):
         :returns: The url for the specified version or None if no match.
         :rtype: str
         """
-        data = self.versioned_data_for(min_version=min_version,
-                                       max_version=max_version, **kwargs)
+        data = self.versioned_data_for(
+            min_version=min_version, max_version=max_version, **kwargs
+        )
         return data['url'] if data else None
 
 
@@ -814,17 +838,18 @@ class VersionData(dict):
     """Normalized Version Data about an endpoint."""
 
     def __init__(
-            self,
-            version,
-            url,
-            collection=None,
-            max_microversion=None,
-            min_microversion=None,
-            next_min_version=None,
-            not_before=None,
-            status='CURRENT',
-            raw_status=None):
-        super(VersionData, self).__init__()
+        self,
+        version,
+        url,
+        collection=None,
+        max_microversion=None,
+        min_microversion=None,
+        next_min_version=None,
+        not_before=None,
+        status='CURRENT',
+        raw_status=None,
+    ):
+        super().__init__()
         self['version'] = version
         self['url'] = url
         self['collection'] = collection
@@ -883,7 +908,7 @@ class VersionData(dict):
         return self.get('raw_status')
 
 
-class EndpointData(object):
+class EndpointData:
     """Normalized information about a discovered endpoint.
 
     Contains url, version, microversion, interface and region information.
@@ -894,23 +919,25 @@ class EndpointData(object):
     possibilities.
     """
 
-    def __init__(self,
-                 catalog_url=None,
-                 service_url=None,
-                 service_type=None,
-                 service_name=None,
-                 service_id=None,
-                 region_name=None,
-                 interface=None,
-                 endpoint_id=None,
-                 raw_endpoint=None,
-                 api_version=None,
-                 major_version=None,
-                 min_microversion=None,
-                 max_microversion=None,
-                 next_min_version=None,
-                 not_before=None,
-                 status=None):
+    def __init__(
+        self,
+        catalog_url=None,
+        service_url=None,
+        service_type=None,
+        service_name=None,
+        service_id=None,
+        region_name=None,
+        interface=None,
+        endpoint_id=None,
+        raw_endpoint=None,
+        api_version=None,
+        major_version=None,
+        min_microversion=None,
+        max_microversion=None,
+        next_min_version=None,
+        not_before=None,
+        status=None,
+    ):
         self.catalog_url = catalog_url
         self.service_url = service_url
         self.service_type = service_type
@@ -962,19 +989,35 @@ class EndpointData(object):
     def __str__(self):
         """Produce a string like EndpointData{key=val, ...}, for debugging."""
         str_attrs = (
-            'api_version', 'catalog_url', 'endpoint_id', 'interface',
-            'major_version', 'max_microversion', 'min_microversion',
-            'next_min_version', 'not_before', 'raw_endpoint', 'region_name',
-            'service_id', 'service_name', 'service_type', 'service_url', 'url')
-        return "%s{%s}" % (self.__class__.__name__, ', '.join(
-            ["%s=%s" % (attr, getattr(self, attr)) for attr in str_attrs]))
+            'api_version',
+            'catalog_url',
+            'endpoint_id',
+            'interface',
+            'major_version',
+            'max_microversion',
+            'min_microversion',
+            'next_min_version',
+            'not_before',
+            'raw_endpoint',
+            'region_name',
+            'service_id',
+            'service_name',
+            'service_type',
+            'service_url',
+            'url',
+        )
+        return "{}{{{}}}".format(
+            self.__class__.__name__,
+            ', '.join([f"{attr}={getattr(self, attr)}" for attr in str_attrs]),
+        )
 
     @property
     def url(self):
         return self.service_url or self.catalog_url
 
-    def get_current_versioned_data(self, session, allow=None, cache=None,
-                                   project_id=None):
+    def get_current_versioned_data(
+        self, session, allow=None, cache=None, project_id=None
+    ):
         """Run version discovery on the current endpoint.
 
         A simplified version of get_versioned_data, get_current_versioned_data
@@ -1001,16 +1044,29 @@ class EndpointData(object):
                                                     could not be discovered.
         """
         min_version, max_version = _normalize_version_args(
-            self.api_version, None, None)
+            self.api_version, None, None
+        )
         return self.get_versioned_data(
-            session=session, allow=allow, cache=cache, allow_version_hack=True,
+            session=session,
+            allow=allow,
+            cache=cache,
+            allow_version_hack=True,
             discover_versions=True,
-            min_version=min_version, max_version=max_version)
+            min_version=min_version,
+            max_version=max_version,
+        )
 
-    def get_versioned_data(self, session, allow=None, cache=None,
-                           allow_version_hack=True, project_id=None,
-                           discover_versions=True,
-                           min_version=None, max_version=None):
+    def get_versioned_data(
+        self,
+        session,
+        allow=None,
+        cache=None,
+        allow_version_hack=True,
+        project_id=None,
+        discover_versions=True,
+        min_version=None,
+        max_version=None,
+    ):
         """Run version discovery for the service described.
 
         Performs Version Discovery and returns a new EndpointData object with
@@ -1050,7 +1106,8 @@ class EndpointData(object):
                                                     could not be discovered.
         """
         min_version, max_version = _normalize_version_args(
-            None, min_version, max_version)
+            None, min_version, max_version
+        )
 
         if not allow:
             allow = {}
@@ -1059,10 +1116,15 @@ class EndpointData(object):
         new_data = copy.copy(self)
 
         new_data._set_version_info(
-            session=session, allow=allow, cache=cache,
-            allow_version_hack=allow_version_hack, project_id=project_id,
-            discover_versions=discover_versions, min_version=min_version,
-            max_version=max_version)
+            session=session,
+            allow=allow,
+            cache=cache,
+            allow_version_hack=allow_version_hack,
+            project_id=project_id,
+            discover_versions=discover_versions,
+            min_version=min_version,
+            max_version=max_version,
+        )
         return new_data
 
     def get_all_version_string_data(self, session, project_id=None):
@@ -1082,7 +1144,8 @@ class EndpointData(object):
                 # Ignore errors here - we're just searching for one of the
                 # URLs that will give us data.
                 _LOGGER.debug(
-                    "Failed attempt at discovery on %s: %s", vers_url, str(e))
+                    "Failed attempt at discovery on %s: %s", vers_url, str(e)
+                )
                 continue
             for version in d.version_string_data():
                 versions.append(version)
@@ -1109,10 +1172,17 @@ class EndpointData(object):
 
         return [VersionData(url=url, version=version)]
 
-    def _set_version_info(self, session, allow=None, cache=None,
-                          allow_version_hack=True, project_id=None,
-                          discover_versions=False,
-                          min_version=None, max_version=None):
+    def _set_version_info(
+        self,
+        session,
+        allow=None,
+        cache=None,
+        allow_version_hack=True,
+        project_id=None,
+        discover_versions=False,
+        min_version=None,
+        max_version=None,
+    ):
         match_url = None
 
         no_version = not max_version and not min_version
@@ -1134,38 +1204,48 @@ class EndpointData(object):
         # satisfy the request without further work
         if self._disc:
             discovered_data = self._disc.versioned_data_for(
-                min_version=min_version, max_version=max_version,
-                url=match_url, **allow)
+                min_version=min_version,
+                max_version=max_version,
+                url=match_url,
+                **allow,
+            )
         if not discovered_data:
             self._run_discovery(
-                session=session, cache=cache,
-                min_version=min_version, max_version=max_version,
-                project_id=project_id, allow_version_hack=allow_version_hack,
-                discover_versions=discover_versions)
+                session=session,
+                cache=cache,
+                min_version=min_version,
+                max_version=max_version,
+                project_id=project_id,
+                allow_version_hack=allow_version_hack,
+                discover_versions=discover_versions,
+            )
             if not self._disc:
                 return
             discovered_data = self._disc.versioned_data_for(
-                min_version=min_version, max_version=max_version,
-                url=match_url, **allow)
+                min_version=min_version,
+                max_version=max_version,
+                url=match_url,
+                **allow,
+            )
 
         if not discovered_data:
             if min_version and not max_version:
                 raise exceptions.DiscoveryFailure(
-                    "Minimum version {min_version} was not found".format(
-                        min_version=version_to_string(min_version)))
+                    f"Minimum version {version_to_string(min_version)} was not found"
+                )
             elif max_version and not min_version:
                 raise exceptions.DiscoveryFailure(
-                    "Maximum version {max_version} was not found".format(
-                        max_version=version_to_string(max_version)))
+                    f"Maximum version {version_to_string(max_version)} was not found"
+                )
             elif min_version and max_version:
                 raise exceptions.DiscoveryFailure(
-                    "No version found between {min_version}"
-                    " and {max_version}".format(
-                        min_version=version_to_string(min_version),
-                        max_version=version_to_string(max_version)))
+                    f"No version found between {version_to_string(min_version)}"
+                    f" and {version_to_string(max_version)}"
+                )
             else:
                 raise exceptions.DiscoveryFailure(
-                    "No version data found remotely at all")
+                    "No version data found remotely at all"
+                )
 
         self.min_microversion = discovered_data['min_microversion']
         self.max_microversion = discovered_data['max_microversion']
@@ -1184,25 +1264,35 @@ class EndpointData(object):
         # for example a "v2" path from http://host/admin should resolve as
         # http://host/admin/v2 where it would otherwise be host/v2.
         # This has no effect on absolute urls returned from url_for.
-        url = urllib.parse.urljoin(self._disc._url.rstrip('/') + '/',
-                                   discovered_url)
+        url = urllib.parse.urljoin(
+            self._disc._url.rstrip('/') + '/', discovered_url
+        )
 
         # If we had to pop a project_id from the catalog_url, put it back on
         if self._saved_project_id:
-            url = urllib.parse.urljoin(url.rstrip('/') + '/',
-                                       self._saved_project_id)
+            url = urllib.parse.urljoin(
+                url.rstrip('/') + '/', self._saved_project_id
+            )
         self.service_url = url
 
-    def _run_discovery(self, session, cache, min_version, max_version,
-                       project_id, allow_version_hack, discover_versions):
+    def _run_discovery(
+        self,
+        session,
+        cache,
+        min_version,
+        max_version,
+        project_id,
+        allow_version_hack,
+        discover_versions,
+    ):
         tried = set()
 
         for vers_url in self._get_discovery_url_choices(
-                project_id=project_id,
-                allow_version_hack=allow_version_hack,
-                min_version=min_version,
-                max_version=max_version):
-
+            project_id=project_id,
+            allow_version_hack=allow_version_hack,
+            min_version=min_version,
+            max_version=max_version,
+        ):
             if self._catalog_matches_exactly and not discover_versions:
                 # The version we started with is correct, and we don't want
                 # new data
@@ -1214,13 +1304,14 @@ class EndpointData(object):
 
             try:
                 self._disc = get_discovery(
-                    session, vers_url,
-                    cache=cache,
-                    authenticated=False)
+                    session, vers_url, cache=cache, authenticated=False
+                )
                 break
-            except (exceptions.DiscoveryFailure,
-                    exceptions.HttpError,
-                    exceptions.ConnectionError) as exc:
+            except (
+                exceptions.DiscoveryFailure,
+                exceptions.HttpError,
+                exceptions.ConnectionError,
+            ) as exc:
                 _LOGGER.debug('No version document at %s: %s', vers_url, exc)
                 continue
         if not self._disc:
@@ -1242,7 +1333,9 @@ class EndpointData(object):
                 _LOGGER.warning(
                     'Failed to contact the endpoint at %s for '
                     'discovery. Fallback to using that endpoint as '
-                    'the base url.', self.url)
+                    'the base url.',
+                    self.url,
+                )
                 return
 
             else:
@@ -1252,14 +1345,20 @@ class EndpointData(object):
                 # date enough to properly specify a version and keystoneauth
                 # can't deliver.
                 raise exceptions.DiscoveryFailure(
-                    "Unable to find a version discovery document at %s, "
+                    "Unable to find a version discovery document at {}, "
                     "the service is unavailable or misconfigured. "
-                    "Required version range (%s - %s), version hack disabled."
-                    % (self.url, min_version or "any", max_version or "any"))
+                    "Required version range ({} - {}), version hack disabled.".format(
+                        self.url, min_version or "any", max_version or "any"
+                    )
+                )
 
     def _get_discovery_url_choices(
-            self, project_id=None, allow_version_hack=True,
-            min_version=None, max_version=None):
+        self,
+        project_id=None,
+        allow_version_hack=True,
+        min_version=None,
+        max_version=None,
+    ):
         """Find potential locations for version discovery URLs.
 
         min_version and max_version are already normalized, so will either be
@@ -1295,19 +1394,27 @@ class EndpointData(object):
                 '/'.join(url_parts),
                 url.params,
                 url.query,
-                url.fragment).geturl()
+                url.fragment,
+            ).geturl()
         except TypeError:
             pass
         else:
             # `is_between` means version bounds were specified *and* the URL
             # version is between them.
-            is_between = min_version and max_version and version_between(
-                min_version, max_version, url_version)
-            exact_match = (is_between and max_version and
-                           max_version[0] == url_version[0])
-            high_match = (is_between and max_version and
-                          max_version[1] != LATEST and
-                          version_match(max_version, url_version))
+            is_between = (
+                min_version
+                and max_version
+                and version_between(min_version, max_version, url_version)
+            )
+            exact_match = (
+                is_between and max_version and max_version[0] == url_version[0]
+            )
+            high_match = (
+                is_between
+                and max_version
+                and max_version[1] != LATEST
+                and version_match(max_version, url_version)
+            )
             if exact_match or is_between:
                 self._catalog_matches_version = True
                 self._catalog_matches_exactly = exact_match
@@ -1316,13 +1423,19 @@ class EndpointData(object):
                 # return it just yet. It's a good option, but unless we
                 # have an exact match or match the max requested, we want
                 # to try for an unversioned endpoint first.
-                catalog_discovery = urllib.parse.ParseResult(
-                    url.scheme,
-                    url.netloc,
-                    '/'.join(url_parts),
-                    url.params,
-                    url.query,
-                    url.fragment).geturl().rstrip('/') + '/'
+                catalog_discovery = (
+                    urllib.parse.ParseResult(
+                        url.scheme,
+                        url.netloc,
+                        '/'.join(url_parts),
+                        url.params,
+                        url.query,
+                        url.fragment,
+                    )
+                    .geturl()
+                    .rstrip('/')
+                    + '/'
+                )
 
             # If we found a viable catalog endpoint and it's
             # an exact match or matches the max, go ahead and give
@@ -1342,7 +1455,8 @@ class EndpointData(object):
                 '/'.join(url_parts),
                 url.params,
                 url.query,
-                url.fragment).geturl()
+                url.fragment,
+            ).geturl()
             # Since this is potentially us constructing a base URL from the
             # versioned URL - we need to make sure it has a trailing /. But
             # we only want to do that if we have built a new URL - not if
@@ -1448,7 +1562,8 @@ def get_discovery(session, url, cache=None, authenticated=False):
             '',
             parsed_url.params,
             parsed_url.query,
-            parsed_url.fragment).geturl()
+            parsed_url.fragment,
+        ).geturl()
 
     for cache in caches:
         disc = cache.get(url)
@@ -1468,7 +1583,7 @@ def get_discovery(session, url, cache=None, authenticated=False):
     return disc
 
 
-class _VersionHacks(object):
+class _VersionHacks:
     """A container to abstract the list of version hacks.
 
     This could be done as simply a dictionary but is abstracted like this to

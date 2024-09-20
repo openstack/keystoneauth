@@ -17,8 +17,7 @@ from keystoneauth1.tests.unit.extras.kerberos import utils
 from keystoneauth1.tests.unit import utils as test_utils
 
 
-REQUEST = {'auth': {'identity': {'methods': ['kerberos'],
-                                 'kerberos': {}}}}
+REQUEST = {'auth': {'identity': {'methods': ['kerberos'], 'kerberos': {}}}}
 
 
 class TestCase(test_utils.TestCase):
@@ -27,7 +26,7 @@ class TestCase(test_utils.TestCase):
     TEST_V3_URL = test_utils.TestCase.TEST_ROOT_URL + 'v3'
 
     def setUp(self):
-        super(TestCase, self).setUp()
+        super().setUp()
 
         km = utils.KerberosMock(self.requests_mock)
         self.kerberos_mock = self.useFixture(km)

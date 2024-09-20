@@ -13,7 +13,9 @@
 from keystoneauth1.access.access import *  # noqa
 
 
-__all__ = ('AccessInfo',  # noqa: F405
-           'AccessInfoV2',  # noqa: F405
-           'AccessInfoV3',  # noqa: F405
-           'create')  # noqa: F405
+__all__ = (  # noqa: F405
+    'AccessInfo',
+    'AccessInfoV2',
+    'AccessInfoV3',
+    'create',
+)

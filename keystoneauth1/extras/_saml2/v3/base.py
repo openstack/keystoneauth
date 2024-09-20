@@ -23,21 +23,27 @@ class _Saml2TokenAuthMethod(v3.AuthMethod):
     _method_parameters = []
 
     def get_auth_data(self, session, auth, headers, **kwargs):
-        raise exceptions.MethodNotImplemented('This method should never '
-                                              'be called')
+        raise exceptions.MethodNotImplemented(
+            'This method should never be called'
+        )
 
 
 class BaseSAMLPlugin(v3.FederationBaseAuth):
-
     HTTP_MOVED_TEMPORARILY = 302
     HTTP_SEE_OTHER = 303
 
     _auth_method_class = _Saml2TokenAuthMethod
 
-    def __init__(self, auth_url,
-                 identity_provider, identity_provider_url,
-                 username, password, protocol,
-                 **kwargs):
+    def __init__(
+        self,
+        auth_url,
+        identity_provider,
+        identity_provider_url,
+        username,
+        password,
+        protocol,
+        **kwargs,
+    ):
         """Class constructor accepting following parameters.
 
         :param auth_url: URL of the Identity Service
@@ -68,10 +74,12 @@ class BaseSAMLPlugin(v3.FederationBaseAuth):
         :type protocol: string
 
         """
-        super(BaseSAMLPlugin, self).__init__(
-            auth_url=auth_url, identity_provider=identity_provider,
+        super().__init__(
+            auth_url=auth_url,
+            identity_provider=identity_provider,
             protocol=protocol,
-            **kwargs)
+            **kwargs,
+        )
         self.identity_provider_url = identity_provider_url
         self.username = username
         self.password = password

@@ -43,7 +43,8 @@ def _mutual_auth(value):
 
 def _requests_auth(mutual_authentication):
     return requests_kerberos.HTTPKerberosAuth(
-        mutual_authentication=_mutual_auth(mutual_authentication))
+        mutual_authentication=_mutual_auth(mutual_authentication)
+    )
 
 
 def _dependency_check():
@@ -57,12 +58,11 @@ packages. These can be installed with::
 
 
 class KerberosMethod(v3.AuthMethod):
-
     _method_parameters = ['mutual_auth']
 
     def __init__(self, *args, **kwargs):
         _dependency_check()
-        super(KerberosMethod, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def get_auth_data(self, session, auth, headers, request_kwargs, **kwargs):
         # NOTE(jamielennox): request_kwargs is passed as a kwarg however it is
@@ -82,16 +82,18 @@ class MappedKerberos(federation.FederationBaseAuth):
     use the standard keystone auth process to scope that to any given project.
     """
 
-    def __init__(self, auth_url, identity_provider, protocol,
-                 mutual_auth=None, **kwargs):
+    def __init__(
+        self, auth_url, identity_provider, protocol, mutual_auth=None, **kwargs
+    ):
         _dependency_check()
         self.mutual_auth = mutual_auth
-        super(MappedKerberos, self).__init__(auth_url, identity_provider,
-                                             protocol, **kwargs)
+        super().__init__(auth_url, identity_provider, protocol, **kwargs)
 
     def get_unscoped_auth_ref(self, session, **kwargs):
-        resp = session.get(self.federated_token_url,
-                           requests_auth=_requests_auth(self.mutual_auth),
-                           authenticated=False)
+        resp = session.get(
+            self.federated_token_url,
+            requests_auth=_requests_auth(self.mutual_auth),
+            authenticated=False,
+        )
 
         return access.create(body=resp.json(), resp=resp)

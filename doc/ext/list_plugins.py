@@ -35,7 +35,7 @@ class ListAuthPluginsDirective(rst.Directive):
     has_content = True
 
     def report_load_failure(mgr, ep, err):
-        LOG.warning(u'Failed to load %s: %s' % (ep.module_name, err))
+        LOG.warning(f'Failed to load {ep.module_name}: {err}')
 
     def display_plugin(self, ext):
         overline_style = self.options.get('overline-style', '')
@@ -60,7 +60,7 @@ class ListAuthPluginsDirective(rst.Directive):
         yield "\n"
 
         for opt in ext.obj.get_options():
-            yield ":%s: %s" % (opt.name, opt.help)
+            yield f":{opt.name}: {opt.help}"
 
         yield "\n"
 
@@ -68,7 +68,7 @@ class ListAuthPluginsDirective(rst.Directive):
         mgr = extension.ExtensionManager(
             'keystoneauth1.plugin',
             on_load_failure_callback=self.report_load_failure,
-	    invoke_on_load=True,
+            invoke_on_load=True,
         )
 
         result = ViewList()

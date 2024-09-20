@@ -20,19 +20,13 @@ UNSCOPED_TOKEN = {
         "expires_at": "2014-06-09T10:48:59.643375Z",
         "user": {
             "OS-FEDERATION": {
-                "identity_provider": {
-                    "id": "testshib"
-                },
-                "protocol": {
-                    "id": "saml2"
-                },
-                "groups": [
-                    {"id": "1764fa5cf69a49a4918131de5ce4af9a"}
-                ]
+                "identity_provider": {"id": "testshib"},
+                "protocol": {"id": "saml2"},
+                "groups": [{"id": "1764fa5cf69a49a4918131de5ce4af9a"}],
             },
             "id": "testhib%20user",
-            "name": "testhib user"
-        }
+            "name": "testhib user",
+        },
     }
 }
 
@@ -124,7 +118,7 @@ TOKEN_SAML_RESPONSE = """
 
 TOKEN_BASED_SAML = ''.join([SAML_ENCODING, TOKEN_SAML_RESPONSE])
 
-ECP_ENVELOPE = """
+ECP_ENVELOPE = f"""
 <ns0:Envelope
   xmlns:ns0="http://schemas.xmlsoap.org/soap/envelope/"
   xmlns:ns1="urn:oasis:names:tc:SAML:2.0:profiles:SSO:ecp"
@@ -140,9 +134,9 @@ ECP_ENVELOPE = """
       </ns1:RelayState>
   </ns0:Header>
   <ns0:Body>
-  {0}
+  {TOKEN_SAML_RESPONSE}
   </ns0:Body>
 </ns0:Envelope>
-""".format(TOKEN_SAML_RESPONSE)
+"""
 
 TOKEN_BASED_ECP = ''.join([SAML_ENCODING, ECP_ENVELOPE])

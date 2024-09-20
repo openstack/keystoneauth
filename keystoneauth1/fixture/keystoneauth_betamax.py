@@ -25,11 +25,16 @@ from keystoneauth1 import session
 
 
 class BetamaxFixture(fixtures.Fixture):
-
-    def __init__(self, cassette_name, cassette_library_dir=None,
-                 serializer=None, record=False,
-                 pre_record_hook=hooks.pre_record_hook,
-                 serializer_name=None, request_matchers=None):
+    def __init__(
+        self,
+        cassette_name,
+        cassette_library_dir=None,
+        serializer=None,
+        record=False,
+        pre_record_hook=hooks.pre_record_hook,
+        serializer_name=None,
+        request_matchers=None,
+    ):
         """Configure Betamax for the test suite.
 
         :param str cassette_name:
@@ -93,10 +98,12 @@ class BetamaxFixture(fixtures.Fixture):
         return self._serializer_name
 
     def setUp(self):
-        super(BetamaxFixture, self).setUp()
+        super().setUp()
         self.mockpatch = mock.patch.object(
-            session, '_construct_session',
-            partial(_construct_session_with_betamax, self))
+            session,
+            '_construct_session',
+            partial(_construct_session_with_betamax, self),
+        )
         self.mockpatch.start()
         # Unpatch during cleanup
         self.addCleanup(self.mockpatch.stop)
@@ -116,7 +123,8 @@ def _construct_session_with_betamax(fixture, session_obj=None):
     with betamax.Betamax.configure() as config:
         config.before_record(callback=fixture.pre_record_hook)
     fixture.recorder = betamax.Betamax(
-        session_obj, cassette_library_dir=fixture.cassette_library_dir)
+        session_obj, cassette_library_dir=fixture.cassette_library_dir
+    )
 
     record = 'none'
     serializer = None
@@ -126,10 +134,12 @@ def _construct_session_with_betamax(fixture, session_obj=None):
 
     serializer = fixture.serializer_name
 
-    fixture.recorder.use_cassette(fixture.cassette_name,
-                                  serialize_with=serializer,
-                                  record=record,
-                                  **fixture.use_cassette_kwargs)
+    fixture.recorder.use_cassette(
+        fixture.cassette_name,
+        serialize_with=serializer,
+        record=record,
+        **fixture.use_cassette_kwargs,
+    )
 
     fixture.recorder.start()
     fixture.addCleanup(fixture.recorder.stop)

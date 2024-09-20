@@ -20,24 +20,29 @@ from keystoneauth1.tests.unit.loading import utils
 
 
 class ConfLoadingTests(utils.TestCase):
-
     GROUP = 'adaptergroup'
 
     def setUp(self):
-        super(ConfLoadingTests, self).setUp()
+        super().setUp()
 
         self.conf_fx = self.useFixture(config.Config())
-        loading.register_adapter_conf_options(self.conf_fx.conf, self.GROUP,
-                                              include_deprecated=False)
+        loading.register_adapter_conf_options(
+            self.conf_fx.conf, self.GROUP, include_deprecated=False
+        )
 
     def test_load(self):
         self.conf_fx.config(
-            service_type='type', service_name='name',
+            service_type='type',
+            service_name='name',
             valid_interfaces='internal',
-            region_name='region', endpoint_override='endpoint',
-            version='2.0', group=self.GROUP)
+            region_name='region',
+            endpoint_override='endpoint',
+            version='2.0',
+            group=self.GROUP,
+        )
         adap = loading.load_adapter_from_conf_options(
-            self.conf_fx.conf, self.GROUP, session='session', auth='auth')
+            self.conf_fx.conf, self.GROUP, session='session', auth='auth'
+        )
         self.assertEqual('type', adap.service_type)
         self.assertEqual('name', adap.service_name)
         self.assertEqual(['internal'], adap.interface)
@@ -51,12 +56,17 @@ class ConfLoadingTests(utils.TestCase):
 
     def test_load_valid_interfaces_list(self):
         self.conf_fx.config(
-            service_type='type', service_name='name',
+            service_type='type',
+            service_name='name',
             valid_interfaces=['internal', 'public'],
-            region_name='region', endpoint_override='endpoint',
-            version='2.0', group=self.GROUP)
+            region_name='region',
+            endpoint_override='endpoint',
+            version='2.0',
+            group=self.GROUP,
+        )
         adap = loading.load_adapter_from_conf_options(
-            self.conf_fx.conf, self.GROUP, session='session', auth='auth')
+            self.conf_fx.conf, self.GROUP, session='session', auth='auth'
+        )
         self.assertEqual('type', adap.service_type)
         self.assertEqual('name', adap.service_name)
         self.assertEqual(['internal', 'public'], adap.interface)
@@ -70,12 +80,17 @@ class ConfLoadingTests(utils.TestCase):
 
     def test_load_valid_interfaces_comma_list(self):
         self.conf_fx.config(
-            service_type='type', service_name='name',
+            service_type='type',
+            service_name='name',
             valid_interfaces='internal,public',
-            region_name='region', endpoint_override='endpoint',
-            version='2.0', group=self.GROUP)
+            region_name='region',
+            endpoint_override='endpoint',
+            version='2.0',
+            group=self.GROUP,
+        )
         adap = loading.load_adapter_from_conf_options(
-            self.conf_fx.conf, self.GROUP, session='session', auth='auth')
+            self.conf_fx.conf, self.GROUP, session='session', auth='auth'
+        )
         self.assertEqual('type', adap.service_type)
         self.assertEqual('name', adap.service_name)
         self.assertEqual(['internal', 'public'], adap.interface)
@@ -89,23 +104,37 @@ class ConfLoadingTests(utils.TestCase):
 
     def test_load_bad_valid_interfaces_value(self):
         self.conf_fx.config(
-            service_type='type', service_name='name',
+            service_type='type',
+            service_name='name',
             valid_interfaces='bad',
-            region_name='region', endpoint_override='endpoint',
-            version='2.0', group=self.GROUP)
+            region_name='region',
+            endpoint_override='endpoint',
+            version='2.0',
+            group=self.GROUP,
+        )
         self.assertRaises(
             TypeError,
             loading.load_adapter_from_conf_options,
-            self.conf_fx.conf, self.GROUP, session='session', auth='auth')
+            self.conf_fx.conf,
+            self.GROUP,
+            session='session',
+            auth='auth',
+        )
 
     def test_load_version_range(self):
         self.conf_fx.config(
-            service_type='type', service_name='name',
+            service_type='type',
+            service_name='name',
             valid_interfaces='internal',
-            region_name='region', endpoint_override='endpoint',
-            min_version='2.0', max_version='3.0', group=self.GROUP)
+            region_name='region',
+            endpoint_override='endpoint',
+            min_version='2.0',
+            max_version='3.0',
+            group=self.GROUP,
+        )
         adap = loading.load_adapter_from_conf_options(
-            self.conf_fx.conf, self.GROUP, session='session', auth='auth')
+            self.conf_fx.conf, self.GROUP, session='session', auth='auth'
+        )
         self.assertEqual('type', adap.service_type)
         self.assertEqual('name', adap.service_name)
         self.assertEqual(['internal'], adap.interface)
@@ -119,49 +148,82 @@ class ConfLoadingTests(utils.TestCase):
 
     def test_version_mutex_min(self):
         self.conf_fx.config(
-            service_type='type', service_name='name',
+            service_type='type',
+            service_name='name',
             valid_interfaces='iface',
-            region_name='region', endpoint_override='endpoint',
-            version='2.0', min_version='2.0', group=self.GROUP)
+            region_name='region',
+            endpoint_override='endpoint',
+            version='2.0',
+            min_version='2.0',
+            group=self.GROUP,
+        )
 
         self.assertRaises(
             TypeError,
             loading.load_adapter_from_conf_options,
-            self.conf_fx.conf, self.GROUP, session='session', auth='auth')
+            self.conf_fx.conf,
+            self.GROUP,
+            session='session',
+            auth='auth',
+        )
 
     def test_version_mutex_max(self):
         self.conf_fx.config(
-            service_type='type', service_name='name',
+            service_type='type',
+            service_name='name',
             valid_interfaces='iface',
-            region_name='region', endpoint_override='endpoint',
-            version='2.0', max_version='3.0', group=self.GROUP)
+            region_name='region',
+            endpoint_override='endpoint',
+            version='2.0',
+            max_version='3.0',
+            group=self.GROUP,
+        )
 
         self.assertRaises(
             TypeError,
             loading.load_adapter_from_conf_options,
-            self.conf_fx.conf, self.GROUP, session='session', auth='auth')
+            self.conf_fx.conf,
+            self.GROUP,
+            session='session',
+            auth='auth',
+        )
 
     def test_version_mutex_minmax(self):
         self.conf_fx.config(
-            service_type='type', service_name='name',
+            service_type='type',
+            service_name='name',
             valid_interfaces='iface',
-            region_name='region', endpoint_override='endpoint',
-            version='2.0', min_version='2.0', max_version='3.0',
-            group=self.GROUP)
+            region_name='region',
+            endpoint_override='endpoint',
+            version='2.0',
+            min_version='2.0',
+            max_version='3.0',
+            group=self.GROUP,
+        )
 
         self.assertRaises(
             TypeError,
             loading.load_adapter_from_conf_options,
-            self.conf_fx.conf, self.GROUP, session='session', auth='auth')
+            self.conf_fx.conf,
+            self.GROUP,
+            session='session',
+            auth='auth',
+        )
 
     def test_load_retries(self):
         self.conf_fx.config(
-            service_type='type', service_name='name',
-            connect_retries=3, status_code_retries=5,
-            connect_retry_delay=0.5, status_code_retry_delay=2.0,
-            retriable_status_codes=[503], group=self.GROUP)
+            service_type='type',
+            service_name='name',
+            connect_retries=3,
+            status_code_retries=5,
+            connect_retry_delay=0.5,
+            status_code_retry_delay=2.0,
+            retriable_status_codes=[503],
+            group=self.GROUP,
+        )
         adap = loading.load_adapter_from_conf_options(
-            self.conf_fx.conf, self.GROUP, session='session', auth='auth')
+            self.conf_fx.conf, self.GROUP, session='session', auth='auth'
+        )
         self.assertEqual('type', adap.service_type)
         self.assertEqual('name', adap.service_name)
         self.assertEqual(3, adap.connect_retries)
@@ -183,13 +245,25 @@ class ConfLoadingTests(utils.TestCase):
                 self.assertIsInstance(opt, cfg.StrOpt)
             else:
                 self.assertIsInstance(opt, cfg.ListOpt)
-        self.assertEqual({'service-type', 'service-name',
-                          'interface', 'valid-interfaces',
-                          'region-name', 'endpoint-override', 'version',
-                          'min-version', 'max-version', 'connect-retries',
-                          'status-code-retries', 'connect-retry-delay',
-                          'status-code-retry-delay', 'retriable-status-codes'},
-                         {opt.name for opt in opts})
+        self.assertEqual(
+            {
+                'service-type',
+                'service-name',
+                'interface',
+                'valid-interfaces',
+                'region-name',
+                'endpoint-override',
+                'version',
+                'min-version',
+                'max-version',
+                'connect-retries',
+                'status-code-retries',
+                'connect-retry-delay',
+                'status-code-retry-delay',
+                'retriable-status-codes',
+            },
+            {opt.name for opt in opts},
+        )
 
     def test_get_conf_options_undeprecated(self):
         opts = loading.get_adapter_conf_options(include_deprecated=False)
@@ -204,12 +278,24 @@ class ConfLoadingTests(utils.TestCase):
                 self.assertIsInstance(opt, cfg.StrOpt)
             else:
                 self.assertIsInstance(opt, cfg.ListOpt)
-        self.assertEqual({'service-type', 'service-name', 'valid-interfaces',
-                          'region-name', 'endpoint-override', 'version',
-                          'min-version', 'max-version', 'connect-retries',
-                          'status-code-retries', 'connect-retry-delay',
-                          'status-code-retry-delay', 'retriable-status-codes'},
-                         {opt.name for opt in opts})
+        self.assertEqual(
+            {
+                'service-type',
+                'service-name',
+                'valid-interfaces',
+                'region-name',
+                'endpoint-override',
+                'version',
+                'min-version',
+                'max-version',
+                'connect-retries',
+                'status-code-retries',
+                'connect-retry-delay',
+                'status-code-retry-delay',
+                'retriable-status-codes',
+            },
+            {opt.name for opt in opts},
+        )
 
     def test_deprecated(self):
         """Test external options that are deprecated by Adapter options.
@@ -217,11 +303,12 @@ class ConfLoadingTests(utils.TestCase):
         Not to be confused with ConfLoadingDeprecatedTests, which tests conf
         options in Adapter which are themselves deprecated.
         """
+
         def new_deprecated():
             return cfg.DeprecatedOpt(uuid.uuid4().hex, group=uuid.uuid4().hex)
 
         opt_names = ['service-type', 'valid-interfaces', 'endpoint-override']
-        depr = dict([(n, [new_deprecated()]) for n in opt_names])
+        depr = {n: [new_deprecated()] for n in opt_names}
         opts = loading.get_adapter_conf_options(deprecated_opts=depr)
 
         for opt in opts:
@@ -239,19 +326,24 @@ class ConfLoadingLegacyTests(ConfLoadingTests):
     GROUP = 'adaptergroup'
 
     def setUp(self):
-        super(ConfLoadingLegacyTests, self).setUp()
+        super().setUp()
 
         self.conf_fx = self.useFixture(config.Config())
         loading.register_adapter_conf_options(self.conf_fx.conf, self.GROUP)
 
     def test_load_old_interface(self):
         self.conf_fx.config(
-            service_type='type', service_name='name',
+            service_type='type',
+            service_name='name',
             interface='internal',
-            region_name='region', endpoint_override='endpoint',
-            version='2.0', group=self.GROUP)
+            region_name='region',
+            endpoint_override='endpoint',
+            version='2.0',
+            group=self.GROUP,
+        )
         adap = loading.load_adapter_from_conf_options(
-            self.conf_fx.conf, self.GROUP, session='session', auth='auth')
+            self.conf_fx.conf, self.GROUP, session='session', auth='auth'
+        )
         self.assertEqual('type', adap.service_type)
         self.assertEqual('name', adap.service_name)
         self.assertEqual('internal', adap.interface)
@@ -265,12 +357,20 @@ class ConfLoadingLegacyTests(ConfLoadingTests):
 
     def test_interface_conflict(self):
         self.conf_fx.config(
-            service_type='type', service_name='name', interface='iface',
+            service_type='type',
+            service_name='name',
+            interface='iface',
             valid_interfaces='internal,public',
-            region_name='region', endpoint_override='endpoint',
-            group=self.GROUP)
+            region_name='region',
+            endpoint_override='endpoint',
+            group=self.GROUP,
+        )
 
         self.assertRaises(
             TypeError,
             loading.load_adapter_from_conf_options,
-            self.conf_fx.conf, self.GROUP, session='session', auth='auth')
+            self.conf_fx.conf,
+            self.GROUP,
+            session='session',
+            auth='auth',
+        )

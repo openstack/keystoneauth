@@ -81,7 +81,7 @@ latex_documents = [
         'Openstack Developers',
         'manual',
         True,
-    ),
+    )
 ]
 
 # Disable usage of xindy https://bugzilla.redhat.com/show_bug.cgi?id=1643664

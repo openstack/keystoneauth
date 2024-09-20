@@ -14,18 +14,21 @@
 from keystoneauth1.exceptions import auth_plugins
 
 __all__ = (
-    'InvalidDiscoveryEndpoint', 'InvalidOidcDiscoveryDocument',
-    'OidcAccessTokenEndpointNotFound', 'OidcAuthorizationEndpointNotFound',
-    'OidcGrantTypeMissmatch', 'OidcPluginNotSupported',
+    'InvalidDiscoveryEndpoint',
+    'InvalidOidcDiscoveryDocument',
+    'OidcAccessTokenEndpointNotFound',
+    'OidcAuthorizationEndpointNotFound',
+    'OidcGrantTypeMissmatch',
+    'OidcPluginNotSupported',
 )
 
 
 class InvalidDiscoveryEndpoint(auth_plugins.AuthPluginException):
-    message = "OpenID Connect Discovery Document endpoint not set."""
+    message = "OpenID Connect Discovery Document endpoint not set."
 
 
 class InvalidOidcDiscoveryDocument(auth_plugins.AuthPluginException):
-    message = "OpenID Connect Discovery Document is not valid JSON."""
+    message = "OpenID Connect Discovery Document is not valid JSON."
 
 
 class OidcAccessTokenEndpointNotFound(auth_plugins.AuthPluginException):
@@ -37,7 +40,8 @@ class OidcAuthorizationEndpointNotFound(auth_plugins.AuthPluginException):
 
 
 class OidcDeviceAuthorizationEndpointNotFound(
-        auth_plugins.AuthPluginException):
+    auth_plugins.AuthPluginException
+):
     message = "OpenID Connect device authorization endpoint not provided."
 
 

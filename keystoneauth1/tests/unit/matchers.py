@@ -16,7 +16,7 @@ from lxml import etree
 from testtools import matchers
 
 
-class XMLEquals(object):
+class XMLEquals:
     """Parses two XML documents from strings and compares the results."""
 
     def __init__(self, expected):
@@ -24,7 +24,7 @@ class XMLEquals(object):
 
     def __str__(self):
         """Return string representation of xml document info."""
-        return "%s(%r)" % (self.__class__.__name__, self.expected)
+        return f"{self.__class__.__name__}({self.expected!r})"
 
     def match(self, other):
         def xml_element_equals(expected_doc, observed_doc):
@@ -55,8 +55,9 @@ class XMLEquals(object):
             if len(expected_children) != len(observed_children):
                 return False
 
-            for expected_el, observed_el in zip(expected_children,
-                                                observed_children):
+            for expected_el, observed_el in zip(
+                expected_children, observed_children
+            ):
                 if not xml_element_equals(expected_el, observed_el):
                     return False
 
@@ -73,7 +74,6 @@ class XMLEquals(object):
 
 
 class XMLMismatch(matchers.Mismatch):
-
     def __init__(self, expected, other):
         self.expected = expected
         self.other = other
@@ -82,8 +82,8 @@ class XMLMismatch(matchers.Mismatch):
         def pretty_xml(xml):
             parser = etree.XMLParser(remove_blank_text=True)
             doc = etree.fromstring(xml.strip(), parser)
-            return (etree.tostring(doc, encoding='utf-8', pretty_print=True)
-                    .decode('utf-8'))
+            return etree.tostring(
+                doc, encoding='utf-8', pretty_print=True
+            ).decode('utf-8')
 
-        return 'expected =\n%s\nactual =\n%s' % (
-            pretty_xml(self.expected), pretty_xml(self.other))
+        return f'expected =\n{pretty_xml(self.expected)}\nactual =\n{pretty_xml(self.other)}'

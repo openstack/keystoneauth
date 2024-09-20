@@ -23,22 +23,25 @@ def template(f, **kwargs):
 
 def soap_response(**kwargs):
     kwargs.setdefault('provider', 'https://idp.testshib.org/idp/shibboleth')
-    kwargs.setdefault('consumer',
-                      'https://openstack4.local/Shibboleth.sso/SAML2/ECP')
+    kwargs.setdefault(
+        'consumer', 'https://openstack4.local/Shibboleth.sso/SAML2/ECP'
+    )
     kwargs.setdefault('issuer', 'https://openstack4.local/shibboleth')
     return template('soap_response.xml', **kwargs).encode('utf-8')
 
 
 def saml_assertion(**kwargs):
     kwargs.setdefault('issuer', 'https://idp.testshib.org/idp/shibboleth')
-    kwargs.setdefault('destination',
-                      'https://openstack4.local/Shibboleth.sso/SAML2/ECP')
+    kwargs.setdefault(
+        'destination', 'https://openstack4.local/Shibboleth.sso/SAML2/ECP'
+    )
     return template('saml_assertion.xml', **kwargs).encode('utf-8')
 
 
 def authn_request(**kwargs):
-    kwargs.setdefault('issuer',
-                      'https://openstack4.local/Shibboleth.sso/SAML2/ECP')
+    kwargs.setdefault(
+        'issuer', 'https://openstack4.local/Shibboleth.sso/SAML2/ECP'
+    )
     return template('authn_request.xml', **kwargs).encode('utf-8')
 
 
@@ -56,19 +59,13 @@ UNSCOPED_TOKEN = {
         "expires_at": "2014-06-09T10:48:59.643375Z",
         "user": {
             "OS-FEDERATION": {
-                "identity_provider": {
-                    "id": "testshib"
-                },
-                "protocol": {
-                    "id": "saml2"
-                },
-                "groups": [
-                    {"id": "1764fa5cf69a49a4918131de5ce4af9a"}
-                ]
+                "identity_provider": {"id": "testshib"},
+                "protocol": {"id": "saml2"},
+                "groups": [{"id": "1764fa5cf69a49a4918131de5ce4af9a"}],
             },
             "id": "testhib%20user",
-            "name": "testhib user"
-        }
+            "name": "testhib user",
+        },
     }
 }
 
@@ -78,26 +75,22 @@ PROJECTS = {
             "domain_id": "37ef61",
             "enabled": 'true',
             "id": "12d706",
-            "links": {
-                "self": "http://identity:35357/v3/projects/12d706"
-            },
-            "name": "a project name"
+            "links": {"self": "http://identity:35357/v3/projects/12d706"},
+            "name": "a project name",
         },
         {
             "domain_id": "37ef61",
             "enabled": 'true',
             "id": "9ca0eb",
-            "links": {
-                "self": "http://identity:35357/v3/projects/9ca0eb"
-            },
-            "name": "another project"
-        }
+            "links": {"self": "http://identity:35357/v3/projects/9ca0eb"},
+            "name": "another project",
+        },
     ],
     "links": {
         "self": "http://identity:35357/v3/OS-FEDERATION/projects",
         "previous": 'null',
-        "next": 'null'
-    }
+        "next": 'null',
+    },
 }
 
 DOMAINS = {
@@ -106,15 +99,13 @@ DOMAINS = {
             "description": "desc of domain",
             "enabled": 'true',
             "id": "37ef61",
-            "links": {
-                "self": "http://identity:35357/v3/domains/37ef61"
-            },
-            "name": "my domain"
+            "links": {"self": "http://identity:35357/v3/domains/37ef61"},
+            "name": "my domain",
         }
     ],
     "links": {
         "self": "http://identity:35357/v3/OS-FEDERATION/domains",
         "previous": 'null',
-        "next": 'null'
-    }
+        "next": 'null',
+    },
 }

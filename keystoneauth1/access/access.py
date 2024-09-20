@@ -25,10 +25,7 @@ from keystoneauth1.access import service_providers
 STALE_TOKEN_DURATION = 30
 
 
-__all__ = ('AccessInfo',
-           'AccessInfoV2',
-           'AccessInfoV3',
-           'create')
+__all__ = ('AccessInfo', 'AccessInfoV2', 'AccessInfoV3', 'create')
 
 
 def create(resp=None, body=None, auth_token=None):
@@ -47,7 +44,6 @@ def create(resp=None, body=None, auth_token=None):
 
 
 def _missingproperty(f):
-
     @functools.wraps(f)
     def inner(self):
         try:
@@ -58,7 +54,7 @@ def _missingproperty(f):
     return property(inner)
 
 
-class AccessInfo(object):
+class AccessInfo:
     """Encapsulates a raw authentication token from keystone.
 
     Provides helper methods for extracting useful values from that token.
@@ -77,7 +73,8 @@ class AccessInfo(object):
     def service_catalog(self):
         if not self._service_catalog:
             self._service_catalog = self._service_catalog_class.from_token(
-                self._data)
+                self._data
+            )
 
         return self._service_catalog
 
@@ -422,7 +419,7 @@ class AccessInfoV2(AccessInfo):
 
     @_missingproperty
     def auth_token(self):
-        set_token = super(AccessInfoV2, self).auth_token
+        set_token = super().auth_token
         return set_token or self._data['access']['token']['id']
 
     @property
@@ -775,7 +772,8 @@ class AccessInfoV3(AccessInfo):
     def service_providers(self):
         if not self._service_providers:
             self._service_providers = (
-                service_providers.ServiceProviders.from_token(self._data))
+                service_providers.ServiceProviders.from_token(self._data)
+            )
 
         return self._service_providers
 

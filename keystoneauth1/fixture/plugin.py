@@ -18,10 +18,7 @@ from keystoneauth1 import discover
 from keystoneauth1 import loading
 from keystoneauth1 import plugin
 
-__all__ = (
-    'LoadingFixture',
-    'TestPlugin',
-)
+__all__ = ('LoadingFixture', 'TestPlugin')
 
 
 DEFAULT_TEST_ENDPOINT = 'https://openstack.example.com/%(service_type)s'
@@ -62,12 +59,10 @@ class TestPlugin(plugin.BaseAuthPlugin):
 
     auth_type = 'test_plugin'
 
-    def __init__(self,
-                 token=None,
-                 endpoint=None,
-                 user_id=None,
-                 project_id=None):
-        super(TestPlugin, self).__init__()
+    def __init__(
+        self, token=None, endpoint=None, user_id=None, project_id=None
+    ):
+        super().__init__()
 
         self.token = token or uuid.uuid4().hex
         self.endpoint = endpoint or DEFAULT_TEST_ENDPOINT
@@ -98,9 +93,8 @@ class TestPlugin(plugin.BaseAuthPlugin):
 
 
 class _TestPluginLoader(loading.BaseLoader):
-
     def __init__(self, plugin):
-        super(_TestPluginLoader, self).__init__()
+        super().__init__()
         self._plugin = plugin
 
     def create_plugin(self, **kwargs):
@@ -129,12 +123,10 @@ class LoadingFixture(fixtures.Fixture):
 
     MOCK_POINT = 'keystoneauth1.loading.base.get_plugin_loader'
 
-    def __init__(self,
-                 token=None,
-                 endpoint=None,
-                 user_id=None,
-                 project_id=None):
-        super(LoadingFixture, self).__init__()
+    def __init__(
+        self, token=None, endpoint=None, user_id=None, project_id=None
+    ):
+        super().__init__()
 
         # these are created and saved here so that a test could use them
         self.token = token or uuid.uuid4().hex
@@ -143,16 +135,19 @@ class LoadingFixture(fixtures.Fixture):
         self.project_id = project_id or uuid.uuid4().hex
 
     def setUp(self):
-        super(LoadingFixture, self).setUp()
+        super().setUp()
 
-        self.useFixture(fixtures.MonkeyPatch(self.MOCK_POINT,
-                                             self.get_plugin_loader))
+        self.useFixture(
+            fixtures.MonkeyPatch(self.MOCK_POINT, self.get_plugin_loader)
+        )
 
     def create_plugin(self):
-        return TestPlugin(token=self.token,
-                          endpoint=self.endpoint,
-                          user_id=self.user_id,
-                          project_id=self.project_id)
+        return TestPlugin(
+            token=self.token,
+            endpoint=self.endpoint,
+            user_id=self.user_id,
+            project_id=self.project_id,
+        )
 
     def get_plugin_loader(self, auth_type):
         plugin = self.create_plugin()
@@ -171,6 +166,6 @@ class LoadingFixture(fixtures.Fixture):
         endpoint = _format_endpoint(self.endpoint, **kwargs)
 
         if path:
-            endpoint = "%s/%s" % (endpoint.rstrip('/'), path.lstrip('/'))
+            endpoint = "{}/{}".format(endpoint.rstrip('/'), path.lstrip('/'))
 
         return endpoint

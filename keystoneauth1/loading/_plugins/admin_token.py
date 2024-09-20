@@ -32,15 +32,21 @@ class AdminToken(loading.BaseLoader):
         return token_endpoint.Token
 
     def get_options(self):
-        options = super(AdminToken, self).get_options()
+        options = super().get_options()
 
-        options.extend([
-            loading.Opt('endpoint',
-                        deprecated=[loading.Opt('url')],
-                        help='The endpoint that will always be used'),
-            loading.Opt('token',
-                        secret=True,
-                        help='The token that will always be used'),
-        ])
+        options.extend(
+            [
+                loading.Opt(
+                    'endpoint',
+                    deprecated=[loading.Opt('url')],
+                    help='The endpoint that will always be used',
+                ),
+                loading.Opt(
+                    'token',
+                    secret=True,
+                    help='The token that will always be used',
+                ),
+            ]
+        )
 
         return options

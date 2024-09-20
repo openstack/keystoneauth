@@ -22,24 +22,24 @@ from keystoneauth1.tests.unit.loading import utils
 
 
 class ConfLoadingTests(utils.TestCase):
-
     GROUP = 'sessiongroup'
 
     def setUp(self):
-        super(ConfLoadingTests, self).setUp()
+        super().setUp()
 
         self.conf_fixture = self.useFixture(config.Config())
-        loading.register_session_conf_options(self.conf_fixture.conf,
-                                              self.GROUP)
+        loading.register_session_conf_options(
+            self.conf_fixture.conf, self.GROUP
+        )
 
     def config(self, **kwargs):
         kwargs['group'] = self.GROUP
         self.conf_fixture.config(**kwargs)
 
     def get_session(self, **kwargs):
-        return loading.load_session_from_conf_options(self.conf_fixture.conf,
-                                                      self.GROUP,
-                                                      **kwargs)
+        return loading.load_session_from_conf_options(
+            self.conf_fixture.conf, self.GROUP, **kwargs
+        )
 
     def test_insecure_timeout(self):
         self.config(insecure=True, timeout=5)
@@ -79,7 +79,7 @@ class ConfLoadingTests(utils.TestCase):
             'collect-timing',
             'split-loggers',
         ]
-        depr = dict([(n, [new_deprecated()]) for n in opt_names])
+        depr = {n: [new_deprecated()] for n in opt_names}
         opts = loading.get_session_conf_options(deprecated_opts=depr)
 
         self.assertThat(opt_names, matchers.HasLength(len(opts)))
@@ -88,9 +88,8 @@ class ConfLoadingTests(utils.TestCase):
 
 
 class CliLoadingTests(utils.TestCase):
-
     def setUp(self):
-        super(CliLoadingTests, self).setUp()
+        super().setUp()
 
         self.parser = argparse.ArgumentParser()
         loading.register_session_argparse_arguments(self.parser)
@@ -109,7 +108,7 @@ class CliLoadingTests(utils.TestCase):
         cert = '/path/to/certfile'
         key = '/path/to/keyfile'
 
-        s = self.get_session('--os-cert %s --os-key %s' % (cert, key))
+        s = self.get_session(f'--os-cert {cert} --os-key {key}')
 
         self.assertTrue(s.verify)
         self.assertEqual((cert, key), s.cert)
@@ -117,6 +116,6 @@ class CliLoadingTests(utils.TestCase):
     def test_cacert(self):
         cacert = '/path/to/cacert'
 
-        s = self.get_session('--os-cacert %s' % cacert)
+        s = self.get_session(f'--os-cacert {cacert}')
 
         self.assertEqual(cacert, s.verify)

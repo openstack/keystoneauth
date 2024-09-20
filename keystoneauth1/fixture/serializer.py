@@ -20,7 +20,7 @@ import yaml
 
 
 def _should_use_block(value):
-    for c in u"\u000a\u000d\u001c\u001d\u001e\u0085\u2028\u2029":
+    for c in "\u000a\u000d\u001c\u001d\u001e\u0085\u2028\u2029":
         if c in value:
             return True
     return False
@@ -40,7 +40,7 @@ def _represent_scalar(self, tag, value, style=None):
 
 
 def _unicode_representer(dumper, uni):
-    node = yaml.ScalarNode(tag=u'tag:yaml.org,2002:str', value=uni)
+    node = yaml.ScalarNode(tag='tag:yaml.org,2002:str', value=uni)
     return node
 
 
@@ -49,9 +49,12 @@ def _indent_json(val):
         return ''
 
     return json.dumps(
-        json.loads(val), indent=2,
-        separators=(',', ': '), sort_keys=False,
-        default=str)
+        json.loads(val),
+        indent=2,
+        separators=(',', ': '),
+        sort_keys=False,
+        default=str,
+    )
 
 
 def _is_json_body(interaction):
@@ -60,13 +63,11 @@ def _is_json_body(interaction):
 
 
 class YamlJsonSerializer(betamax.serializers.base.BaseSerializer):
-
     name = "yamljson"
 
     @staticmethod
     def generate_cassette_name(cassette_library_dir, cassette_name):
-        return os.path.join(
-            cassette_library_dir, "{name}.yaml".format(name=cassette_name))
+        return os.path.join(cassette_library_dir, f"{cassette_name}.yaml")
 
     def serialize(self, cassette_data):
         # Reserialize internal json with indentation
@@ -74,7 +75,8 @@ class YamlJsonSerializer(betamax.serializers.base.BaseSerializer):
             for key in ('request', 'response'):
                 if _is_json_body(interaction[key]):
                     interaction[key]['body']['string'] = _indent_json(
-                        interaction[key]['body']['string'])
+                        interaction[key]['body']['string']
+                    )
 
         class MyDumper(yaml.Dumper):
             """Specialized Dumper which does nice blocks and unicode."""
@@ -84,7 +86,8 @@ class YamlJsonSerializer(betamax.serializers.base.BaseSerializer):
         MyDumper.add_representer(str, _unicode_representer)
 
         return yaml.dump(
-            cassette_data, Dumper=MyDumper, default_flow_style=False)
+            cassette_data, Dumper=MyDumper, default_flow_style=False
+        )
 
     def deserialize(self, cassette_data):
         try:

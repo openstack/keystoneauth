@@ -20,28 +20,27 @@ from keystoneauth1.tests.unit.loading import utils
 
 
 class PasswordTests(utils.TestCase):
-
     def test_options(self):
         opts = [o.name for o in generic.Password().get_options()]
 
-        allowed_opts = ['username',
-                        'user-domain-id',
-                        'user-domain-name',
-                        'user-id',
-                        'password',
-
-                        'system-scope',
-                        'domain-id',
-                        'domain-name',
-                        'project-id',
-                        'project-name',
-                        'project-domain-id',
-                        'project-domain-name',
-                        'trust-id',
-                        'auth-url',
-                        'default-domain-id',
-                        'default-domain-name',
-                        ]
+        allowed_opts = [
+            'username',
+            'user-domain-id',
+            'user-domain-name',
+            'user-id',
+            'password',
+            'system-scope',
+            'domain-id',
+            'domain-name',
+            'project-id',
+            'project-name',
+            'project-domain-id',
+            'project-domain-name',
+            'trust-id',
+            'auth-url',
+            'default-domain-id',
+            'default-domain-name',
+        ]
 
         self.assertEqual(set(allowed_opts), set(opts))
         self.assertEqual(len(allowed_opts), len(opts))
@@ -57,7 +56,8 @@ class PasswordTests(utils.TestCase):
             user_id=uuid.uuid4().hex,
             password=uuid.uuid4().hex,
             project_id=uuid.uuid4().hex,
-            user_domain_id=uuid.uuid4().hex)
+            user_domain_id=uuid.uuid4().hex,
+        )
 
         inner_plugin = plugin._do_create_plugin(sess)
 
@@ -66,23 +66,23 @@ class PasswordTests(utils.TestCase):
 
 
 class TokenTests(utils.TestCase):
-
     def test_options(self):
         opts = [o.name for o in generic.Token().get_options()]
 
-        allowed_opts = ['token',
-                        'system-scope',
-                        'domain-id',
-                        'domain-name',
-                        'project-id',
-                        'project-name',
-                        'project-domain-id',
-                        'project-domain-name',
-                        'trust-id',
-                        'auth-url',
-                        'default-domain-id',
-                        'default-domain-name',
-                        ]
+        allowed_opts = [
+            'token',
+            'system-scope',
+            'domain-id',
+            'domain-name',
+            'project-id',
+            'project-name',
+            'project-domain-id',
+            'project-domain-name',
+            'trust-id',
+            'auth-url',
+            'default-domain-id',
+            'default-domain-name',
+        ]
 
         self.assertEqual(set(allowed_opts), set(opts))
         self.assertEqual(len(allowed_opts), len(opts))

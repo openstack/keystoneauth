@@ -13,18 +13,22 @@
 from keystoneauth1.loading import base
 from keystoneauth1.loading import opts
 
-_AUTH_TYPE_OPT = opts.Opt('auth_type',
-                          deprecated=[opts.Opt('auth_plugin')],
-                          help='Authentication type to load')
+_AUTH_TYPE_OPT = opts.Opt(
+    'auth_type',
+    deprecated=[opts.Opt('auth_plugin')],
+    help='Authentication type to load',
+)
 
 _section_help = 'Config Section from which to load plugin specific options'
 _AUTH_SECTION_OPT = opts.Opt('auth_section', help=_section_help)
 
 
-__all__ = ('get_common_conf_options',
-           'get_plugin_conf_options',
-           'register_conf_options',
-           'load_from_conf_options')
+__all__ = (
+    'get_common_conf_options',
+    'get_plugin_conf_options',
+    'register_conf_options',
+    'load_from_conf_options',
+)
 
 
 def get_common_conf_options():

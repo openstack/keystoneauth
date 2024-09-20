@@ -19,12 +19,11 @@ from keystoneauth1.tests.unit.extras.kerberos import base
 
 
 class TestMappedAuth(base.TestCase):
-
     def setUp(self):
         if kerberos.requests_kerberos is None:
             self.skipTest("Kerberos support isn't available.")
 
-        super(TestMappedAuth, self).setUp()
+        super().setUp()
 
         self.protocol = uuid.uuid4().hex
         self.identity_provider = uuid.uuid4().hex
@@ -32,18 +31,18 @@ class TestMappedAuth(base.TestCase):
     @property
     def token_url(self):
         fmt = '%s/OS-FEDERATION/identity_providers/%s/protocols/%s/auth'
-        return fmt % (
-            self.TEST_V3_URL,
-            self.identity_provider,
-            self.protocol)
+        return fmt % (self.TEST_V3_URL, self.identity_provider, self.protocol)
 
     def test_unscoped_mapped_auth(self):
         token_id, _ = self.kerberos_mock.mock_auth_success(
-            url=self.token_url, method='GET')
+            url=self.token_url, method='GET'
+        )
 
         plugin = kerberos.MappedKerberos(
-            auth_url=self.TEST_V3_URL, protocol=self.protocol,
-            identity_provider=self.identity_provider)
+            auth_url=self.TEST_V3_URL,
+            protocol=self.protocol,
+            identity_provider=self.identity_provider,
+        )
 
         sess = session.Session()
         tok = plugin.get_token(sess)
@@ -51,23 +50,27 @@ class TestMappedAuth(base.TestCase):
         self.assertEqual(token_id, tok)
 
     def test_project_scoped_mapped_auth(self):
-        self.kerberos_mock.mock_auth_success(url=self.token_url,
-                                             method='GET')
+        self.kerberos_mock.mock_auth_success(url=self.token_url, method='GET')
 
         scoped_id = uuid.uuid4().hex
         scoped_body = ks_fixture.V3Token()
         scoped_body.set_project_scope()
 
         self.requests_mock.post(
-            '%s/auth/tokens' % self.TEST_V3_URL,
+            f'{self.TEST_V3_URL}/auth/tokens',
             json=scoped_body,
-            headers={'X-Subject-Token': scoped_id,
-                     'Content-Type': 'application/json'})
+            headers={
+                'X-Subject-Token': scoped_id,
+                'Content-Type': 'application/json',
+            },
+        )
 
         plugin = kerberos.MappedKerberos(
-            auth_url=self.TEST_V3_URL, protocol=self.protocol,
+            auth_url=self.TEST_V3_URL,
+            protocol=self.protocol,
             identity_provider=self.identity_provider,
-            project_id=scoped_body.project_id)
+            project_id=scoped_body.project_id,
+        )
 
         sess = session.Session()
         tok = plugin.get_token(sess)
@@ -77,24 +80,28 @@ class TestMappedAuth(base.TestCase):
         self.assertEqual(scoped_body.project_id, proj)
 
     def test_authenticate_with_mutual_authentication_required(self):
-        self.kerberos_mock.mock_auth_success(url=self.token_url,
-                                             method='GET')
+        self.kerberos_mock.mock_auth_success(url=self.token_url, method='GET')
 
         scoped_id = uuid.uuid4().hex
         scoped_body = ks_fixture.V3Token()
         scoped_body.set_project_scope()
 
         self.requests_mock.post(
-            '%s/auth/tokens' % self.TEST_V3_URL,
+            f'{self.TEST_V3_URL}/auth/tokens',
             json=scoped_body,
-            headers={'X-Subject-Token': scoped_id,
-                     'Content-Type': 'application/json'})
+            headers={
+                'X-Subject-Token': scoped_id,
+                'Content-Type': 'application/json',
+            },
+        )
 
         plugin = kerberos.MappedKerberos(
-            auth_url=self.TEST_V3_URL, protocol=self.protocol,
+            auth_url=self.TEST_V3_URL,
+            protocol=self.protocol,
             identity_provider=self.identity_provider,
             project_id=scoped_body.project_id,
-            mutual_auth='required')
+            mutual_auth='required',
+        )
 
         sess = session.Session()
         tok = plugin.get_token(sess)
@@ -105,24 +112,28 @@ class TestMappedAuth(base.TestCase):
         self.assertEqual(self.kerberos_mock.called_auth_server, True)
 
     def test_authenticate_with_mutual_authentication_disabled(self):
-        self.kerberos_mock.mock_auth_success(url=self.token_url,
-                                             method='GET')
+        self.kerberos_mock.mock_auth_success(url=self.token_url, method='GET')
 
         scoped_id = uuid.uuid4().hex
         scoped_body = ks_fixture.V3Token()
         scoped_body.set_project_scope()
 
         self.requests_mock.post(
-            '%s/auth/tokens' % self.TEST_V3_URL,
+            f'{self.TEST_V3_URL}/auth/tokens',
             json=scoped_body,
-            headers={'X-Subject-Token': scoped_id,
-                     'Content-Type': 'application/json'})
+            headers={
+                'X-Subject-Token': scoped_id,
+                'Content-Type': 'application/json',
+            },
+        )
 
         plugin = kerberos.MappedKerberos(
-            auth_url=self.TEST_V3_URL, protocol=self.protocol,
+            auth_url=self.TEST_V3_URL,
+            protocol=self.protocol,
             identity_provider=self.identity_provider,
             project_id=scoped_body.project_id,
-            mutual_auth='disabled')
+            mutual_auth='disabled',
+        )
 
         sess = session.Session()
         tok = plugin.get_token(sess)

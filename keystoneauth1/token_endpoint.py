@@ -21,7 +21,7 @@ class Token(plugin.BaseAuthPlugin):
     """
 
     def __init__(self, endpoint, token):
-        super(Token, self).__init__()
+        super().__init__()
         # NOTE(jamielennox): endpoint is reserved for when plugins
         # can be used to provide that information
         self.endpoint = endpoint
@@ -30,9 +30,9 @@ class Token(plugin.BaseAuthPlugin):
     def get_token(self, session):
         return self.token
 
-    def get_endpoint_data(self, session,
-                          endpoint_override=None,
-                          discover_versions=True, **kwargs):
+    def get_endpoint_data(
+        self, session, endpoint_override=None, discover_versions=True, **kwargs
+    ):
         """Return a valid endpoint data for a the service.
 
         :param session: A session object that can be used for communication.
@@ -53,9 +53,12 @@ class Token(plugin.BaseAuthPlugin):
         :return: Valid EndpointData or None if not available.
         :rtype: `keystoneauth1.discover.EndpointData` or None
         """
-        return super(Token, self).get_endpoint_data(
-            session, endpoint_override=endpoint_override or self.endpoint,
-            discover_versions=discover_versions, **kwargs)
+        return super().get_endpoint_data(
+            session,
+            endpoint_override=endpoint_override or self.endpoint,
+            discover_versions=discover_versions,
+            **kwargs,
+        )
 
     def get_endpoint(self, session, **kwargs):
         """Return the supplied endpoint.

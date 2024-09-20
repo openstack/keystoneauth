@@ -51,4 +51,4 @@ class Token(base.AuthConstructor):
     _auth_method_class = TokenMethod
 
     def __init__(self, auth_url, token, **kwargs):
-        super(Token, self).__init__(auth_url, token=token, **kwargs)
+        super().__init__(auth_url, token=token, **kwargs)

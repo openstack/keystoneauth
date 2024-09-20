@@ -19,22 +19,19 @@ from keystoneauth1 import loading
 from keystoneauth1.tests.unit.loading import utils
 
 
-class PluginA(object):
-
+class PluginA:
     def __init__(self, a):
         self.val = a
 
 
-class PluginB(object):
-
+class PluginB:
     def __init__(self, b):
         self.val = b
 
 
 class TestSplitLoader(loading.BaseLoader):
-
     def get_options(self):
-        opts = super(TestSplitLoader, self).get_options()
+        opts = super().get_options()
         opts += [loading.Opt('a'), loading.Opt('b')]
         return opts
 
@@ -48,10 +45,11 @@ class TestSplitLoader(loading.BaseLoader):
 
 
 class LoadingTests(utils.TestCase):
-
     def test_required_values(self):
-        opts = [loading.Opt('a', required=False),
-                loading.Opt('b', required=True)]
+        opts = [
+            loading.Opt('a', required=False),
+            loading.Opt('b', required=True),
+        ]
 
         Plugin, Loader = utils.create_plugin(opts=opts)
 
@@ -61,9 +59,9 @@ class LoadingTests(utils.TestCase):
         p1 = lo.load_from_options(b=v)
         self.assertEqual(v, p1['b'])
 
-        e = self.assertRaises(exceptions.MissingRequiredOptions,
-                              lo.load_from_options,
-                              a=v)
+        e = self.assertRaises(
+            exceptions.MissingRequiredOptions, lo.load_from_options, a=v
+        )
 
         self.assertEqual(1, len(e.options))
 
@@ -80,13 +78,14 @@ class LoadingTests(utils.TestCase):
             self.assertIsInstance(loader, loading.BaseLoader)
 
     def test_loading_getter(self):
-
         called_opts = []
 
-        vals = {'a-int': 44,
-                'a-bool': False,
-                'a-float': 99.99,
-                'a-str': 'value'}
+        vals = {
+            'a-int': 44,
+            'a-bool': False,
+            'a-float': 99.99,
+            'a-str': 'value',
+        }
 
         val = uuid.uuid4().hex
 
@@ -109,20 +108,19 @@ class LoadingTests(utils.TestCase):
     def test_loading_getter_with_kwargs(self):
         called_opts = set()
 
-        vals = {'a-bool': False,
-                'a-float': 99.99}
+        vals = {'a-bool': False, 'a-float': 99.99}
 
         def _getter(opt):
             called_opts.add(opt.name)
             # return str because oslo.config should convert them back
             return str(vals[opt.name])
 
-        p = utils.MockLoader().load_from_options_getter(_getter,
-                                                        a_int=66,
-                                                        a_str='another')
+        p = utils.MockLoader().load_from_options_getter(
+            _getter, a_int=66, a_str='another'
+        )
 
         # only the options not passed by kwargs should get passed to getter
-        self.assertEqual(set(('a-bool', 'a-float')), called_opts)
+        self.assertEqual({'a-bool', 'a-float'}, called_opts)
 
         self.assertFalse(p['a_bool'])
         self.assertEqual(99.99, p['a_float'])

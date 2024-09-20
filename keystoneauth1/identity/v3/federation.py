@@ -35,13 +35,15 @@ class _Rescoped(base.BaseAuth, metaclass=abc.ABCMeta):
     rescoping_plugin = token.Token
 
     def _get_scoping_data(self):
-        return {'trust_id': self.trust_id,
-                'domain_id': self.domain_id,
-                'domain_name': self.domain_name,
-                'project_id': self.project_id,
-                'project_name': self.project_name,
-                'project_domain_id': self.project_domain_id,
-                'project_domain_name': self.project_domain_name}
+        return {
+            'trust_id': self.trust_id,
+            'domain_id': self.domain_id,
+            'domain_name': self.domain_name,
+            'project_id': self.project_id,
+            'project_name': self.project_name,
+            'project_domain_id': self.project_domain_id,
+            'project_domain_name': self.project_domain_name,
+        }
 
     def get_auth_ref(self, session, **kwargs):
         """Authenticate retrieve token information.
@@ -63,9 +65,9 @@ class _Rescoped(base.BaseAuth, metaclass=abc.ABCMeta):
         scoping = self._get_scoping_data()
 
         if any(scoping.values()):
-            token_plugin = self.rescoping_plugin(self.auth_url,
-                                                 token=auth_ref.auth_token,
-                                                 **scoping)
+            token_plugin = self.rescoping_plugin(
+                self.auth_url, token=auth_ref.auth_token, **scoping
+            )
 
             auth_ref = token_plugin.get_auth_ref(session)
 
@@ -93,7 +95,7 @@ class FederationBaseAuth(_Rescoped):
     """
 
     def __init__(self, auth_url, identity_provider, protocol, **kwargs):
-        super(FederationBaseAuth, self).__init__(auth_url=auth_url, **kwargs)
+        super().__init__(auth_url=auth_url, **kwargs)
         self.identity_provider = identity_provider
         self.protocol = protocol
 
@@ -106,10 +108,12 @@ class FederationBaseAuth(_Rescoped):
         values = {
             'host': host,
             'identity_provider': self.identity_provider,
-            'protocol': self.protocol
+            'protocol': self.protocol,
         }
-        url = ("%(host)s/OS-FEDERATION/identity_providers/"
-               "%(identity_provider)s/protocols/%(protocol)s/auth")
+        url = (
+            "%(host)s/OS-FEDERATION/identity_providers/"
+            "%(identity_provider)s/protocols/%(protocol)s/auth"
+        )
         url = url % values
 
         return url

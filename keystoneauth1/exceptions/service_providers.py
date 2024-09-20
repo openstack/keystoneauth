@@ -20,5 +20,5 @@ class ServiceProviderNotFound(base.ClientException):
 
     def __init__(self, sp_id):
         self.sp_id = sp_id
-        msg = 'The Service Provider %(sp)s could not be found' % {'sp': sp_id}
-        super(ServiceProviderNotFound, self).__init__(msg)
+        msg = f'The Service Provider {sp_id} could not be found'
+        super().__init__(msg)

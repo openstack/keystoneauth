@@ -21,4 +21,4 @@ class ClientException(Exception):
 
     def __init__(self, message=None):
         self.message = message or self.message
-        super(ClientException, self).__init__(self.message)
+        super().__init__(self.message)

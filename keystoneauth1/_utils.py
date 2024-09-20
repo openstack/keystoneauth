@@ -78,7 +78,7 @@ def before_utcnow(**timedelta_kwargs):
 
 # Detect if running on the Windows Subsystem for Linux
 try:
-    with open('/proc/version', 'r') as f:
+    with open('/proc/version') as f:
         is_windows_linux_subsystem = 'microsoft' in f.read().lower()
-except IOError:
+except OSError:
     is_windows_linux_subsystem = False

@@ -17,7 +17,6 @@ from keystoneauth1.tests.unit import utils
 
 
 class NoAuthTest(utils.TestCase):
-
     NOAUTH_TOKEN = 'notused'
     TEST_URL = 'http://server/prefix'
 

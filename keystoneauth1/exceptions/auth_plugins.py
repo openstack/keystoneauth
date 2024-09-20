@@ -13,12 +13,14 @@
 from keystoneauth1.exceptions import base
 
 
-__all__ = ('AuthPluginException',
-           'MissingAuthPlugin',
-           'NoMatchingPlugin',
-           'UnsupportedParameters',
-           'OptionError',
-           'MissingRequiredOptions')
+__all__ = (
+    'AuthPluginException',
+    'MissingAuthPlugin',
+    'NoMatchingPlugin',
+    'UnsupportedParameters',
+    'OptionError',
+    'MissingRequiredOptions',
+)
 
 
 class AuthPluginException(base.ClientException):
@@ -41,8 +43,8 @@ class NoMatchingPlugin(AuthPluginException):
 
     def __init__(self, name):
         self.name = name
-        msg = 'The plugin %s could not be found' % name
-        super(NoMatchingPlugin, self).__init__(msg)
+        msg = f'The plugin {name} could not be found'
+        super().__init__(msg)
 
 
 class UnsupportedParameters(AuthPluginException):
@@ -59,7 +61,7 @@ class UnsupportedParameters(AuthPluginException):
         self.names = names
 
         m = 'The following parameters were given that are unsupported: %s'
-        super(UnsupportedParameters, self).__init__(m % ', '.join(self.names))
+        super().__init__(m % ', '.join(self.names))
 
 
 class OptionError(AuthPluginException):
@@ -90,4 +92,4 @@ class MissingRequiredOptions(OptionError):
 
         names = ", ".join(o.dest for o in options)
         m = 'Auth plugin requires parameters which were not given: %s'
-        super(MissingRequiredOptions, self).__init__(m % names)
+        super().__init__(m % names)

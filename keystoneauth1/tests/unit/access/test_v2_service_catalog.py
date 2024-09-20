@@ -20,7 +20,7 @@ from keystoneauth1.tests.unit import utils
 
 class ServiceCatalogTest(utils.TestCase):
     def setUp(self):
-        super(ServiceCatalogTest, self).setUp()
+        super().setUp()
 
         self.AUTH_RESPONSE_BODY = fixture.V2Token(
             token_id='ab48a9efdfedb23ty3494',
@@ -29,18 +29,21 @@ class ServiceCatalogTest(utils.TestCase):
             tenant_name='My Project',
             user_id='123',
             user_name='jqsmith',
-            audit_chain_id=uuid.uuid4().hex)
+            audit_chain_id=uuid.uuid4().hex,
+        )
 
         self.AUTH_RESPONSE_BODY.add_role(id='234', name='compute:admin')
-        role = self.AUTH_RESPONSE_BODY.add_role(id='235',
-                                                name='object-store:admin')
+        role = self.AUTH_RESPONSE_BODY.add_role(
+            id='235', name='object-store:admin'
+        )
         role['tenantId'] = '1'
 
         s = self.AUTH_RESPONSE_BODY.add_service('compute', 'Cloud Servers')
         endpoint = s.add_endpoint(
             public='https://compute.north.host/v1/1234',
             internal='https://compute.north.host/v1/1234',
-            region='North')
+            region='North',
+        )
         endpoint['tenantId'] = '1'
         endpoint['versionId'] = '1.0'
         endpoint['versionInfo'] = 'https://compute.north.host/v1.0/'
@@ -49,16 +52,19 @@ class ServiceCatalogTest(utils.TestCase):
         endpoint = s.add_endpoint(
             public='https://compute.north.host/v1.1/3456',
             internal='https://compute.north.host/v1.1/3456',
-            region='North')
+            region='North',
+        )
         endpoint['tenantId'] = '2'
         endpoint['versionId'] = '1.1'
         endpoint['versionInfo'] = 'https://compute.north.host/v1.1/'
         endpoint['versionList'] = 'https://compute.north.host/'
 
         s = self.AUTH_RESPONSE_BODY.add_service('object-store', 'Cloud Files')
-        endpoint = s.add_endpoint(public='https://swift.north.host/v1/blah',
-                                  internal='https://swift.north.host/v1/blah',
-                                  region='South')
+        endpoint = s.add_endpoint(
+            public='https://swift.north.host/v1/blah',
+            internal='https://swift.north.host/v1/blah',
+            region='South',
+        )
         endpoint['tenantId'] = '11'
         endpoint['versionId'] = '1.0'
         endpoint['versionInfo'] = 'uri'
@@ -67,48 +73,62 @@ class ServiceCatalogTest(utils.TestCase):
         endpoint = s.add_endpoint(
             public='https://swift.north.host/v1.1/blah',
             internal='https://compute.north.host/v1.1/blah',
-            region='South')
+            region='South',
+        )
         endpoint['tenantId'] = '2'
         endpoint['versionId'] = '1.1'
         endpoint['versionInfo'] = 'https://swift.north.host/v1.1/'
         endpoint['versionList'] = 'https://swift.north.host/'
 
         s = self.AUTH_RESPONSE_BODY.add_service('image', 'Image Servers')
-        s.add_endpoint(public='https://image.north.host/v1/',
-                       internal='https://image-internal.north.host/v1/',
-                       region='North')
-        s.add_endpoint(public='https://image.south.host/v1/',
-                       internal='https://image-internal.south.host/v1/',
-                       region='South')
+        s.add_endpoint(
+            public='https://image.north.host/v1/',
+            internal='https://image-internal.north.host/v1/',
+            region='North',
+        )
+        s.add_endpoint(
+            public='https://image.south.host/v1/',
+            internal='https://image-internal.south.host/v1/',
+            region='South',
+        )
 
     def test_building_a_service_catalog(self):
         auth_ref = access.create(body=self.AUTH_RESPONSE_BODY)
         sc = auth_ref.service_catalog
 
-        self.assertEqual(sc.url_for(service_type='compute'),
-                         "https://compute.north.host/v1/1234")
-        self.assertRaises(exceptions.EndpointNotFound,
-                          sc.url_for,
-                          region_name="South",
-                          service_type='compute')
+        self.assertEqual(
+            sc.url_for(service_type='compute'),
+            "https://compute.north.host/v1/1234",
+        )
+        self.assertRaises(
+            exceptions.EndpointNotFound,
+            sc.url_for,
+            region_name="South",
+            service_type='compute',
+        )
 
     def test_service_catalog_endpoints(self):
         auth_ref = access.create(body=self.AUTH_RESPONSE_BODY)
         sc = auth_ref.service_catalog
-        public_ep = sc.get_endpoints(service_type='compute',
-                                     interface='publicURL')
+        public_ep = sc.get_endpoints(
+            service_type='compute', interface='publicURL'
+        )
         self.assertEqual(public_ep['compute'][1]['tenantId'], '2')
         self.assertEqual(public_ep['compute'][1]['versionId'], '1.1')
-        self.assertEqual(public_ep['compute'][1]['internalURL'],
-                         "https://compute.north.host/v1.1/3456")
+        self.assertEqual(
+            public_ep['compute'][1]['internalURL'],
+            "https://compute.north.host/v1.1/3456",
+        )
 
     def test_service_catalog_empty(self):
         self.AUTH_RESPONSE_BODY['access']['serviceCatalog'] = []
         auth_ref = access.create(body=self.AUTH_RESPONSE_BODY)
-        self.assertRaises(exceptions.EmptyCatalog,
-                          auth_ref.service_catalog.url_for,
-                          service_type='image',
-                          interface='internalURL')
+        self.assertRaises(
+            exceptions.EmptyCatalog,
+            auth_ref.service_catalog.url_for,
+            service_type='image',
+            interface='internalURL',
+        )
 
     def test_service_catalog_get_endpoints_region_names(self):
         auth_ref = access.create(body=self.AUTH_RESPONSE_BODY)
@@ -116,23 +136,27 @@ class ServiceCatalogTest(utils.TestCase):
 
         endpoints = sc.get_endpoints(service_type='image', region_name='North')
         self.assertEqual(len(endpoints), 1)
-        self.assertEqual(endpoints['image'][0]['publicURL'],
-                         'https://image.north.host/v1/')
+        self.assertEqual(
+            endpoints['image'][0]['publicURL'], 'https://image.north.host/v1/'
+        )
 
         endpoints = sc.get_endpoints(service_type='image', region_name='South')
         self.assertEqual(len(endpoints), 1)
-        self.assertEqual(endpoints['image'][0]['publicURL'],
-                         'https://image.south.host/v1/')
+        self.assertEqual(
+            endpoints['image'][0]['publicURL'], 'https://image.south.host/v1/'
+        )
 
         endpoints = sc.get_endpoints(service_type='compute')
         self.assertEqual(len(endpoints['compute']), 2)
 
-        endpoints = sc.get_endpoints(service_type='compute',
-                                     region_name='North')
+        endpoints = sc.get_endpoints(
+            service_type='compute', region_name='North'
+        )
         self.assertEqual(len(endpoints['compute']), 2)
 
-        endpoints = sc.get_endpoints(service_type='compute',
-                                     region_name='West')
+        endpoints = sc.get_endpoints(
+            service_type='compute', region_name='West'
+        )
         self.assertEqual(len(endpoints['compute']), 0)
 
     def test_service_catalog_url_for_region_names(self):
@@ -145,8 +169,12 @@ class ServiceCatalogTest(utils.TestCase):
         url = sc.url_for(service_type='image', region_name='South')
         self.assertEqual(url, 'https://image.south.host/v1/')
 
-        self.assertRaises(exceptions.EndpointNotFound, sc.url_for,
-                          service_type='image', region_name='West')
+        self.assertRaises(
+            exceptions.EndpointNotFound,
+            sc.url_for,
+            service_type='image',
+            region_name='West',
+        )
 
     def test_servcie_catalog_get_url_region_names(self):
         auth_ref = access.create(body=self.AUTH_RESPONSE_BODY)
@@ -170,21 +198,33 @@ class ServiceCatalogTest(utils.TestCase):
         auth_ref = access.create(body=self.AUTH_RESPONSE_BODY)
         sc = auth_ref.service_catalog
 
-        url = sc.url_for(service_name='Image Servers', interface='public',
-                         service_type='image', region_name='North')
+        url = sc.url_for(
+            service_name='Image Servers',
+            interface='public',
+            service_type='image',
+            region_name='North',
+        )
         self.assertEqual('https://image.north.host/v1/', url)
 
-        self.assertRaises(exceptions.EndpointNotFound, sc.url_for,
-                          service_name='Image Servers', service_type='compute')
+        self.assertRaises(
+            exceptions.EndpointNotFound,
+            sc.url_for,
+            service_name='Image Servers',
+            service_type='compute',
+        )
 
-        urls = sc.get_urls(service_type='image', service_name='Image Servers',
-                           interface='public')
+        urls = sc.get_urls(
+            service_type='image',
+            service_name='Image Servers',
+            interface='public',
+        )
 
         self.assertIn('https://image.north.host/v1/', urls)
         self.assertIn('https://image.south.host/v1/', urls)
 
-        urls = sc.get_urls(service_type='image', service_name='Servers',
-                           interface='public')
+        urls = sc.get_urls(
+            service_type='image', service_name='Servers', interface='public'
+        )
 
         self.assertEqual(0, len(urls))
 
@@ -194,23 +234,28 @@ class ServiceCatalogTest(utils.TestCase):
 
         for i in range(3):
             s = token.add_service('compute')
-            s.add_endpoint(public='public-%d' % i,
-                           admin='admin-%d' % i,
-                           internal='internal-%d' % i,
-                           region='region-%d' % i)
+            s.add_endpoint(
+                public='public-%d' % i,
+                admin='admin-%d' % i,
+                internal='internal-%d' % i,
+                region='region-%d' % i,
+            )
 
         auth_ref = access.create(body=token)
 
-        urls = auth_ref.service_catalog.get_urls(service_type='compute',
-                                                 interface='publicURL')
+        urls = auth_ref.service_catalog.get_urls(
+            service_type='compute', interface='publicURL'
+        )
 
-        self.assertEqual(set(['public-0', 'public-1', 'public-2']), set(urls))
+        self.assertEqual({'public-0', 'public-1', 'public-2'}, set(urls))
 
-        urls = auth_ref.service_catalog.get_urls(service_type='compute',
-                                                 interface='publicURL',
-                                                 region_name='region-1')
+        urls = auth_ref.service_catalog.get_urls(
+            service_type='compute',
+            interface='publicURL',
+            region_name='region-1',
+        )
 
-        self.assertEqual(('public-1', ), urls)
+        self.assertEqual(('public-1',), urls)
 
     def test_service_catalog_endpoint_id(self):
         token = fixture.V2Token()
@@ -228,23 +273,27 @@ class ServiceCatalogTest(utils.TestCase):
         urls = auth_ref.service_catalog.get_urls(interface='public')
         self.assertEqual(2, len(urls))
 
-        urls = auth_ref.service_catalog.get_urls(endpoint_id=endpoint_id,
-                                                 interface='public')
+        urls = auth_ref.service_catalog.get_urls(
+            endpoint_id=endpoint_id, interface='public'
+        )
 
-        self.assertEqual((public_url, ), urls)
+        self.assertEqual((public_url,), urls)
 
         # with bad endpoint_id nothing should be found
-        urls = auth_ref.service_catalog.get_urls(endpoint_id=uuid.uuid4().hex,
-                                                 interface='public')
+        urls = auth_ref.service_catalog.get_urls(
+            endpoint_id=uuid.uuid4().hex, interface='public'
+        )
 
         self.assertEqual(0, len(urls))
 
         # we ignore a service_id because v2 doesn't know what it is
-        urls = auth_ref.service_catalog.get_urls(endpoint_id=endpoint_id,
-                                                 service_id=uuid.uuid4().hex,
-                                                 interface='public')
+        urls = auth_ref.service_catalog.get_urls(
+            endpoint_id=endpoint_id,
+            service_id=uuid.uuid4().hex,
+            interface='public',
+        )
 
-        self.assertEqual((public_url, ), urls)
+        self.assertEqual((public_url,), urls)
 
     def test_service_catalog_without_service_type(self):
         token = fixture.V2Token()
@@ -260,8 +309,9 @@ class ServiceCatalogTest(utils.TestCase):
             s.add_endpoint(public=public_url)
 
         auth_ref = access.create(body=token)
-        urls = auth_ref.service_catalog.get_urls(service_type=None,
-                                                 interface='public')
+        urls = auth_ref.service_catalog.get_urls(
+            service_type=None, interface='public'
+        )
 
         self.assertEqual(3, len(urls))
 
