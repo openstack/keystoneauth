@@ -81,7 +81,7 @@ class YamlJsonSerializer(betamax.serializers.base.BaseSerializer):
         class MyDumper(yaml.Dumper):
             """Specialized Dumper which does nice blocks and unicode."""
 
-        yaml.representer.BaseRepresenter.represent_scalar = _represent_scalar
+        yaml.representer.BaseRepresenter.represent_scalar = _represent_scalar  # type: ignore[method-assign]
 
         MyDumper.add_representer(str, _unicode_representer)
 

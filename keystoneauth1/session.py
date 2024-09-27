@@ -244,6 +244,8 @@ class RequestTiming:
 
 class _Retries:
     __slots__ = ('_fixed_delay', '_current')
+    _fixed_delay: float
+    _current: float
 
     def __init__(self, fixed_delay=None):
         self._fixed_delay = fixed_delay
@@ -260,9 +262,6 @@ class _Retries:
             self._current = self._fixed_delay
         else:
             self._current = _EXPONENTIAL_DELAY_START
-
-    # Python 2 compatibility
-    next = __next__
 
 
 class Session:

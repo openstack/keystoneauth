@@ -16,6 +16,7 @@ import functools
 import hashlib
 import json
 import threading
+import typing as ty
 
 from keystoneauth1 import _utils as utils
 from keystoneauth1 import access
@@ -594,7 +595,9 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         """
         service_types = discover._SERVICE_TYPES
         catalog = self.get_access(session).service_catalog
-        version_data = {}
+        version_data: ty.Dict[
+            str, ty.Dict[str, ty.Dict[str, ty.List[discover.VersionData]]]
+        ] = {}
         endpoints_data = catalog.get_endpoints_data(
             interface=interface,
             region_name=region_name,

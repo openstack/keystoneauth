@@ -11,6 +11,7 @@
 # under the License.
 
 import copy
+import typing as ty
 
 from keystoneauth1.identity.v3 import base
 
@@ -44,7 +45,7 @@ class TOTPMethod(base.AuthMethod):
 
     # TODO(stephenfin): Deprecate and remove unused kwargs
     def get_auth_data(self, session, auth, headers, request_kwargs, **kwargs):
-        user = {'passcode': self.passcode}
+        user: ty.Dict[str, ty.Any] = {'passcode': self.passcode}
 
         if self.user_id:
             user['id'] = self.user_id

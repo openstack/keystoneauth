@@ -144,12 +144,6 @@ class TestResponse(requests.Response):
         """Define equiality behavior of request and response."""
         return self.__dict__ == other.__dict__
 
-    # NOTE: This function is only needed by Python 2. If we get to point where
-    # we don't support Python 2 anymore, this function should be removed.
-    def __ne__(self, other):
-        """Define inequiality behavior of request and response."""
-        return not self.__eq__(other)
-
     @property
     def text(self):
         return self.content

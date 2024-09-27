@@ -42,7 +42,7 @@ class Kerberos(loading.BaseV3Loader):
 
     def load_from_options(self, **kwargs):
         if kwargs.get('mutual_auth'):
-            value = kwargs.get('mutual_auth')
+            value = kwargs['mutual_auth']
             if not (value.lower() in ['required', 'optional', 'disabled']):
                 m = (
                     'You need to provide a valid value for kerberos mutual '
@@ -81,7 +81,7 @@ class MappedKerberos(loading.BaseFederationLoader):
 
     def load_from_options(self, **kwargs):
         if kwargs.get('mutual_auth'):
-            value = kwargs.get('mutual_auth')
+            value = kwargs['mutual_auth']
             if not (value.lower() in ['required', 'optional', 'disabled']):
                 m = (
                     'You need to provide a valid value for kerberos mutual '

@@ -95,7 +95,7 @@ def load_from_argparse_arguments(namespace, **kwargs):
     if not namespace.os_auth_type:
         return None
 
-    if isinstance(namespace.os_auth_type, type):
+    if isinstance(namespace.os_auth_type, base.BaseLoader):
         plugin = namespace.os_auth_type
     else:
         plugin = base.get_plugin_loader(namespace.os_auth_type)

@@ -18,6 +18,7 @@
 
 import abc
 import copy
+import typing as ty
 
 from keystoneauth1 import discover
 from keystoneauth1 import exceptions
@@ -28,6 +29,15 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
 
     def __init__(self, catalog):
         self._catalog = catalog
+
+    @classmethod
+    @abc.abstractmethod
+    def from_token(cls, token):
+        """Retrieve the service catalog from a token.
+
+        :param token:
+        :returns: A service catalog.
+        """
 
     def _get_endpoint_region(self, endpoint):
         return endpoint.get('region_id') or endpoint.get('region')
@@ -51,7 +61,7 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
         """
 
     @staticmethod
-    def normalize_interface(self, interface):
+    def normalize_interface(interface):
         """Handle differences in the way v2 and v3 catalogs specify endpoint.
 
         Both v2 and v3 must be able to handle the endpoint style of the other.
@@ -168,7 +178,7 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
         """
         interfaces = self._get_interface_list(interface)
 
-        matching_endpoints = {}
+        matching_endpoints: ty.Dict[str, ty.List[discover.EndpointData]] = {}
 
         for service in self.normalize_catalog():
             if service_type and not discover._SERVICE_TYPES.is_match(
@@ -214,15 +224,19 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
         if not interfaces:
             return self._endpoints_by_type(service_type, matching_endpoints)
 
-        ret = {}
+        ret: ty.Dict[str, ty.List[discover.EndpointData]] = {}
         for matched_service_type, endpoints in matching_endpoints.items():
             if not endpoints:
                 ret[matched_service_type] = []
                 continue
-            matches_by_interface = {}
+
+            matches_by_interface: ty.Dict[
+                str, ty.List[discover.EndpointData]
+            ] = {}
             for endpoint in endpoints:
                 matches_by_interface.setdefault(endpoint.interface, [])
                 matches_by_interface[endpoint.interface].append(endpoint)
+
             best_interface = [
                 i for i in interfaces if i in matches_by_interface.keys()
             ][0]

@@ -11,6 +11,7 @@
 # under the License.
 
 import os
+import typing as ty
 import warnings
 
 import requests
@@ -329,7 +330,7 @@ class Adapter:
         :returns: Endpoint data if available or None.
         :rtype: keystoneauth1.discover.EndpointData
         """
-        kwargs = {}
+        kwargs: ty.Dict[str, ty.Any] = {}
         self._set_endpoint_filter_kwargs(kwargs)
         if self.endpoint_override:
             kwargs['endpoint_override'] = self.endpoint_override

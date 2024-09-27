@@ -15,6 +15,7 @@
 # limitations under the License.
 
 import functools
+import typing as ty
 
 from keystoneauth1 import _utils as utils
 from keystoneauth1.access import service_catalog
@@ -61,7 +62,7 @@ class AccessInfo:
 
     """
 
-    _service_catalog_class = None
+    _service_catalog_class: ty.Type[service_catalog.ServiceCatalog]
 
     def __init__(self, body, auth_token=None):
         self._data = body

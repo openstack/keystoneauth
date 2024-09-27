@@ -44,7 +44,7 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
     ``http://openid.net/specs/openid-connect-core-1_0.html``
     """
 
-    grant_type = None
+    grant_type: str
 
     def __init__(
         self,
