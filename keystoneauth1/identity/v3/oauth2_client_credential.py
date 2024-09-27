@@ -34,7 +34,8 @@ class OAuth2ClientCredentialMethod(base.AuthMethod):
         'oauth2_client_secret',
     ]
 
-    def get_auth_data(self, session, auth, headers, **kwargs):
+    # TODO(stephenfin): Deprecate and remove unused kwargs
+    def get_auth_data(self, session, auth, headers, request_kwargs, **kwargs):
         """Return the authentication section of an auth plugin.
 
         :param session: The communication session.

@@ -73,6 +73,7 @@ class _Rescoped(base.BaseAuth, metaclass=abc.ABCMeta):
 
         return auth_ref
 
+    # TODO(stephenfin): Deprecate and remove unused kwargs
     @abc.abstractmethod
     def get_unscoped_auth_ref(self, session, **kwargs):
         """Fetch unscoped federated token."""

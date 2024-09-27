@@ -27,11 +27,16 @@ class Token(plugin.BaseAuthPlugin):
         self.endpoint = endpoint
         self.token = token
 
-    def get_token(self, session):
+    def get_token(self, session, **kwargs):
         return self.token
 
     def get_endpoint_data(
-        self, session, endpoint_override=None, discover_versions=True, **kwargs
+        self,
+        session,
+        *,
+        endpoint_override=None,
+        discover_versions=True,
+        **kwargs,
     ):
         """Return a valid endpoint data for a the service.
 

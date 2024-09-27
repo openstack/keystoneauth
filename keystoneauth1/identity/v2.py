@@ -45,6 +45,7 @@ class Auth(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
         self.tenant_id = tenant_id
         self.tenant_name = tenant_name
 
+    # TODO(stephenfin): Deprecate and remove unused kwargs
     def get_auth_ref(self, session, **kwargs):
         headers = {'Accept': 'application/json'}
         url = self.auth_url.rstrip('/') + '/tokens'

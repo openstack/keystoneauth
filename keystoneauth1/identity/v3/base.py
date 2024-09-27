@@ -269,8 +269,9 @@ class AuthMethod(metaclass=abc.ABCMeta):
         """Remove parameters related to this method from other kwargs."""
         return {p: kwargs.pop(p, None) for p in cls._method_parameters}
 
+    # TODO(stephenfin): Deprecate and remove unused kwargs
     @abc.abstractmethod
-    def get_auth_data(self, session, auth, headers, **kwargs):
+    def get_auth_data(self, session, auth, headers, request_kwargs, **kwargs):
         """Return the authentication section of an auth plugin.
 
         :param session: The communication session.

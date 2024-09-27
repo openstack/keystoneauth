@@ -64,6 +64,7 @@ class KerberosMethod(v3.AuthMethod):
         _dependency_check()
         super().__init__(*args, **kwargs)
 
+    # TODO(stephenfin): Deprecate and remove unused kwargs
     def get_auth_data(self, session, auth, headers, request_kwargs, **kwargs):
         # NOTE(jamielennox): request_kwargs is passed as a kwarg however it is
         # required and always present when called from keystoneclient.
@@ -89,6 +90,7 @@ class MappedKerberos(federation.FederationBaseAuth):
         self.mutual_auth = mutual_auth
         super().__init__(auth_url, identity_provider, protocol, **kwargs)
 
+    # TODO(stephenfin): Deprecate and remove unused kwargs
     def get_unscoped_auth_ref(self, session, **kwargs):
         resp = session.get(
             self.federated_token_url,

@@ -111,7 +111,12 @@ class BaseAuthPlugin:
         return {IDENTITY_AUTH_HEADER_NAME: token}
 
     def get_endpoint_data(
-        self, session, endpoint_override=None, discover_versions=True, **kwargs
+        self,
+        session,
+        *,
+        endpoint_override=None,
+        discover_versions=True,
+        **kwargs,
     ):
         """Return a valid endpoint data for a the service.
 
@@ -144,7 +149,9 @@ class BaseAuthPlugin:
             discover_versions=discover_versions,
         )
 
-    def get_api_major_version(self, session, endpoint_override=None, **kwargs):
+    def get_api_major_version(
+        self, session, *, endpoint_override=None, **kwargs
+    ):
         """Get the major API version from the endpoint.
 
         :param session: A session object that can be used for communication.
@@ -361,7 +368,12 @@ class FixedEndpointPlugin(BaseAuthPlugin):
         return kwargs.get('endpoint_override') or self.endpoint
 
     def get_endpoint_data(
-        self, session, endpoint_override=None, discover_versions=True, **kwargs
+        self,
+        session,
+        *,
+        endpoint_override=None,
+        discover_versions=True,
+        **kwargs,
     ):
         """Return a valid endpoint data for a the service.
 
