@@ -21,6 +21,7 @@ This includes functions like url_for which allow you to retrieve URLs and the
 raw data specified in version discovery responses.
 """
 
+import collections.abc
 import copy
 import re
 import typing as ty
@@ -203,14 +204,7 @@ def normalize_version_number(version):
     # Copy the input var so the error presents the original value
     ver = version
 
-    # If it's a non-string iterable, turn it into a string for subsequent
-    # processing.  This ensures at least 1 decimal point if e.g. [1] is given.
-    if not isinstance(ver, str):
-        try:
-            ver = '.'.join(map(_str_or_latest, ver))
-        except TypeError:
-            # Not an iterable
-            pass
+    # First, attempt to convert the value to a normalized string
 
     # If it's a numeric or an integer as a string then normalize it to a
     # float string. This ensures 1 decimal point.
@@ -219,39 +213,37 @@ def normalize_version_number(version):
     if isinstance(ver, str):
         # trim the v from a 'v2.0' or similar
         ver = ver.lstrip('v')
-        try:
-            # If version is a pure int, like '1' or '200' this will produce
-            # a stringified version with a .0 added. If it's any other number,
-            # such as '1.1' - int(version) raises an Exception
-            ver = str(float(int(ver)))
-        except ValueError:
-            pass
-
+        # If version is a pure int, like '1' or '200', then we've got a major
+        # version and need to append a minor version
+        if ver.isdigit():
+            ver = f'{ver}.0'
     # If it's an int or float, turn it into a float string
     elif isinstance(ver, (int, float)):
         ver = _str_or_latest(float(ver))
+    # If it's a non-string iterable, turn it into a string for subsequent
+    # processing.  This ensures at least 1 decimal point if e.g. [1] is given.
+    elif isinstance(ver, collections.abc.Iterable):
+        ver = '.'.join(map(_str_or_latest, ver))
+    # If it's anything else, error out early
+    else:
+        raise TypeError(f'Invalid version specified: {version}')
 
-    # At this point, we should either have a string that contains numbers with
+    # At this point, we have a string that should contains numbers with
     # at least one decimal point, or something decidedly else.
 
-    # if it's a string from above break it on .
-    try:
-        ver = ver.split('.')
-    except AttributeError:
-        # Not a string
-        pass
+    ver = tuple(ver.split('.'))
 
     # Handle special case variants of just 'latest'
-    if ver == 'latest' or tuple(ver) == ('latest',):
-        return LATEST, LATEST
+    if ver == ('latest',):
+        return (LATEST, LATEST)
 
-    # It's either an interable, or something else that makes us sad.
+    if len(ver) == 1:
+        ver += (0,)
+
     try:
         return tuple(map(_int_or_latest, ver))
     except (TypeError, ValueError):
-        pass
-
-    raise TypeError(f'Invalid version specified: {version}')
+        raise TypeError(f'Invalid version specified: {version}')
 
 
 def _normalize_version_args(

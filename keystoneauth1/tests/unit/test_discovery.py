@@ -288,6 +288,8 @@ class DiscoverUtils(utils.TestCase):
         versionRaises('vacuum')
         versionRaises('')
         versionRaises(('1', 'a'))
+        versionRaises([])
+        versionRaises([None])
 
     def test_version_args(self):
         """Validate _normalize_version_args."""
