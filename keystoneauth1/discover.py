@@ -591,7 +591,14 @@ class Discover:
 
         return versions
 
-    def version_data(self, reverse=False, **kwargs):
+    def version_data(
+        self,
+        reverse=False,
+        *,
+        allow_experimental=False,
+        allow_deprecated=True,
+        allow_unknown=False,
+    ):
         """Get normalized version data.
 
         Return version data in a structured way.
@@ -602,7 +609,11 @@ class Discover:
         :returns: A list of :class:`VersionData` sorted by version number.
         :rtype: list(VersionData)
         """
-        data = self.raw_version_data(**kwargs)
+        data = self.raw_version_data(
+            allow_experimental=allow_experimental,
+            allow_deprecated=allow_deprecated,
+            allow_unknown=allow_unknown,
+        )
         versions = []
 
         for v in data:
@@ -679,7 +690,14 @@ class Discover:
         versions.sort(key=lambda v: v['version'], reverse=reverse)
         return versions
 
-    def version_string_data(self, reverse=False, **kwargs):
+    def version_string_data(
+        self,
+        reverse=False,
+        *,
+        allow_experimental=False,
+        allow_deprecated=True,
+        allow_unknown=False,
+    ):
         """Get normalized version data with versions as strings.
 
         Return version data in a structured way.
@@ -690,14 +708,26 @@ class Discover:
         :returns: A list of :class:`VersionData` sorted by version number.
         :rtype: list(VersionData)
         """
-        version_data = self.version_data(reverse=reverse, **kwargs)
+        version_data = self.version_data(
+            reverse=reverse,
+            allow_experimental=allow_experimental,
+            allow_deprecated=allow_deprecated,
+            allow_unknown=allow_unknown,
+        )
         for version in version_data:
             for key in ('version', 'min_microversion', 'max_microversion'):
                 if version[key]:
                     version[key] = version_to_string(version[key])
         return version_data
 
-    def data_for(self, version, **kwargs):
+    def data_for(
+        self,
+        version,
+        *,
+        allow_experimental=False,
+        allow_deprecated=True,
+        allow_unknown=False,
+    ):
         """Return endpoint data for a version.
 
         NOTE: This method raises a TypeError if version is None. It is
@@ -715,7 +745,12 @@ class Discover:
         """
         version = normalize_version_number(version)
 
-        for data in self.version_data(reverse=True, **kwargs):
+        for data in self.version_data(
+            reverse=True,
+            allow_experimental=allow_experimental,
+            allow_deprecated=allow_deprecated,
+            allow_unknown=allow_unknown,
+        ):
             # Since the data is reversed, the latest version is first.  If
             # latest was requested, return it.
             if _latest_soft_match(version, data['version']):
@@ -725,7 +760,14 @@ class Discover:
 
         return None
 
-    def url_for(self, version, **kwargs):
+    def url_for(
+        self,
+        version,
+        *,
+        allow_experimental=False,
+        allow_deprecated=True,
+        allow_unknown=False,
+    ):
         """Get the endpoint url for a version.
 
         NOTE: This method raises a TypeError if version is None. It is
@@ -739,11 +781,23 @@ class Discover:
         :returns: The url for the specified version or None if no match.
         :rtype: str
         """
-        data = self.data_for(version, **kwargs)
+        data = self.data_for(
+            version,
+            allow_experimental=allow_experimental,
+            allow_deprecated=allow_deprecated,
+            allow_unknown=allow_unknown,
+        )
         return data['url'] if data else None
 
     def versioned_data_for(
-        self, url=None, min_version=None, max_version=None, **kwargs
+        self,
+        url=None,
+        min_version=None,
+        max_version=None,
+        *,
+        allow_experimental=False,
+        allow_deprecated=True,
+        allow_unknown=False,
     ):
         """Return endpoint data for the service at a url.
 
@@ -770,7 +824,12 @@ class Discover:
         )
         no_version = not max_version and not min_version
 
-        version_data = self.version_data(reverse=True, **kwargs)
+        version_data = self.version_data(
+            reverse=True,
+            allow_experimental=allow_experimental,
+            allow_deprecated=allow_deprecated,
+            allow_unknown=allow_unknown,
+        )
 
         # If we don't have to check a min_version, we can short
         # circuit anything else
@@ -814,7 +873,15 @@ class Discover:
         # We couldn't find a match.
         return None
 
-    def versioned_url_for(self, min_version=None, max_version=None, **kwargs):
+    def versioned_url_for(
+        self,
+        min_version=None,
+        max_version=None,
+        *,
+        allow_experimental=False,
+        allow_deprecated=True,
+        allow_unknown=False,
+    ):
         """Get the endpoint url for a version.
 
         min_version and max_version can be given either as strings or tuples.
@@ -830,7 +897,11 @@ class Discover:
         :rtype: str
         """
         data = self.versioned_data_for(
-            min_version=min_version, max_version=max_version, **kwargs
+            min_version=min_version,
+            max_version=max_version,
+            allow_experimental=allow_experimental,
+            allow_deprecated=allow_deprecated,
+            allow_unknown=allow_unknown,
         )
         return data['url'] if data else None
 
