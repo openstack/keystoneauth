@@ -37,6 +37,14 @@ class ApplicationCredentialMethod(base.AuthMethod):
                                     provided.
     """
 
+    application_credential_secret: str
+    application_credential_id: str
+    application_credential_name: str
+    user_id: str
+    username: str
+    user_domain_id: str
+    user_domain_name: str
+
     _method_parameters = [
         'application_credential_secret',
         'application_credential_id',

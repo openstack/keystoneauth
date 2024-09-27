@@ -28,6 +28,12 @@ class TOTPMethod(base.AuthMethod):
     :param string user_domain_name: User's domain name for authentication.
     """
 
+    user_id: str
+    username: str
+    user_domain_id: str
+    user_domain_name: str
+    passcode: str
+
     _method_parameters = [
         'user_id',
         'username',

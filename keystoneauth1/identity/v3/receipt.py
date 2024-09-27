@@ -22,6 +22,8 @@ class ReceiptMethod(base.AuthMethod):
     :param string receipt: Receipt for authentication.
     """
 
+    receipt: str
+
     _method_parameters = ['receipt']
 
     # TODO(stephenfin): Deprecate and remove unused kwargs

@@ -44,6 +44,11 @@ class OAuth1Method(v3.AuthMethod):
     :param string access_secret: Access token secret.
     """
 
+    consumer_key: str
+    consumer_secret: str
+    access_key: str
+    access_secret: str
+
     _method_parameters = [
         'consumer_key',
         'consumer_secret',
