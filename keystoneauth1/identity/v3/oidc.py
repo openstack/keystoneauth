@@ -94,8 +94,8 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
         :type access_token_endpoint: string
 
         :param discovery_endpoint: OpenID Connect Discovery Document URL,
-                                   for example:
-                  https://localhost:8020/oidc/.well-known/openid-configuration
+            for example:
+            https://localhost:8020/oidc/.well-known/openid-configuration
         :type access_token_endpoint: string
 
         :param scope: OpenID Connect scope that is requested from OP,
@@ -208,9 +208,14 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
         :type session: keystoneauth1.session.Session
 
         :param payload: a dict containing various OpenID Connect values, for
-                        example::
-                          {'grant_type': 'password', 'username': self.username,
-                           'password': self.password, 'scope': self.scope}
+            example::
+
+                {
+                    'grant_type': 'password',
+                    'username': self.username,
+                    'password': self.password,
+                    'scope': self.scope,
+                }
         :type payload: dict
         """
         if self.client_secret:
@@ -767,9 +772,12 @@ class OidcDeviceAuthorization(_OidcBase):
         :type session: keystoneauth1.session.Session
 
         :param payload: a dict containing various OpenID Connect values,
-                for example::
-                {'grant_type': 'urn:ietf:params:oauth:grant-type:device_code',
-                 'device_code': self.device_code}
+            for example::
+
+                {
+                    'grant_type': 'urn:ietf:params:oauth:grant-type:device_code',
+                    'device_code': self.device_code,
+                }
         :type payload: dict
         """
         _logger.warning(
