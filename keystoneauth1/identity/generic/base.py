@@ -100,31 +100,6 @@ class BaseGenericPlugin(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
         )
 
     @property
-    def _v2_params(self):
-        """Return the parameters that are common to v2 plugins."""
-        return {
-            'trust_id': self._trust_id,
-            'tenant_id': self._project_id,
-            'tenant_name': self._project_name,
-            'reauthenticate': self.reauthenticate,
-        }
-
-    @property
-    def _v3_params(self):
-        """Return the parameters that are common to v3 plugins."""
-        return {
-            'trust_id': self._trust_id,
-            'system_scope': self._system_scope,
-            'project_id': self._project_id,
-            'project_name': self._project_name,
-            'project_domain_id': self.project_domain_id,
-            'project_domain_name': self.project_domain_name,
-            'domain_id': self._domain_id,
-            'domain_name': self._domain_name,
-            'reauthenticate': self.reauthenticate,
-        }
-
-    @property
     def project_domain_id(self):
         return self._project_domain_id or self._default_domain_id
 

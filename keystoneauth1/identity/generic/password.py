@@ -55,7 +55,10 @@ class Password(base.BaseGenericPlugin):
                 user_id=self._user_id,
                 username=self._username,
                 password=self._password,
-                **self._v2_params,
+                trust_id=self._trust_id,
+                tenant_id=self._project_id,
+                tenant_name=self._project_name,
+                reauthenticate=self.reauthenticate,
             )
 
         elif discover.version_match((3,), version):
@@ -69,7 +72,15 @@ class Password(base.BaseGenericPlugin):
                 user_domain_id=u_domain_id,
                 user_domain_name=u_domain_name,
                 password=self._password,
-                **self._v3_params,
+                trust_id=self._trust_id,
+                system_scope=self._system_scope,
+                project_id=self._project_id,
+                project_name=self._project_name,
+                project_domain_id=self.project_domain_id,
+                project_domain_name=self.project_domain_name,
+                domain_id=self._domain_id,
+                domain_name=self._domain_name,
+                reauthenticate=self.reauthenticate,
             )
 
     @property
