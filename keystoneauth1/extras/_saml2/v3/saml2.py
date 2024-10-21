@@ -143,7 +143,7 @@ class _SamlAuth(requests.auth.AuthBase):
             request.headers['Accept'] = ','.join([accept, _PAOS_HEADER])
 
         request.headers['PAOS'] = _PAOS_VER
-        request.register_hook('response', self._handle_response)
+        request.register_hook('response', self._handle_response)  # type: ignore[no-untyped-call]
         return request
 
     def _handle_response(

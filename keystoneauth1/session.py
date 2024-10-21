@@ -1689,4 +1689,4 @@ class TCPKeepAliveAdapter(requests.adapters.HTTPAdapter):
             # hands for no longer than 2 minutes before a ConnectionError is
             # raised.
             kwargs['socket_options'] = socket_options
-        super().init_poolmanager(*args, **kwargs)
+        super().init_poolmanager(*args, **kwargs)  # type: ignore[no-untyped-call]
