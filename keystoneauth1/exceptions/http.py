@@ -442,15 +442,15 @@ def from_response(
     """
     req_id = response.headers.get("x-openstack-request-id")
 
-    kwargs = {
-        "http_status": response.status_code,
-        "response": response,
-        "method": method,
-        "url": url,
-        "request_id": req_id,
-    }
+    message = None
+    details = None
+
+    retry_after = 0
     if "retry-after" in response.headers:
-        kwargs["retry_after"] = response.headers["retry-after"]
+        try:
+            retry_after = int(response.headers["retry-after"])
+        except ValueError:
+            pass
 
     content_type = response.headers.get("Content-Type", "")
     if content_type.startswith("application/json"):
@@ -460,9 +460,8 @@ def from_response(
             pass
         else:
             if isinstance(body, dict) and isinstance(body.get("error"), dict):
-                error = body["error"]
-                kwargs["message"] = error.get("message")
-                kwargs["details"] = error.get("details")
+                message = body["error"].get("message")
+                details = body["error"].get("details")
             elif isinstance(body, dict) and isinstance(
                 body.get("errors"), list
             ):
@@ -473,8 +472,8 @@ def from_response(
                 errors = body["errors"]
                 if len(errors) == 0:
                     # just in case we get an empty array
-                    kwargs["message"] = None
-                    kwargs["details"] = None
+                    message = None
+                    details = None
                 else:
                     if len(errors) > 1:
                         # if there is more than one error, let the user know
@@ -485,15 +484,12 @@ def from_response(
                     else:
                         msg_hdr = ""
 
-                    kwargs["message"] = "{}{}".format(
-                        msg_hdr, errors[0].get("title")
-                    )
-                    kwargs["details"] = errors[0].get("detail")
+                    message = "{}{}".format(msg_hdr, errors[0].get("title"))
+                    details = errors[0].get("detail")
             else:
-                kwargs["message"] = "Unrecognized schema in response body."
-
+                message = "Unrecognized schema in response body."
     elif content_type.startswith("text/"):
-        kwargs["details"] = response.text
+        details = response.text
 
     # we check explicity for 401 in case of auth receipts
     if (
@@ -511,4 +507,14 @@ def from_response(
             cls = HTTPClientError
         else:
             cls = HttpError
-    return cls(**kwargs)  # type: ignore
+
+    return cls(
+        http_status=response.status_code,
+        response=response,
+        method=method,
+        url=url,
+        request_id=req_id,
+        retry_after=retry_after,
+        message=message,
+        details=details,
+    )
