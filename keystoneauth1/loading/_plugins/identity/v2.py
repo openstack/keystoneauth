@@ -18,6 +18,14 @@ from keystoneauth1.loading import opts
 
 
 class Token(loading.BaseV2Loader[identity.V2Token]):
+    """Given an existing token rescope it to another target.
+
+    Use the Identity service's rescope mechanism to get a new token based upon
+    an existing token. Because an auth plugin requires a service catalog and
+    scope information it is often easier to fetch a new token based on an
+    existing one than validate and reuse the one you already have.
+    """
+
     @property
     def plugin_class(self) -> ty.Type[identity.V2Token]:
         return identity.V2Token
@@ -31,6 +39,12 @@ class Token(loading.BaseV2Loader[identity.V2Token]):
 
 
 class Password(loading.BaseV2Loader[identity.V2Password]):
+    """Authenticate with a username and password.
+
+    Authenticate to the identity service using the provided username and
+    password. This is the standard and most common form of authentication.
+    """
+
     @property
     def plugin_class(self) -> ty.Type[identity.V2Password]:
         return identity.V2Password

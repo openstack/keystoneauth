@@ -18,7 +18,7 @@ from keystoneauth1 import token_endpoint
 
 
 class AdminToken(loading.BaseLoader[token_endpoint.Token]):
-    """Use an existing token and a known endpoint to perform requests.
+    """Authenticate with an existing token and a known endpoint.
 
     This plugin is primarily useful for development or for use with identity
     service ADMIN tokens. Because this token is used directly there is no

@@ -22,13 +22,13 @@ from keystoneauth1.loading import opts
 def _add_common_identity_options(options: ty.List[opts.Opt]) -> None:
     options.extend(
         [
-            loading.Opt('user-id', help='User ID'),
+            loading.Opt('user-id', help="User's user ID"),
             loading.Opt(
                 'username',
-                help='Username',
+                help="User's username",
                 deprecated=[loading.Opt('user-name')],
             ),
-            loading.Opt('user-domain-id', help="User's domain id"),
+            loading.Opt('user-domain-id', help="User's domain ID"),
             loading.Opt('user-domain-name', help="User's domain name"),
         ]
     )
@@ -47,6 +47,12 @@ def _assert_identity_options(options: ty.Dict[str, ty.Any]) -> None:
 
 
 class Password(loading.BaseV3Loader[identity.V3Password]):
+    """Authenticate with a username and password.
+
+    Authenticate to the identity service using the provided username and
+    password. This is the standard and most common form of authentication.
+    """
+
     @property
     def plugin_class(self) -> ty.Type[identity.V3Password]:
         return identity.V3Password
@@ -75,6 +81,14 @@ class Password(loading.BaseV3Loader[identity.V3Password]):
 
 
 class Token(loading.BaseV3Loader[identity.V3Token]):
+    """Given an existing token rescope it to another target.
+
+    Use the Identity service's rescope mechanism to get a new token based upon
+    an existing token. Because an auth plugin requires a service catalog and
+    scope information it is often easier to fetch a new token based on an
+    existing one than validate and reuse the one you already have.
+    """
+
     @property
     def plugin_class(self) -> ty.Type[identity.V3Token]:
         return identity.V3Token
@@ -160,6 +174,8 @@ class _OpenIDConnectBase(loading.BaseFederationLoader[oidc._OidcBaseT]):
 class OpenIDConnectClientCredentials(
     _OpenIDConnectBase[identity.V3OidcClientCredentials]
 ):
+    """Authenticate with the OIDC Client Credentials flow."""
+
     @property
     def plugin_class(self) -> ty.Type[identity.V3OidcClientCredentials]:
         return identity.V3OidcClientCredentials
@@ -171,6 +187,8 @@ class OpenIDConnectClientCredentials(
 
 
 class OpenIDConnectPassword(_OpenIDConnectBase[identity.V3OidcPassword]):
+    """Authenticate with the OIDC Resource Owner Password Credentials flow."""
+
     @property
     def plugin_class(self) -> ty.Type[identity.V3OidcPassword]:
         return identity.V3OidcPassword
@@ -199,6 +217,8 @@ class OpenIDConnectPassword(_OpenIDConnectBase[identity.V3OidcPassword]):
 class OpenIDConnectAuthorizationCode(
     _OpenIDConnectBase[identity.V3OidcAuthorizationCode]
 ):
+    """Authenticate with the OIDC Authorization Code flow."""
+
     @property
     def plugin_class(self) -> ty.Type[identity.V3OidcAuthorizationCode]:
         return identity.V3OidcAuthorizationCode
@@ -227,6 +247,8 @@ class OpenIDConnectAuthorizationCode(
 class OpenIDConnectAccessToken(
     loading.BaseFederationLoader[identity.V3OidcAccessToken]
 ):
+    """Authenticate with the OIDC Access Token flow."""
+
     @property
     def plugin_class(self) -> ty.Type[identity.V3OidcAccessToken]:
         return identity.V3OidcAccessToken
@@ -250,6 +272,8 @@ class OpenIDConnectAccessToken(
 class OpenIDConnectDeviceAuthorization(
     _OpenIDConnectBase[identity.V3OidcDeviceAuthorization]
 ):
+    """Authenticate with the OAuth 2.0 Device Authorization flow."""
+
     @property
     def plugin_class(self) -> ty.Type[identity.V3OidcDeviceAuthorization]:
         return identity.V3OidcDeviceAuthorization
@@ -280,6 +304,13 @@ class OpenIDConnectDeviceAuthorization(
 
 
 class TOTP(loading.BaseV3Loader[identity.V3TOTP]):
+    """Authenticate with a Time-based One-Time Password.
+
+    Authenticate to the identity service using a time-based one-time password.
+    This is typically used in combination with another plugin as part of a
+    multi-factor configuration.
+    """
+
     @property
     def plugin_class(self) -> ty.Type[identity.V3TOTP]:
         return identity.V3TOTP
@@ -308,6 +339,8 @@ class TOTP(loading.BaseV3Loader[identity.V3TOTP]):
 
 
 class TokenlessAuth(loading.BaseLoader[identity.V3TokenlessAuth]):
+    """Authenticate without a token, using an X.509 certificate."""
+
     @property
     def plugin_class(self) -> ty.Type[identity.V3TokenlessAuth]:
         return identity.V3TokenlessAuth
@@ -366,6 +399,13 @@ class TokenlessAuth(loading.BaseLoader[identity.V3TokenlessAuth]):
 class ApplicationCredential(
     loading.BaseV3Loader[identity.V3ApplicationCredential]
 ):
+    """Authenticate with an application credential.
+
+    Authenticate to the identity service using the provided application
+    credential secret and ID or name. If a name is used, you must also provide
+    a username and user domain to assist in lookup.
+    """
+
     @property
     def plugin_class(self) -> ty.Type[identity.V3ApplicationCredential]:
         return identity.V3ApplicationCredential
@@ -415,6 +455,12 @@ class ApplicationCredential(
 
 
 class MultiFactor(loading.BaseV3Loader[identity.V3MultiFactor]):
+    """Authenticate using multiple factors.
+
+    Authenticate to the identity service using a combination of factors, such
+    as username/password and a TOTP code.
+    """
+
     def __init__(self) -> None:
         super().__init__()
         self._methods = None
@@ -459,6 +505,8 @@ class MultiFactor(loading.BaseV3Loader[identity.V3MultiFactor]):
 class OAuth2ClientCredential(
     loading.BaseV3Loader[identity.V3OAuth2ClientCredential]
 ):
+    """Authenticate with an OAuth2.0 client credential."""
+
     @property
     def plugin_class(self) -> ty.Type[identity.V3OAuth2ClientCredential]:
         return identity.V3OAuth2ClientCredential
@@ -507,6 +555,8 @@ class OAuth2ClientCredential(
 class OAuth2mTlsClientCredential(
     loading.BaseV3Loader[identity.V3OAuth2mTlsClientCredential]
 ):
+    """Authenticate with an OAuth2.0 mTLS client credential."""
+
     @property
     def plugin_class(self) -> ty.Type[identity.V3OAuth2mTlsClientCredential]:
         return identity.V3OAuth2mTlsClientCredential
