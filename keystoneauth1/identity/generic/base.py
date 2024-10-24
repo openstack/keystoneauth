@@ -39,6 +39,7 @@ class BaseGenericPlugin(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
     def __init__(
         self,
         auth_url: ty.Optional[str] = None,
+        *,
         tenant_id: ty.Optional[str] = None,
         tenant_name: ty.Optional[str] = None,
         project_id: ty.Optional[str] = None,
@@ -66,7 +67,7 @@ class BaseGenericPlugin(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
         self._default_domain_id = default_domain_id
         self._default_domain_name = default_domain_name
 
-        self._plugin: ty.Union[v2.Auth, v3.AuthConstructor, None] = None
+        self._plugin: ty.Union[v2.Auth, v3.Auth, None] = None
 
     @abc.abstractmethod
     def create_plugin(
@@ -75,7 +76,7 @@ class BaseGenericPlugin(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
         version: discover._PARSED_VERSION_T,
         url: str,
         raw_status: ty.Optional[str] = None,
-    ) -> ty.Union[None, v2.Auth, v3.AuthConstructor]:
+    ) -> ty.Union[None, v2.Auth, v3.Auth]:
         """Create a plugin from the given parameters.
 
         This function will be called multiple times with the version and url
@@ -128,7 +129,7 @@ class BaseGenericPlugin(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
 
     def _do_create_plugin(
         self, session: ks_session.Session
-    ) -> ty.Union[v2.Auth, v3.AuthConstructor]:
+    ) -> ty.Union[v2.Auth, v3.Auth]:
         plugin = None
 
         try:

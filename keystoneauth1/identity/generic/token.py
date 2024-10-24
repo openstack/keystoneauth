@@ -28,7 +28,8 @@ class Token(base.BaseGenericPlugin):
     def __init__(
         self,
         auth_url: str,
-        token: ty.Optional[str] = None,
+        token: str,
+        *,
         tenant_id: ty.Optional[str] = None,
         tenant_name: ty.Optional[str] = None,
         project_id: ty.Optional[str] = None,
@@ -69,9 +70,6 @@ class Token(base.BaseGenericPlugin):
         url: str,
         raw_status: ty.Optional[str] = None,
     ) -> ty.Union[None, v2.Token, v3.Token]:
-        # TODO(stephenfin): Replace with a proper exception
-        assert self._token is not None  # nosec B101
-
         if discover.version_match((2,), version):
             return v2.Token(
                 url,

@@ -169,7 +169,8 @@ class BaseGenericLoader(BaseIdentityLoader[GenericPluginT]):
     This class defines options and handling that should be common to generic
     plugins. These plugins target the OpenStack identity service however are
     designed to be independent of API version. It provides the options expected
-    by the :py:class:`keystoneauth1.identity.v3.BaseGenericPlugin` class.
+    by the :py:class:`keystoneauth1.identity.generic.base.BaseGenericPlugin`
+    class.
     """
 
     def get_options(self) -> ty.List[opts.Opt]:
@@ -202,17 +203,21 @@ class BaseGenericLoader(BaseIdentityLoader[GenericPluginT]):
                 ),
                 opts.Opt(
                     'default-domain-id',
-                    help='Optional domain ID to use with v3 and v2 '
-                    'parameters. It will be used for both the user '
-                    'and project domain in v3 and ignored in '
-                    'v2 authentication.',
+                    help=(
+                        'Optional domain ID to use with v3 and v2 '
+                        'parameters. It will be used for both the user '
+                        'and project domain in v3 and ignored in '
+                        'v2 authentication.'
+                    ),
                 ),
                 opts.Opt(
                     'default-domain-name',
-                    help='Optional domain name to use with v3 API and v2 '
-                    'parameters. It will be used for both the user '
-                    'and project domain in v3 and ignored in '
-                    'v2 authentication.',
+                    help=(
+                        'Optional domain name to use with v3 API and v2 '
+                        'parameters. It will be used for both the user '
+                        'and project domain in v3 and ignored in '
+                        'v2 authentication.'
+                    ),
                 ),
             ]
         )
