@@ -48,7 +48,7 @@ class HTTPBasicAuth(plugin.FixedEndpointPlugin):
         return str(encoded, encoding='utf-8')
 
     def get_headers(
-        self, session: 'ks_session.Session', **kwargs: ty.Any
+        self, session: 'ks_session.Session'
     ) -> ty.Optional[ty.Dict[str, str]]:
         token = self.get_token(session)
         if not token:

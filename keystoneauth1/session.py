@@ -1367,9 +1367,7 @@ class Session:
         return auth
 
     def get_auth_headers(
-        self,
-        auth: ty.Optional['plugin.BaseAuthPlugin'] = None,
-        **kwargs: ty.Any,
+        self, auth: ty.Optional['plugin.BaseAuthPlugin'] = None
     ) -> ty.Optional[ty.Dict[str, str]]:
         """Return auth headers as provided by the auth plugin.
 
@@ -1386,7 +1384,7 @@ class Session:
         :rtype: :class:`dict`
         """
         auth = self._auth_required(auth, 'fetch a token')
-        return auth.get_headers(self, **kwargs)
+        return auth.get_headers(self)
 
     def get_token(
         self, auth: ty.Optional['plugin.BaseAuthPlugin'] = None

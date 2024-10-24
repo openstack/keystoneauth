@@ -33,10 +33,10 @@ class ServiceTokenAuthWrapper(plugin.BaseAuthPlugin):
         self.service_auth = service_auth
 
     def get_headers(
-        self, session: 'ks_session.Session', **kwargs: ty.Any
+        self, session: 'ks_session.Session'
     ) -> ty.Optional[ty.Dict[str, str]]:
-        headers = self.user_auth.get_headers(session, **kwargs) or {}
-        token = self.service_auth.get_token(session, **kwargs)
+        headers = self.user_auth.get_headers(session) or {}
+        token = self.service_auth.get_token(session)
         if token:
             headers[SERVICE_AUTH_HEADER_NAME] = token
 

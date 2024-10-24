@@ -88,7 +88,7 @@ class BaseAuthPlugin:
         return None
 
     def get_headers(
-        self, session: 'ks_session.Session', **kwargs: ty.Any
+        self, session: 'ks_session.Session'
     ) -> ty.Optional[ty.Dict[str, str]]:
         """Fetch authentication headers for message.
 
@@ -104,9 +104,6 @@ class BaseAuthPlugin:
         to enable older style plugins to continue functioning unchanged.
         Subclasses should feel free to completely override this function to
         provide the headers that they want.
-
-        There are no required kwargs. They are passed directly to the auth
-        plugin and they are implementation specific.
 
         Returning None will indicate that no token was able to be retrieved and
         that authorization was a failure. Adding no authentication data can be
