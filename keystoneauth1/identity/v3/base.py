@@ -159,9 +159,7 @@ class Auth(BaseAuth):
         """Add an additional initialized AuthMethod instance."""
         self.auth_methods.append(method)
 
-    def get_auth_ref(
-        self, session: ks_session.Session, **kwargs: ty.Any
-    ) -> access.AccessInfoV3:
+    def get_auth_ref(self, session: ks_session.Session) -> access.AccessInfoV3:
         headers = {'Accept': 'application/json'}
         body: _AuthBody = {'auth': {'identity': {}}}
         ident = body['auth']['identity']

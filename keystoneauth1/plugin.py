@@ -75,15 +75,15 @@ class BaseAuthPlugin:
         return None
 
     def get_auth_ref(
-        self, session: 'ks_session.Session', **kwargs: ty.Any
+        self, session: 'ks_session.Session'
     ) -> ty.Optional['access.AccessInfo']:
         """Return the authentication reference of an auth plugin.
 
-        There are no required kwargs. They are passed directly to the auth
-        plugin and they are implementation specific.
-
         :param session: A session object to be used for communication
         :type session: keystoneauth1.session.session
+
+        :return: An access info object if supported.
+        :rtype: `keystoneauth1.access.AccessInfo` or None
         """
         return None
 

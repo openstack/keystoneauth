@@ -52,10 +52,7 @@ class Auth(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
         self.tenant_id = tenant_id
         self.tenant_name = tenant_name
 
-    # TODO(stephenfin): Deprecate and remove unused kwargs
-    def get_auth_ref(
-        self, session: ks_session.Session, **kwargs: ty.Any
-    ) -> access.AccessInfoV2:
+    def get_auth_ref(self, session: ks_session.Session) -> access.AccessInfoV2:
         headers = {'Accept': 'application/json'}
         url = self.auth_url.rstrip('/') + '/tokens'
         params = {'auth': self.get_auth_data(headers)}

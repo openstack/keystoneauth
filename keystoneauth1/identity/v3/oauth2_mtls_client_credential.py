@@ -63,9 +63,7 @@ class OAuth2mTlsClientCredential(base.BaseAuth, metaclass=abc.ABCMeta):
         self.oauth2_client_id = oauth2_client_id
         self.oauth2_access_token = None
 
-    def get_auth_ref(
-        self, session: ks_session.Session, **kwargs: ty.Any
-    ) -> access.AccessInfoV3:
+    def get_auth_ref(self, session: ks_session.Session) -> access.AccessInfoV3:
         """Obtain a token from an OpenStack Identity Service.
 
         This method is overridden by the various token version plugins.

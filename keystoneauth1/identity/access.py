@@ -42,9 +42,7 @@ class AccessInfoPlugin(base.BaseIdentityPlugin):
         super().__init__(auth_url=auth_url, reauthenticate=False)
         self.auth_ref = auth_ref
 
-    def get_auth_ref(
-        self, session: ks_session.Session, **kwargs: ty.Any
-    ) -> access.AccessInfo:
+    def get_auth_ref(self, session: ks_session.Session) -> access.AccessInfo:
         return self.auth_ref
 
     def invalidate(self) -> bool:
