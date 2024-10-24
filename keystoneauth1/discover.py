@@ -177,7 +177,7 @@ def get_version_data(
 
     err_text = resp.text[:50] + '...' if len(resp.text) > 50 else resp.text
     raise exceptions.DiscoveryFailure(
-        'Invalid Response - Bad version data ' f'returned: {err_text}'
+        f'Invalid Response - Bad version data returned: {err_text}'
     )
 
 
@@ -711,8 +711,7 @@ class Discover:
                     collection_url = url
             if not self_url:
                 _LOGGER.info(
-                    'Skipping invalid version data. '
-                    'Missing link to endpoint.'
+                    'Skipping invalid version data. Missing link to endpoint.'
                 )
                 continue
 

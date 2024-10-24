@@ -472,10 +472,10 @@ class ServiceCatalogV3Test(ServiceCatalogTest):
         for i in range(3):
             s = token.add_service('compute')
             s.add_standard_endpoints(
-                public='public-%d' % i,
-                admin='admin-%d' % i,
-                internal='internal-%d' % i,
-                region='region-%d' % i,
+                public=f'public-{i}',
+                admin=f'admin-{i}',
+                internal=f'internal-{i}',
+                region=f'region-{i}',
             )
 
         auth_ref = access.create(resp=None, body=token)

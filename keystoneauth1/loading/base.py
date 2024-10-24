@@ -60,9 +60,9 @@ def get_available_plugin_names() -> ty.FrozenSet[str]:
     return frozenset(mgr.names())
 
 
-def get_available_plugin_loaders() -> (
-    ty.Dict[str, 'BaseLoader[plugin.BaseAuthPluginT]']
-):
+def get_available_plugin_loaders() -> ty.Dict[
+    str, 'BaseLoader[plugin.BaseAuthPluginT]'
+]:
     """Retrieve all the plugin classes available on the system.
 
     :returns: A dict with plugin entrypoint name as the key and the plugin

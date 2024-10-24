@@ -15,19 +15,18 @@ repos:
         files: .*\.(yaml|yml)$
         exclude: '^zuul.d/.*$'
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.7.0
+    rev: v0.9.3
     hooks:
       - id: ruff
         args: ['--fix', '--unsafe-fixes']
       - id: ruff-format
   - repo: https://github.com/PyCQA/bandit
-    rev: 1.7.10
+    rev: 1.8.2
     hooks:
       - id: bandit
         # We ignore the following:
         #   B110: except: pass
-        #   B410: importing etree
-        args: ['-x', 'tests', '-s', 'B110,B410']
+        args: ['-x', 'tests', '-s', 'B110']
   - repo: https://opendev.org/openstack/hacking
     rev: 7.0.0
     hooks:
@@ -36,7 +35,7 @@ repos:
           - flake8-import-order~=0.18.2
         exclude: '^(doc|releasenotes|tools)/.*$'
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.12.1
+    rev: v1.14.1
     hooks:
       - id: mypy
         additional_dependencies:

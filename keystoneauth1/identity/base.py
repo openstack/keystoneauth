@@ -520,7 +520,10 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         ``block-storage`` service and they do::
 
           client = adapter.Adapter(
-              session, service_type='block-storage', min_version=2, max_version=3
+              session,
+              service_type='block-storage',
+              min_version=2,
+              max_version=3,
           )
           volume_version = client.get_api_major_version()
 

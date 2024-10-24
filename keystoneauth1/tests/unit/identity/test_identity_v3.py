@@ -172,7 +172,7 @@ class V3IdentityPlugin(utils.TestCase):
         self.TEST_RESPONSE_DICT = {
             "token": {
                 "methods": ["token", "password"],
-                "expires_at": "%i-02-01T00:00:10.000123Z" % nextyear,
+                "expires_at": f"{nextyear}-02-01T00:00:10.000123Z",
                 "project": {
                     "domain": {
                         "id": self.TEST_DOMAIN_ID,
@@ -220,7 +220,7 @@ class V3IdentityPlugin(utils.TestCase):
         self.TEST_APP_CRED_TOKEN_RESPONSE = {
             "token": {
                 "methods": ["application_credential"],
-                "expires_at": "%i-02-01T00:00:10.000123Z" % nextyear,
+                "expires_at": f"{nextyear}-02-01T00:00:10.000123Z",
                 "project": {
                     "domain": {
                         "id": self.TEST_DOMAIN_ID,
@@ -246,7 +246,7 @@ class V3IdentityPlugin(utils.TestCase):
         self.TEST_OAUTH2_MTLS_TOKEN_RESPONSE = {
             "token": {
                 "methods": ["oauth2_credential"],
-                "expires_at": "%i-02-01T00:00:10.000123Z" % nextyear,
+                "expires_at": f"{nextyear}-02-01T00:00:10.000123Z",
                 "project": {
                     "domain": {
                         "id": self.TEST_DOMAIN_ID,
@@ -274,7 +274,7 @@ class V3IdentityPlugin(utils.TestCase):
         self.TEST_RECEIPT_RESPONSE = {
             "receipt": {
                 "methods": ["password"],
-                "expires_at": "%i-02-01T00:00:10.000123Z" % nextyear,
+                "expires_at": f"{nextyear}-02-01T00:00:10.000123Z",
                 "user": {
                     "domain": {
                         "id": self.TEST_DOMAIN_ID,

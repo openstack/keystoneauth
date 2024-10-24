@@ -207,8 +207,7 @@ class Adapter(base._BaseLoader[adapter.Adapter]):
             opts += [
                 cfg.StrOpt(
                     'interface',
-                    help='The default interface for endpoint URL '
-                    'discovery.',
+                    help='The default interface for endpoint URL discovery.',
                     deprecated_for_removal=True,
                     deprecated_reason='Using valid-interfaces is'
                     ' preferrable because it is'

@@ -83,8 +83,8 @@ class ListAuthPluginsDirective(rst.Directive):
         result = ViewList()
 
         for name in sorted(mgr.names()):
-            for line in self.display_plugin(mgr[name]):
-                for x in line.splitlines():
+            for lines in self.display_plugin(mgr[name]):
+                for line in lines.splitlines():
                     ep = mgr[name]
                     try:
                         module_name = ep.entry_point.module_name
@@ -93,7 +93,7 @@ class ListAuthPluginsDirective(rst.Directive):
                             module_name = ep.entry_point.module
                         except AttributeError:
                             module_name = ep.entry_point.value
-                    result.append(x, module_name)
+                    result.append(line, module_name)
 
         # Parse what we have into a new section.
         node = nodes.section()

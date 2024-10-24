@@ -962,8 +962,7 @@ class OidcDeviceAuthorization(_OidcBase):
         :type payload: dict
         """
         _logger.warning(
-            f"To authenticate please go to: "
-            f"{self.verification_uri_complete}"
+            f"To authenticate please go to: {self.verification_uri_complete}"
         )
 
         if self.client_secret:

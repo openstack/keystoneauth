@@ -97,11 +97,12 @@ class V2IdentityPlugin(utils.TestCase):
 
     def setUp(self):
         super().setUp()
+
+        nextyear = 1 + time.gmtime().tm_year
         self.TEST_RESPONSE_DICT = {
             "access": {
                 "token": {
-                    "expires": "%i-02-01T00:00:10.000123Z"
-                    % (1 + time.gmtime().tm_year),
+                    "expires": f"{nextyear}-02-01T00:00:10.000123Z",
                     "id": self.TEST_TOKEN,
                     "tenant": {"id": self.TEST_TENANT_ID},
                 },
