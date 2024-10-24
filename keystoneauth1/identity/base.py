@@ -587,7 +587,6 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         interface: str = 'public',
         region_name: ty.Optional[str] = None,
         service_type: ty.Optional[str] = None,
-        **kwargs: ty.Any,
     ) -> dict[str, dict[str, dict[str, list[discover.VersionData]]]]:
         """Get version data for all services in the catalog.
 
@@ -644,18 +643,14 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
 
         return version_data
 
-    def get_user_id(
-        self, session: ks_session.Session, **kwargs: ty.Any
-    ) -> ty.Optional[str]:
+    def get_user_id(self, session: ks_session.Session) -> ty.Optional[str]:
         return self.get_access(session).user_id
 
-    def get_project_id(
-        self, session: ks_session.Session, **kwargs: ty.Any
-    ) -> ty.Optional[str]:
+    def get_project_id(self, session: ks_session.Session) -> ty.Optional[str]:
         return self.get_access(session).project_id
 
     def get_sp_auth_url(
-        self, session: ks_session.Session, sp_id: str, **kwargs: ty.Any
+        self, session: ks_session.Session, sp_id: str
     ) -> ty.Optional[str]:
         service_providers = self.get_access(session).service_providers
         if not service_providers:
@@ -666,7 +661,7 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
             return None
 
     def get_sp_url(
-        self, session: ks_session.Session, sp_id: str, **kwargs: ty.Any
+        self, session: ks_session.Session, sp_id: str
     ) -> ty.Optional[str]:
         service_providers = self.get_access(session).service_providers
         if not service_providers:

@@ -1483,7 +1483,6 @@ class Session:
         interface: str = 'public',
         region_name: ty.Optional[str] = None,
         service_type: ty.Optional[str] = None,
-        **kwargs: ty.Any,
     ) -> dict[str, dict[str, dict[str, list[discover.VersionData]]]]:
         """Get version data for all services in the catalog.
 
@@ -1512,7 +1511,6 @@ class Session:
             interface=interface,
             region_name=region_name,
             service_type=service_type,
-            **kwargs,
         )
 
     def get_auth_connection_params(
@@ -1527,7 +1525,7 @@ class Session:
 
         We restrict the values that may be returned from this function to
         prevent an auth plugin overriding values unrelated to connection
-        parmeters. The values that are currently accepted are:
+        parameters. The values that are currently accepted are:
 
         - `cert`: a path to a client certificate, or tuple of client
           certificate and key pair that are used with this request.

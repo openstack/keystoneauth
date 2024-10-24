@@ -75,22 +75,20 @@ class ServiceTokenAuthWrapper(plugin.BaseAuthPlugin):
     ) -> ty.Optional[str]:
         return self.user_auth.get_endpoint(session, **kwargs)
 
-    def get_user_id(
-        self, session: 'ks_session.Session', **kwargs: ty.Any
-    ) -> ty.Optional[str]:
-        return self.user_auth.get_user_id(session, **kwargs)
+    def get_user_id(self, session: 'ks_session.Session') -> ty.Optional[str]:
+        return self.user_auth.get_user_id(session)
 
     def get_project_id(
-        self, session: 'ks_session.Session', **kwargs: ty.Any
+        self, session: 'ks_session.Session'
     ) -> ty.Optional[str]:
-        return self.user_auth.get_project_id(session, **kwargs)
+        return self.user_auth.get_project_id(session)
 
     def get_sp_auth_url(
-        self, session: 'ks_session.Session', sp_id: str, **kwargs: ty.Any
+        self, session: 'ks_session.Session', sp_id: str
     ) -> ty.Optional[str]:
-        return self.user_auth.get_sp_auth_url(session, sp_id, **kwargs)
+        return self.user_auth.get_sp_auth_url(session, sp_id)
 
     def get_sp_url(
-        self, session: 'ks_session.Session', sp_id: str, **kwargs: ty.Any
+        self, session: 'ks_session.Session', sp_id: str
     ) -> ty.Optional[str]:
-        return self.user_auth.get_sp_url(session, sp_id, **kwargs)
+        return self.user_auth.get_sp_url(session, sp_id)

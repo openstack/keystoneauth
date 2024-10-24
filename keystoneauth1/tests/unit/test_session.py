@@ -1106,13 +1106,13 @@ class CalledAuthPlugin(plugin.BaseAuthPlugin):
         self.invalidate_called = True
         return self._invalidate
 
-    def get_project_id(self, session, **kwargs):
-        self.get_project_id_called = True
-        return self.PROJECT_ID
-
-    def get_user_id(self, session, **kwargs):
+    def get_user_id(self, session):
         self.get_user_id_called = True
         return self.USER_ID
+
+    def get_project_id(self, session):
+        self.get_project_id_called = True
+        return self.PROJECT_ID
 
 
 class SessionAuthTests(utils.TestCase):

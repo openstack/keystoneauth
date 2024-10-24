@@ -75,10 +75,10 @@ class TestPlugin(plugin.BaseAuthPlugin):
     def get_token(self, session):
         return self.token
 
-    def get_user_id(self, session, **kwargs):
+    def get_user_id(self, session):
         return self.user_id
 
-    def get_project_id(self, session, **kwargs):
+    def get_project_id(self, session):
         return self.project_id
 
     def invalidate(self):

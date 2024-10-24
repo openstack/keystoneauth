@@ -207,7 +207,6 @@ class BaseAuthPlugin:
         interface: str = 'public',
         region_name: ty.Optional[str] = None,
         service_type: ty.Optional[str] = None,
-        **kwargs: ty.Any,
     ) -> dict[str, dict[str, dict[str, list[discover.VersionData]]]]:
         """Get version data for all services in the catalog.
 
@@ -224,6 +223,7 @@ class BaseAuthPlugin:
         :param string service_type:
             Limit the version data to a single service. (optional, defaults
             to None)
+
         :returns: A dictionary keyed by region_name with values containing
             dictionaries keyed by interface with values being a list of
             :class:`~keystoneauth1.discover.VersionData`.
@@ -247,6 +247,7 @@ class BaseAuthPlugin:
 
         :param session: The session object that the auth_plugin belongs to.
         :type session: keystoneauth1.session.Session
+        :param kwargs: Ignored.
 
         :returns: The base URL that will be used to talk to the required
                   service or None if not available.
@@ -266,6 +267,7 @@ class BaseAuthPlugin:
 
         :param session: The session object that the auth_plugin belongs to.
         :type session: keystoneauth1.session.Session
+        :param kwargs: Ignored.
 
         :returns: Headers that are set to authenticate a message or None for
                   failure. Note that when checking this value that the empty
@@ -290,9 +292,7 @@ class BaseAuthPlugin:
         """
         return False
 
-    def get_user_id(
-        self, session: 'ks_session.Session', **kwargs: ty.Any
-    ) -> ty.Optional[str]:
+    def get_user_id(self, session: 'ks_session.Session') -> ty.Optional[str]:
         """Return a unique user identifier of the plugin.
 
         Wherever possible the user id should be inferred from the token however
@@ -308,7 +308,7 @@ class BaseAuthPlugin:
         return None
 
     def get_project_id(
-        self, session: 'ks_session.Session', **kwargs: ty.Any
+        self, session: 'ks_session.Session'
     ) -> ty.Optional[str]:
         """Return the project id that we are authenticated to.
 
@@ -325,7 +325,7 @@ class BaseAuthPlugin:
         return None
 
     def get_sp_auth_url(
-        self, session: 'ks_session.Session', sp_id: str, **kwargs: ty.Any
+        self, session: 'ks_session.Session', sp_id: str
     ) -> ty.Optional[str]:
         """Return auth_url from the Service Provider object.
 
@@ -342,7 +342,7 @@ class BaseAuthPlugin:
         return None
 
     def get_sp_url(
-        self, session: 'ks_session.Session', sp_id: str, **kwargs: ty.Any
+        self, session: 'ks_session.Session', sp_id: str
     ) -> ty.Optional[str]:
         """Return sp_url from the Service Provider object.
 
@@ -413,7 +413,10 @@ class FixedEndpointPlugin(BaseAuthPlugin):
         self.endpoint = endpoint
 
     def get_endpoint(
-        self, session: 'ks_session.Session', **kwargs: ty.Any
+        self,
+        session: 'ks_session.Session',
+        endpoint_override: ty.Optional[str] = None,
+        **kwargs: ty.Any,
     ) -> ty.Optional[str]:
         """Return the supplied endpoint.
 
@@ -421,7 +424,7 @@ class FixedEndpointPlugin(BaseAuthPlugin):
         parameters passed to the plugin. endpoint_override overrides the
         endpoint specified when constructing the plugin.
         """
-        return kwargs.get('endpoint_override') or self.endpoint
+        return endpoint_override or self.endpoint
 
     def get_endpoint_data(
         self,
