@@ -313,7 +313,6 @@ class AuthMethod(metaclass=abc.ABCMeta):
         """Remove parameters related to this method from other kwargs."""
         return {p: kwargs.pop(p, None) for p in cls._method_parameters}
 
-    # TODO(stephenfin): Deprecate and remove unused kwargs
     @abc.abstractmethod
     def get_auth_data(
         self,
@@ -321,7 +320,6 @@ class AuthMethod(metaclass=abc.ABCMeta):
         auth: Auth,
         headers: ty.Dict[str, str],
         request_kwargs: ty.Dict[str, object],
-        **kwargs: ty.Any,
     ) -> ty.Union[
         ty.Tuple[None, None], ty.Tuple[str, ty.Mapping[str, object]]
     ]:
