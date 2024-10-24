@@ -34,9 +34,7 @@ class Token(plugin.BaseAuthPlugin):
         self.endpoint = endpoint
         self.token = token
 
-    def get_token(
-        self, session: 'ks_session.Session', **kwargs: ty.Any
-    ) -> ty.Optional[str]:
+    def get_token(self, session: 'ks_session.Session') -> ty.Optional[str]:
         return self.token
 
     def get_endpoint_data(

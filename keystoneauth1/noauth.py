@@ -25,7 +25,5 @@ class NoAuth(plugin.FixedEndpointPlugin):
     that might be deployed in standalone/noauth mode.
     """
 
-    def get_token(
-        self, session: 'ks_session.Session', **kwargs: ty.Any
-    ) -> ty.Optional[str]:
+    def get_token(self, session: 'ks_session.Session') -> ty.Optional[str]:
         return 'notused'

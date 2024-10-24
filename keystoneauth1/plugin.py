@@ -43,17 +43,12 @@ class BaseAuthPlugin:
     def __init__(self) -> None:
         self._discovery_cache: ty.Dict[str, discover.Discover] = {}
 
-    def get_token(
-        self, session: 'ks_session.Session', **kwargs: ty.Any
-    ) -> ty.Optional[str]:
+    def get_token(self, session: 'ks_session.Session') -> ty.Optional[str]:
         """Obtain a token.
 
         How the token is obtained is up to the plugin. If it is still valid
         it may be re-used, retrieved from cache or invoke an authentication
         request against a server.
-
-        There are no required kwargs. They are passed directly to the auth
-        plugin and they are implementation specific.
 
         Returning None will indicate that no token was able to be retrieved.
 
