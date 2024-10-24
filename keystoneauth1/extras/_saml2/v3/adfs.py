@@ -497,9 +497,8 @@ class Password(base.BaseSAMLPlugin):
             self.federated_token_url, authenticated=False
         )
 
-    # TODO(stephenfin): Deprecate and remove unused kwargs
     def get_unscoped_auth_ref(
-        self, session: ks_session.Session, **kwargs: ty.Any
+        self, session: ks_session.Session
     ) -> access.AccessInfoV3:
         """Retrieve unscoped token after authentcation with ADFS server.
 

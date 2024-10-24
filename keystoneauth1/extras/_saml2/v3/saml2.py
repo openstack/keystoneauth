@@ -305,9 +305,8 @@ class _FederatedSaml(v3.FederationBaseAuth):
     def get_requests_auth(self) -> requests.auth.AuthBase:
         raise NotImplementedError()
 
-    # TODO(stephenfin): Deprecate and remove unused kwargs
     def get_unscoped_auth_ref(
-        self, session: ks_session.Session, **kwargs: ty.Any
+        self, session: ks_session.Session
     ) -> access.AccessInfoV3:
         method = self.get_requests_auth()
         auth = _SamlAuth(self.identity_provider_url, method)

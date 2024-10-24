@@ -24,8 +24,7 @@ from keystoneauth1.tests.unit import utils
 
 
 class TesterFederationPlugin(v3.FederationBaseAuth):
-    # TODO(stephenfin): Deprecate and remove unused kwargs
-    def get_unscoped_auth_ref(self, sess, **kwargs):
+    def get_unscoped_auth_ref(self, sess):
         # This would go and talk to an idp or something
         resp = sess.post(self.federated_token_url, authenticated=False)
         return access.create(resp=resp)
