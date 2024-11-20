@@ -89,6 +89,6 @@ class FixturesTests(utils.TestCase):
 
         self.assertTrue(m.called_once)
 
-        self.assertTrue(token, m.last_request.headers['X-Auth-Token'])
+        self.assertEqual(token, m.last_request.headers['X-Auth-Token'])
         self.assertEqual(loader.project_id, sess.get_project_id())
         self.assertEqual(loader.user_id, sess.get_user_id())
