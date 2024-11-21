@@ -12,6 +12,7 @@
 
 import abc
 import collections.abc
+import enum
 import typing as ty
 
 from keystoneauth1 import _utils as utils
@@ -100,6 +101,14 @@ class Auth(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
         return bool(self.tenant_id or self.tenant_name or self.trust_id)
 
 
+# https://peps.python.org/pep-0484/#support-for-singleton-types-in-unions
+class Unset(enum.Enum):
+    token = 0
+
+
+_unset = Unset.token
+
+
 class Password(Auth):
     """A plugin for authenticating with a username and password.
 
@@ -118,12 +127,16 @@ class Password(Auth):
     :raises TypeError: if a user_id or username is not provided.
     """
 
+    # FIXME(stephenfin): The use of _unset is a hack to work around
+    # misconfiguration issues with random services (bug #1361444). It needs to
+    # go away asap. See change Id61cfd1423afa8f9dd964fda278f4fab40887512 for
+    # more info.
     def __init__(
         self,
         auth_url: str,
-        username: ty.Optional[str] = None,
+        username: ty.Union[str, None, Unset] = _unset,
         password: ty.Optional[str] = None,
-        user_id: ty.Optional[str] = None,
+        user_id: ty.Union[str, None, Unset] = _unset,
         *,
         trust_id: ty.Optional[str] = None,
         tenant_id: ty.Optional[str] = None,
@@ -138,12 +151,20 @@ class Password(Auth):
             reauthenticate=reauthenticate,
         )
 
-        if username is None and user_id is None:
+        if username is _unset and user_id is _unset:
             msg = 'You need to specify either a username or user_id'
             raise TypeError(msg)
 
-        self.user_id = user_id
-        self.username = username
+        if username is _unset:
+            self.username = None
+        else:
+            self.username = username
+
+        if user_id is _unset:
+            self.user_id = None
+        else:
+            self.user_id = user_id
+
         self.password = password
 
     def get_auth_data(
