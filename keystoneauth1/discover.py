@@ -42,7 +42,7 @@ _SERVICE_TYPES = os_service_types.ServiceTypes()
 _RAW_VERSION_T = ty.Union[
     str, int, float, ty.Iterable[ty.Union[str, int, float]]
 ]
-_PARSED_VERSION_T = ty.Tuple[ty.Union[int, float], ...]
+_PARSED_VERSION_T = tuple[ty.Union[int, float], ...]
 
 
 def _str_or_latest(val: ty.Union[str, int, float]) -> str:
@@ -70,7 +70,7 @@ def get_version_data(
     url: str,
     authenticated: ty.Optional[bool] = None,
     version_header: ty.Optional[str] = None,
-) -> ty.List[ty.Dict[str, ty.Any]]:
+) -> list[dict[str, ty.Any]]:
     """Retrieve raw version data from a url.
 
     The return is a list of dicts of the form::
@@ -132,7 +132,7 @@ def get_version_data(
         # available versions.
         try:
             return ty.cast(
-                ty.List[ty.Dict[str, ty.Any]], body_resp['versions']['values']
+                list[dict[str, ty.Any]], body_resp['versions']['values']
             )
         except (KeyError, TypeError):
             pass
@@ -140,16 +140,14 @@ def get_version_data(
         # Most servers don't have a 'values' element so accept a simple
         # versions dict if available.
         try:
-            return ty.cast(
-                ty.List[ty.Dict[str, ty.Any]], body_resp['versions']
-            )
+            return ty.cast(list[dict[str, ty.Any]], body_resp['versions'])
         except KeyError:
             pass
 
         # Otherwise if we query an endpoint like /v2.0 then we will get back
         # just the one available version.
         try:
-            return [ty.cast(ty.Dict[str, ty.Any], body_resp['version'])]
+            return [ty.cast(dict[str, ty.Any], body_resp['version'])]
         except KeyError:
             pass
 
@@ -266,7 +264,7 @@ def _normalize_version_args(
     min_version: ty.Optional[_RAW_VERSION_T],
     max_version: ty.Optional[_RAW_VERSION_T],
     service_type: ty.Optional[str] = None,
-) -> ty.Tuple[ty.Optional[_PARSED_VERSION_T], ty.Optional[_PARSED_VERSION_T]]:
+) -> tuple[ty.Optional[_PARSED_VERSION_T], ty.Optional[_PARSED_VERSION_T]]:
     normalized_min_version: ty.Optional[_PARSED_VERSION_T]
     normalized_max_version: ty.Optional[_PARSED_VERSION_T]
     # The sins of our fathers become the blood on our hands.
@@ -593,7 +591,7 @@ class Discover:
         allow_experimental: bool = False,
         allow_deprecated: bool = True,
         allow_unknown: bool = False,
-    ) -> ty.List[ty.Dict[str, ty.Any]]:
+    ) -> list[dict[str, ty.Any]]:
         """Get raw version information from URL.
 
         Raw data indicates that only minimal validation processing is performed
@@ -641,7 +639,7 @@ class Discover:
         allow_experimental: bool = False,
         allow_deprecated: bool = True,
         allow_unknown: bool = False,
-    ) -> ty.List['VersionData']:
+    ) -> list['VersionData']:
         """Get normalized version data.
 
         Return version data in a structured way.
@@ -739,7 +737,7 @@ class Discover:
         allow_experimental: bool = False,
         allow_deprecated: bool = True,
         allow_unknown: bool = False,
-    ) -> ty.List['VersionData']:
+    ) -> list['VersionData']:
         """Get normalized version data with versions as strings.
 
         Return version data in a structured way.
@@ -962,7 +960,7 @@ class Discover:
 
 
 # TODO(stephenfin): Make this normal class or dataclass to avoid all the casts
-class VersionData(ty.Dict[str, ty.Any]):
+class VersionData(dict[str, ty.Any]):
     """Normalized Version Data about an endpoint."""
 
     def __init__(
@@ -1159,8 +1157,8 @@ class EndpointData:
     def get_current_versioned_data(
         self,
         session: 'ks_session.Session',
-        allow: ty.Optional[ty.Dict[str, ty.Any]] = None,
-        cache: ty.Optional[ty.Dict[str, Discover]] = None,
+        allow: ty.Optional[dict[str, ty.Any]] = None,
+        cache: ty.Optional[dict[str, Discover]] = None,
         project_id: ty.Optional[str] = None,
     ) -> 'EndpointData':
         """Run version discovery on the current endpoint.
@@ -1204,8 +1202,8 @@ class EndpointData:
     def get_versioned_data(
         self,
         session: 'ks_session.Session',
-        allow: ty.Optional[ty.Dict[str, ty.Any]] = None,
-        cache: ty.Optional[ty.Dict[str, ty.Any]] = None,
+        allow: ty.Optional[dict[str, ty.Any]] = None,
+        cache: ty.Optional[dict[str, ty.Any]] = None,
         allow_version_hack: bool = True,
         project_id: ty.Optional[str] = None,
         discover_versions: bool = True,
@@ -1280,7 +1278,7 @@ class EndpointData:
         self,
         session: 'ks_session.Session',
         project_id: ty.Optional[str] = None,
-    ) -> ty.List['VersionData']:
+    ) -> list['VersionData']:
         """Return version data for all versions discovery can find.
 
         :param string project_id: ID of the currently scoped project. Used for
@@ -1307,7 +1305,7 @@ class EndpointData:
 
     def _infer_version_data(
         self, project_id: ty.Optional[str] = None
-    ) -> ty.List['VersionData']:
+    ) -> list['VersionData']:
         """Return version data dict for when discovery fails.
 
         :param string project_id: ID of the currently scoped project. Used for
@@ -1332,8 +1330,8 @@ class EndpointData:
     def _set_version_info(
         self,
         session: 'ks_session.Session',
-        allow: ty.Dict[str, ty.Any],
-        cache: ty.Optional[ty.Dict[str, Discover]],
+        allow: dict[str, ty.Any],
+        cache: ty.Optional[dict[str, Discover]],
         allow_version_hack: bool,
         project_id: ty.Optional[str],
         discover_versions: bool,
@@ -1438,7 +1436,7 @@ class EndpointData:
     def _run_discovery(
         self,
         session: 'ks_session.Session',
-        cache: ty.Optional[ty.Dict[str, Discover]],
+        cache: ty.Optional[dict[str, Discover]],
         min_version: ty.Optional[_PARSED_VERSION_T],
         max_version: ty.Optional[_PARSED_VERSION_T],
         project_id: ty.Optional[str],
@@ -1669,7 +1667,7 @@ class EndpointData:
 def get_discovery(
     session: 'ks_session.Session',
     url: str,
-    cache: ty.Optional[ty.Dict[str, Discover]] = None,
+    cache: ty.Optional[dict[str, Discover]] = None,
     authenticated: ty.Optional[bool] = False,
 ) -> Discover:
     """Return the discovery object for a URL.
@@ -1707,7 +1705,7 @@ def get_discovery(
     # There are between one and three different caches. The user may have
     # passed one in. There is definitely one on the session, and there is
     # one on the auth plugin if the Session has an auth plugin.
-    caches: ty.List[ty.Dict[str, Discover]] = []
+    caches: list[dict[str, Discover]] = []
 
     # If a cache was passed in, check it first.
     if cache is not None:
@@ -1761,9 +1759,7 @@ class _VersionHacks:
     """
 
     def __init__(self) -> None:
-        self._discovery_data: ty.Dict[
-            str, ty.List[ty.Tuple[re.Pattern[str], str]]
-        ] = {}
+        self._discovery_data: dict[str, list[tuple[re.Pattern[str], str]]] = {}
 
     def add_discover_hack(
         self, service_type: str, old: re.Pattern[str], new: str = ''

@@ -70,7 +70,7 @@ class Opt:
         help: ty.Optional[str] = None,
         secret: bool = False,
         dest: ty.Optional[str] = None,
-        deprecated: ty.Optional[ty.List['Opt']] = None,
+        deprecated: ty.Optional[list['Opt']] = None,
         default: ty.Any = None,
         metavar: ty.Optional[str] = None,
         required: bool = False,
@@ -137,7 +137,7 @@ class Opt:
         return itertools.chain([self], self.deprecated)
 
     @property
-    def argparse_args(self) -> ty.List[str]:
+    def argparse_args(self) -> list[str]:
         return [f'--os-{o.name}' for o in self._all_opts]
 
     @property

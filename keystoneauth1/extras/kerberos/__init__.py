@@ -79,11 +79,9 @@ class KerberosMethod(v3.AuthMethod):
         self,
         session: ks_session.Session,
         auth: v3.Auth,
-        headers: ty.Dict[str, str],
-        request_kwargs: ty.Dict[str, object],
-    ) -> ty.Union[
-        ty.Tuple[None, None], ty.Tuple[str, ty.Mapping[str, object]]
-    ]:
+        headers: dict[str, str],
+        request_kwargs: dict[str, object],
+    ) -> ty.Union[tuple[None, None], tuple[str, ty.Mapping[str, object]]]:
         # NOTE(jamielennox): request_kwargs is passed as a kwarg however it is
         # required and always present when called from keystoneclient.
         request_kwargs['requests_auth'] = _requests_auth(self.mutual_auth)

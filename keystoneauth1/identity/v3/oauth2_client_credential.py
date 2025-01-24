@@ -45,11 +45,9 @@ class OAuth2ClientCredentialMethod(base.AuthMethod):
         self,
         session: ks_session.Session,
         auth: base.Auth,
-        headers: ty.Dict[str, str],
-        request_kwargs: ty.Dict[str, object],
-    ) -> ty.Union[
-        ty.Tuple[None, None], ty.Tuple[str, ty.Mapping[str, object]]
-    ]:
+        headers: dict[str, str],
+        request_kwargs: dict[str, object],
+    ) -> ty.Union[tuple[None, None], tuple[str, ty.Mapping[str, object]]]:
         """Return the authentication section of an auth plugin.
 
         :param session: The communication session.
@@ -61,13 +59,13 @@ class OAuth2ClientCredentialMethod(base.AuthMethod):
                  data for the auth type.
         :rtype: tuple(string, dict)
         """
-        auth_data: ty.Dict[str, object] = {
+        auth_data: dict[str, object] = {
             'id': self.oauth2_client_id,
             'secret': self.oauth2_client_secret,
         }
         return 'application_credential', auth_data
 
-    def get_cache_id_elements(self) -> ty.Dict[str, ty.Optional[str]]:
+    def get_cache_id_elements(self) -> dict[str, ty.Optional[str]]:
         """Get the elements for this auth method that make it unique.
 
         These elements will be used as part of the
@@ -139,7 +137,7 @@ class OAuth2ClientCredential(base.AuthConstructor):
 
     def get_headers(
         self, session: 'ks_session.Session'
-    ) -> ty.Optional[ty.Dict[str, str]]:
+    ) -> ty.Optional[dict[str, str]]:
         """Fetch authentication headers for message.
 
         :param session: The session object that the auth_plugin belongs to.

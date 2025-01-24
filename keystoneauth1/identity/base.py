@@ -173,7 +173,7 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         interface: ty.Optional[str] = None,
         region_name: ty.Optional[str] = None,
         service_name: ty.Optional[str] = None,
-        allow: ty.Optional[ty.Dict[str, ty.Any]] = None,
+        allow: ty.Optional[dict[str, ty.Any]] = None,
         allow_version_hack: bool = True,
         skip_discovery: bool = False,
         min_version: ty.Optional[discover._RAW_VERSION_T] = None,
@@ -341,7 +341,7 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         region_name: ty.Optional[str] = None,
         service_name: ty.Optional[str] = None,
         version: ty.Optional[discover._RAW_VERSION_T] = None,
-        allow: ty.Optional[ty.Dict[str, ty.Any]] = None,
+        allow: ty.Optional[dict[str, ty.Any]] = None,
         allow_version_hack: bool = True,
         skip_discovery: bool = False,
         min_version: ty.Optional[discover._RAW_VERSION_T] = None,
@@ -438,7 +438,7 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         region_name: ty.Optional[str] = None,
         service_name: ty.Optional[str] = None,
         version: ty.Optional[str] = None,
-        allow: ty.Optional[ty.Dict[str, ty.Any]] = None,
+        allow: ty.Optional[dict[str, ty.Any]] = None,
         allow_version_hack: bool = True,
         skip_discovery: bool = False,
         discover_versions: bool = False,
@@ -588,9 +588,7 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         region_name: ty.Optional[str] = None,
         service_type: ty.Optional[str] = None,
         **kwargs: ty.Any,
-    ) -> ty.Dict[
-        str, ty.Dict[str, ty.Dict[str, ty.List[discover.VersionData]]]
-    ]:
+    ) -> dict[str, dict[str, dict[str, list[discover.VersionData]]]]:
         """Get version data for all services in the catalog.
 
         :param session: A session object that can be used for communication.
@@ -612,8 +610,8 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         """
         service_types = discover._SERVICE_TYPES
         catalog = self.get_access(session).service_catalog
-        version_data: ty.Dict[
-            str, ty.Dict[str, ty.Dict[str, ty.List[discover.VersionData]]]
+        version_data: dict[
+            str, dict[str, dict[str, list[discover.VersionData]]]
         ] = {}
         endpoints_data = catalog.get_endpoints_data(
             interface=interface,
@@ -714,7 +712,7 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
             authenticated=authenticated,
         )
 
-    def get_cache_id_elements(self) -> ty.Dict[str, ty.Optional[str]]:
+    def get_cache_id_elements(self) -> dict[str, ty.Optional[str]]:
         """Get the elements for this auth plugin that make it unique.
 
         As part of the get_cache_id requirement we need to determine what

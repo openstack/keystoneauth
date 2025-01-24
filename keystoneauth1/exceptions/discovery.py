@@ -27,7 +27,7 @@ __all__ = (
     'VersionNotAvailable',
 )
 
-_PARSED_VERSION_T = ty.Tuple[ty.Union[int, float], ...]
+_PARSED_VERSION_T = tuple[ty.Union[int, float], ...]
 
 
 class DiscoveryFailure(base.ClientException):

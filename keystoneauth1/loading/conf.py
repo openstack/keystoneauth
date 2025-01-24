@@ -38,7 +38,7 @@ __all__ = (
 )
 
 
-def get_common_conf_options() -> ty.List['cfg.Opt']:
+def get_common_conf_options() -> list['cfg.Opt']:
     """Get the oslo_config options common for all auth plugins.
 
     These may be useful without being registered for config file generation
@@ -57,7 +57,7 @@ def get_plugin_conf_options(
     plugin: ty.Union[
         base.BaseLoader[keystoneauth1.plugin.BaseAuthPluginT], str
     ],
-) -> ty.List['cfg.Opt']:
+) -> list['cfg.Opt']:
     """Get the oslo_config options for a specific plugin.
 
     This will be the list of config options that is registered and loaded by

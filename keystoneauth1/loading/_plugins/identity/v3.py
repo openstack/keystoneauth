@@ -19,7 +19,7 @@ from keystoneauth1 import loading
 from keystoneauth1.loading import opts
 
 
-def _add_common_identity_options(options: ty.List[opts.Opt]) -> None:
+def _add_common_identity_options(options: list[opts.Opt]) -> None:
     options.extend(
         [
             loading.Opt('user-id', help="User's user ID"),
@@ -34,7 +34,7 @@ def _add_common_identity_options(options: ty.List[opts.Opt]) -> None:
     )
 
 
-def _assert_identity_options(options: ty.Dict[str, ty.Any]) -> None:
+def _assert_identity_options(options: dict[str, ty.Any]) -> None:
     if options.get('username') and not (
         options.get('user_domain_name') or options.get('user_domain_id')
     ):
@@ -57,7 +57,7 @@ class Password(loading.BaseV3Loader[identity.V3Password]):
     def plugin_class(self) -> ty.Type[identity.V3Password]:
         return identity.V3Password
 
-    def get_options(self) -> ty.List[opts.Opt]:
+    def get_options(self) -> list[opts.Opt]:
         options = super().get_options()
         _add_common_identity_options(options)
 
@@ -93,7 +93,7 @@ class Token(loading.BaseV3Loader[identity.V3Token]):
     def plugin_class(self) -> ty.Type[identity.V3Token]:
         return identity.V3Token
 
-    def get_options(self) -> ty.List[opts.Opt]:
+    def get_options(self) -> list[opts.Opt]:
         options = super().get_options()
 
         options.extend(
@@ -121,7 +121,7 @@ class _OpenIDConnectBase(loading.BaseFederationLoader[oidc._OidcBaseT]):
 
         return super().load_from_options(**kwargs)
 
-    def get_options(self) -> ty.List[opts.Opt]:
+    def get_options(self) -> list[opts.Opt]:
         options = super().get_options()
 
         options.extend(
@@ -180,7 +180,7 @@ class OpenIDConnectClientCredentials(
     def plugin_class(self) -> ty.Type[identity.V3OidcClientCredentials]:
         return identity.V3OidcClientCredentials
 
-    def get_options(self) -> ty.List[opts.Opt]:
+    def get_options(self) -> list[opts.Opt]:
         options = super().get_options()
 
         return options
@@ -193,7 +193,7 @@ class OpenIDConnectPassword(_OpenIDConnectBase[identity.V3OidcPassword]):
     def plugin_class(self) -> ty.Type[identity.V3OidcPassword]:
         return identity.V3OidcPassword
 
-    def get_options(self) -> ty.List[opts.Opt]:
+    def get_options(self) -> list[opts.Opt]:
         options = super().get_options()
 
         options.extend(
@@ -223,7 +223,7 @@ class OpenIDConnectAuthorizationCode(
     def plugin_class(self) -> ty.Type[identity.V3OidcAuthorizationCode]:
         return identity.V3OidcAuthorizationCode
 
-    def get_options(self) -> ty.List[opts.Opt]:
+    def get_options(self) -> list[opts.Opt]:
         options = super().get_options()
 
         options.extend(
@@ -253,7 +253,7 @@ class OpenIDConnectAccessToken(
     def plugin_class(self) -> ty.Type[identity.V3OidcAccessToken]:
         return identity.V3OidcAccessToken
 
-    def get_options(self) -> ty.List[opts.Opt]:
+    def get_options(self) -> list[opts.Opt]:
         options = super().get_options()
 
         options.extend(
@@ -278,7 +278,7 @@ class OpenIDConnectDeviceAuthorization(
     def plugin_class(self) -> ty.Type[identity.V3OidcDeviceAuthorization]:
         return identity.V3OidcDeviceAuthorization
 
-    def get_options(self) -> ty.List[opts.Opt]:
+    def get_options(self) -> list[opts.Opt]:
         options = super().get_options()
 
         # RFC 8628 doesn't support id_token
@@ -315,7 +315,7 @@ class TOTP(loading.BaseV3Loader[identity.V3TOTP]):
     def plugin_class(self) -> ty.Type[identity.V3TOTP]:
         return identity.V3TOTP
 
-    def get_options(self) -> ty.List[opts.Opt]:
+    def get_options(self) -> list[opts.Opt]:
         options = super().get_options()
         _add_common_identity_options(options)
 
@@ -345,7 +345,7 @@ class TokenlessAuth(loading.BaseLoader[identity.V3TokenlessAuth]):
     def plugin_class(self) -> ty.Type[identity.V3TokenlessAuth]:
         return identity.V3TokenlessAuth
 
-    def get_options(self) -> ty.List[opts.Opt]:
+    def get_options(self) -> list[opts.Opt]:
         options = super().get_options()
 
         options.extend(
@@ -410,7 +410,7 @@ class ApplicationCredential(
     def plugin_class(self) -> ty.Type[identity.V3ApplicationCredential]:
         return identity.V3ApplicationCredential
 
-    def get_options(self) -> ty.List[opts.Opt]:
+    def get_options(self) -> list[opts.Opt]:
         options = super().get_options()
         _add_common_identity_options(options)
 
@@ -469,7 +469,7 @@ class MultiFactor(loading.BaseV3Loader[identity.V3MultiFactor]):
     def plugin_class(self) -> ty.Type[identity.V3MultiFactor]:
         return identity.V3MultiFactor
 
-    def get_options(self) -> ty.List[opts.Opt]:
+    def get_options(self) -> list[opts.Opt]:
         options = super().get_options()
 
         options.extend(
@@ -511,7 +511,7 @@ class OAuth2ClientCredential(
     def plugin_class(self) -> ty.Type[identity.V3OAuth2ClientCredential]:
         return identity.V3OAuth2ClientCredential
 
-    def get_options(self) -> ty.List[opts.Opt]:
+    def get_options(self) -> list[opts.Opt]:
         options = super().get_options()
         options.extend(
             [
@@ -561,7 +561,7 @@ class OAuth2mTlsClientCredential(
     def plugin_class(self) -> ty.Type[identity.V3OAuth2mTlsClientCredential]:
         return identity.V3OAuth2mTlsClientCredential
 
-    def get_options(self) -> ty.List[opts.Opt]:
+    def get_options(self) -> list[opts.Opt]:
         options = super().get_options()
         options.extend(
             [

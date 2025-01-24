@@ -83,7 +83,7 @@ class Auth(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
     def get_auth_data(
         self,
         headers: ty.Optional[collections.abc.MutableMapping[str, str]] = None,
-    ) -> ty.Dict[str, object]:
+    ) -> dict[str, object]:
         """Return the authentication section of an auth plugin.
 
         :param dict headers: The headers that will be sent with the auth
@@ -167,7 +167,7 @@ class Password(Auth):
     def get_auth_data(
         self,
         headers: ty.Optional[collections.abc.MutableMapping[str, str]] = None,
-    ) -> ty.Dict[str, object]:
+    ) -> dict[str, object]:
         auth = {'password': self.password}
 
         if self.username:
@@ -177,7 +177,7 @@ class Password(Auth):
 
         return {'passwordCredentials': auth}
 
-    def get_cache_id_elements(self) -> ty.Dict[str, ty.Optional[str]]:
+    def get_cache_id_elements(self) -> dict[str, ty.Optional[str]]:
         return {
             'username': self.username,
             'user_id': self.user_id,
@@ -223,12 +223,12 @@ class Token(Auth):
     def get_auth_data(
         self,
         headers: ty.Optional[collections.abc.MutableMapping[str, str]] = None,
-    ) -> ty.Dict[str, object]:
+    ) -> dict[str, object]:
         if headers is not None:
             headers['X-Auth-Token'] = self.token
         return {'token': {'id': self.token}}
 
-    def get_cache_id_elements(self) -> ty.Dict[str, ty.Optional[str]]:
+    def get_cache_id_elements(self) -> dict[str, ty.Optional[str]]:
         return {
             'token': self.token,
             'auth_url': self.auth_url,

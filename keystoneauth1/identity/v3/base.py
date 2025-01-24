@@ -93,8 +93,8 @@ class BaseAuth(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
 
 
 class _AuthIdentity(ty.TypedDict):
-    identity: ty.Dict[str, ty.Any]
-    scope: ty_ext.NotRequired[ty.Union[ty.Dict[str, ty.Any], str]]
+    identity: dict[str, ty.Any]
+    scope: ty_ext.NotRequired[ty.Union[dict[str, ty.Any], str]]
 
 
 class _AuthBody(ty.TypedDict):
@@ -125,7 +125,7 @@ class Auth(BaseAuth):
     def __init__(
         self,
         auth_url: str,
-        auth_methods: ty.List['AuthMethod'],
+        auth_methods: list['AuthMethod'],
         *,
         unscoped: bool = False,
         trust_id: ty.Optional[str] = None,
@@ -164,7 +164,7 @@ class Auth(BaseAuth):
         body: _AuthBody = {'auth': {'identity': {}}}
         ident = body['auth']['identity']
         # this is passed around for its side-effects
-        rkwargs: ty.Dict[str, ty.Any] = {}
+        rkwargs: dict[str, ty.Any] = {}
 
         for method in self.auth_methods:
             name, auth_data = method.get_auth_data(
@@ -258,7 +258,7 @@ class Auth(BaseAuth):
             auth_token=resp.headers['X-Subject-Token'], body=resp_data
         )
 
-    def get_cache_id_elements(self) -> ty.Dict[str, ty.Optional[str]]:
+    def get_cache_id_elements(self) -> dict[str, ty.Optional[str]]:
         if not self.auth_methods:
             return {}
 
@@ -294,7 +294,7 @@ class AuthMethod(metaclass=abc.ABCMeta):
     the factory method and don't work as well with AuthConstructors.
     """
 
-    _method_parameters: ty.List[str] = []
+    _method_parameters: list[str] = []
 
     def __init__(self, **kwargs: object):
         for param in self._method_parameters:
@@ -305,9 +305,7 @@ class AuthMethod(metaclass=abc.ABCMeta):
             raise AttributeError(msg)
 
     @classmethod
-    def _extract_kwargs(
-        cls, kwargs: ty.Dict[str, object]
-    ) -> ty.Dict[str, object]:
+    def _extract_kwargs(cls, kwargs: dict[str, object]) -> dict[str, object]:
         """Remove parameters related to this method from other kwargs."""
         return {p: kwargs.pop(p, None) for p in cls._method_parameters}
 
@@ -316,11 +314,9 @@ class AuthMethod(metaclass=abc.ABCMeta):
         self,
         session: ks_session.Session,
         auth: Auth,
-        headers: ty.Dict[str, str],
-        request_kwargs: ty.Dict[str, object],
-    ) -> ty.Union[
-        ty.Tuple[None, None], ty.Tuple[str, ty.Mapping[str, object]]
-    ]:
+        headers: dict[str, str],
+        request_kwargs: dict[str, object],
+    ) -> ty.Union[tuple[None, None], tuple[str, ty.Mapping[str, object]]]:
         """Return the authentication section of an auth plugin.
 
         :param session: The communication session.
@@ -334,7 +330,7 @@ class AuthMethod(metaclass=abc.ABCMeta):
         """
         raise NotImplementedError()
 
-    def get_cache_id_elements(self) -> ty.Dict[str, ty.Optional[str]]:
+    def get_cache_id_elements(self) -> dict[str, ty.Optional[str]]:
         """Get the elements for this auth method that make it unique.
 
         These elements will be used as part of the

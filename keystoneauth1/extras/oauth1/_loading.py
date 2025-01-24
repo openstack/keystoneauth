@@ -28,7 +28,7 @@ class V3OAuth1(loading.BaseIdentityLoader[v3.OAuth1]):
     def available(self) -> bool:
         return v3.oauth1 is not None
 
-    def get_options(self) -> ty.List[opts.Opt]:
+    def get_options(self) -> list[opts.Opt]:
         options = super().get_options()
 
         options.extend(

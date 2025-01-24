@@ -34,7 +34,7 @@ class ServiceTokenAuthWrapper(plugin.BaseAuthPlugin):
 
     def get_headers(
         self, session: 'ks_session.Session'
-    ) -> ty.Optional[ty.Dict[str, str]]:
+    ) -> ty.Optional[dict[str, str]]:
         headers = self.user_auth.get_headers(session) or {}
         token = self.service_auth.get_token(session)
         if token:
@@ -52,7 +52,7 @@ class ServiceTokenAuthWrapper(plugin.BaseAuthPlugin):
 
     def get_connection_params(
         self, session: 'ks_session.Session', **kwargs: ty.Any
-    ) -> ty.Dict[str, ty.Any]:
+    ) -> dict[str, ty.Any]:
         # NOTE(jamielennox): This is also a bit of a guess but unlikely to be a
         # problem in practice. We don't know how merging connection parameters
         # between these plugins will conflict - but there aren't many plugins

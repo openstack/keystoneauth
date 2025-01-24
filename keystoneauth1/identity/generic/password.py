@@ -137,7 +137,7 @@ class Password(base.BaseGenericPlugin):
     def user_domain_name(self, value: str) -> None:
         self._user_domain_name = value
 
-    def get_cache_id_elements(self) -> ty.Dict[str, ty.Optional[str]]:
+    def get_cache_id_elements(self) -> dict[str, ty.Optional[str]]:
         return {
             'auth_url': self.auth_url,
             'project_id': self._project_id,

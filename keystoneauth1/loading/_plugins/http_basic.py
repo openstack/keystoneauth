@@ -33,7 +33,7 @@ class HTTPBasicAuth(loading.BaseLoader[http_basic.HTTPBasicAuth]):
     def plugin_class(self) -> ty.Type[http_basic.HTTPBasicAuth]:
         return http_basic.HTTPBasicAuth
 
-    def get_options(self) -> ty.List[opts.Opt]:
+    def get_options(self) -> list[opts.Opt]:
         options = super().get_options()
 
         options.extend(

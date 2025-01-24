@@ -139,7 +139,7 @@ class _BaseAdapter:
         user_agent: ty.Optional[str] = None,
         connect_retries: ty.Optional[int] = None,
         logger: ty.Optional[logging.Logger] = None,
-        allow: ty.Optional[ty.Dict[str, ty.Any]] = None,
+        allow: ty.Optional[dict[str, ty.Any]] = None,
         additional_headers: ty.Optional[
             collections.abc.MutableMapping[str, str]
         ] = None,
@@ -151,7 +151,7 @@ class _BaseAdapter:
         max_version: ty.Optional[str] = None,
         default_microversion: ty.Optional[str] = None,
         status_code_retries: ty.Optional[int] = None,
-        retriable_status_codes: ty.Optional[ty.List[int]] = None,
+        retriable_status_codes: ty.Optional[list[int]] = None,
         raise_exc: ty.Optional[bool] = None,
         rate_limit: ty.Optional[float] = None,
         concurrency: ty.Optional[int] = None,
@@ -208,9 +208,7 @@ class _BaseAdapter:
             concurrency, rate_delay
         )
 
-    def _set_endpoint_filter_kwargs(
-        self, kwargs: ty.Dict[str, object]
-    ) -> None:
+    def _set_endpoint_filter_kwargs(self, kwargs: dict[str, object]) -> None:
         if self.service_type:
             kwargs.setdefault('service_type', self.service_type)
         if self.service_name:
@@ -351,7 +349,7 @@ class _BaseAdapter:
         :returns: Endpoint data if available or None.
         :rtype: keystoneauth1.discover.EndpointData
         """
-        kwargs: ty.Dict[str, ty.Any] = {}
+        kwargs: dict[str, ty.Any] = {}
         self._set_endpoint_filter_kwargs(kwargs)
         if self.endpoint_override:
             kwargs['endpoint_override'] = self.endpoint_override
@@ -360,9 +358,7 @@ class _BaseAdapter:
 
     def get_all_version_data(
         self, interface: str = 'public', region_name: ty.Optional[str] = None
-    ) -> ty.Dict[
-        str, ty.Dict[str, ty.Dict[str, ty.List[discover.VersionData]]]
-    ]:
+    ) -> dict[str, dict[str, dict[str, list[discover.VersionData]]]]:
         """Get data about all versions of a service.
 
         :param interface:
@@ -387,7 +383,7 @@ class _BaseAdapter:
         self,
         auth: ty.Optional['plugin.BaseAuthPlugin'] = None,
         **kwargs: ty.Any,
-    ) -> ty.Optional[ty.Tuple[ty.Union[int, float], ...]]:
+    ) -> ty.Optional[tuple[ty.Union[int, float], ...]]:
         """Get the major API version as provided by the auth plugin.
 
         :param auth: The auth plugin to use for token. Overrides the plugin on
@@ -649,7 +645,7 @@ class LegacyJsonAdapter(_BaseAdapter):
 
     def request(
         self, url: str, method: str, **kwargs: ty.Any
-    ) -> ty.Tuple[requests.Response, object]:
+    ) -> tuple[requests.Response, object]:
         headers = kwargs.setdefault('headers', {})
         headers.setdefault('Accept', 'application/json')
 
@@ -669,7 +665,7 @@ class LegacyJsonAdapter(_BaseAdapter):
 
     def get(
         self, url: str, **kwargs: ty.Any
-    ) -> ty.Tuple[requests.Response, object]:
+    ) -> tuple[requests.Response, object]:
         """Perform a GET request.
 
         This calls :py:meth:`.request()` with ``method`` set to ``GET``.
@@ -678,7 +674,7 @@ class LegacyJsonAdapter(_BaseAdapter):
 
     def head(
         self, url: str, **kwargs: ty.Any
-    ) -> ty.Tuple[requests.Response, object]:
+    ) -> tuple[requests.Response, object]:
         """Perform a HEAD request.
 
         This calls :py:meth:`.request()` with ``method`` set to ``HEAD``.
@@ -687,7 +683,7 @@ class LegacyJsonAdapter(_BaseAdapter):
 
     def post(
         self, url: str, **kwargs: ty.Any
-    ) -> ty.Tuple[requests.Response, object]:
+    ) -> tuple[requests.Response, object]:
         """Perform a POST request.
 
         This calls :py:meth:`.request()` with ``method`` set to ``POST``.
@@ -696,7 +692,7 @@ class LegacyJsonAdapter(_BaseAdapter):
 
     def put(
         self, url: str, **kwargs: ty.Any
-    ) -> ty.Tuple[requests.Response, object]:
+    ) -> tuple[requests.Response, object]:
         """Perform a PUT request.
 
         This calls :py:meth:`.request()` with ``method`` set to ``PUT``.
@@ -705,7 +701,7 @@ class LegacyJsonAdapter(_BaseAdapter):
 
     def patch(
         self, url: str, **kwargs: ty.Any
-    ) -> ty.Tuple[requests.Response, object]:
+    ) -> tuple[requests.Response, object]:
         """Perform a PATCH request.
 
         This calls :py:meth:`.request()` with ``method`` set to ``PATCH``.
@@ -714,7 +710,7 @@ class LegacyJsonAdapter(_BaseAdapter):
 
     def delete(
         self, url: str, **kwargs: ty.Any
-    ) -> ty.Tuple[requests.Response, object]:
+    ) -> tuple[requests.Response, object]:
         """Perform a DELETE request.
 
         This calls :py:meth:`.request()` with ``method`` set to ``DELETE``.

@@ -63,7 +63,7 @@ class TokenlessAuth(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
 
     def get_headers(
         self, session: 'ks_session.Session'
-    ) -> ty.Optional[ty.Dict[str, str]]:
+    ) -> ty.Optional[dict[str, str]]:
         """Fetch authentication headers for message.
 
         This is to override the default get_headers method to provide

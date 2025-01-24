@@ -27,7 +27,7 @@ class Kerberos(loading.BaseV3Loader[kerberos.Kerberos]):
     def available(self) -> bool:
         return kerberos.requests_kerberos is not None
 
-    def get_options(self) -> ty.List[opts.Opt]:
+    def get_options(self) -> list[opts.Opt]:
         options = super().get_options()
 
         options.extend(
@@ -66,7 +66,7 @@ class MappedKerberos(loading.BaseFederationLoader[kerberos.MappedKerberos]):
     def available(self) -> bool:
         return kerberos.requests_kerberos is not None
 
-    def get_options(self) -> ty.List[opts.Opt]:
+    def get_options(self) -> list[opts.Opt]:
         options = super().get_options()
 
         options.extend(

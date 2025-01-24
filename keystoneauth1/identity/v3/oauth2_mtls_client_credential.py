@@ -134,7 +134,7 @@ class OAuth2mTlsClientCredential(base.BaseAuth, metaclass=abc.ABCMeta):
 
     def get_headers(
         self, session: 'ks_session.Session'
-    ) -> ty.Optional[ty.Dict[str, str]]:
+    ) -> ty.Optional[dict[str, str]]:
         """Fetch authentication headers for message.
 
         :param session: The session object that the auth_plugin belongs to.

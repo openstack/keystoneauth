@@ -32,7 +32,7 @@ __all__ = ('AccessInfo', 'AccessInfoV2', 'AccessInfoV3', 'create')
 
 def create(
     resp: ty.Optional[requests.Response] = None,
-    body: ty.Optional[ty.Dict[str, object]] = None,
+    body: ty.Optional[dict[str, object]] = None,
     auth_token: ty.Optional[str] = None,
 ) -> 'AccessInfo':
     if resp and not body:
@@ -61,7 +61,7 @@ class AccessInfo:
     _data: ty.Any
 
     def __init__(
-        self, body: ty.Dict[str, ty.Any], auth_token: ty.Optional[str] = None
+        self, body: dict[str, ty.Any], auth_token: ty.Optional[str] = None
     ):
         self._data = body
         self._auth_token = auth_token
@@ -168,7 +168,7 @@ class AccessInfo:
         raise NotImplementedError()
 
     @property
-    def role_ids(self) -> ty.Optional[ty.List[str]]:
+    def role_ids(self) -> ty.Optional[list[str]]:
         """Return a list of user's role ids associated with the auth request.
 
         :returns: a list of strings of role ids
@@ -176,7 +176,7 @@ class AccessInfo:
         raise NotImplementedError()
 
     @property
-    def role_names(self) -> ty.Optional[ty.List[str]]:
+    def role_names(self) -> ty.Optional[list[str]]:
         """Return a list of user's role names associated with the auth request.
 
         :returns: a list of strings of role names
@@ -393,7 +393,7 @@ class AccessInfo:
         raise NotImplementedError()
 
     @property
-    def bind(self) -> ty.Optional[ty.Dict[str, ty.Any]]:
+    def bind(self) -> ty.Optional[dict[str, ty.Any]]:
         """Information about external mechanisms the token is bound to.
 
         If a token is bound to an external authentication mechanism it can only
@@ -465,12 +465,12 @@ class AccessInfoV2(AccessInfo):
         return None
 
     @property
-    def role_ids(self) -> ty.Optional[ty.List[str]]:
+    def role_ids(self) -> ty.Optional[list[str]]:
         metadata = self._data['access'].get('metadata', {})
         return metadata.get('roles', [])
 
     @property
-    def role_names(self) -> ty.Optional[ty.List[str]]:
+    def role_names(self) -> ty.Optional[list[str]]:
         return [r['name'] for r in self._user.get('roles', [])]
 
     @property
@@ -589,7 +589,7 @@ class AccessInfoV2(AccessInfo):
         return None
 
     @property
-    def bind(self) -> ty.Optional[ty.Dict[str, ty.Any]]:
+    def bind(self) -> ty.Optional[dict[str, ty.Any]]:
         return self._token.get('bind')
 
 
@@ -640,11 +640,11 @@ class AccessInfoV3(AccessInfo):
         return self._user['domain']['name']
 
     @property
-    def role_ids(self) -> ty.Optional[ty.List[str]]:
+    def role_ids(self) -> ty.Optional[list[str]]:
         return [r['id'] for r in self._token.get('roles', [])]
 
     @property
-    def role_names(self) -> ty.Optional[ty.List[str]]:
+    def role_names(self) -> ty.Optional[list[str]]:
         return [r['name'] for r in self._token.get('roles', [])]
 
     @property
@@ -745,7 +745,7 @@ class AccessInfoV3(AccessInfo):
     @property
     def application_credential_access_rules(
         self,
-    ) -> ty.Optional[ty.List[types.ApplicationCredentialAccessRuleV3]]:
+    ) -> ty.Optional[list[types.ApplicationCredentialAccessRuleV3]]:
         return (
             self._application_credential
             and self._application_credential.get('access_rules')
@@ -794,7 +794,7 @@ class AccessInfoV3(AccessInfo):
         return self._service_providers
 
     @property
-    def bind(self) -> ty.Optional[ty.Dict[str, ty.Any]]:
+    def bind(self) -> ty.Optional[dict[str, ty.Any]]:
         return self._token.get('bind')
 
     # TODO(stephenfin): Should this be private like every other high-level

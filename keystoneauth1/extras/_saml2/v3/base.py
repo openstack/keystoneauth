@@ -31,11 +31,9 @@ class _Saml2TokenAuthMethod(v3.AuthMethod):
         self,
         session: ks_session.Session,
         auth: v3.Auth,
-        headers: ty.Dict[str, str],
-        request_kwargs: ty.Dict[str, object],
-    ) -> ty.Union[
-        ty.Tuple[None, None], ty.Tuple[str, ty.Mapping[str, object]]
-    ]:
+        headers: dict[str, str],
+        request_kwargs: dict[str, object],
+    ) -> ty.Union[tuple[None, None], tuple[str, ty.Mapping[str, object]]]:
         raise exceptions.HttpNotImplemented(
             'This method should never be called'
         )
@@ -120,7 +118,7 @@ class BaseSAMLPlugin(v3.FederationBaseAuth):
         self.password = password
 
     @staticmethod
-    def _first(_list: ty.List[_T]) -> _T:
+    def _first(_list: list[_T]) -> _T:
         if len(_list) != 1:
             raise IndexError('Only single element list is acceptable')
         return _list[0]

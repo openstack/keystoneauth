@@ -63,11 +63,9 @@ class OAuth1Method(v3.AuthMethod):
         self,
         session: ks_session.Session,
         auth: v3.Auth,
-        headers: ty.Dict[str, str],
-        request_kwargs: ty.Dict[str, object],
-    ) -> ty.Union[
-        ty.Tuple[None, None], ty.Tuple[str, ty.Mapping[str, object]]
-    ]:
+        headers: dict[str, str],
+        request_kwargs: dict[str, object],
+    ) -> ty.Union[tuple[None, None], tuple[str, ty.Mapping[str, object]]]:
         # Add the oauth specific content into the headers
         oauth_client = oauth1.Client(
             self.consumer_key,
@@ -84,7 +82,7 @@ class OAuth1Method(v3.AuthMethod):
 
         return 'oauth1', {}
 
-    def get_cache_id_elements(self) -> ty.Dict[str, ty.Optional[str]]:
+    def get_cache_id_elements(self) -> dict[str, ty.Optional[str]]:
         return {
             f'oauth1_{p}': getattr(self, p) for p in self._method_parameters
         }

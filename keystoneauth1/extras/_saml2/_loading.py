@@ -26,7 +26,7 @@ class Saml2Password(loading.BaseFederationLoader[_saml2.V3Saml2Password]):
     def available(self) -> bool:
         return _saml2._V3_SAML2_AVAILABLE
 
-    def get_options(self) -> ty.List[opts.Opt]:
+    def get_options(self) -> list[opts.Opt]:
         options = super().get_options()
 
         options.extend(
@@ -58,7 +58,7 @@ class ADFSPassword(loading.BaseFederationLoader[_saml2.V3ADFSPassword]):
     def available(self) -> bool:
         return _saml2._V3_ADFS_AVAILABLE
 
-    def get_options(self) -> ty.List[opts.Opt]:
+    def get_options(self) -> list[opts.Opt]:
         options = super().get_options()
 
         options.extend(

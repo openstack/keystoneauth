@@ -126,9 +126,7 @@ class _SamlAuth(requests.auth.AuthBase):
     def __init__(
         self,
         identity_provider_url: str,
-        requests_auth: ty.Union[
-            None, requests.auth.AuthBase, ty.Tuple[str, str]
-        ],
+        requests_auth: ty.Union[None, requests.auth.AuthBase, tuple[str, str]],
     ):
         super().__init__()
         self.identity_provider_url = identity_provider_url
@@ -168,7 +166,7 @@ class _SamlAuth(requests.auth.AuthBase):
             headers: ty.Mapping[str, str],
             data: bytes,
             auth: ty.Union[
-                None, requests.auth.AuthBase, ty.Tuple[str, str]
+                None, requests.auth.AuthBase, tuple[str, str]
             ] = None,
             cookies: ty.Optional[requests.cookies.RequestsCookieJar] = None,
         ) -> requests.Response:

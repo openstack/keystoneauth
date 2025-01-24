@@ -77,7 +77,7 @@ def _construct_session(
     return session_obj
 
 
-def _mv_legacy_headers_for_service(mv_service_type: str) -> ty.List[str]:
+def _mv_legacy_headers_for_service(mv_service_type: str) -> list[str]:
     """Workaround for services that predate standardization.
 
     TODO(sdague): eventually convert this to using os-service-types
@@ -95,8 +95,8 @@ def _mv_legacy_headers_for_service(mv_service_type: str) -> ty.List[str]:
 
 
 def _sanitize_headers(
-    headers: ty.Dict[ty.Union[str, bytes], ty.Any],
-) -> ty.Dict[str, ty.Any]:
+    headers: dict[ty.Union[str, bytes], ty.Any],
+) -> dict[str, ty.Any]:
     """Ensure headers are strings and not bytes."""
     str_dict = {}
     for k, v in headers.items():
@@ -370,7 +370,7 @@ class Session:
         session: ty.Optional[requests.Session] = None,
         original_ip: ty.Optional[str] = None,
         verify: ty.Union[bool, str, None] = True,
-        cert: ty.Union[str, ty.Tuple[str, str], None] = None,
+        cert: ty.Union[str, tuple[str, str], None] = None,
         timeout: ty.Optional[int] = None,
         user_agent: ty.Optional[str] = None,
         redirect: ty.Union[int, bool] = _DEFAULT_REDIRECT_LIMIT,
@@ -379,8 +379,8 @@ class Session:
         ] = None,
         app_name: ty.Optional[str] = None,
         app_version: ty.Optional[str] = None,
-        additional_user_agent: ty.Optional[ty.List[ty.Tuple[str, str]]] = None,
-        discovery_cache: ty.Optional[ty.Dict[str, ty.Any]] = None,
+        additional_user_agent: ty.Optional[list[tuple[str, str]]] = None,
+        discovery_cache: ty.Optional[dict[str, ty.Any]] = None,
         split_loggers: ty.Optional[bool] = None,
         collect_timing: bool = False,
         rate_semaphore: ty.Optional[ty.ContextManager[None]] = None,
@@ -413,7 +413,7 @@ class Session:
         self._split_loggers = split_loggers
         self._collect_timing = collect_timing
         self._connect_retries = connect_retries
-        self._api_times: ty.List[RequestTiming] = []
+        self._api_times: list[RequestTiming] = []
         self._rate_semaphore = rate_semaphore or NoOpSemaphore()
 
         if timeout is not None:
@@ -475,7 +475,7 @@ class Session:
         return body
 
     @staticmethod
-    def _process_header(header: ty.Tuple[str, str]) -> ty.Tuple[str, str]:
+    def _process_header(header: tuple[str, str]) -> tuple[str, str]:
         """Redact the secure headers to be logged."""
         secure_headers = (
             'authorization',
@@ -517,7 +517,7 @@ class Session:
         data: ty.Union[str, bytes, None] = None,
         json: object = None,
         headers: ty.Optional[collections.abc.MutableMapping[str, str]] = None,
-        query_params: ty.Optional[ty.Dict[str, ty.Any]] = None,
+        query_params: ty.Optional[dict[str, ty.Any]] = None,
         logger: ty.Optional[logging.Logger] = None,
         split_loggers: ty.Optional[bool] = None,
     ) -> None:
@@ -660,7 +660,7 @@ class Session:
         headers: collections.abc.MutableMapping[str, str],
         microversion: str,
         service_type: ty.Optional[str],
-        endpoint_filter: ty.Optional[ty.Dict[str, ty.Any]],
+        endpoint_filter: ty.Optional[dict[str, ty.Any]],
     ) -> None:
         # We're converting it to normalized version number for two reasons.
         # First, to validate it's a real version number. Second, so that in
@@ -726,7 +726,7 @@ class Session:
         user_agent: ty.Optional[str] = None,
         redirect: ty.Union[int, bool, None] = None,
         authenticated: ty.Optional[bool] = None,
-        endpoint_filter: ty.Optional[ty.Dict[str, ty.Any]] = None,
+        endpoint_filter: ty.Optional[dict[str, ty.Any]] = None,
         auth: ty.Optional['plugin.BaseAuthPlugin'] = None,
         requests_auth: ty.Optional['requests.auth.AuthBase'] = None,
         raise_exc: bool = True,
@@ -735,13 +735,13 @@ class Session:
         endpoint_override: ty.Optional[str] = None,
         connect_retries: ty.Optional[int] = None,
         logger: ty.Optional[logging.Logger] = None,
-        allow: ty.Optional[ty.Dict[str, ty.Any]] = None,
+        allow: ty.Optional[dict[str, ty.Any]] = None,
         client_name: ty.Optional[str] = None,
         client_version: ty.Optional[str] = None,
         microversion: ty.Optional[str] = None,
         microversion_service_type: ty.Optional[str] = None,
         status_code_retries: int = 0,
-        retriable_status_codes: ty.Optional[ty.List[int]] = None,
+        retriable_status_codes: ty.Optional[list[int]] = None,
         rate_semaphore: ty.Optional[ty.ContextManager[None]] = None,
         global_request_id: ty.Optional[str] = None,
         connect_retry_delay: ty.Optional[float] = None,
@@ -1146,7 +1146,7 @@ class Session:
         split_loggers: ty.Optional[bool],
         connect_retries: int,
         status_code_retries: int,
-        retriable_status_codes: ty.List[int],
+        retriable_status_codes: list[int],
         rate_semaphore: ty.ContextManager[None],
         connect_retry_delays: _Retries,
         status_code_retry_delays: _Retries,
@@ -1368,7 +1368,7 @@ class Session:
 
     def get_auth_headers(
         self, auth: ty.Optional['plugin.BaseAuthPlugin'] = None
-    ) -> ty.Optional[ty.Dict[str, str]]:
+    ) -> ty.Optional[dict[str, str]]:
         """Return auth headers as provided by the auth plugin.
 
         :param auth: The auth plugin to use for token. Overrides the plugin
@@ -1461,7 +1461,7 @@ class Session:
         self,
         auth: ty.Optional['plugin.BaseAuthPlugin'] = None,
         **kwargs: ty.Any,
-    ) -> ty.Optional[ty.Tuple[ty.Union[int, float], ...]]:
+    ) -> ty.Optional[tuple[ty.Union[int, float], ...]]:
         """Get the major API version as provided by the auth plugin.
 
         :param auth: The auth plugin to use for token. Overrides the plugin on
@@ -1484,9 +1484,7 @@ class Session:
         region_name: ty.Optional[str] = None,
         service_type: ty.Optional[str] = None,
         **kwargs: ty.Any,
-    ) -> ty.Dict[
-        str, ty.Dict[str, ty.Dict[str, ty.List[discover.VersionData]]]
-    ]:
+    ) -> dict[str, dict[str, dict[str, list[discover.VersionData]]]]:
         """Get version data for all services in the catalog.
 
         :param auth:
@@ -1521,7 +1519,7 @@ class Session:
         self,
         auth: ty.Optional['plugin.BaseAuthPlugin'] = None,
         **kwargs: ty.Any,
-    ) -> ty.Dict[str, ty.Any]:
+    ) -> dict[str, ty.Any]:
         """Return auth connection params as provided by the auth plugin.
 
         An auth plugin may specify connection parameters to the request like
@@ -1626,7 +1624,7 @@ class Session:
         auth = self._auth_required(auth, 'get project_id')
         return auth.get_project_id(self)
 
-    def get_timings(self) -> ty.List[RequestTiming]:
+    def get_timings(self) -> list[RequestTiming]:
         """Return collected API timing information.
 
         :returns: List of `RequestTiming` objects.

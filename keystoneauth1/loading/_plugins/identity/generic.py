@@ -34,7 +34,7 @@ class Token(loading.BaseGenericLoader[identity.Token]):
     def plugin_class(self) -> ty.Type[identity.Token]:
         return identity.Token
 
-    def get_options(self) -> ty.List[opts.Opt]:
+    def get_options(self) -> list[opts.Opt]:
         options = super().get_options()
 
         options.extend(
@@ -63,7 +63,7 @@ class Password(loading.BaseGenericLoader[identity.Password]):
     def plugin_class(self) -> ty.Type[identity.Password]:
         return identity.Password
 
-    def get_options(self) -> ty.List[opts.Opt]:
+    def get_options(self) -> list[opts.Opt]:
         options = super().get_options()
         options.extend(
             [

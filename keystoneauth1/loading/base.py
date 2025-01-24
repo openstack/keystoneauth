@@ -60,7 +60,7 @@ def get_available_plugin_names() -> ty.FrozenSet[str]:
     return frozenset(mgr.names())
 
 
-def get_available_plugin_loaders() -> ty.Dict[
+def get_available_plugin_loaders() -> dict[
     str, 'BaseLoader[plugin.BaseAuthPluginT]'
 ]:
     """Retrieve all the plugin classes available on the system.
@@ -100,7 +100,7 @@ def get_plugin_loader(name: str) -> 'BaseLoader[plugin.BaseAuthPluginT]':
     return ty.cast('BaseLoader[plugin.BaseAuthPluginT]', mgr.driver)
 
 
-def get_plugin_options(name: str) -> ty.List['opts.Opt']:
+def get_plugin_options(name: str) -> list['opts.Opt']:
     """Get the options for a specific plugin.
 
     This will be the list of options that is registered and loaded by the
@@ -138,7 +138,7 @@ class _BaseLoader(ty.Generic[T], metaclass=abc.ABCMeta):
         return self.plugin_class(**kwargs)
 
     @abc.abstractmethod
-    def get_options(self) -> ty.List['opts.Opt']:
+    def get_options(self) -> list['opts.Opt']:
         """Return the list of parameters associated with the auth plugin.
 
         This list may be used to generate CLI or config arguments.

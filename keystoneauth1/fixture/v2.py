@@ -18,7 +18,7 @@ from keystoneauth1 import _utils
 from keystoneauth1.fixture import exception
 
 
-class _Service(ty.Dict[str, ty.Any]):
+class _Service(dict[str, ty.Any]):
     def add_endpoint(
         self,
         public,
@@ -41,7 +41,7 @@ class _Service(ty.Dict[str, ty.Any]):
         return data
 
 
-class Token(ty.Dict[str, ty.Any]):
+class Token(dict[str, ty.Any]):
     """A V2 Keystone token that can be used for testing.
 
     This object is designed to allow clients to generate a correct V2 token for

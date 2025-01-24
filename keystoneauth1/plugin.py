@@ -41,7 +41,7 @@ class BaseAuthPlugin:
     """
 
     def __init__(self) -> None:
-        self._discovery_cache: ty.Dict[str, discover.Discover] = {}
+        self._discovery_cache: dict[str, discover.Discover] = {}
 
     def get_token(self, session: 'ks_session.Session') -> ty.Optional[str]:
         """Obtain a token.
@@ -84,7 +84,7 @@ class BaseAuthPlugin:
 
     def get_headers(
         self, session: 'ks_session.Session'
-    ) -> ty.Optional[ty.Dict[str, str]]:
+    ) -> ty.Optional[dict[str, str]]:
         """Fetch authentication headers for message.
 
         This is a more generalized replacement of the older get_token to allow
@@ -164,7 +164,7 @@ class BaseAuthPlugin:
         *,
         endpoint_override: ty.Optional[str] = None,
         **kwargs: ty.Any,
-    ) -> ty.Optional[ty.Tuple[ty.Union[int, float], ...]]:
+    ) -> ty.Optional[tuple[ty.Union[int, float], ...]]:
         """Get the major API version from the endpoint.
 
         :param session: A session object that can be used for communication.
@@ -208,9 +208,7 @@ class BaseAuthPlugin:
         region_name: ty.Optional[str] = None,
         service_type: ty.Optional[str] = None,
         **kwargs: ty.Any,
-    ) -> ty.Dict[
-        str, ty.Dict[str, ty.Dict[str, ty.List[discover.VersionData]]]
-    ]:
+    ) -> dict[str, dict[str, dict[str, list[discover.VersionData]]]]:
         """Get version data for all services in the catalog.
 
         :param session: A session object that can be used for communication.
@@ -263,7 +261,7 @@ class BaseAuthPlugin:
 
     def get_connection_params(
         self, session: 'ks_session.Session', **kwargs: ty.Any
-    ) -> ty.Dict[str, ty.Any]:
+    ) -> dict[str, ty.Any]:
         """Return any additional connection parameters required for the plugin.
 
         :param session: The session object that the auth_plugin belongs to.

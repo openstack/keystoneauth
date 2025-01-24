@@ -30,7 +30,7 @@ class Token(loading.BaseV2Loader[identity.V2Token]):
     def plugin_class(self) -> ty.Type[identity.V2Token]:
         return identity.V2Token
 
-    def get_options(self) -> ty.List[opts.Opt]:
+    def get_options(self) -> list[opts.Opt]:
         options = super().get_options()
 
         options.extend([loading.Opt('token', secret=True, help='Token')])
@@ -49,7 +49,7 @@ class Password(loading.BaseV2Loader[identity.V2Password]):
     def plugin_class(self) -> ty.Type[identity.V2Password]:
         return identity.V2Password
 
-    def get_options(self) -> ty.List[opts.Opt]:
+    def get_options(self) -> list[opts.Opt]:
         options = super().get_options()
 
         options.extend(

@@ -139,7 +139,7 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
         self.client_secret = client_secret
 
         self.discovery_endpoint = discovery_endpoint
-        self._discovery_document: ty.Dict[str, object] = {}
+        self._discovery_document: dict[str, object] = {}
         self.access_token_endpoint = access_token_endpoint
 
         self.access_token_type = access_token_type
@@ -147,7 +147,7 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
 
     def _get_discovery_document(
         self, session: ks_session.Session
-    ) -> ty.Dict[str, object]:
+    ) -> dict[str, object]:
         """Get the contents of the OpenID Connect Discovery Document.
 
         This method grabs the contents of the OpenID Connect Discovery Document
@@ -212,8 +212,8 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
         return ty.cast(str, endpoint)
 
     def _sanitize(
-        self, data: ty.Dict[str, ty.Optional[str]]
-    ) -> ty.Dict[str, ty.Optional[str]]:
+        self, data: dict[str, ty.Optional[str]]
+    ) -> dict[str, ty.Optional[str]]:
         sanitized = copy.deepcopy(data)
         for key in sanitized:
             if any(s in key for s in SENSITIVE_KEYS):
@@ -221,9 +221,7 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
         return sanitized
 
     def _get_access_token(
-        self,
-        session: ks_session.Session,
-        payload: ty.Dict[str, ty.Optional[str]],
+        self, session: ks_session.Session, payload: dict[str, ty.Optional[str]]
     ) -> str:
         """Exchange a variety of user supplied values for an access token.
 
@@ -330,7 +328,7 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
         # First of all, check if the grant type is supported
         discovery = self._get_discovery_document(session)
         grant_types = ty.cast(
-            ty.Optional[ty.List[str]], discovery.get("grant_types_supported")
+            ty.Optional[list[str]], discovery.get("grant_types_supported")
         )
         if (
             grant_types
@@ -356,7 +354,7 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def get_payload(
         self, session: ks_session.Session
-    ) -> ty.Dict[str, ty.Optional[str]]:
+    ) -> dict[str, ty.Optional[str]]:
         """Get the plugin specific payload for obtainin an access token.
 
         OpenID Connect supports different grant types. This method should
@@ -439,7 +437,7 @@ class OidcPassword(_OidcBase):
 
     def get_payload(
         self, session: ks_session.Session
-    ) -> ty.Dict[str, ty.Optional[str]]:
+    ) -> dict[str, ty.Optional[str]]:
         """Get an authorization grant for the "password" grant type.
 
         :param session: a session object to send out HTTP requests.
@@ -460,9 +458,7 @@ class OidcPassword(_OidcBase):
         return payload
 
     def manage_otp_from_session_or_request_to_the_user(
-        self,
-        payload: ty.Dict[str, ty.Optional[str]],
-        session: ks_session.Session,
+        self, payload: dict[str, ty.Optional[str]], session: ks_session.Session
     ) -> None:
         """Get the OTP code from the session or else request to the user.
 
@@ -555,7 +551,7 @@ class OidcClientCredentials(_OidcBase):
 
     def get_payload(
         self, session: ks_session.Session
-    ) -> ty.Dict[str, ty.Optional[str]]:
+    ) -> dict[str, ty.Optional[str]]:
         """Get an authorization grant for the client credentials grant type.
 
         :param session: a session object to send out HTTP requests.
@@ -564,7 +560,7 @@ class OidcClientCredentials(_OidcBase):
         :returns: a python dictionary containing the payload to be exchanged
         :rtype: dict
         """
-        payload: ty.Dict[str, ty.Optional[str]] = {'scope': self.scope}
+        payload: dict[str, ty.Optional[str]] = {'scope': self.scope}
         return payload
 
 
@@ -633,7 +629,7 @@ class OidcAuthorizationCode(_OidcBase):
 
     def get_payload(
         self, session: ks_session.Session
-    ) -> ty.Dict[str, ty.Optional[str]]:
+    ) -> dict[str, ty.Optional[str]]:
         """Get an authorization grant for the "authorization_code" grant type.
 
         :param session: a session object to send out HTTP requests.
@@ -719,7 +715,7 @@ class OidcAccessToken(_OidcBase):
 
     def get_payload(
         self, session: ks_session.Session
-    ) -> ty.Dict[str, ty.Optional[str]]:
+    ) -> dict[str, ty.Optional[str]]:
         """OidcAccessToken does not require a payload."""  # noqa: D403
         return {}
 
@@ -871,7 +867,7 @@ class OidcDeviceAuthorization(_OidcBase):
 
     def get_payload(
         self, session: ks_session.Session
-    ) -> ty.Dict[str, ty.Optional[str]]:
+    ) -> dict[str, ty.Optional[str]]:
         """Get an authorization grant for the "device_code" grant type.
 
         :param session: a session object to send out HTTP requests.
@@ -880,7 +876,7 @@ class OidcDeviceAuthorization(_OidcBase):
         :returns: a python dictionary containing the payload to be exchanged
         :rtype: dict
         """
-        payload: ty.Dict[str, ty.Optional[str]]
+        payload: dict[str, ty.Optional[str]]
         device_authz_endpoint = self._get_device_authorization_endpoint(
             session
         )
@@ -943,9 +939,7 @@ class OidcDeviceAuthorization(_OidcBase):
         return payload
 
     def _get_access_token(
-        self,
-        session: ks_session.Session,
-        payload: ty.Dict[str, ty.Optional[str]],
+        self, session: ks_session.Session, payload: dict[str, ty.Optional[str]]
     ) -> str:
         """Poll token endpoint for an access token.
 

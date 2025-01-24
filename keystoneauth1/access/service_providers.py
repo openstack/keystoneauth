@@ -10,7 +10,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import typing as ty
 
 from keystoneauth1.access import types
 from keystoneauth1 import exceptions
@@ -19,7 +18,7 @@ from keystoneauth1 import exceptions
 class ServiceProviders:
     """Helper methods for dealing with Service Providers."""
 
-    def __init__(self, service_providers: ty.List[types.ServiceProviderV3]):
+    def __init__(self, service_providers: list[types.ServiceProviderV3]):
         self._service_providers = {
             sp['id']: sp for sp in service_providers if 'id' in sp
         }

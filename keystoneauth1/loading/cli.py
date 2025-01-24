@@ -39,7 +39,7 @@ def _register_plugin_argparse_arguments(
 
 
 def register_argparse_arguments(
-    parser: argparse.ArgumentParser, argv: ty.List[str], default: ty.Any = None
+    parser: argparse.ArgumentParser, argv: list[str], default: ty.Any = None
 ) -> ty.Optional[base.BaseLoader['plugin.BaseAuthPluginT']]:
     """Register CLI options needed to create a plugin.
 

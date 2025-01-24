@@ -97,7 +97,7 @@ class Token(base.BaseGenericPlugin):
 
         return None
 
-    def get_cache_id_elements(self) -> ty.Dict[str, ty.Optional[str]]:
+    def get_cache_id_elements(self) -> dict[str, ty.Optional[str]]:
         return {
             'auth_url': self.auth_url,
             'project_id': self._project_id,

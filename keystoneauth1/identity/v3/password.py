@@ -46,12 +46,10 @@ class PasswordMethod(base.AuthMethod):
         self,
         session: ks_session.Session,
         auth: base.Auth,
-        headers: ty.Dict[str, str],
-        request_kwargs: ty.Dict[str, object],
-    ) -> ty.Union[
-        ty.Tuple[None, None], ty.Tuple[str, ty.Mapping[str, object]]
-    ]:
-        user: ty.Dict[str, ty.Any] = {'password': self.password}
+        headers: dict[str, str],
+        request_kwargs: dict[str, object],
+    ) -> ty.Union[tuple[None, None], tuple[str, ty.Mapping[str, object]]]:
+        user: dict[str, ty.Any] = {'password': self.password}
 
         if self.user_id:
             user['id'] = self.user_id
@@ -65,7 +63,7 @@ class PasswordMethod(base.AuthMethod):
 
         return 'password', {'user': user}
 
-    def get_cache_id_elements(self) -> ty.Dict[str, ty.Optional[str]]:
+    def get_cache_id_elements(self) -> dict[str, ty.Optional[str]]:
         return {
             f'password_{p}': getattr(self, p) for p in self._method_parameters
         }

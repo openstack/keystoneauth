@@ -221,5 +221,5 @@ class BaseGenericPlugin(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
         return self._plugin.get_auth_ref(session)
 
     @abc.abstractmethod
-    def get_cache_id_elements(self) -> ty.Dict[str, ty.Optional[str]]:
+    def get_cache_id_elements(self) -> dict[str, ty.Optional[str]]:
         raise NotImplementedError()

@@ -19,7 +19,7 @@ __all__ = ('DiscoveryList', 'V2Discovery', 'V3Discovery', 'VersionDiscovery')
 _DEFAULT_DAYS_AGO = 30
 
 
-class DiscoveryBase(ty.Dict[str, ty.Any]):
+class DiscoveryBase(dict[str, ty.Any]):
     """The basic version discovery structure.
 
     All version discovery elements should have access to these values.
@@ -283,7 +283,7 @@ class V3Discovery(DiscoveryBase):
         )
 
 
-class DiscoveryList(ty.Dict[str, ty.Any]):
+class DiscoveryList(dict[str, ty.Any]):
     """A List of version elements.
 
     Creates a correctly structured list of identity service endpoints for

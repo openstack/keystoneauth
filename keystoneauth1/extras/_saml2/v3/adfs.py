@@ -143,7 +143,7 @@ class Password(base.BaseSAMLPlugin):
 
     def _token_dates(
         self, fmt: str = '%Y-%m-%dT%H:%M:%S.%fZ'
-    ) -> ty.Tuple[str, str]:
+    ) -> tuple[str, str]:
         """Calculate created and expires datetime objects.
 
         The method is going to be used for building ADFS Request Security

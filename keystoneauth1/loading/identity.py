@@ -51,7 +51,7 @@ class BaseIdentityLoader(base.BaseLoader[PluginT]):
     :py:class:`keystoneauth1.identity.BaseIdentityPlugin` class.
     """
 
-    def get_options(self) -> ty.List[opts.Opt]:
+    def get_options(self) -> list[opts.Opt]:
         options = super().get_options()
 
         options.extend(
@@ -69,7 +69,7 @@ class BaseV2Loader(BaseIdentityLoader[V2PluginT]):
     :py:class:`keystoneauth1.identity.v2.Auth` class.
     """
 
-    def get_options(self) -> ty.List[opts.Opt]:
+    def get_options(self) -> list[opts.Opt]:
         options = super().get_options()
 
         options.extend(
@@ -93,7 +93,7 @@ class BaseV3Loader(BaseIdentityLoader[V3PluginT]):
     :py:class:`keystoneauth1.identity.v3.Auth` class.
     """
 
-    def get_options(self) -> ty.List[opts.Opt]:
+    def get_options(self) -> list[opts.Opt]:
         options = super().get_options()
 
         options.extend(
@@ -142,7 +142,7 @@ class BaseFederationLoader(BaseV3Loader[V3FederationPluginT]):
     :py:class:`keystoneauth1.identity.v3.FederationBaseAuth` class.
     """
 
-    def get_options(self) -> ty.List[opts.Opt]:
+    def get_options(self) -> list[opts.Opt]:
         options = super().get_options()
 
         options.extend(
@@ -173,7 +173,7 @@ class BaseGenericLoader(BaseIdentityLoader[GenericPluginT]):
     class.
     """
 
-    def get_options(self) -> ty.List[opts.Opt]:
+    def get_options(self) -> list[opts.Opt]:
         options = super().get_options()
 
         options.extend(

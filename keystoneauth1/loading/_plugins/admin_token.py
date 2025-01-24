@@ -34,7 +34,7 @@ class AdminToken(loading.BaseLoader[token_endpoint.Token]):
     def plugin_class(self) -> ty.Type[token_endpoint.Token]:
         return token_endpoint.Token
 
-    def get_options(self) -> ty.List[opts.Opt]:
+    def get_options(self) -> list[opts.Opt]:
         options = super().get_options()
 
         options.extend(

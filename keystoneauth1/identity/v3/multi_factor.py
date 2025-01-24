@@ -41,7 +41,7 @@ class MultiFactor(base.Auth):
     def __init__(
         self,
         auth_url: str,
-        auth_methods: ty.List[str],
+        auth_methods: list[str],
         *,
         unscoped: bool = False,
         trust_id: ty.Optional[str] = None,
@@ -56,8 +56,8 @@ class MultiFactor(base.Auth):
         include_catalog: bool = True,
         **kwargs: ty.Any,
     ):
-        method_instances: ty.List[base.AuthMethod] = []
-        method_keys: ty.Set[str] = set()
+        method_instances: list[base.AuthMethod] = []
+        method_keys: set[str] = set()
         for method in auth_methods:
             # Using the loaders we pull the related auth method class
             loader: loading.BaseLoader[plugin.BaseAuthPlugin] = (

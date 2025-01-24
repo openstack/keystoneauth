@@ -18,7 +18,7 @@ from keystoneauth1 import _utils
 from keystoneauth1.fixture import exception
 
 
-class _Service(ty.Dict[str, ty.Any]):
+class _Service(dict[str, ty.Any]):
     """One of the services that exist in the catalog.
 
     You use this by adding a service to a token which returns an instance of
@@ -51,7 +51,7 @@ class _Service(ty.Dict[str, ty.Any]):
         return ret
 
 
-class Token(ty.Dict[str, ty.Any]):
+class Token(dict[str, ty.Any]):
     """A V3 Keystone token that can be used for testing.
 
     This object is designed to allow clients to generate a correct V3 token for

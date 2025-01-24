@@ -25,7 +25,7 @@ import typing_extensions as ty_ext
 from keystoneauth1 import discover
 from keystoneauth1 import exceptions
 
-_SERVICE_CATALOG_T = ty.List[ty.Dict[str, ty.Any]]
+_SERVICE_CATALOG_T = list[dict[str, ty.Any]]
 
 
 class ServiceCatalog(metaclass=abc.ABCMeta):
@@ -36,7 +36,7 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
 
     @classmethod
     @abc.abstractmethod
-    def from_token(cls, token: ty.Dict[str, ty.Any]) -> ty_ext.Self:
+    def from_token(cls, token: dict[str, ty.Any]) -> ty_ext.Self:
         """Retrieve the service catalog from a token.
 
         :param token:
@@ -44,7 +44,7 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
         """
 
     def _get_endpoint_region(
-        self, endpoint: ty.Dict[str, str]
+        self, endpoint: dict[str, str]
     ) -> ty.Optional[str]:
         return endpoint.get('region_id') or endpoint.get('region')
 
@@ -60,7 +60,7 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def is_interface_match(
-        self, endpoint: ty.Dict[str, str], interface: str
+        self, endpoint: dict[str, str], interface: str
     ) -> bool:
         """Helper function to normalize endpoint matching across v2 and v3.
 
@@ -82,8 +82,8 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
         return interface
 
     def _normalize_endpoints(
-        self, endpoints: ty.List[ty.Dict[str, ty.Any]]
-    ) -> ty.List[ty.Dict[str, ty.Any]]:
+        self, endpoints: list[dict[str, ty.Any]]
+    ) -> list[dict[str, ty.Any]]:
         """Translate endpoint description dicts into v3 form.
 
         Takes a raw endpoint description from the catalog and changes
@@ -104,8 +104,8 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
         return new_endpoints
 
     def _denormalize_endpoints(
-        self, endpoints: ty.List[discover.EndpointData]
-    ) -> ty.List[ty.Union[str, None]]:
+        self, endpoints: list[discover.EndpointData]
+    ) -> list[ty.Union[str, None]]:
         """Return original endpoint description dicts.
 
         Takes a list of EndpointData objects and returns the original
@@ -117,7 +117,7 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
         """
         return [endpoint.raw_endpoint for endpoint in endpoints]
 
-    def normalize_catalog(self) -> ty.List[ty.Dict[str, ty.Any]]:
+    def normalize_catalog(self) -> list[dict[str, ty.Any]]:
         """Return the catalog normalized into v3 format."""
         catalog = []
         for service in copy.deepcopy(self._catalog):
@@ -146,11 +146,8 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
         return catalog
 
     def _get_interface_list(
-        self,
-        interface: ty.Union[
-            str, ty.List[str], ty.Tuple[str], ty.Set[str], None
-        ],
-    ) -> ty.List[str]:
+        self, interface: ty.Union[str, list[str], tuple[str], set[str], None]
+    ) -> list[str]:
         if not interface:
             return []
         if not isinstance(interface, (list, tuple, set)):
@@ -160,14 +157,12 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
     def get_endpoints_data(
         self,
         service_type: ty.Optional[str] = None,
-        interface: ty.Union[
-            str, ty.List[str], ty.Tuple[str], ty.Set[str], None
-        ] = None,
+        interface: ty.Union[str, list[str], tuple[str], set[str], None] = None,
         region_name: ty.Optional[str] = None,
         service_name: ty.Optional[str] = None,
         service_id: ty.Optional[str] = None,
         endpoint_id: ty.Optional[str] = None,
-    ) -> ty.Dict[str, ty.List[discover.EndpointData]]:
+    ) -> dict[str, list[discover.EndpointData]]:
         """Fetch and filter endpoint data for the specified service(s).
 
         Returns endpoints for the specified service (or all) containing
@@ -194,7 +189,7 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
         """
         interfaces = self._get_interface_list(interface)
 
-        matching_endpoints: ty.Dict[str, ty.List[discover.EndpointData]] = {}
+        matching_endpoints: dict[str, list[discover.EndpointData]] = {}
 
         for service in self.normalize_catalog():
             if service_type and not discover._SERVICE_TYPES.is_match(
@@ -240,15 +235,13 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
         if not interfaces:
             return self._endpoints_by_type(service_type, matching_endpoints)
 
-        ret: ty.Dict[str, ty.List[discover.EndpointData]] = {}
+        ret: dict[str, list[discover.EndpointData]] = {}
         for matched_service_type, endpoints in matching_endpoints.items():
             if not endpoints:
                 ret[matched_service_type] = []
                 continue
 
-            matches_by_interface: ty.Dict[
-                str, ty.List[discover.EndpointData]
-            ] = {}
+            matches_by_interface: dict[str, list[discover.EndpointData]] = {}
             for endpoint in endpoints:
                 matches_by_interface.setdefault(endpoint.interface, [])
                 matches_by_interface[endpoint.interface].append(endpoint)
@@ -263,8 +256,8 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
     def _endpoints_by_type(
         self,
         requested: ty.Optional[str],
-        endpoints: ty.Dict[str, ty.List[discover.EndpointData]],
-    ) -> ty.Dict[str, ty.List[discover.EndpointData]]:
+        endpoints: dict[str, list[discover.EndpointData]],
+    ) -> dict[str, list[discover.EndpointData]]:
         """Get the approrpriate endpoints from the list of given endpoints.
 
         Per the service type alias rules:
@@ -328,14 +321,12 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
     def get_endpoints(
         self,
         service_type: ty.Optional[str] = None,
-        interface: ty.Union[
-            str, ty.List[str], ty.Tuple[str], ty.Set[str], None
-        ] = None,
+        interface: ty.Union[str, list[str], tuple[str], set[str], None] = None,
         region_name: ty.Optional[str] = None,
         service_name: ty.Optional[str] = None,
         service_id: ty.Optional[str] = None,
         endpoint_id: ty.Optional[str] = None,
-    ) -> ty.Dict[str, ty.List[ty.Union[str, None]]]:
+    ) -> dict[str, list[ty.Union[str, None]]]:
         """Fetch and filter endpoint data for the specified service(s).
 
         Returns endpoints for the specified service (or all) containing
@@ -364,13 +355,13 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
         self,
         service_type: ty.Optional[str] = None,
         interface: ty.Union[
-            str, ty.List[str], ty.Tuple[str], ty.Set[str], None
+            str, list[str], tuple[str], set[str], None
         ] = 'public',
         region_name: ty.Optional[str] = None,
         service_name: ty.Optional[str] = None,
         service_id: ty.Optional[str] = None,
         endpoint_id: ty.Optional[str] = None,
-    ) -> ty.List[discover.EndpointData]:
+    ) -> list[discover.EndpointData]:
         """Fetch a flat list of matching EndpointData objects.
 
         Fetch the endpoints from the service catalog for a particular
@@ -407,13 +398,13 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
         self,
         service_type: ty.Optional[str] = None,
         interface: ty.Union[
-            str, ty.List[str], ty.Tuple[str], ty.Set[str], None
+            str, list[str], tuple[str], set[str], None
         ] = 'public',
         region_name: ty.Optional[str] = None,
         service_name: ty.Optional[str] = None,
         service_id: ty.Optional[str] = None,
         endpoint_id: ty.Optional[str] = None,
-    ) -> ty.Tuple[ty.Optional[str], ...]:
+    ) -> tuple[ty.Optional[str], ...]:
         """Fetch endpoint urls from the service catalog.
 
         Fetch the urls of endpoints from the service catalog for a particular
@@ -449,7 +440,7 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
         self,
         service_type: ty.Optional[str] = None,
         interface: ty.Union[
-            str, ty.List[str], ty.Tuple[str], ty.Set[str], None
+            str, list[str], tuple[str], set[str], None
         ] = 'public',
         region_name: ty.Optional[str] = None,
         service_name: ty.Optional[str] = None,
@@ -488,7 +479,7 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
         self,
         service_type: ty.Optional[str] = None,
         interface: ty.Union[
-            str, ty.List[str], ty.Tuple[str], ty.Set[str], None
+            str, list[str], tuple[str], set[str], None
         ] = 'public',
         region_name: ty.Optional[str] = None,
         service_name: ty.Optional[str] = None,
@@ -558,7 +549,7 @@ class ServiceCatalogV2(ServiceCatalog):
     """
 
     @classmethod
-    def from_token(cls, token: ty.Dict[str, ty.Any]) -> ty_ext.Self:
+    def from_token(cls, token: dict[str, ty.Any]) -> ty_ext.Self:
         if 'access' not in token:
             raise ValueError('Invalid token format for fetching catalog')
 
@@ -572,13 +563,13 @@ class ServiceCatalogV2(ServiceCatalog):
         return interface
 
     def is_interface_match(
-        self, endpoint: ty.Dict[str, str], interface: str
+        self, endpoint: dict[str, str], interface: str
     ) -> bool:
         return interface in endpoint
 
     def _normalize_endpoints(
-        self, endpoints: ty.List[ty.Dict[str, ty.Any]]
-    ) -> ty.List[ty.Dict[str, ty.Any]]:
+        self, endpoints: list[dict[str, ty.Any]]
+    ) -> list[dict[str, ty.Any]]:
         """Translate endpoint description dicts into v3 form.
 
         Takes a raw endpoint description from the catalog and changes
@@ -610,8 +601,8 @@ class ServiceCatalogV2(ServiceCatalog):
         return new_endpoints
 
     def _denormalize_endpoints(
-        self, endpoints: ty.List[discover.EndpointData]
-    ) -> ty.List[ty.Union[str, None]]:
+        self, endpoints: list[discover.EndpointData]
+    ) -> list[ty.Union[str, None]]:
         """Return original endpoint description dicts.
 
         Takes a list of EndpointData objects and returns the original
@@ -642,7 +633,7 @@ class ServiceCatalogV3(ServiceCatalog):
     """
 
     @classmethod
-    def from_token(cls, token: ty.Dict[str, ty.Any]) -> ty_ext.Self:
+    def from_token(cls, token: dict[str, ty.Any]) -> ty_ext.Self:
         if 'token' not in token:
             raise ValueError('Invalid token format for fetching catalog')
 
@@ -656,7 +647,7 @@ class ServiceCatalogV3(ServiceCatalog):
         return interface
 
     def is_interface_match(
-        self, endpoint: ty.Dict[str, str], interface: str
+        self, endpoint: dict[str, str], interface: str
     ) -> bool:
         try:
             return interface == endpoint['interface']

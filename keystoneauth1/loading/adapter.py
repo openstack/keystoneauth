@@ -37,16 +37,16 @@ class Adapter(base._BaseLoader[adapter.Adapter]):
     def plugin_class(self) -> ty.Type[adapter.Adapter]:
         return adapter.Adapter
 
-    def get_options(self) -> ty.List['opts.Opt']:
+    def get_options(self) -> list['opts.Opt']:
         return []
 
     @staticmethod
     def get_conf_options(
         include_deprecated: bool = True,
         deprecated_opts: ty.Optional[
-            ty.Dict[str, ty.List['cfg.DeprecatedOpt']]
+            dict[str, list['cfg.DeprecatedOpt']]
         ] = None,
-    ) -> ty.List['cfg.Opt']:
+    ) -> list['cfg.Opt']:
         """Get oslo_config options that are needed for a :py:class:`.Adapter`.
 
         These may be useful without being registered for config file generation
@@ -223,9 +223,9 @@ class Adapter(base._BaseLoader[adapter.Adapter]):
         group: str,
         include_deprecated: bool = True,
         deprecated_opts: ty.Optional[
-            ty.Dict[str, ty.List['cfg.DeprecatedOpt']]
+            dict[str, list['cfg.DeprecatedOpt']]
         ] = None,
-    ) -> ty.List['cfg.Opt']:
+    ) -> list['cfg.Opt']:
         """Register the oslo_config options that are needed for an Adapter.
 
         The options that are set are:
@@ -304,7 +304,7 @@ class Adapter(base._BaseLoader[adapter.Adapter]):
 
 
 def process_conf_options(
-    confgrp: 'cfg.OptGroup', kwargs: ty.Dict[str, ty.Any]
+    confgrp: 'cfg.OptGroup', kwargs: dict[str, ty.Any]
 ) -> None:
     """Set Adapter constructor kwargs based on conf options.
 
@@ -369,10 +369,8 @@ def register_conf_options(
     conf: 'cfg.ConfigOpts',
     group: str,
     include_deprecated: bool = True,
-    deprecated_opts: ty.Optional[
-        ty.Dict[str, ty.List['cfg.DeprecatedOpt']]
-    ] = None,
-) -> ty.List['cfg.Opt']:
+    deprecated_opts: ty.Optional[dict[str, list['cfg.DeprecatedOpt']]] = None,
+) -> list['cfg.Opt']:
     return Adapter().register_conf_options(
         conf,
         group,
@@ -389,8 +387,6 @@ def load_from_conf_options(
 
 def get_conf_options(
     include_deprecated: bool = True,
-    deprecated_opts: ty.Optional[
-        ty.Dict[str, ty.List['cfg.DeprecatedOpt']]
-    ] = None,
-) -> ty.List['cfg.Opt']:
+    deprecated_opts: ty.Optional[dict[str, list['cfg.DeprecatedOpt']]] = None,
+) -> list['cfg.Opt']:
     return Adapter.get_conf_options(include_deprecated, deprecated_opts)
