@@ -67,10 +67,8 @@ class ServiceTokenAuthWrapper(plugin.BaseAuthPlugin):
     # be extracted into a base wrapper class. We can do this as soon as there
     # is a need for it, but we may never actually need it.
 
-    def get_token(
-        self, session: 'ks_session.Session', **kwargs: ty.Any
-    ) -> ty.Optional[str]:
-        return self.user_auth.get_token(session, **kwargs)
+    def get_token(self, session: 'ks_session.Session') -> ty.Optional[str]:
+        return self.user_auth.get_token(session)
 
     def get_endpoint(
         self, session: 'ks_session.Session', **kwargs: ty.Any

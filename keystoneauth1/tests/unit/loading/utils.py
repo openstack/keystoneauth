@@ -45,7 +45,7 @@ def create_plugin(opts=[], token=None, endpoint=None):
         def __getitem__(self, key):
             return self._data[key]
 
-        def get_token(self, *args, **kwargs):
+        def get_token(self, *args):
             return token
 
         def get_endpoint(self, *args, **kwargs):

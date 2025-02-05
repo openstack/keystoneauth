@@ -38,9 +38,7 @@ class HTTPBasicAuth(plugin.FixedEndpointPlugin):
         self.username = username
         self.password = password
 
-    def get_token(
-        self, session: 'ks_session.Session', **kwargs: ty.Any
-    ) -> ty.Optional[str]:
+    def get_token(self, session: 'ks_session.Session') -> ty.Optional[str]:
         if self.username is None or self.password is None:
             return None
         token = bytes(f'{self.username}:{self.password}', encoding='utf-8')

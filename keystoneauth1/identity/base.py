@@ -74,9 +74,7 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         :rtype: :class:`keystoneauth1.access.AccessInfo`
         """
 
-    def get_token(
-        self, session: ks_session.Session, **kwargs: ty.Any
-    ) -> ty.Optional[str]:
+    def get_token(self, session: ks_session.Session) -> ty.Optional[str]:
         """Return a valid auth token.
 
         If a valid token is not present then a new one will be fetched.

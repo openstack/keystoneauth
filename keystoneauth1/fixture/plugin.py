@@ -72,7 +72,7 @@ class TestPlugin(plugin.BaseAuthPlugin):
     def get_endpoint(self, session, **kwargs):
         return _format_endpoint(self.endpoint, **kwargs)
 
-    def get_token(self, session, **kwargs):
+    def get_token(self, session):
         return self.token
 
     def get_user_id(self, session, **kwargs):

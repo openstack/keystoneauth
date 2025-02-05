@@ -2570,7 +2570,7 @@ class GenericPlugin(plugin.BaseAuthPlugin):
     def url(self, prefix):
         return f'{self.endpoint}/{prefix}'
 
-    def get_token(self, session, **kwargs):
+    def get_token(self, session):
         # NOTE(jamielennox): by specifying get_headers this should not be used
         return self.BAD_TOKEN
 
