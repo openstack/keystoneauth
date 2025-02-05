@@ -137,9 +137,8 @@ class MappedKerberos(federation.FederationBaseAuth):
             include_catalog=include_catalog,
         )
 
-    # TODO(stephenfin): Deprecate and remove unused kwargs
     def get_unscoped_auth_ref(
-        self, session: ks_session.Session, **kwargs: ty.Any
+        self, session: ks_session.Session
     ) -> access.AccessInfoV3:
         resp = session.get(
             self.federated_token_url,
