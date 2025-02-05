@@ -37,6 +37,7 @@ class Password(base.BaseGenericPlugin):
         password: ty.Optional[str] = None,
         user_domain_id: ty.Optional[str] = None,
         user_domain_name: ty.Optional[str] = None,
+        *,
         tenant_id: ty.Optional[str] = None,
         tenant_name: ty.Optional[str] = None,
         project_id: ty.Optional[str] = None,

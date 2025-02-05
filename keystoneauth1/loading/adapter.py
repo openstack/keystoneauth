@@ -318,16 +318,15 @@ def process_conf_options(
     """
     if confgrp.valid_interfaces and getattr(confgrp, 'interface', None):
         raise TypeError(
-            "interface and valid_interfaces are mutually"
-            " exclusive. Please use valid_interfaces."
+            "interface and valid_interfaces are mutually "
+            "exclusive. Please use valid_interfaces."
         )
     if confgrp.valid_interfaces:
         for iface in confgrp.valid_interfaces:
             if iface not in ('public', 'internal', 'admin'):
-                # TODO(efried): s/valies/values/ - are we allowed to fix this?
                 raise TypeError(
                     f"'{iface}' is not a valid value for"
-                    " valid_interfaces. Valid valies are"
+                    " valid_interfaces. Valid values are"
                     " public, internal or admin"
                 )
         kwargs.setdefault('interface', confgrp.valid_interfaces)
