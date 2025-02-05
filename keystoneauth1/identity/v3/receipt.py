@@ -29,14 +29,12 @@ class ReceiptMethod(base.AuthMethod):
 
     _method_parameters = ['receipt']
 
-    # TODO(stephenfin): Deprecate and remove unused kwargs
     def get_auth_data(
         self,
         session: ks_session.Session,
         auth: base.Auth,
         headers: ty.Dict[str, str],
         request_kwargs: ty.Dict[str, object],
-        **kwargs: ty.Any,
     ) -> ty.Union[
         ty.Tuple[None, None], ty.Tuple[str, ty.Mapping[str, object]]
     ]:
