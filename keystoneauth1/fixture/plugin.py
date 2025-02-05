@@ -87,9 +87,12 @@ class TestPlugin(plugin.BaseAuthPlugin):
 
     # NOTE(jamielennox): You'll notice there's no get_access/get_auth_ref
     # function here. These functions are only part of identity plugins, which
-    # whilst the most common are not the only way you can authenticate. You're
+    # whilst the most common are not the only way you can authenticate. Your
     # application should really only rely on the presence of the above
     # functions, everything else is on a best effort basis.
+    # TODO(stephenfin): This is no longer true as of change
+    # I239dc34fdcbff9bd658dc89ddb1536c7f0df9395 which added a 'get_auth_ref'
+    # method.
 
 
 class _TestPluginLoader(loading.BaseLoader[TestPlugin]):

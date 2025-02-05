@@ -37,9 +37,7 @@ class _Rescoped(base.BaseAuth, metaclass=abc.ABCMeta):
 
     rescoping_plugin = token.Token
 
-    def get_auth_ref(
-        self, session: ks_session.Session, **kwargs: ty.Any
-    ) -> access.AccessInfoV3:
+    def get_auth_ref(self, session: ks_session.Session) -> access.AccessInfoV3:
         """Authenticate retrieve token information.
 
         This is a multi-step process where a client does federated authn

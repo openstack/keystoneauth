@@ -214,13 +214,11 @@ class BaseGenericPlugin(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
             'to authenticate. Please check that your auth_url is correct.'
         )
 
-    def get_auth_ref(
-        self, session: ks_session.Session, **kwargs: ty.Any
-    ) -> access.AccessInfo:
+    def get_auth_ref(self, session: ks_session.Session) -> access.AccessInfo:
         if not self._plugin:
             self._plugin = self._do_create_plugin(session)
 
-        return self._plugin.get_auth_ref(session, **kwargs)
+        return self._plugin.get_auth_ref(session)
 
     @abc.abstractmethod
     def get_cache_id_elements(self) -> ty.Dict[str, ty.Optional[str]]:

@@ -85,7 +85,7 @@ class Token(plugin.BaseAuthPlugin):
         return self.endpoint
 
     def get_auth_ref(
-        self, session: 'ks_session.Session', **kwargs: ty.Any
+        self, session: 'ks_session.Session'
     ) -> ty.Optional['access.AccessInfo']:
         """Return the authentication reference of an auth plugin.
 
