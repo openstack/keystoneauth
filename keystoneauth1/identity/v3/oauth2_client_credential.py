@@ -138,7 +138,7 @@ class OAuth2ClientCredential(base.AuthConstructor):
         self.oauth2_client_secret = oauth2_client_secret
 
     def get_headers(
-        self, session: 'ks_session.Session', **kwargs: ty.Any
+        self, session: 'ks_session.Session'
     ) -> ty.Optional[ty.Dict[str, str]]:
         """Fetch authentication headers for message.
 
@@ -151,7 +151,7 @@ class OAuth2ClientCredential(base.AuthConstructor):
         :rtype: dict
         """
         # get headers for X-Auth-Token
-        headers = super().get_headers(session, **kwargs)
+        headers = super().get_headers(session)
 
         # Get OAuth2.0 access token and add the field 'Authorization'
         data = {"grant_type": "client_credentials"}

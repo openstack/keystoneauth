@@ -62,7 +62,7 @@ class TokenlessAuth(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         self.project_domain_name = project_domain_name
 
     def get_headers(
-        self, session: 'ks_session.Session', **kwargs: ty.Any
+        self, session: 'ks_session.Session'
     ) -> ty.Optional[ty.Dict[str, str]]:
         """Fetch authentication headers for message.
 

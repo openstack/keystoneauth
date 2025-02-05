@@ -133,7 +133,7 @@ class OAuth2mTlsClientCredential(base.BaseAuth, metaclass=abc.ABCMeta):
         )
 
     def get_headers(
-        self, session: 'ks_session.Session', **kwargs: ty.Any
+        self, session: 'ks_session.Session'
     ) -> ty.Optional[ty.Dict[str, str]]:
         """Fetch authentication headers for message.
 
@@ -146,7 +146,7 @@ class OAuth2mTlsClientCredential(base.BaseAuth, metaclass=abc.ABCMeta):
         :rtype: dict
         """
         # get headers for X-Auth-Token
-        headers = super().get_headers(session, **kwargs)
+        headers = super().get_headers(session)
 
         # add OAuth2.0 access token to the headers
         if headers:
