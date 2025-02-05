@@ -963,7 +963,9 @@ class RedirectTests(utils.TestCase):
         self.setup_redirects()
         resp = session.get(self.REDIRECT_CHAIN[0])
         self.assertResponse(resp)
-        self.assertTrue(len(resp.history), len(self.REDIRECT_CHAIN))
+        # Response.history will store all the redirects except for the last
+        # one, so we offset by one
+        self.assertEqual(len(resp.history), len(self.REDIRECT_CHAIN) - 1)
 
     def test_no_redirect(self):
         session = client_session.Session(redirect=False)
@@ -989,7 +991,9 @@ class RedirectTests(utils.TestCase):
         self.setup_redirects(final_kwargs={'complete_qs': True})
         resp = session.get(self.REDIRECT_CHAIN[0], params=params)
         self.assertResponse(resp)
-        self.assertTrue(len(resp.history), len(self.REDIRECT_CHAIN))
+        # Response.history will store all the redirects except for the last
+        # one, so we offset by one
+        self.assertEqual(len(resp.history), len(self.REDIRECT_CHAIN) - 1)
         self.assertQueryStringIs(None)
 
     def test_history_matches_requests(self):
