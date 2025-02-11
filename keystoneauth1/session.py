@@ -1514,10 +1514,8 @@ class Session:
         )
 
     def get_auth_connection_params(
-        self,
-        auth: ty.Optional['plugin.BaseAuthPlugin'] = None,
-        **kwargs: ty.Any,
-    ) -> dict[str, ty.Any]:
+        self, auth: ty.Optional['plugin.BaseAuthPlugin'] = None
+    ) -> 'plugin.ConnectionParams':
         """Return auth connection params as provided by the auth plugin.
 
         An auth plugin may specify connection parameters to the request like
@@ -1551,22 +1549,19 @@ class Session:
         :rtype: :class:`dict`
         """
         auth = self._auth_required(auth, 'fetch connection params')
-        params = auth.get_connection_params(self, **kwargs)
+        params = auth.get_connection_params(self)
 
         # NOTE(jamielennox): There needs to be some consensus on what
         # parameters are allowed to be modified by the auth plugin here.
         # Ideally I think it would be only the send() parts of the request
         # flow. For now lets just allow certain elements.
-        params_copy = params.copy()
-
-        for arg in ('cert', 'verify'):
-            try:
-                kwargs[arg] = params_copy.pop(arg)
-            except KeyError:
-                pass
-
-        if params_copy:
-            raise exceptions.UnsupportedParameters(list(params_copy.keys()))
+        # NOTE(stephenfin): We can't rely on type checking to validate the
+        # return values of plugins since these don't happen at runtime. It
+        # would be much nicer if we insisted the plugins returned a two-item
+        # tuple instead.
+        invalid_keys = set(params) - {'cert', 'verify'}
+        if invalid_keys:
+            raise exceptions.UnsupportedParameters(list(invalid_keys))
 
         return params
 

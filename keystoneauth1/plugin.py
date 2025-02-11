@@ -12,6 +12,8 @@
 
 import typing as ty
 
+import typing_extensions as ty_ext
+
 from keystoneauth1 import discover
 
 if ty.TYPE_CHECKING:
@@ -29,6 +31,13 @@ IDENTITY_AUTH_HEADER_NAME = 'X-Auth-Token'
 BaseAuthPluginT = ty.TypeVar(
     'BaseAuthPluginT', bound='BaseAuthPlugin', covariant=True
 )
+
+
+class ConnectionParams(ty.TypedDict):
+    # https://github.com/python/typeshed/blob/24c78b9e0/stubs/requests/requests/sessions.pyi#L82
+    cert: ty_ext.NotRequired[ty.Union[str, ty.Tuple[str, str], None]]
+    # https://github.com/python/typeshed/blob/24c78b9e0/stubs/requests/requests/sessions.pyi#L108
+    verify: ty_ext.NotRequired[ty.Union[bool, str, None]]
 
 
 class BaseAuthPlugin:
@@ -261,17 +270,15 @@ class BaseAuthPlugin:
         return endpoint_data.url
 
     def get_connection_params(
-        self, session: 'ks_session.Session', **kwargs: ty.Any
-    ) -> dict[str, ty.Any]:
+        self, session: 'ks_session.Session'
+    ) -> ConnectionParams:
         """Return any additional connection parameters required for the plugin.
 
         :param session: The session object that the auth_plugin belongs to.
         :type session: keystoneauth1.session.Session
-        :param kwargs: Ignored.
 
-        :returns: Headers that are set to authenticate a message or None for
-                  failure. Note that when checking this value that the empty
-                  dict is a valid, non-failure response.
+        :returns: Parameters that are passed to the requests library. Only the
+                  ``cert`` and ``verify`` parameters may be returned.
         :rtype: dict
         """
         return {}

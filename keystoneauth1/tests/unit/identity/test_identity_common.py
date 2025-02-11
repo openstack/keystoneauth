@@ -2580,7 +2580,7 @@ class GenericPlugin(plugin.BaseAuthPlugin):
     def get_endpoint(self, session, **kwargs):
         return self.endpoint
 
-    def get_connection_params(self, session, **kwargs):
+    def get_connection_params(self, session):
         return self.connection_params
 
 

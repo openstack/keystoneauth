@@ -51,16 +51,16 @@ class ServiceTokenAuthWrapper(plugin.BaseAuthPlugin):
         return user or service
 
     def get_connection_params(
-        self, session: 'ks_session.Session', **kwargs: ty.Any
-    ) -> dict[str, ty.Any]:
+        self, session: 'ks_session.Session'
+    ) -> plugin.ConnectionParams:
         # NOTE(jamielennox): This is also a bit of a guess but unlikely to be a
         # problem in practice. We don't know how merging connection parameters
         # between these plugins will conflict - but there aren't many plugins
         # that set this anyway.
         # Take the service auth params first so that user auth params will be
         # given priority.
-        params = self.service_auth.get_connection_params(session, **kwargs)
-        params.update(self.user_auth.get_connection_params(session, **kwargs))
+        params = self.service_auth.get_connection_params(session)
+        params.update(self.user_auth.get_connection_params(session))
         return params
 
     # TODO(jamielennox): Everything below here is a generic wrapper that could
