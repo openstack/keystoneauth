@@ -357,7 +357,9 @@ class _BaseAdapter:
         return self.session.get_endpoint_data(auth or self.auth, **kwargs)
 
     def get_all_version_data(
-        self, interface: str = 'public', region_name: ty.Optional[str] = None
+        self,
+        interface: ty.Union[str, list[str], None] = 'public',
+        region_name: ty.Optional[str] = None,
     ) -> dict[str, dict[str, dict[str, list[discover.VersionData]]]]:
         """Get data about all versions of a service.
 

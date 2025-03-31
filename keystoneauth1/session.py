@@ -1480,7 +1480,7 @@ class Session:
     def get_all_version_data(
         self,
         auth: ty.Optional['plugin.BaseAuthPlugin'] = None,
-        interface: str = 'public',
+        interface: ty.Union[str, list[str], None] = 'public',
         region_name: ty.Optional[str] = None,
         service_type: ty.Optional[str] = None,
     ) -> dict[str, dict[str, dict[str, list[discover.VersionData]]]]:

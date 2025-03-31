@@ -136,7 +136,7 @@ class BaseAuthPlugin:
         discover_versions: bool = True,
         **kwargs: ty.Any,
     ) -> ty.Optional[discover.EndpointData]:
-        """Return a valid endpoint data for a the service.
+        """Return a valid endpoint data for a service.
 
         :param session: A session object that can be used for communication.
         :type session: keystoneauth1.session.Session
@@ -213,7 +213,7 @@ class BaseAuthPlugin:
     def get_all_version_data(
         self,
         session: 'ks_session.Session',
-        interface: str = 'public',
+        interface: ty.Union[str, list[str], None] = 'public',
         region_name: ty.Optional[str] = None,
         service_type: ty.Optional[str] = None,
     ) -> dict[str, dict[str, dict[str, list[discover.VersionData]]]]:
