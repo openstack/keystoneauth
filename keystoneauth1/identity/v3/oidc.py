@@ -450,7 +450,6 @@ class OidcPassword(_OidcBase):
             'username': self.username,
             'password': self.password,
             'scope': self.scope,
-            'client_id': self.client_id,
         }
 
         self.manage_otp_from_session_or_request_to_the_user(payload, session)
