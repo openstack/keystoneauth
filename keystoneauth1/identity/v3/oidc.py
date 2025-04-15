@@ -755,7 +755,7 @@ class OidcDeviceAuthorization(_OidcBase):
         identity_provider: str,
         protocol: str,
         client_id: str,
-        client_secret: ty.Optional[str],
+        client_secret: ty.Optional[str] = None,
         # access_token_type intentionally skipped
         scope: str = 'openid profile',
         access_token_endpoint: ty.Optional[str] = None,
@@ -994,7 +994,9 @@ class OidcDeviceAuthorization(_OidcBase):
                         sanitized_response,
                     )
             except exceptions.http.BadRequest as exc:
-                error = exc.response and exc.response.json().get("error")
+                if exc.response is None:
+                    raise
+                error = exc.response.json().get("error")
                 if error != "authorization_pending":
                     raise
                 time.sleep(self.interval)
