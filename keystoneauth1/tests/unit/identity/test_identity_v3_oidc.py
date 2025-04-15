@@ -467,6 +467,16 @@ class OIDCDeviceAuthorizationTest(BaseOIDCTests, utils.TestCase):
             device_authorization_endpoint=self.DEVICE_AUTH_ENDPOINT,
         )
 
+    def test_create_device_auth_plugin_without_client_secret(self):
+        self.plugin = oidc.OidcDeviceAuthorization(
+            self.AUTH_URL,
+            self.IDENTITY_PROVIDER,
+            self.PROTOCOL,
+            client_id=self.CLIENT_ID,
+            access_token_endpoint=self.ACCESS_TOKEN_ENDPOINT,
+            device_authorization_endpoint=self.DEVICE_AUTH_ENDPOINT,
+        )
+
     def test_get_device_authorization_request(self):
         """Test device authorization request."""
         # Mock the output that creates the device code
@@ -573,6 +583,33 @@ class OIDCDeviceAuthorizationTest(BaseOIDCTests, utils.TestCase):
         self.assertIsNone(last_req.headers.get('Authorization'))
         encoded_payload = urllib.parse.urlencode(payload)
         self.assertEqual(encoded_payload, last_req.body)
+
+    @mock.patch('time.sleep')
+    def test_second_call_to_get_access_token_authorization_pending(
+        self, m_sleep
+    ):
+        """Test Device Access Token Request."""
+        self._store_device_authorization_response()
+
+        self.requests_mock.post(
+            self.ACCESS_TOKEN_ENDPOINT,
+            status_code=400,
+            json={'error': 'authorization_pending'},
+            headers={'Content-Type': 'application/json'},
+        )
+        m_sleep.side_effect = exceptions.oidc.OidcDeviceAuthorizationTimeOut()
+
+        # Prep all the values and send the request
+        payload = {
+            'grant_type': self.GRANT_TYPE,
+            'device_code': self.plugin.device_code,
+        }
+        self.assertRaises(
+            exceptions.oidc.OidcDeviceAuthorizationTimeOut,
+            self.plugin._get_access_token,
+            self.session,
+            payload,
+        )
 
     def _basic_header(self, username, password):
         user_pass = f'{username}:{password}'.encode()
