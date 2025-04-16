@@ -927,9 +927,9 @@ class OidcDeviceAuthorization(_OidcBase):
         self.interval = int(op_response.json()["interval"])
         self.user_code = op_response.json()["user_code"]
         self.verification_uri = op_response.json()["verification_uri"]
-        self.verification_uri_complete = op_response.json()[
+        self.verification_uri_complete = op_response.json().get(
             "verification_uri_complete"
-        ]
+        )
 
         payload = {'device_code': self.device_code}
         if self.code_challenge_method:
@@ -953,9 +953,16 @@ class OidcDeviceAuthorization(_OidcBase):
                 }
         :type payload: dict
         """
-        _logger.warning(
-            f"To authenticate please go to: {self.verification_uri_complete}"
-        )
+        # verification_uri_complete is optional and not implemented by EntraID
+        if self.verification_uri_complete:
+            _logger.warning(
+                f"To authenticate please go to: {self.verification_uri_complete}"
+            )
+        else:
+            _logger.warning(
+                f"To authenticate please go to {self.verification_uri} "
+                f"and enter the code {self.user_code}"
+            )
 
         if self.client_secret:
             client_auth = (self.client_id, self.client_secret)
