@@ -1192,7 +1192,7 @@ class Session:
 
             delay = next(connect_retry_delays)
             logger.warning(
-                'Failure: %(e)s. Retrying in %(delay).1fs.'
+                'Failure: %(e)s. Retrying in %(delay).1fs. '
                 '%(retries)s retries left',
                 {'e': e, 'delay': delay, 'retries': connect_retries},
             )
