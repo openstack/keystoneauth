@@ -10,7 +10,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import typing as ty
 
 import requests
 
@@ -53,14 +52,14 @@ class Keystone2Keystone(federation._Rescoped):
         base_plugin: base.BaseIdentityPlugin,
         service_provider: str,
         *,
-        trust_id: ty.Optional[str] = None,
-        system_scope: ty.Optional[str] = None,
-        domain_id: ty.Optional[str] = None,
-        domain_name: ty.Optional[str] = None,
-        project_id: ty.Optional[str] = None,
-        project_name: ty.Optional[str] = None,
-        project_domain_id: ty.Optional[str] = None,
-        project_domain_name: ty.Optional[str] = None,
+        trust_id: str | None = None,
+        system_scope: str | None = None,
+        domain_id: str | None = None,
+        domain_name: str | None = None,
+        project_id: str | None = None,
+        project_name: str | None = None,
+        project_domain_id: str | None = None,
+        project_domain_name: str | None = None,
         reauthenticate: bool = True,
         include_catalog: bool = True,
     ):

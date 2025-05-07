@@ -123,40 +123,39 @@ class _BaseAdapter:
         a maximum of 60 seconds is used.
     """
 
-    client_name: ty.Optional[str] = None
-    client_version: ty.Optional[str] = None
+    client_name: str | None = None
+    client_version: str | None = None
 
     def __init__(
         self,
         session: session.Session,
-        service_type: ty.Optional[str] = None,
-        service_name: ty.Optional[str] = None,
-        interface: ty.Union[str, list[str], None] = None,
-        region_name: ty.Optional[str] = None,
-        endpoint_override: ty.Optional[str] = None,
-        version: ty.Optional[str] = None,
+        service_type: str | None = None,
+        service_name: str | None = None,
+        interface: str | list[str] | None = None,
+        region_name: str | None = None,
+        endpoint_override: str | None = None,
+        version: str | None = None,
         auth: ty.Optional['plugin.BaseAuthPlugin'] = None,
-        user_agent: ty.Optional[str] = None,
-        connect_retries: ty.Optional[int] = None,
-        logger: ty.Optional[logging.Logger] = None,
-        allow: ty.Optional[dict[str, ty.Any]] = None,
-        additional_headers: ty.Optional[
-            collections.abc.MutableMapping[str, str]
-        ] = None,
-        client_name: ty.Optional[str] = None,
-        client_version: ty.Optional[str] = None,
-        allow_version_hack: ty.Optional[bool] = None,
-        global_request_id: ty.Optional[str] = None,
-        min_version: ty.Optional[str] = None,
-        max_version: ty.Optional[str] = None,
-        default_microversion: ty.Optional[str] = None,
-        status_code_retries: ty.Optional[int] = None,
-        retriable_status_codes: ty.Optional[list[int]] = None,
-        raise_exc: ty.Optional[bool] = None,
-        rate_limit: ty.Optional[float] = None,
-        concurrency: ty.Optional[int] = None,
-        connect_retry_delay: ty.Optional[float] = None,
-        status_code_retry_delay: ty.Optional[float] = None,
+        user_agent: str | None = None,
+        connect_retries: int | None = None,
+        logger: logging.Logger | None = None,
+        allow: dict[str, ty.Any] | None = None,
+        additional_headers: collections.abc.MutableMapping[str, str]
+        | None = None,
+        client_name: str | None = None,
+        client_version: str | None = None,
+        allow_version_hack: bool | None = None,
+        global_request_id: str | None = None,
+        min_version: str | None = None,
+        max_version: str | None = None,
+        default_microversion: str | None = None,
+        status_code_retries: int | None = None,
+        retriable_status_codes: list[int] | None = None,
+        raise_exc: bool | None = None,
+        rate_limit: float | None = None,
+        concurrency: int | None = None,
+        connect_retry_delay: float | None = None,
+        status_code_retry_delay: float | None = None,
     ):
         if version and (min_version or max_version):
             raise TypeError(
@@ -263,7 +262,7 @@ class _BaseAdapter:
         if self.default_microversion is not None:
             kwargs.setdefault('microversion', self.default_microversion)
 
-        if isinstance(self.session, (session.Session, Adapter)):
+        if isinstance(self.session, session.Session | Adapter):
             # these things are unsupported by keystoneclient's session so be
             # careful with them until everyone has transitioned to ksa.
             # Allowing adapter allows adapter nesting that auth_token does.
@@ -295,7 +294,7 @@ class _BaseAdapter:
 
     def get_token(
         self, auth: ty.Optional['plugin.BaseAuthPlugin'] = None
-    ) -> ty.Optional[str]:
+    ) -> str | None:
         """Return a token as provided by the auth plugin.
 
         :param auth: The auth plugin to use for token. Overrides the plugin
@@ -314,7 +313,7 @@ class _BaseAdapter:
         self,
         auth: ty.Optional['plugin.BaseAuthPlugin'] = None,
         **kwargs: ty.Any,
-    ) -> ty.Optional[str]:
+    ) -> str | None:
         """Get an endpoint as provided by the auth plugin.
 
         :param auth: The auth plugin to use for token. Overrides the plugin on
@@ -358,8 +357,8 @@ class _BaseAdapter:
 
     def get_all_version_data(
         self,
-        interface: ty.Union[str, list[str], None] = 'public',
-        region_name: ty.Optional[str] = None,
+        interface: str | list[str] | None = 'public',
+        region_name: str | None = None,
     ) -> dict[str, dict[str, dict[str, list[discover.VersionData]]]]:
         """Get data about all versions of a service.
 
@@ -385,7 +384,7 @@ class _BaseAdapter:
         self,
         auth: ty.Optional['plugin.BaseAuthPlugin'] = None,
         **kwargs: ty.Any,
-    ) -> ty.Optional[tuple[ty.Union[int, float], ...]]:
+    ) -> tuple[int | float, ...] | None:
         """Get the major API version as provided by the auth plugin.
 
         :param auth: The auth plugin to use for token. Overrides the plugin on
@@ -417,7 +416,7 @@ class _BaseAdapter:
 
     def get_user_id(
         self, auth: ty.Optional['plugin.BaseAuthPlugin'] = None
-    ) -> ty.Optional[str]:
+    ) -> str | None:
         """Return the authenticated user_id as provided by the auth plugin.
 
         :param auth: The auth plugin to use for token. Overrides the plugin
@@ -436,7 +435,7 @@ class _BaseAdapter:
 
     def get_project_id(
         self, auth: ty.Optional['plugin.BaseAuthPlugin'] = None
-    ) -> ty.Optional[str]:
+    ) -> str | None:
         """Return the authenticated project_id as provided by the auth plugin.
 
         :param auth: The auth plugin to use for token. Overrides the plugin
@@ -456,9 +455,7 @@ class _BaseAdapter:
     # TODO(efried): Move this to loading.adapter.Adapter
     @classmethod
     def register_argparse_arguments(
-        cls,
-        parser: argparse.ArgumentParser,
-        service_type: ty.Optional[str] = None,
+        cls, parser: argparse.ArgumentParser, service_type: str | None = None
     ) -> None:
         """Attach arguments to a given argparse Parser for Adapters.
 
@@ -723,7 +720,7 @@ class LegacyJsonAdapter(_BaseAdapter):
 # TODO(efried): Deprecate this in favor of
 #               loading.adapter.register_argparse_arguments
 def register_adapter_argparse_arguments(
-    parser: argparse.ArgumentParser, service_type: ty.Optional[str] = None
+    parser: argparse.ArgumentParser, service_type: str | None = None
 ) -> None:
     return Adapter.register_argparse_arguments(
         parser=parser, service_type=service_type

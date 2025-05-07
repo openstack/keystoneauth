@@ -12,7 +12,6 @@
 
 import datetime
 import logging
-import typing as ty
 
 import iso8601
 
@@ -44,13 +43,13 @@ def parse_isotime(timestr: str) -> datetime.datetime:
 
 
 def from_utcnow(
-    days: ty.Union[int, float] = 0,
-    seconds: ty.Union[int, float] = 0,
-    microseconds: ty.Union[int, float] = 0,
-    milliseconds: ty.Union[int, float] = 0,
-    minutes: ty.Union[int, float] = 0,
-    hours: ty.Union[int, float] = 0,
-    weeks: ty.Union[int, float] = 0,
+    days: int | float = 0,
+    seconds: int | float = 0,
+    microseconds: int | float = 0,
+    milliseconds: int | float = 0,
+    minutes: int | float = 0,
+    hours: int | float = 0,
+    weeks: int | float = 0,
 ) -> datetime.datetime:
     """Calculate the time in the future from utcnow.
 
@@ -75,13 +74,13 @@ def from_utcnow(
 
 
 def before_utcnow(
-    days: ty.Union[int, float] = 0,
-    seconds: ty.Union[int, float] = 0,
-    microseconds: ty.Union[int, float] = 0,
-    milliseconds: ty.Union[int, float] = 0,
-    minutes: ty.Union[int, float] = 0,
-    hours: ty.Union[int, float] = 0,
-    weeks: ty.Union[int, float] = 0,
+    days: int | float = 0,
+    seconds: int | float = 0,
+    microseconds: int | float = 0,
+    milliseconds: int | float = 0,
+    minutes: int | float = 0,
+    hours: int | float = 0,
+    weeks: int | float = 0,
 ) -> datetime.datetime:
     r"""Calculate the time in the past from utcnow.
 

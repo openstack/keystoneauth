@@ -35,9 +35,9 @@ BaseAuthPluginT = ty.TypeVar(
 
 class ConnectionParams(ty.TypedDict):
     # https://github.com/python/typeshed/blob/24c78b9e0/stubs/requests/requests/sessions.pyi#L82
-    cert: ty_ext.NotRequired[ty.Union[str, tuple[str, str], None]]
+    cert: ty_ext.NotRequired[str | tuple[str, str] | None]
     # https://github.com/python/typeshed/blob/24c78b9e0/stubs/requests/requests/sessions.pyi#L108
-    verify: ty_ext.NotRequired[ty.Union[bool, str, None]]
+    verify: ty_ext.NotRequired[bool | str | None]
 
 
 class BaseAuthPlugin:
@@ -52,7 +52,7 @@ class BaseAuthPlugin:
     def __init__(self) -> None:
         self._discovery_cache: dict[str, discover.Discover] = {}
 
-    def get_token(self, session: 'ks_session.Session') -> ty.Optional[str]:
+    def get_token(self, session: 'ks_session.Session') -> str | None:
         """Obtain a token.
 
         How the token is obtained is up to the plugin. If it is still valid
@@ -93,7 +93,7 @@ class BaseAuthPlugin:
 
     def get_headers(
         self, session: 'ks_session.Session'
-    ) -> ty.Optional[dict[str, str]]:
+    ) -> dict[str, str] | None:
         """Fetch authentication headers for message.
 
         This is a more generalized replacement of the older get_token to allow
@@ -132,10 +132,10 @@ class BaseAuthPlugin:
         self,
         session: 'ks_session.Session',
         *,
-        endpoint_override: ty.Optional[str] = None,
+        endpoint_override: str | None = None,
         discover_versions: bool = True,
         **kwargs: ty.Any,
-    ) -> ty.Optional[discover.EndpointData]:
+    ) -> discover.EndpointData | None:
         """Return a valid endpoint data for a service.
 
         :param session: A session object that can be used for communication.
@@ -171,9 +171,9 @@ class BaseAuthPlugin:
         self,
         session: 'ks_session.Session',
         *,
-        endpoint_override: ty.Optional[str] = None,
+        endpoint_override: str | None = None,
         **kwargs: ty.Any,
-    ) -> ty.Optional[tuple[ty.Union[int, float], ...]]:
+    ) -> tuple[int | float, ...] | None:
         """Get the major API version from the endpoint.
 
         :param session: A session object that can be used for communication.
@@ -213,9 +213,9 @@ class BaseAuthPlugin:
     def get_all_version_data(
         self,
         session: 'ks_session.Session',
-        interface: ty.Union[str, list[str], None] = 'public',
-        region_name: ty.Optional[str] = None,
-        service_type: ty.Optional[str] = None,
+        interface: str | list[str] | None = 'public',
+        region_name: str | None = None,
+        service_type: str | None = None,
     ) -> dict[str, dict[str, dict[str, list[discover.VersionData]]]]:
         """Get version data for all services in the catalog.
 
@@ -241,7 +241,7 @@ class BaseAuthPlugin:
 
     def get_endpoint(
         self, session: 'ks_session.Session', **kwargs: ty.Any
-    ) -> ty.Optional[str]:
+    ) -> str | None:
         """Return an endpoint for the client.
 
         There are no required keyword arguments to ``get_endpoint`` as a plugin
@@ -299,7 +299,7 @@ class BaseAuthPlugin:
         """
         return False
 
-    def get_user_id(self, session: 'ks_session.Session') -> ty.Optional[str]:
+    def get_user_id(self, session: 'ks_session.Session') -> str | None:
         """Return a unique user identifier of the plugin.
 
         Wherever possible the user id should be inferred from the token however
@@ -314,9 +314,7 @@ class BaseAuthPlugin:
         """
         return None
 
-    def get_project_id(
-        self, session: 'ks_session.Session'
-    ) -> ty.Optional[str]:
+    def get_project_id(self, session: 'ks_session.Session') -> str | None:
         """Return the project id that we are authenticated to.
 
         Wherever possible the project id should be inferred from the token
@@ -333,7 +331,7 @@ class BaseAuthPlugin:
 
     def get_sp_auth_url(
         self, session: 'ks_session.Session', sp_id: str
-    ) -> ty.Optional[str]:
+    ) -> str | None:
         """Return auth_url from the Service Provider object.
 
         This url is used for obtaining unscoped federated token from remote
@@ -350,7 +348,7 @@ class BaseAuthPlugin:
 
     def get_sp_url(
         self, session: 'ks_session.Session', sp_id: str
-    ) -> ty.Optional[str]:
+    ) -> str | None:
         """Return sp_url from the Service Provider object.
 
         This url is used for passing SAML2 assertion to the remote cloud.
@@ -364,7 +362,7 @@ class BaseAuthPlugin:
         """
         return None
 
-    def get_cache_id(self) -> ty.Optional[str]:
+    def get_cache_id(self) -> str | None:
         """Fetch an identifier that uniquely identifies the auth options.
 
         The returned identifier need not be decomposable or otherwise provide
@@ -415,16 +413,16 @@ class BaseAuthPlugin:
 class FixedEndpointPlugin(BaseAuthPlugin):
     """A base class for plugins that have one fixed endpoint."""
 
-    def __init__(self, endpoint: ty.Optional[str] = None):
+    def __init__(self, endpoint: str | None = None):
         super().__init__()
         self.endpoint = endpoint
 
     def get_endpoint(
         self,
         session: 'ks_session.Session',
-        endpoint_override: ty.Optional[str] = None,
+        endpoint_override: str | None = None,
         **kwargs: ty.Any,
-    ) -> ty.Optional[str]:
+    ) -> str | None:
         """Return the supplied endpoint.
 
         Using this plugin the same endpoint is returned regardless of the
@@ -437,10 +435,10 @@ class FixedEndpointPlugin(BaseAuthPlugin):
         self,
         session: 'ks_session.Session',
         *,
-        endpoint_override: ty.Optional[str] = None,
+        endpoint_override: str | None = None,
         discover_versions: bool = True,
         **kwargs: ty.Any,
-    ) -> ty.Optional[discover.EndpointData]:
+    ) -> discover.EndpointData | None:
         """Return a valid endpoint data for a the service.
 
         :param session: A session object that can be used for communication.

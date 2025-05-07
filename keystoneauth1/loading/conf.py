@@ -54,9 +54,7 @@ def get_common_conf_options() -> list['cfg.Opt']:
 
 
 def get_plugin_conf_options(
-    plugin: ty.Union[
-        base.BaseLoader[keystoneauth1.plugin.BaseAuthPluginT], str
-    ],
+    plugin: base.BaseLoader[keystoneauth1.plugin.BaseAuthPluginT] | str,
 ) -> list['cfg.Opt']:
     """Get the oslo_config options for a specific plugin.
 

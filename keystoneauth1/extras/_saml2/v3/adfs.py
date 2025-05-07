@@ -11,7 +11,6 @@
 # under the License.
 
 import datetime
-import typing as ty
 import urllib
 import uuid
 
@@ -64,16 +63,16 @@ class Password(base.BaseSAMLPlugin):
         username: str,
         password: str,
         protocol: str,
-        service_provider_entity_id: ty.Optional[str] = None,
+        service_provider_entity_id: str | None = None,
         *,
-        trust_id: ty.Optional[str] = None,
-        system_scope: ty.Optional[str] = None,
-        domain_id: ty.Optional[str] = None,
-        domain_name: ty.Optional[str] = None,
-        project_id: ty.Optional[str] = None,
-        project_name: ty.Optional[str] = None,
-        project_domain_id: ty.Optional[str] = None,
-        project_domain_name: ty.Optional[str] = None,
+        trust_id: str | None = None,
+        system_scope: str | None = None,
+        domain_id: str | None = None,
+        domain_name: str | None = None,
+        project_id: str | None = None,
+        project_name: str | None = None,
+        project_domain_id: str | None = None,
+        project_domain_name: str | None = None,
         reauthenticate: bool = True,
         include_catalog: bool = True,
     ):

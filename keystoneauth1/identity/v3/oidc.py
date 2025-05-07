@@ -58,20 +58,20 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
         identity_provider: str,
         protocol: str,
         client_id: str,
-        client_secret: ty.Optional[str],
+        client_secret: str | None,
         access_token_type: str,
         scope: str,
-        access_token_endpoint: ty.Optional[str],
-        discovery_endpoint: ty.Optional[str],
+        access_token_endpoint: str | None,
+        discovery_endpoint: str | None,
         *,
-        trust_id: ty.Optional[str],
-        system_scope: ty.Optional[str],
-        domain_id: ty.Optional[str],
-        domain_name: ty.Optional[str],
-        project_id: ty.Optional[str],
-        project_name: ty.Optional[str],
-        project_domain_id: ty.Optional[str],
-        project_domain_name: ty.Optional[str],
+        trust_id: str | None,
+        system_scope: str | None,
+        domain_id: str | None,
+        domain_name: str | None,
+        project_id: str | None,
+        project_name: str | None,
+        project_domain_id: str | None,
+        project_domain_name: str | None,
         reauthenticate: bool,
         include_catalog: bool,
     ):
@@ -211,9 +211,7 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
             raise exceptions.OidcAccessTokenEndpointNotFound()
         return ty.cast(str, endpoint)
 
-    def _sanitize(
-        self, data: dict[str, ty.Optional[str]]
-    ) -> dict[str, ty.Optional[str]]:
+    def _sanitize(self, data: dict[str, str | None]) -> dict[str, str | None]:
         sanitized = copy.deepcopy(data)
         for key in sanitized:
             if any(s in key for s in SENSITIVE_KEYS):
@@ -221,7 +219,7 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
         return sanitized
 
     def _get_access_token(
-        self, session: ks_session.Session, payload: dict[str, ty.Optional[str]]
+        self, session: ks_session.Session, payload: dict[str, str | None]
     ) -> str:
         """Exchange a variety of user supplied values for an access token.
 
@@ -328,7 +326,7 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
         # First of all, check if the grant type is supported
         discovery = self._get_discovery_document(session)
         grant_types = ty.cast(
-            ty.Optional[list[str]], discovery.get("grant_types_supported")
+            list[str] | None, discovery.get("grant_types_supported")
         )
         if (
             grant_types
@@ -354,7 +352,7 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def get_payload(
         self, session: ks_session.Session
-    ) -> dict[str, ty.Optional[str]]:
+    ) -> dict[str, str | None]:
         """Get the plugin specific payload for obtainin an access token.
 
         OpenID Connect supports different grant types. This method should
@@ -385,20 +383,20 @@ class OidcPassword(_OidcBase):
         client_secret: str,
         access_token_type: str = 'access_token',  # nosec B107
         scope: str = 'openid profile',
-        access_token_endpoint: ty.Optional[str] = None,
-        discovery_endpoint: ty.Optional[str] = None,
-        username: ty.Optional[str] = None,
-        password: ty.Optional[str] = None,
-        idp_otp_key: ty.Optional[str] = None,
+        access_token_endpoint: str | None = None,
+        discovery_endpoint: str | None = None,
+        username: str | None = None,
+        password: str | None = None,
+        idp_otp_key: str | None = None,
         *,
-        trust_id: ty.Optional[str] = None,
-        system_scope: ty.Optional[str] = None,
-        domain_id: ty.Optional[str] = None,
-        domain_name: ty.Optional[str] = None,
-        project_id: ty.Optional[str] = None,
-        project_name: ty.Optional[str] = None,
-        project_domain_id: ty.Optional[str] = None,
-        project_domain_name: ty.Optional[str] = None,
+        trust_id: str | None = None,
+        system_scope: str | None = None,
+        domain_id: str | None = None,
+        domain_name: str | None = None,
+        project_id: str | None = None,
+        project_name: str | None = None,
+        project_domain_id: str | None = None,
+        project_domain_name: str | None = None,
         reauthenticate: bool = True,
         include_catalog: bool = True,
     ):
@@ -437,7 +435,7 @@ class OidcPassword(_OidcBase):
 
     def get_payload(
         self, session: ks_session.Session
-    ) -> dict[str, ty.Optional[str]]:
+    ) -> dict[str, str | None]:
         """Get an authorization grant for the "password" grant type.
 
         :param session: a session object to send out HTTP requests.
@@ -458,7 +456,7 @@ class OidcPassword(_OidcBase):
         return payload
 
     def manage_otp_from_session_or_request_to_the_user(
-        self, payload: dict[str, ty.Optional[str]], session: ks_session.Session
+        self, payload: dict[str, str | None], session: ks_session.Session
     ) -> None:
         """Get the OTP code from the session or else request to the user.
 
@@ -505,17 +503,17 @@ class OidcClientCredentials(_OidcBase):
         client_secret: str,
         access_token_type: str = 'access_token',  # nosec B107
         scope: str = 'openid profile',
-        access_token_endpoint: ty.Optional[str] = None,
-        discovery_endpoint: ty.Optional[str] = None,
+        access_token_endpoint: str | None = None,
+        discovery_endpoint: str | None = None,
         *,
-        trust_id: ty.Optional[str] = None,
-        system_scope: ty.Optional[str] = None,
-        domain_id: ty.Optional[str] = None,
-        domain_name: ty.Optional[str] = None,
-        project_id: ty.Optional[str] = None,
-        project_name: ty.Optional[str] = None,
-        project_domain_id: ty.Optional[str] = None,
-        project_domain_name: ty.Optional[str] = None,
+        trust_id: str | None = None,
+        system_scope: str | None = None,
+        domain_id: str | None = None,
+        domain_name: str | None = None,
+        project_id: str | None = None,
+        project_name: str | None = None,
+        project_domain_id: str | None = None,
+        project_domain_name: str | None = None,
         reauthenticate: bool = True,
         include_catalog: bool = True,
     ):
@@ -551,7 +549,7 @@ class OidcClientCredentials(_OidcBase):
 
     def get_payload(
         self, session: ks_session.Session
-    ) -> dict[str, ty.Optional[str]]:
+    ) -> dict[str, str | None]:
         """Get an authorization grant for the client credentials grant type.
 
         :param session: a session object to send out HTTP requests.
@@ -560,7 +558,7 @@ class OidcClientCredentials(_OidcBase):
         :returns: a python dictionary containing the payload to be exchanged
         :rtype: dict
         """
-        payload: dict[str, ty.Optional[str]] = {'scope': self.scope}
+        payload: dict[str, str | None] = {'scope': self.scope}
         return payload
 
 
@@ -578,21 +576,21 @@ class OidcAuthorizationCode(_OidcBase):
         client_secret: str,
         access_token_type: str = 'access_token',  # nosec B107
         scope: str = 'openid profile',
-        access_token_endpoint: ty.Optional[str] = None,
-        discovery_endpoint: ty.Optional[str] = None,
-        code: ty.Optional[str] = None,
+        access_token_endpoint: str | None = None,
+        discovery_endpoint: str | None = None,
+        code: str | None = None,
         *,
-        trust_id: ty.Optional[str] = None,
-        system_scope: ty.Optional[str] = None,
-        domain_id: ty.Optional[str] = None,
-        domain_name: ty.Optional[str] = None,
-        project_id: ty.Optional[str] = None,
-        project_name: ty.Optional[str] = None,
-        project_domain_id: ty.Optional[str] = None,
-        project_domain_name: ty.Optional[str] = None,
+        trust_id: str | None = None,
+        system_scope: str | None = None,
+        domain_id: str | None = None,
+        domain_name: str | None = None,
+        project_id: str | None = None,
+        project_name: str | None = None,
+        project_domain_id: str | None = None,
+        project_domain_name: str | None = None,
         reauthenticate: bool = True,
         include_catalog: bool = True,
-        redirect_uri: ty.Optional[str] = None,
+        redirect_uri: str | None = None,
     ):
         """The OpenID Authorization Code plugin expects the following.
 
@@ -629,7 +627,7 @@ class OidcAuthorizationCode(_OidcBase):
 
     def get_payload(
         self, session: ks_session.Session
-    ) -> dict[str, ty.Optional[str]]:
+    ) -> dict[str, str | None]:
         """Get an authorization grant for the "authorization_code" grant type.
 
         :param session: a session object to send out HTTP requests.
@@ -655,18 +653,18 @@ class OidcAccessToken(_OidcBase):
         # sense with an access token
         access_token_type: str = 'access_token',  # nosec B107
         scope: str = 'openid profile',
-        access_token_endpoint: ty.Optional[str] = None,
-        discovery_endpoint: ty.Optional[str] = None,
-        access_token: ty.Optional[str] = None,
+        access_token_endpoint: str | None = None,
+        discovery_endpoint: str | None = None,
+        access_token: str | None = None,
         *,
-        trust_id: ty.Optional[str] = None,
-        system_scope: ty.Optional[str] = None,
-        domain_id: ty.Optional[str] = None,
-        domain_name: ty.Optional[str] = None,
-        project_id: ty.Optional[str] = None,
-        project_name: ty.Optional[str] = None,
-        project_domain_id: ty.Optional[str] = None,
-        project_domain_name: ty.Optional[str] = None,
+        trust_id: str | None = None,
+        system_scope: str | None = None,
+        domain_id: str | None = None,
+        domain_name: str | None = None,
+        project_id: str | None = None,
+        project_name: str | None = None,
+        project_domain_id: str | None = None,
+        project_domain_name: str | None = None,
         reauthenticate: bool = True,
         include_catalog: bool = True,
     ):
@@ -715,7 +713,7 @@ class OidcAccessToken(_OidcBase):
 
     def get_payload(
         self, session: ks_session.Session
-    ) -> dict[str, ty.Optional[str]]:
+    ) -> dict[str, str | None]:
         """OidcAccessToken does not require a payload."""  # noqa: D403
         return {}
 
@@ -755,23 +753,23 @@ class OidcDeviceAuthorization(_OidcBase):
         identity_provider: str,
         protocol: str,
         client_id: str,
-        client_secret: ty.Optional[str] = None,
+        client_secret: str | None = None,
         # access_token_type intentionally skipped
         scope: str = 'openid profile',
-        access_token_endpoint: ty.Optional[str] = None,
-        discovery_endpoint: ty.Optional[str] = None,
-        device_authorization_endpoint: ty.Optional[str] = None,
-        code_challenge: ty.Optional[str] = None,
-        code_challenge_method: ty.Optional[str] = None,
+        access_token_endpoint: str | None = None,
+        discovery_endpoint: str | None = None,
+        device_authorization_endpoint: str | None = None,
+        code_challenge: str | None = None,
+        code_challenge_method: str | None = None,
         *,
-        trust_id: ty.Optional[str] = None,
-        system_scope: ty.Optional[str] = None,
-        domain_id: ty.Optional[str] = None,
-        domain_name: ty.Optional[str] = None,
-        project_id: ty.Optional[str] = None,
-        project_name: ty.Optional[str] = None,
-        project_domain_id: ty.Optional[str] = None,
-        project_domain_name: ty.Optional[str] = None,
+        trust_id: str | None = None,
+        system_scope: str | None = None,
+        domain_id: str | None = None,
+        domain_name: str | None = None,
+        project_id: str | None = None,
+        project_name: str | None = None,
+        project_domain_id: str | None = None,
+        project_domain_name: str | None = None,
         reauthenticate: bool = True,
         include_catalog: bool = True,
     ):
@@ -817,7 +815,7 @@ class OidcDeviceAuthorization(_OidcBase):
 
     def _get_device_authorization_endpoint(
         self, session: ks_session.Session
-    ) -> ty.Optional[str]:
+    ) -> str | None:
         """Get the endpoint for the OAuth 2.0 Device Authorization flow.
 
         This method will return the correct device authorization endpoint to
@@ -850,7 +848,7 @@ class OidcDeviceAuthorization(_OidcBase):
         code_verifier = _rand_b64.rstrip('=')  # strip padding as RFC says
         return code_verifier
 
-    def _generate_pkce_challenge(self) -> ty.Optional[str]:
+    def _generate_pkce_challenge(self) -> str | None:
         """Generate PKCE challenge string as defined in RFC 7636."""
         if self.code_challenge_method not in ('plain', 'S256'):
             raise exceptions.OidcInvalidCodeChallengeMethod()
@@ -867,7 +865,7 @@ class OidcDeviceAuthorization(_OidcBase):
 
     def get_payload(
         self, session: ks_session.Session
-    ) -> dict[str, ty.Optional[str]]:
+    ) -> dict[str, str | None]:
         """Get an authorization grant for the "device_code" grant type.
 
         :param session: a session object to send out HTTP requests.
@@ -876,7 +874,7 @@ class OidcDeviceAuthorization(_OidcBase):
         :returns: a python dictionary containing the payload to be exchanged
         :rtype: dict
         """
-        payload: dict[str, ty.Optional[str]]
+        payload: dict[str, str | None]
         device_authz_endpoint = self._get_device_authorization_endpoint(
             session
         )
@@ -939,7 +937,7 @@ class OidcDeviceAuthorization(_OidcBase):
         return payload
 
     def _get_access_token(
-        self, session: ks_session.Session, payload: dict[str, ty.Optional[str]]
+        self, session: ks_session.Session, payload: dict[str, str | None]
     ) -> str:
         """Poll token endpoint for an access token.
 

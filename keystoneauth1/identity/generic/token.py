@@ -10,7 +10,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import typing as ty
 
 from keystoneauth1 import discover
 from keystoneauth1.identity.generic import base
@@ -30,18 +29,18 @@ class Token(base.BaseGenericPlugin):
         auth_url: str,
         token: str,
         *,
-        tenant_id: ty.Optional[str] = None,
-        tenant_name: ty.Optional[str] = None,
-        project_id: ty.Optional[str] = None,
-        project_name: ty.Optional[str] = None,
-        project_domain_id: ty.Optional[str] = None,
-        project_domain_name: ty.Optional[str] = None,
-        domain_id: ty.Optional[str] = None,
-        domain_name: ty.Optional[str] = None,
-        system_scope: ty.Optional[str] = None,
-        trust_id: ty.Optional[str] = None,
-        default_domain_id: ty.Optional[str] = None,
-        default_domain_name: ty.Optional[str] = None,
+        tenant_id: str | None = None,
+        tenant_name: str | None = None,
+        project_id: str | None = None,
+        project_name: str | None = None,
+        project_domain_id: str | None = None,
+        project_domain_name: str | None = None,
+        domain_id: str | None = None,
+        domain_name: str | None = None,
+        system_scope: str | None = None,
+        trust_id: str | None = None,
+        default_domain_id: str | None = None,
+        default_domain_name: str | None = None,
         reauthenticate: bool = True,
     ):
         super().__init__(
@@ -68,8 +67,8 @@ class Token(base.BaseGenericPlugin):
         session: ks_session.Session,
         version: discover._PARSED_VERSION_T,
         url: str,
-        raw_status: ty.Optional[str] = None,
-    ) -> ty.Union[None, v2.Token, v3.Token]:
+        raw_status: str | None = None,
+    ) -> None | v2.Token | v3.Token:
         if discover.version_match((2,), version):
             return v2.Token(
                 url,
@@ -97,7 +96,7 @@ class Token(base.BaseGenericPlugin):
 
         return None
 
-    def get_cache_id_elements(self) -> dict[str, ty.Optional[str]]:
+    def get_cache_id_elements(self) -> dict[str, str | None]:
         return {
             'auth_url': self.auth_url,
             'project_id': self._project_id,

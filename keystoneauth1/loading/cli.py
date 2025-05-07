@@ -25,7 +25,7 @@ __all__ = ('register_argparse_arguments', 'load_from_argparse_arguments')
 
 
 def _register_plugin_argparse_arguments(
-    parser: ty.Union[argparse.ArgumentParser, argparse._ArgumentGroup],
+    parser: argparse.ArgumentParser | argparse._ArgumentGroup,
     plugin: base.BaseLoader['plugin.BaseAuthPluginT'],
 ) -> None:
     for opt in plugin.get_options():
@@ -40,7 +40,7 @@ def _register_plugin_argparse_arguments(
 
 def register_argparse_arguments(
     parser: argparse.ArgumentParser, argv: list[str], default: ty.Any = None
-) -> ty.Optional[base.BaseLoader['plugin.BaseAuthPluginT']]:
+) -> base.BaseLoader['plugin.BaseAuthPluginT'] | None:
     """Register CLI options needed to create a plugin.
 
     The function inspects the provided arguments so that it can also register

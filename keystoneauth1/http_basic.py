@@ -30,15 +30,15 @@ class HTTPBasicAuth(plugin.FixedEndpointPlugin):
 
     def __init__(
         self,
-        endpoint: ty.Optional[str] = None,
-        username: ty.Optional[str] = None,
-        password: ty.Optional[str] = None,
+        endpoint: str | None = None,
+        username: str | None = None,
+        password: str | None = None,
     ):
         super().__init__(endpoint)
         self.username = username
         self.password = password
 
-    def get_token(self, session: 'ks_session.Session') -> ty.Optional[str]:
+    def get_token(self, session: 'ks_session.Session') -> str | None:
         if self.username is None or self.password is None:
             return None
         token = bytes(f'{self.username}:{self.password}', encoding='utf-8')
@@ -47,7 +47,7 @@ class HTTPBasicAuth(plugin.FixedEndpointPlugin):
 
     def get_headers(
         self, session: 'ks_session.Session'
-    ) -> ty.Optional[dict[str, str]]:
+    ) -> dict[str, str] | None:
         token = self.get_token(session)
         if not token:
             return None

@@ -11,7 +11,6 @@
 # under the License.
 
 import abc
-import typing as ty
 import urllib.parse
 
 from keystoneauth1 import _utils as utils
@@ -38,20 +37,20 @@ class BaseGenericPlugin(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
 
     def __init__(
         self,
-        auth_url: ty.Optional[str] = None,
+        auth_url: str | None = None,
         *,
-        tenant_id: ty.Optional[str] = None,
-        tenant_name: ty.Optional[str] = None,
-        project_id: ty.Optional[str] = None,
-        project_name: ty.Optional[str] = None,
-        project_domain_id: ty.Optional[str] = None,
-        project_domain_name: ty.Optional[str] = None,
-        domain_id: ty.Optional[str] = None,
-        domain_name: ty.Optional[str] = None,
-        system_scope: ty.Optional[str] = None,
-        trust_id: ty.Optional[str] = None,
-        default_domain_id: ty.Optional[str] = None,
-        default_domain_name: ty.Optional[str] = None,
+        tenant_id: str | None = None,
+        tenant_name: str | None = None,
+        project_id: str | None = None,
+        project_name: str | None = None,
+        project_domain_id: str | None = None,
+        project_domain_name: str | None = None,
+        domain_id: str | None = None,
+        domain_name: str | None = None,
+        system_scope: str | None = None,
+        trust_id: str | None = None,
+        default_domain_id: str | None = None,
+        default_domain_name: str | None = None,
         reauthenticate: bool = True,
     ):
         super().__init__(auth_url=auth_url, reauthenticate=reauthenticate)
@@ -67,7 +66,7 @@ class BaseGenericPlugin(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
         self._default_domain_id = default_domain_id
         self._default_domain_name = default_domain_name
 
-        self._plugin: ty.Union[v2.Auth, v3.Auth, None] = None
+        self._plugin: v2.Auth | v3.Auth | None = None
 
     @abc.abstractmethod
     def create_plugin(
@@ -75,8 +74,8 @@ class BaseGenericPlugin(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
         session: ks_session.Session,
         version: discover._PARSED_VERSION_T,
         url: str,
-        raw_status: ty.Optional[str] = None,
-    ) -> ty.Union[None, v2.Auth, v3.Auth]:
+        raw_status: str | None = None,
+    ) -> None | v2.Auth | v3.Auth:
         """Create a plugin from the given parameters.
 
         This function will be called multiple times with the version and url
@@ -112,24 +111,24 @@ class BaseGenericPlugin(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
         )
 
     @property
-    def project_domain_id(self) -> ty.Optional[str]:
+    def project_domain_id(self) -> str | None:
         return self._project_domain_id or self._default_domain_id
 
     @project_domain_id.setter
-    def project_domain_id(self, value: ty.Optional[str]) -> None:
+    def project_domain_id(self, value: str | None) -> None:
         self._project_domain_id = value
 
     @property
-    def project_domain_name(self) -> ty.Optional[str]:
+    def project_domain_name(self) -> str | None:
         return self._project_domain_name or self._default_domain_name
 
     @project_domain_name.setter
-    def project_domain_name(self, value: ty.Optional[str]) -> None:
+    def project_domain_name(self, value: str | None) -> None:
         self._project_domain_name = value
 
     def _do_create_plugin(
         self, session: ks_session.Session
-    ) -> ty.Union[v2.Auth, v3.Auth]:
+    ) -> v2.Auth | v3.Auth:
         plugin = None
 
         try:
@@ -224,5 +223,5 @@ class BaseGenericPlugin(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
         return plugin.get_auth_ref(session)
 
     @abc.abstractmethod
-    def get_cache_id_elements(self) -> dict[str, ty.Optional[str]]:
+    def get_cache_id_elements(self) -> dict[str, str | None]:
         raise NotImplementedError()

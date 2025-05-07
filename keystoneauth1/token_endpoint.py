@@ -27,24 +27,24 @@ class Token(plugin.BaseAuthPlugin):
     have a known endpoint and admin token that you want to use.
     """
 
-    def __init__(self, endpoint: ty.Optional[str], token: ty.Optional[str]):
+    def __init__(self, endpoint: str | None, token: str | None):
         super().__init__()
         # NOTE(jamielennox): endpoint is reserved for when plugins
         # can be used to provide that information
         self.endpoint = endpoint
         self.token = token
 
-    def get_token(self, session: 'ks_session.Session') -> ty.Optional[str]:
+    def get_token(self, session: 'ks_session.Session') -> str | None:
         return self.token
 
     def get_endpoint_data(
         self,
         session: 'ks_session.Session',
         *,
-        endpoint_override: ty.Optional[str] = None,
+        endpoint_override: str | None = None,
         discover_versions: bool = True,
         **kwargs: ty.Any,
-    ) -> ty.Optional[discover.EndpointData]:
+    ) -> discover.EndpointData | None:
         """Return a valid endpoint data for a the service.
 
         :param session: A session object that can be used for communication.
@@ -74,7 +74,7 @@ class Token(plugin.BaseAuthPlugin):
 
     def get_endpoint(
         self, session: 'ks_session.Session', **kwargs: ty.Any
-    ) -> ty.Optional[str]:
+    ) -> str | None:
         """Return the supplied endpoint.
 
         Using this plugin the same endpoint is returned regardless of the

@@ -34,12 +34,12 @@ class TokenlessAuth(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
     def __init__(
         self,
         auth_url: str,
-        domain_id: ty.Optional[str] = None,
-        domain_name: ty.Optional[str] = None,
-        project_id: ty.Optional[str] = None,
-        project_name: ty.Optional[str] = None,
-        project_domain_id: ty.Optional[str] = None,
-        project_domain_name: ty.Optional[str] = None,
+        domain_id: str | None = None,
+        domain_name: str | None = None,
+        project_id: str | None = None,
+        project_name: str | None = None,
+        project_domain_id: str | None = None,
+        project_domain_name: str | None = None,
     ):
         """A init method for TokenlessAuth.
 
@@ -63,7 +63,7 @@ class TokenlessAuth(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
 
     def get_headers(
         self, session: 'ks_session.Session'
-    ) -> ty.Optional[dict[str, str]]:
+    ) -> dict[str, str] | None:
         """Fetch authentication headers for message.
 
         This is to override the default get_headers method to provide
@@ -107,9 +107,9 @@ class TokenlessAuth(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
     def get_endpoint(
         self,
         session: 'ks_session.Session',
-        service_type: ty.Optional[str] = None,
+        service_type: str | None = None,
         **kwargs: ty.Any,
-    ) -> ty.Optional[str]:
+    ) -> str | None:
         """Return a valid endpoint for a service.
 
         :param session: A session object that can be used for communication.

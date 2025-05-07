@@ -34,7 +34,7 @@ class ServiceTokenAuthWrapper(plugin.BaseAuthPlugin):
 
     def get_headers(
         self, session: 'ks_session.Session'
-    ) -> ty.Optional[dict[str, str]]:
+    ) -> dict[str, str] | None:
         headers = self.user_auth.get_headers(session) or {}
         token = self.service_auth.get_token(session)
         if token:
@@ -67,28 +67,26 @@ class ServiceTokenAuthWrapper(plugin.BaseAuthPlugin):
     # be extracted into a base wrapper class. We can do this as soon as there
     # is a need for it, but we may never actually need it.
 
-    def get_token(self, session: 'ks_session.Session') -> ty.Optional[str]:
+    def get_token(self, session: 'ks_session.Session') -> str | None:
         return self.user_auth.get_token(session)
 
     def get_endpoint(
         self, session: 'ks_session.Session', **kwargs: ty.Any
-    ) -> ty.Optional[str]:
+    ) -> str | None:
         return self.user_auth.get_endpoint(session, **kwargs)
 
-    def get_user_id(self, session: 'ks_session.Session') -> ty.Optional[str]:
+    def get_user_id(self, session: 'ks_session.Session') -> str | None:
         return self.user_auth.get_user_id(session)
 
-    def get_project_id(
-        self, session: 'ks_session.Session'
-    ) -> ty.Optional[str]:
+    def get_project_id(self, session: 'ks_session.Session') -> str | None:
         return self.user_auth.get_project_id(session)
 
     def get_sp_auth_url(
         self, session: 'ks_session.Session', sp_id: str
-    ) -> ty.Optional[str]:
+    ) -> str | None:
         return self.user_auth.get_sp_auth_url(session, sp_id)
 
     def get_sp_url(
         self, session: 'ks_session.Session', sp_id: str
-    ) -> ty.Optional[str]:
+    ) -> str | None:
         return self.user_auth.get_sp_url(session, sp_id)

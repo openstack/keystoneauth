@@ -71,7 +71,7 @@ class OAuth1Method(v3.AuthMethod):
         auth: v3.Auth,
         headers: dict[str, str],
         request_kwargs: dict[str, object],
-    ) -> ty.Union[tuple[None, None], tuple[str, ty.Mapping[str, object]]]:
+    ) -> tuple[None, None] | tuple[str, ty.Mapping[str, object]]:
         # Add the oauth specific content into the headers
         oauth_client = oauth1.Client(
             self.consumer_key,
@@ -88,7 +88,7 @@ class OAuth1Method(v3.AuthMethod):
 
         return 'oauth1', {}
 
-    def get_cache_id_elements(self) -> dict[str, ty.Optional[str]]:
+    def get_cache_id_elements(self) -> dict[str, str | None]:
         return {
             'oauth1_access_key': self.access_key,
             'oauth1_access_secret': self.access_secret,
@@ -109,14 +109,14 @@ class OAuth1(v3.Auth):
         access_secret: str,
         *,
         unscoped: bool = False,
-        trust_id: ty.Optional[str] = None,
-        system_scope: ty.Optional[str] = None,
-        domain_id: ty.Optional[str] = None,
-        domain_name: ty.Optional[str] = None,
-        project_id: ty.Optional[str] = None,
-        project_name: ty.Optional[str] = None,
-        project_domain_id: ty.Optional[str] = None,
-        project_domain_name: ty.Optional[str] = None,
+        trust_id: str | None = None,
+        system_scope: str | None = None,
+        domain_id: str | None = None,
+        domain_name: str | None = None,
+        project_id: str | None = None,
+        project_name: str | None = None,
+        project_domain_id: str | None = None,
+        project_domain_name: str | None = None,
         reauthenticate: bool = True,
         include_catalog: bool = True,
     ) -> None:

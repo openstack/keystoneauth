@@ -41,23 +41,23 @@ class ApplicationCredentialMethod(base.AuthMethod):
     """
 
     application_credential_secret: str
-    application_credential_id: ty.Optional[str] = None
-    application_credential_name: ty.Optional[str] = None
-    user_id: ty.Optional[str] = None
-    username: ty.Optional[str] = None
-    user_domain_id: ty.Optional[str] = None
-    user_domain_name: ty.Optional[str] = None
+    application_credential_id: str | None = None
+    application_credential_name: str | None = None
+    user_id: str | None = None
+    username: str | None = None
+    user_domain_id: str | None = None
+    user_domain_name: str | None = None
 
     def __init__(
         self,
         *,
         application_credential_secret: str,
-        application_credential_id: ty.Optional[str] = None,
-        application_credential_name: ty.Optional[str] = None,
-        user_id: ty.Optional[str] = None,
-        username: ty.Optional[str] = None,
-        user_domain_id: ty.Optional[str] = None,
-        user_domain_name: ty.Optional[str] = None,
+        application_credential_id: str | None = None,
+        application_credential_name: str | None = None,
+        user_id: str | None = None,
+        username: str | None = None,
+        user_domain_id: str | None = None,
+        user_domain_name: str | None = None,
     ) -> None:
         self.application_credential_secret = application_credential_secret
         self.application_credential_id = application_credential_id
@@ -73,7 +73,7 @@ class ApplicationCredentialMethod(base.AuthMethod):
         auth: base.Auth,
         headers: dict[str, str],
         request_kwargs: dict[str, object],
-    ) -> ty.Union[tuple[None, None], tuple[str, ty.Mapping[str, object]]]:
+    ) -> tuple[None, None] | tuple[str, ty.Mapping[str, object]]:
         auth_data: dict[str, ty.Any] = {
             'secret': self.application_credential_secret
         }
@@ -97,7 +97,7 @@ class ApplicationCredentialMethod(base.AuthMethod):
 
         return 'application_credential', auth_data
 
-    def get_cache_id_elements(self) -> dict[str, ty.Optional[str]]:
+    def get_cache_id_elements(self) -> dict[str, str | None]:
         return {
             'application_credential_application_credential_secret': self.application_credential_secret,
             'application_credential_application_credential_id': self.application_credential_id,
@@ -130,22 +130,22 @@ class ApplicationCredential(base.Auth):
         self,
         auth_url: str,
         application_credential_secret: str,
-        application_credential_id: ty.Optional[str] = None,
-        application_credential_name: ty.Optional[str] = None,
-        user_id: ty.Optional[str] = None,
-        username: ty.Optional[str] = None,
-        user_domain_id: ty.Optional[str] = None,
-        user_domain_name: ty.Optional[str] = None,
+        application_credential_id: str | None = None,
+        application_credential_name: str | None = None,
+        user_id: str | None = None,
+        username: str | None = None,
+        user_domain_id: str | None = None,
+        user_domain_name: str | None = None,
         *,
         unscoped: bool = False,
-        trust_id: ty.Optional[str] = None,
-        system_scope: ty.Optional[str] = None,
-        domain_id: ty.Optional[str] = None,
-        domain_name: ty.Optional[str] = None,
-        project_id: ty.Optional[str] = None,
-        project_name: ty.Optional[str] = None,
-        project_domain_id: ty.Optional[str] = None,
-        project_domain_name: ty.Optional[str] = None,
+        trust_id: str | None = None,
+        system_scope: str | None = None,
+        domain_id: str | None = None,
+        domain_name: str | None = None,
+        project_id: str | None = None,
+        project_name: str | None = None,
+        project_domain_id: str | None = None,
+        project_domain_name: str | None = None,
         reauthenticate: bool = True,
         include_catalog: bool = True,
     ) -> None:

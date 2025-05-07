@@ -18,8 +18,6 @@
 
 """HTTP Exceptions used by keystoneauth1."""
 
-import typing as ty
-
 import requests
 
 from keystoneauth1.exceptions import auth
@@ -67,13 +65,13 @@ class HttpError(base.ClientException):
 
     def __init__(
         self,
-        message: ty.Optional[str] = None,
-        details: ty.Optional[str] = None,
-        response: ty.Optional[requests.Response] = None,
-        request_id: ty.Optional[str] = None,
-        url: ty.Optional[str] = None,
-        method: ty.Optional[str] = None,
-        http_status: ty.Optional[int] = None,
+        message: str | None = None,
+        details: str | None = None,
+        response: requests.Response | None = None,
+        request_id: str | None = None,
+        url: str | None = None,
+        method: str | None = None,
+        http_status: int | None = None,
         retry_after: int = 0,
     ):
         self.http_status = http_status or self.http_status
@@ -259,13 +257,13 @@ class RequestEntityTooLarge(HTTPClientError):
 
     def __init__(
         self,
-        message: ty.Optional[str] = None,
-        details: ty.Optional[str] = None,
-        response: ty.Optional[requests.Response] = None,
-        request_id: ty.Optional[str] = None,
-        url: ty.Optional[str] = None,
-        method: ty.Optional[str] = None,
-        http_status: ty.Optional[int] = None,
+        message: str | None = None,
+        details: str | None = None,
+        response: requests.Response | None = None,
+        request_id: str | None = None,
+        url: str | None = None,
+        method: str | None = None,
+        http_status: int | None = None,
         retry_after: int = 0,
     ):
         try:
@@ -433,7 +431,7 @@ _code_map = {
 
 def from_response(
     response: requests.Response, method: str, url: str
-) -> ty.Union[HttpError, auth.MissingAuthMethods]:
+) -> HttpError | auth.MissingAuthMethods:
     """Return an instance of :class:`HttpError` or subclass based on response.
 
     :param response: instance of `requests.Response` class

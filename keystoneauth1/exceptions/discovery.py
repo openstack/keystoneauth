@@ -10,7 +10,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import typing as ty
 
 import os_service_types
 
@@ -27,7 +26,7 @@ __all__ = (
     'VersionNotAvailable',
 )
 
-_PARSED_VERSION_T = tuple[ty.Union[int, float], ...]
+_PARSED_VERSION_T = tuple[int | float, ...]
 
 
 class DiscoveryFailure(base.ClientException):

@@ -13,7 +13,6 @@
 import abc
 import collections.abc
 import enum
-import typing as ty
 
 from keystoneauth1 import _utils as utils
 from keystoneauth1 import access
@@ -41,9 +40,9 @@ class Auth(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
         self,
         auth_url: str,
         *,
-        trust_id: ty.Optional[str] = None,
-        tenant_id: ty.Optional[str] = None,
-        tenant_name: ty.Optional[str] = None,
+        trust_id: str | None = None,
+        tenant_id: str | None = None,
+        tenant_name: str | None = None,
         reauthenticate: bool = True,
     ):
         super().__init__(auth_url=auth_url, reauthenticate=reauthenticate)
@@ -81,8 +80,7 @@ class Auth(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def get_auth_data(
-        self,
-        headers: ty.Optional[collections.abc.MutableMapping[str, str]] = None,
+        self, headers: collections.abc.MutableMapping[str, str] | None = None
     ) -> dict[str, object]:
         """Return the authentication section of an auth plugin.
 
@@ -131,13 +129,13 @@ class Password(Auth):
     def __init__(
         self,
         auth_url: str,
-        username: ty.Union[str, None, Unset] = _unset,
-        password: ty.Optional[str] = None,
-        user_id: ty.Union[str, None, Unset] = _unset,
+        username: str | None | Unset = _unset,
+        password: str | None = None,
+        user_id: str | None | Unset = _unset,
         *,
-        trust_id: ty.Optional[str] = None,
-        tenant_id: ty.Optional[str] = None,
-        tenant_name: ty.Optional[str] = None,
+        trust_id: str | None = None,
+        tenant_id: str | None = None,
+        tenant_name: str | None = None,
         reauthenticate: bool = True,
     ):
         super().__init__(
@@ -165,8 +163,7 @@ class Password(Auth):
         self.password = password
 
     def get_auth_data(
-        self,
-        headers: ty.Optional[collections.abc.MutableMapping[str, str]] = None,
+        self, headers: collections.abc.MutableMapping[str, str] | None = None
     ) -> dict[str, object]:
         auth = {'password': self.password}
 
@@ -177,7 +174,7 @@ class Password(Auth):
 
         return {'passwordCredentials': auth}
 
-    def get_cache_id_elements(self) -> dict[str, ty.Optional[str]]:
+    def get_cache_id_elements(self) -> dict[str, str | None]:
         return {
             'username': self.username,
             'user_id': self.user_id,
@@ -206,9 +203,9 @@ class Token(Auth):
         auth_url: str,
         token: str,
         *,
-        trust_id: ty.Optional[str] = None,
-        tenant_id: ty.Optional[str] = None,
-        tenant_name: ty.Optional[str] = None,
+        trust_id: str | None = None,
+        tenant_id: str | None = None,
+        tenant_name: str | None = None,
         reauthenticate: bool = True,
     ):
         super().__init__(
@@ -221,14 +218,13 @@ class Token(Auth):
         self.token = token
 
     def get_auth_data(
-        self,
-        headers: ty.Optional[collections.abc.MutableMapping[str, str]] = None,
+        self, headers: collections.abc.MutableMapping[str, str] | None = None
     ) -> dict[str, object]:
         if headers is not None:
             headers['X-Auth-Token'] = self.token
         return {'token': {'id': self.token}}
 
-    def get_cache_id_elements(self) -> dict[str, ty.Optional[str]]:
+    def get_cache_id_elements(self) -> dict[str, str | None]:
         return {
             'token': self.token,
             'auth_url': self.auth_url,

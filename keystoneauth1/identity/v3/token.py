@@ -36,11 +36,11 @@ class TokenMethod(base.AuthMethod):
         auth: base.Auth,
         headers: dict[str, str],
         request_kwargs: dict[str, object],
-    ) -> ty.Union[tuple[None, None], tuple[str, ty.Mapping[str, object]]]:
+    ) -> tuple[None, None] | tuple[str, ty.Mapping[str, object]]:
         headers['X-Auth-Token'] = self.token
         return 'token', {'id': self.token}
 
-    def get_cache_id_elements(self) -> dict[str, ty.Optional[str]]:
+    def get_cache_id_elements(self) -> dict[str, str | None]:
         return {'token_token': self.token}
 
 
@@ -68,14 +68,14 @@ class Token(base.Auth):
         token: str,
         *,
         unscoped: bool = False,
-        trust_id: ty.Optional[str] = None,
-        system_scope: ty.Optional[str] = None,
-        domain_id: ty.Optional[str] = None,
-        domain_name: ty.Optional[str] = None,
-        project_id: ty.Optional[str] = None,
-        project_name: ty.Optional[str] = None,
-        project_domain_id: ty.Optional[str] = None,
-        project_domain_name: ty.Optional[str] = None,
+        trust_id: str | None = None,
+        system_scope: str | None = None,
+        domain_id: str | None = None,
+        domain_name: str | None = None,
+        project_id: str | None = None,
+        project_name: str | None = None,
+        project_domain_id: str | None = None,
+        project_domain_name: str | None = None,
         reauthenticate: bool = True,
         include_catalog: bool = True,
     ) -> None:

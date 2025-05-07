@@ -31,9 +31,9 @@ __all__ = ('AccessInfo', 'AccessInfoV2', 'AccessInfoV3', 'create')
 
 
 def create(
-    resp: ty.Optional[requests.Response] = None,
-    body: ty.Optional[dict[str, object]] = None,
-    auth_token: ty.Optional[str] = None,
+    resp: requests.Response | None = None,
+    body: dict[str, object] | None = None,
+    auth_token: str | None = None,
 ) -> 'AccessInfo':
     if resp and not body:
         body = resp.json()
@@ -60,17 +60,13 @@ class AccessInfo:
     _service_catalog_class: type[service_catalog.ServiceCatalog]
     _data: ty.Any
 
-    def __init__(
-        self, body: dict[str, ty.Any], auth_token: ty.Optional[str] = None
-    ):
+    def __init__(self, body: dict[str, ty.Any], auth_token: str | None = None):
         self._data = body
         self._auth_token = auth_token
-        self._service_catalog: ty.Optional[service_catalog.ServiceCatalog] = (
+        self._service_catalog: service_catalog.ServiceCatalog | None = None
+        self._service_providers: service_providers.ServiceProviders | None = (
             None
         )
-        self._service_providers: ty.Optional[
-            service_providers.ServiceProviders
-        ] = None
 
     @property
     def service_catalog(self) -> service_catalog.ServiceCatalog:
@@ -106,7 +102,7 @@ class AccessInfo:
         raise NotImplementedError()
 
     @property
-    def auth_token(self) -> ty.Optional[str]:
+    def auth_token(self) -> str | None:
         """Return the token_id associated with the auth request.
 
         To be used in headers for authenticating OpenStack API requests.
@@ -116,7 +112,7 @@ class AccessInfo:
         return self._auth_token
 
     @property
-    def expires(self) -> ty.Optional[datetime.datetime]:
+    def expires(self) -> datetime.datetime | None:
         """Return the token expiration (as datetime object).
 
         :returns: datetime
@@ -124,7 +120,7 @@ class AccessInfo:
         raise NotImplementedError()
 
     @property
-    def issued(self) -> ty.Optional[datetime.datetime]:
+    def issued(self) -> datetime.datetime | None:
         """Return the token issue time (as datetime object).
 
         :returns: datetime
@@ -132,7 +128,7 @@ class AccessInfo:
         raise NotImplementedError()
 
     @property
-    def username(self) -> ty.Optional[str]:
+    def username(self) -> str | None:
         """Return the username associated with the auth request.
 
         Follows the pattern defined in the V2 API of first looking for 'name',
@@ -144,7 +140,7 @@ class AccessInfo:
         raise NotImplementedError()
 
     @property
-    def user_id(self) -> ty.Optional[str]:
+    def user_id(self) -> str | None:
         """Return the user id associated with the auth request.
 
         :returns: str
@@ -152,7 +148,7 @@ class AccessInfo:
         raise NotImplementedError()
 
     @property
-    def user_domain_id(self) -> ty.Optional[str]:
+    def user_domain_id(self) -> str | None:
         """Return the user's domain id associated with the auth request.
 
         :returns: str
@@ -160,7 +156,7 @@ class AccessInfo:
         raise NotImplementedError()
 
     @property
-    def user_domain_name(self) -> ty.Optional[str]:
+    def user_domain_name(self) -> str | None:
         """Return the user's domain name associated with the auth request.
 
         :returns: str
@@ -168,7 +164,7 @@ class AccessInfo:
         raise NotImplementedError()
 
     @property
-    def role_ids(self) -> ty.Optional[list[str]]:
+    def role_ids(self) -> list[str] | None:
         """Return a list of user's role ids associated with the auth request.
 
         :returns: a list of strings of role ids
@@ -176,7 +172,7 @@ class AccessInfo:
         raise NotImplementedError()
 
     @property
-    def role_names(self) -> ty.Optional[list[str]]:
+    def role_names(self) -> list[str] | None:
         """Return a list of user's role names associated with the auth request.
 
         :returns: a list of strings of role names
@@ -184,7 +180,7 @@ class AccessInfo:
         raise NotImplementedError()
 
     @property
-    def domain_name(self) -> ty.Optional[str]:
+    def domain_name(self) -> str | None:
         """Return the domain name associated with the auth request.
 
         :returns: str or None (if no domain associated with the token)
@@ -192,7 +188,7 @@ class AccessInfo:
         raise NotImplementedError()
 
     @property
-    def domain_id(self) -> ty.Optional[str]:
+    def domain_id(self) -> str | None:
         """Return the domain id associated with the auth request.
 
         :returns: str or None (if no domain associated with the token)
@@ -200,7 +196,7 @@ class AccessInfo:
         raise NotImplementedError()
 
     @property
-    def project_name(self) -> ty.Optional[str]:
+    def project_name(self) -> str | None:
         """Return the project name associated with the auth request.
 
         :returns: str or None (if no project associated with the token)
@@ -208,7 +204,7 @@ class AccessInfo:
         raise NotImplementedError()
 
     @property
-    def tenant_name(self) -> ty.Optional[str]:
+    def tenant_name(self) -> str | None:
         """Synonym for project_name."""
         return self.project_name
 
@@ -250,7 +246,7 @@ class AccessInfo:
         raise NotImplementedError()
 
     @property
-    def trust_id(self) -> ty.Optional[str]:
+    def trust_id(self) -> str | None:
         """Return the trust id associated with the auth request.
 
         :returns: str or None (if no trust associated with the token)
@@ -268,7 +264,7 @@ class AccessInfo:
         raise NotImplementedError()
 
     @property
-    def trustee_user_id(self) -> ty.Optional[str]:
+    def trustee_user_id(self) -> str | None:
         """Return the trustee user id associated with a trust.
 
         :returns: str or None (if no trust associated with the token)
@@ -276,7 +272,7 @@ class AccessInfo:
         raise NotImplementedError()
 
     @property
-    def trustor_user_id(self) -> ty.Optional[str]:
+    def trustor_user_id(self) -> str | None:
         """Return the trustor user id associated with a trust.
 
         :returns: str or None (if no trust associated with the token)
@@ -284,7 +280,7 @@ class AccessInfo:
         raise NotImplementedError()
 
     @property
-    def project_id(self) -> ty.Optional[str]:
+    def project_id(self) -> str | None:
         """Return the project ID associated with the auth request.
 
         This returns None if the auth token wasn't scoped to a project.
@@ -294,12 +290,12 @@ class AccessInfo:
         raise NotImplementedError()
 
     @property
-    def tenant_id(self) -> ty.Optional[str]:
+    def tenant_id(self) -> str | None:
         """Synonym for project_id."""
         return self.project_id
 
     @property
-    def project_domain_id(self) -> ty.Optional[str]:
+    def project_domain_id(self) -> str | None:
         """Return the project's domain id associated with the auth request.
 
         :returns: str
@@ -307,7 +303,7 @@ class AccessInfo:
         raise NotImplementedError()
 
     @property
-    def project_domain_name(self) -> ty.Optional[str]:
+    def project_domain_name(self) -> str | None:
         """Return the project's domain name associated with the auth request.
 
         :returns: str
@@ -315,7 +311,7 @@ class AccessInfo:
         raise NotImplementedError()
 
     @property
-    def oauth_access_token_id(self) -> ty.Optional[str]:
+    def oauth_access_token_id(self) -> str | None:
         """Return the access token ID if OAuth authentication used.
 
         :returns: str or None.
@@ -323,7 +319,7 @@ class AccessInfo:
         raise NotImplementedError()
 
     @property
-    def oauth_consumer_id(self) -> ty.Optional[str]:
+    def oauth_consumer_id(self) -> str | None:
         """Return the consumer ID if OAuth authentication used.
 
         :returns: str or None.
@@ -351,7 +347,7 @@ class AccessInfo:
         raise NotImplementedError()
 
     @property
-    def audit_id(self) -> ty.Optional[str]:
+    def audit_id(self) -> str | None:
         """Return the audit ID if present.
 
         :returns: str or None.
@@ -359,7 +355,7 @@ class AccessInfo:
         raise NotImplementedError()
 
     @property
-    def audit_chain_id(self) -> ty.Optional[str]:
+    def audit_chain_id(self) -> str | None:
         """Return the audit chain ID if present.
 
         In the event that a token was rescoped then this ID will be the
@@ -371,7 +367,7 @@ class AccessInfo:
         raise NotImplementedError()
 
     @property
-    def initial_audit_id(self) -> ty.Optional[str]:
+    def initial_audit_id(self) -> str | None:
         """The audit ID of the initially requested token.
 
         This is the :py:attr:`audit_chain_id` if present or the
@@ -380,9 +376,7 @@ class AccessInfo:
         return self.audit_chain_id or self.audit_id
 
     @property
-    def service_providers(
-        self,
-    ) -> ty.Optional[service_providers.ServiceProviders]:
+    def service_providers(self) -> service_providers.ServiceProviders | None:
         """Return an object representing the list of trusted service providers.
 
         Used for Keystone2Keystone federating-out.
@@ -393,7 +387,7 @@ class AccessInfo:
         raise NotImplementedError()
 
     @property
-    def bind(self) -> ty.Optional[dict[str, ty.Any]]:
+    def bind(self) -> dict[str, ty.Any] | None:
         """Information about external mechanisms the token is bound to.
 
         If a token is bound to an external authentication mechanism it can only
@@ -409,7 +403,7 @@ class AccessInfo:
         raise NotImplementedError()
 
     @property
-    def project_is_domain(self) -> ty.Optional[bool]:
+    def project_is_domain(self) -> bool | None:
         """Return if a project act as a domain.
 
         :returns: bool
@@ -432,16 +426,16 @@ class AccessInfoV2(AccessInfo):
         return self._data['access']['token']
 
     @property
-    def auth_token(self) -> ty.Optional[str]:
+    def auth_token(self) -> str | None:
         set_token = super().auth_token
         return set_token or self._token.get('id')
 
     @property
-    def expires(self) -> ty.Optional[datetime.datetime]:
+    def expires(self) -> datetime.datetime | None:
         return utils.parse_isotime(self._token['expires'])
 
     @property
-    def issued(self) -> ty.Optional[datetime.datetime]:
+    def issued(self) -> datetime.datetime | None:
         return utils.parse_isotime(self._token['issued_at'])
 
     @property
@@ -449,40 +443,40 @@ class AccessInfoV2(AccessInfo):
         return self._data['access']['user']
 
     @property
-    def username(self) -> ty.Optional[str]:
+    def username(self) -> str | None:
         return self._user.get('name') or self._user.get('username')
 
     @property
-    def user_id(self) -> ty.Optional[str]:
+    def user_id(self) -> str | None:
         return self._user.get('id')
 
     @property
-    def user_domain_id(self) -> ty.Optional[str]:
+    def user_domain_id(self) -> str | None:
         return None
 
     @property
-    def user_domain_name(self) -> ty.Optional[str]:
+    def user_domain_name(self) -> str | None:
         return None
 
     @property
-    def role_ids(self) -> ty.Optional[list[str]]:
+    def role_ids(self) -> list[str] | None:
         metadata = self._data['access'].get('metadata', {})
         return metadata.get('roles', [])
 
     @property
-    def role_names(self) -> ty.Optional[list[str]]:
+    def role_names(self) -> list[str] | None:
         return [r['name'] for r in self._user.get('roles', [])]
 
     @property
-    def domain_name(self) -> ty.Optional[str]:
+    def domain_name(self) -> str | None:
         return None
 
     @property
-    def domain_id(self) -> ty.Optional[str]:
+    def domain_id(self) -> str | None:
         return None
 
     @property
-    def project_name(self) -> ty.Optional[str]:
+    def project_name(self) -> str | None:
         if 'tenant' in self._token:
             return self._token['tenant'].get('name')
 
@@ -505,11 +499,11 @@ class AccessInfoV2(AccessInfo):
         return False
 
     @property
-    def _trust(self) -> ty.Optional[types.TrustV2]:
+    def _trust(self) -> types.TrustV2 | None:
         return self._data['access'].get('trust')
 
     @property
-    def trust_id(self) -> ty.Optional[str]:
+    def trust_id(self) -> str | None:
         return self._trust and self._trust['id']
 
     @property
@@ -517,16 +511,16 @@ class AccessInfoV2(AccessInfo):
         return bool(self._trust)
 
     @property
-    def trustee_user_id(self) -> ty.Optional[str]:
+    def trustee_user_id(self) -> str | None:
         return self._trust and self._trust['trustee_user_id']
 
     @property
-    def trustor_user_id(self) -> ty.Optional[str]:
+    def trustor_user_id(self) -> str | None:
         # this information is not available in the v2 token bug: #1331882
         return None
 
     @property
-    def project_id(self) -> ty.Optional[str]:
+    def project_id(self) -> str | None:
         if 'tenant' in self._token:
             return self._token['tenant'].get('id')
 
@@ -541,23 +535,23 @@ class AccessInfoV2(AccessInfo):
         return None
 
     @property
-    def project_is_domain(self) -> ty.Optional[bool]:
+    def project_is_domain(self) -> bool | None:
         return False
 
     @property
-    def project_domain_id(self) -> ty.Optional[str]:
+    def project_domain_id(self) -> str | None:
         return None
 
     @property
-    def project_domain_name(self) -> ty.Optional[str]:
+    def project_domain_name(self) -> str | None:
         return None
 
     @property
-    def oauth_access_token_id(self) -> ty.Optional[str]:
+    def oauth_access_token_id(self) -> str | None:
         return None
 
     @property
-    def oauth_consumer_id(self) -> ty.Optional[str]:
+    def oauth_consumer_id(self) -> str | None:
         return None
 
     @property
@@ -569,27 +563,25 @@ class AccessInfoV2(AccessInfo):
         return True
 
     @property
-    def audit_id(self) -> ty.Optional[str]:
+    def audit_id(self) -> str | None:
         try:
             return self._token.get('audit_ids', [])[0]
         except IndexError:
             return None
 
     @property
-    def audit_chain_id(self) -> ty.Optional[str]:
+    def audit_chain_id(self) -> str | None:
         try:
             return self._token.get('audit_ids', [])[1]
         except IndexError:
             return None
 
     @property
-    def service_providers(
-        self,
-    ) -> ty.Optional[service_providers.ServiceProviders]:
+    def service_providers(self) -> service_providers.ServiceProviders | None:
         return None
 
     @property
-    def bind(self) -> ty.Optional[dict[str, ty.Any]]:
+    def bind(self) -> dict[str, ty.Any] | None:
         return self._token.get('bind')
 
 
@@ -608,11 +600,11 @@ class AccessInfoV3(AccessInfo):
         return 'catalog' in self._token
 
     @property
-    def expires(self) -> ty.Optional[datetime.datetime]:
+    def expires(self) -> datetime.datetime | None:
         return utils.parse_isotime(self._token['expires_at'])
 
     @property
-    def issued(self) -> ty.Optional[datetime.datetime]:
+    def issued(self) -> datetime.datetime | None:
         return utils.parse_isotime(self._token['issued_at'])
 
     @property
@@ -620,11 +612,11 @@ class AccessInfoV3(AccessInfo):
         return self._token['user']
 
     @property
-    def username(self) -> ty.Optional[str]:
+    def username(self) -> str | None:
         return self._user['name']
 
     @property
-    def user_id(self) -> ty.Optional[str]:
+    def user_id(self) -> str | None:
         return self._user['id']
 
     @property
@@ -632,65 +624,65 @@ class AccessInfoV3(AccessInfo):
         return self._user['domain']
 
     @property
-    def user_domain_id(self) -> ty.Optional[str]:
+    def user_domain_id(self) -> str | None:
         return self._user['domain']['id']
 
     @property
-    def user_domain_name(self) -> ty.Optional[str]:
+    def user_domain_name(self) -> str | None:
         return self._user['domain']['name']
 
     @property
-    def role_ids(self) -> ty.Optional[list[str]]:
+    def role_ids(self) -> list[str] | None:
         return [r['id'] for r in self._token.get('roles', [])]
 
     @property
-    def role_names(self) -> ty.Optional[list[str]]:
+    def role_names(self) -> list[str] | None:
         return [r['name'] for r in self._token.get('roles', [])]
 
     @property
-    def system(self) -> ty.Optional[types.SystemV3]:
+    def system(self) -> types.SystemV3 | None:
         return self._token.get('system')
 
     @property
-    def _domain(self) -> ty.Optional[types.DomainV3]:
+    def _domain(self) -> types.DomainV3 | None:
         # only present for domain-scoped tokens
         return self._token.get('domain')
 
     @property
-    def domain_name(self) -> ty.Optional[str]:
+    def domain_name(self) -> str | None:
         return self._domain and self._domain['name']
 
     @property
-    def domain_id(self) -> ty.Optional[str]:
+    def domain_id(self) -> str | None:
         return self._domain and self._domain['id']
 
     @property
-    def _project(self) -> ty.Optional[types.ProjectV3]:
+    def _project(self) -> types.ProjectV3 | None:
         # only present for project-scoped tokens
         return self._token.get('project')
 
     @property
-    def project_id(self) -> ty.Optional[str]:
+    def project_id(self) -> str | None:
         return self._project and self._project.get('id')
 
     @property
-    def project_name(self) -> ty.Optional[str]:
+    def project_name(self) -> str | None:
         return self._project and self._project.get('name')
 
     @property
-    def project_is_domain(self) -> ty.Optional[bool]:
+    def project_is_domain(self) -> bool | None:
         return self._token.get('is_domain')
 
     @property
-    def _project_domain(self) -> ty.Optional[types.ProjectDomainV3]:
+    def _project_domain(self) -> types.ProjectDomainV3 | None:
         return self._project and self._project.get('domain')
 
     @property
-    def project_domain_id(self) -> ty.Optional[str]:
+    def project_domain_id(self) -> str | None:
         return self._project_domain and self._project_domain['id']
 
     @property
-    def project_domain_name(self) -> ty.Optional[str]:
+    def project_domain_name(self) -> str | None:
         return self._project_domain and self._project_domain['name']
 
     @property
@@ -702,12 +694,12 @@ class AccessInfoV3(AccessInfo):
         return bool(self._token.get('system', {}).get('all'))
 
     @property
-    def _trust(self) -> ty.Optional[types.TrustV3]:
+    def _trust(self) -> types.TrustV3 | None:
         # only present for trust-scoped tokens
         return self._token.get('OS-TRUST:trust')
 
     @property
-    def trust_id(self) -> ty.Optional[str]:
+    def trust_id(self) -> str | None:
         return self._trust and self._trust['id']
 
     @property
@@ -715,11 +707,11 @@ class AccessInfoV3(AccessInfo):
         return bool(self._trust)
 
     @property
-    def trustee_user_id(self) -> ty.Optional[str]:
+    def trustee_user_id(self) -> str | None:
         return self._trust and self._trust['trustee_user']['id']
 
     @property
-    def trustor_user_id(self) -> ty.Optional[str]:
+    def trustor_user_id(self) -> str | None:
         return self._trust and self._trust['trustor_user']['id']
 
     # TODO(stephenfin): Should this be private like every other high-level
@@ -729,14 +721,12 @@ class AccessInfoV3(AccessInfo):
         return self._token['application_credential']
 
     @property
-    def _application_credential(
-        self,
-    ) -> ty.Optional[types.ApplicationCredentialV3]:
+    def _application_credential(self) -> types.ApplicationCredentialV3 | None:
         # only present if user has authenticated with application credentials
         return self._token.get('application_credential')
 
     @property
-    def application_credential_id(self) -> ty.Optional[str]:
+    def application_credential_id(self) -> str | None:
         return (
             self._application_credential
             and self._application_credential.get('id')
@@ -745,23 +735,23 @@ class AccessInfoV3(AccessInfo):
     @property
     def application_credential_access_rules(
         self,
-    ) -> ty.Optional[list[types.ApplicationCredentialAccessRuleV3]]:
+    ) -> list[types.ApplicationCredentialAccessRuleV3] | None:
         return (
             self._application_credential
             and self._application_credential.get('access_rules')
         )
 
     @property
-    def _oauth(self) -> ty.Optional[types.OAuth1V3]:
+    def _oauth(self) -> types.OAuth1V3 | None:
         # only present if user has authenticated with OAuth1
         return self._token.get('OS-OAUTH1')
 
     @property
-    def oauth_access_token_id(self) -> ty.Optional[str]:
+    def oauth_access_token_id(self) -> str | None:
         return self._oauth and self._oauth.get('access_token_id')
 
     @property
-    def oauth_consumer_id(self) -> ty.Optional[str]:
+    def oauth_consumer_id(self) -> str | None:
         return self._oauth and self._oauth.get('consumer_id')
 
     @property
@@ -773,19 +763,17 @@ class AccessInfoV3(AccessInfo):
         return bool(self._token.get('is_admin_project', True))
 
     @property
-    def audit_id(self) -> ty.Optional[str]:
+    def audit_id(self) -> str | None:
         ret = self._token.get('audit_ids', [])
         return ret[0] if ret else None
 
     @property
-    def audit_chain_id(self) -> ty.Optional[str]:
+    def audit_chain_id(self) -> str | None:
         ret = self._token.get('audit_ids', [])
         return ret[1] if len(ret) > 1 else None
 
     @property
-    def service_providers(
-        self,
-    ) -> ty.Optional[service_providers.ServiceProviders]:
+    def service_providers(self) -> service_providers.ServiceProviders | None:
         if not self._service_providers:
             self._service_providers = (
                 service_providers.ServiceProviders.from_token(self._data)
@@ -794,7 +782,7 @@ class AccessInfoV3(AccessInfo):
         return self._service_providers
 
     @property
-    def bind(self) -> ty.Optional[dict[str, ty.Any]]:
+    def bind(self) -> dict[str, ty.Any] | None:
         return self._token.get('bind')
 
     # TODO(stephenfin): Should this be private like every other high-level
@@ -804,11 +792,11 @@ class AccessInfoV3(AccessInfo):
         return self._token['oauth2_credential']
 
     @property
-    def _oauth2_credential(self) -> ty.Optional[types.OAuth2V3]:
+    def _oauth2_credential(self) -> types.OAuth2V3 | None:
         return self._token.get('oauth2_credential')
 
     @property
-    def oauth2_credential_thumbprint(self) -> ty.Optional[str]:
+    def oauth2_credential_thumbprint(self) -> str | None:
         return self._oauth2_credential and self._oauth2_credential.get(
             'x5t#S256'
         )

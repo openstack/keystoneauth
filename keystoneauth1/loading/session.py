@@ -33,9 +33,7 @@ __all__ = (
 )
 
 
-def _positive_non_zero_float(
-    argument_value: ty.Optional[str],
-) -> ty.Optional[float]:
+def _positive_non_zero_float(argument_value: str | None) -> float | None:
     if argument_value is None:
         return None
     try:
@@ -60,10 +58,10 @@ class Session(base._BaseLoader[session.Session]):
     def load_from_options(
         self,
         insecure: bool = False,
-        verify: ty.Union[bool, str, None] = None,
-        cacert: ty.Optional[str] = None,
-        cert: ty.Optional[str] = None,
-        key: ty.Optional[str] = None,
+        verify: bool | str | None = None,
+        cacert: str | None = None,
+        cert: str | None = None,
+        key: str | None = None,
         **kwargs: ty.Any,
     ) -> session.Session:
         """Create a session with individual certificate parameters.
@@ -78,7 +76,7 @@ class Session(base._BaseLoader[session.Session]):
             else:
                 verify = cacert or True
 
-        cert_: ty.Union[str, None, tuple[str, str]] = cert
+        cert_: str | None | tuple[str, str] = cert
         if cert and key:
             # passing cert and key together is deprecated in favour of the
             # requests lib form of having the cert and key as a tuple
@@ -161,9 +159,7 @@ class Session(base._BaseLoader[session.Session]):
 
     def get_conf_options(
         self,
-        deprecated_opts: ty.Optional[
-            dict[str, list['cfg.DeprecatedOpt']]
-        ] = None,
+        deprecated_opts: dict[str, list['cfg.DeprecatedOpt']] | None = None,
     ) -> list['cfg.Opt']:
         """Get oslo_config options that are needed for a :py:class:`.Session`.
 
@@ -243,9 +239,7 @@ class Session(base._BaseLoader[session.Session]):
         self,
         conf: 'cfg.ConfigOpts',
         group: str,
-        deprecated_opts: ty.Optional[
-            dict[str, list['cfg.DeprecatedOpt']]
-        ] = None,
+        deprecated_opts: dict[str, list['cfg.DeprecatedOpt']] | None = None,
     ) -> list['cfg.Opt']:
         """Register the oslo_config options that are needed for a session.
 
@@ -319,7 +313,7 @@ def load_from_argparse_arguments(
 def register_conf_options(
     conf: 'cfg.ConfigOpts',
     group: str,
-    deprecated_opts: ty.Optional[dict[str, list['cfg.DeprecatedOpt']]] = None,
+    deprecated_opts: dict[str, list['cfg.DeprecatedOpt']] | None = None,
 ) -> list['cfg.Opt']:
     return Session().register_conf_options(
         conf, group, deprecated_opts=deprecated_opts
@@ -333,6 +327,6 @@ def load_from_conf_options(
 
 
 def get_conf_options(
-    deprecated_opts: ty.Optional[dict[str, list['cfg.DeprecatedOpt']]] = None,
+    deprecated_opts: dict[str, list['cfg.DeprecatedOpt']] | None = None,
 ) -> list['cfg.Opt']:
     return Session().get_conf_options(deprecated_opts=deprecated_opts)

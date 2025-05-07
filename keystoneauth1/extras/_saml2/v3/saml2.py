@@ -126,7 +126,7 @@ class _SamlAuth(requests.auth.AuthBase):
     def __init__(
         self,
         identity_provider_url: str,
-        requests_auth: ty.Union[None, requests.auth.AuthBase, tuple[str, str]],
+        requests_auth: None | requests.auth.AuthBase | tuple[str, str],
     ):
         super().__init__()
         self.identity_provider_url = identity_provider_url
@@ -165,10 +165,8 @@ class _SamlAuth(requests.auth.AuthBase):
             url: str,
             headers: ty.Mapping[str, str],
             data: bytes,
-            auth: ty.Union[
-                None, requests.auth.AuthBase, tuple[str, str]
-            ] = None,
-            cookies: ty.Optional[requests.cookies.RequestsCookieJar] = None,
+            auth: None | requests.auth.AuthBase | tuple[str, str] = None,
+            cookies: requests.cookies.RequestsCookieJar | None = None,
         ) -> requests.Response:
             req = requests.Request(
                 method=method,
@@ -271,14 +269,14 @@ class _FederatedSaml(v3.FederationBaseAuth):
         protocol: str,
         identity_provider_url: str,
         *,
-        trust_id: ty.Optional[str] = None,
-        system_scope: ty.Optional[str] = None,
-        domain_id: ty.Optional[str] = None,
-        domain_name: ty.Optional[str] = None,
-        project_id: ty.Optional[str] = None,
-        project_name: ty.Optional[str] = None,
-        project_domain_id: ty.Optional[str] = None,
-        project_domain_name: ty.Optional[str] = None,
+        trust_id: str | None = None,
+        system_scope: str | None = None,
+        domain_id: str | None = None,
+        domain_name: str | None = None,
+        project_id: str | None = None,
+        project_name: str | None = None,
+        project_domain_id: str | None = None,
+        project_domain_name: str | None = None,
         reauthenticate: bool = True,
         include_catalog: bool = True,
     ):
@@ -376,14 +374,14 @@ class Password(_FederatedSaml):
         username: str,
         password: str,
         *,
-        trust_id: ty.Optional[str] = None,
-        system_scope: ty.Optional[str] = None,
-        domain_id: ty.Optional[str] = None,
-        domain_name: ty.Optional[str] = None,
-        project_id: ty.Optional[str] = None,
-        project_name: ty.Optional[str] = None,
-        project_domain_id: ty.Optional[str] = None,
-        project_domain_name: ty.Optional[str] = None,
+        trust_id: str | None = None,
+        system_scope: str | None = None,
+        domain_id: str | None = None,
+        domain_name: str | None = None,
+        project_id: str | None = None,
+        project_name: str | None = None,
+        project_domain_id: str | None = None,
+        project_domain_name: str | None = None,
         reauthenticate: bool = True,
         include_catalog: bool = True,
     ):

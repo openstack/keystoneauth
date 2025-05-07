@@ -64,7 +64,7 @@ _REQUEST_ID_HEADER = 'X-Openstack-Request-Id'
 
 
 def _construct_session(
-    session_obj: ty.Optional[requests.Session] = None,
+    session_obj: requests.Session | None = None,
 ) -> requests.Session:
     # NOTE(morganfainberg): if the logic in this function changes be sure to
     # update the betamax fixture's '_construct_session_with_betamax" function
@@ -94,9 +94,7 @@ def _mv_legacy_headers_for_service(mv_service_type: str) -> list[str]:
     return headers
 
 
-def _sanitize_headers(
-    headers: dict[ty.Union[str, bytes], ty.Any],
-) -> dict[str, ty.Any]:
+def _sanitize_headers(headers: dict[str | bytes, ty.Any]) -> dict[str, ty.Any]:
     """Ensure headers are strings and not bytes."""
     str_dict = {}
     for k, v in headers.items():
@@ -118,9 +116,9 @@ class NoOpSemaphore:
 
     def __exit__(
         self,
-        exc_type: ty.Optional[type[BaseException]],
-        exc_value: ty.Optional[BaseException],
-        traceback: ty.Optional[types.TracebackType],
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: types.TracebackType | None,
     ) -> None:
         """Exit the context manager and do nothing."""
         pass
@@ -245,19 +243,16 @@ class RequestTiming:
     """Contains timing information for an HTTP interaction."""
 
     #: HTTP method used for the call (GET, POST, etc)
-    method: ty.Optional[str]
+    method: str | None
 
     #: URL against which the call was made
-    url: ty.Optional[str]
+    url: str | None
 
     #: Elapsed time information
     elapsed: datetime.timedelta
 
     def __init__(
-        self,
-        method: ty.Optional[str],
-        url: ty.Optional[str],
-        elapsed: datetime.timedelta,
+        self, method: str | None, url: str | None, elapsed: datetime.timedelta
     ):
         self.method = method
         self.url = url
@@ -266,10 +261,10 @@ class RequestTiming:
 
 class _Retries:
     __slots__ = ('_fixed_delay', '_current')
-    _fixed_delay: ty.Optional[float]
+    _fixed_delay: float | None
     _current: float
 
-    def __init__(self, fixed_delay: ty.Optional[float] = None):
+    def __init__(self, fixed_delay: float | None = None):
         self._fixed_delay = fixed_delay
         self.reset()
 
@@ -367,23 +362,22 @@ class Session:
     def __init__(
         self,
         auth: ty.Optional['plugin.BaseAuthPlugin'] = None,
-        session: ty.Optional[requests.Session] = None,
-        original_ip: ty.Optional[str] = None,
-        verify: ty.Union[bool, str, None] = True,
-        cert: ty.Union[str, tuple[str, str], None] = None,
-        timeout: ty.Optional[int] = None,
-        user_agent: ty.Optional[str] = None,
-        redirect: ty.Union[int, bool] = _DEFAULT_REDIRECT_LIMIT,
-        additional_headers: ty.Optional[
-            collections.abc.MutableMapping[str, str]
-        ] = None,
-        app_name: ty.Optional[str] = None,
-        app_version: ty.Optional[str] = None,
-        additional_user_agent: ty.Optional[list[tuple[str, str]]] = None,
-        discovery_cache: ty.Optional[dict[str, ty.Any]] = None,
-        split_loggers: ty.Optional[bool] = None,
+        session: requests.Session | None = None,
+        original_ip: str | None = None,
+        verify: bool | str | None = True,
+        cert: str | tuple[str, str] | None = None,
+        timeout: int | None = None,
+        user_agent: str | None = None,
+        redirect: int | bool = _DEFAULT_REDIRECT_LIMIT,
+        additional_headers: collections.abc.MutableMapping[str, str]
+        | None = None,
+        app_name: str | None = None,
+        app_version: str | None = None,
+        additional_user_agent: list[tuple[str, str]] | None = None,
+        discovery_cache: dict[str, ty.Any] | None = None,
+        split_loggers: bool | None = None,
         collect_timing: bool = False,
-        rate_semaphore: ty.Optional[ty.ContextManager[None]] = None,
+        rate_semaphore: ty.ContextManager[None] | None = None,
         connect_retries: int = 0,
     ):
         self.auth = auth
@@ -392,7 +386,7 @@ class Session:
         # clean it up when this object goes away. We don't want to close the
         # session if it was passed into us as it may be reused externally.
         # See LP#1838704
-        self._session: ty.Optional[requests.Session] = None
+        self._session: requests.Session | None = None
         if not session:
             self._session = self.session
         self.original_ip = original_ip
@@ -404,7 +398,7 @@ class Session:
         self.app_name = app_name
         self.app_version = app_version
         self.additional_user_agent = additional_user_agent or []
-        self._determined_user_agent: ty.Optional[str] = None
+        self._determined_user_agent: str | None = None
         if discovery_cache is None:
             discovery_cache = {}
         self._discovery_cache = discovery_cache
@@ -490,9 +484,7 @@ class Session:
             return (header[0], f'{{SHA256}}{token_hash}')
         return header
 
-    def _get_split_loggers(
-        self, split_loggers: ty.Optional[bool]
-    ) -> ty.Optional[bool]:
+    def _get_split_loggers(self, split_loggers: bool | None) -> bool | None:
         """Get a boolean value from the various argument sources.
 
         We default split_loggers to None in the kwargs of the Session
@@ -513,13 +505,13 @@ class Session:
     def _http_log_request(
         self,
         url: str,
-        method: ty.Optional[str] = None,
-        data: ty.Union[str, bytes, None] = None,
+        method: str | None = None,
+        data: str | bytes | None = None,
         json: object = None,
-        headers: ty.Optional[collections.abc.MutableMapping[str, str]] = None,
-        query_params: ty.Optional[dict[str, ty.Any]] = None,
-        logger: ty.Optional[logging.Logger] = None,
-        split_loggers: ty.Optional[bool] = None,
+        headers: collections.abc.MutableMapping[str, str] | None = None,
+        query_params: dict[str, ty.Any] | None = None,
+        logger: logging.Logger | None = None,
+        split_loggers: bool | None = None,
     ) -> None:
         string_parts = []
 
@@ -581,14 +573,14 @@ class Session:
 
     def _http_log_response(
         self,
-        response: ty.Optional[requests.Response] = None,
+        response: requests.Response | None = None,
         json: object = None,
-        status_code: ty.Optional[int] = None,
-        headers: ty.Optional[collections.abc.MutableMapping[str, str]] = None,
-        text: ty.Optional[str] = None,
+        status_code: int | None = None,
+        headers: collections.abc.MutableMapping[str, str] | None = None,
+        text: str | None = None,
         *,
         logger: logging.Logger,
-        split_loggers: ty.Optional[bool] = None,
+        split_loggers: bool | None = None,
     ) -> None:
         string_parts = []
         body_parts = []
@@ -659,8 +651,8 @@ class Session:
     def _set_microversion_headers(
         headers: collections.abc.MutableMapping[str, str],
         microversion: str,
-        service_type: ty.Optional[str],
-        endpoint_filter: ty.Optional[dict[str, ty.Any]],
+        service_type: str | None,
+        endpoint_filter: dict[str, ty.Any] | None,
     ) -> None:
         # We're converting it to normalized version number for two reasons.
         # First, to validate it's a real version number. Second, so that in
@@ -721,31 +713,31 @@ class Session:
         self,
         url: str,
         method: str,
-        json: ty.Optional[object] = None,
-        original_ip: ty.Optional[str] = None,
-        user_agent: ty.Optional[str] = None,
-        redirect: ty.Union[int, bool, None] = None,
-        authenticated: ty.Optional[bool] = None,
-        endpoint_filter: ty.Optional[dict[str, ty.Any]] = None,
+        json: object | None = None,
+        original_ip: str | None = None,
+        user_agent: str | None = None,
+        redirect: int | bool | None = None,
+        authenticated: bool | None = None,
+        endpoint_filter: dict[str, ty.Any] | None = None,
         auth: ty.Optional['plugin.BaseAuthPlugin'] = None,
         requests_auth: ty.Optional['requests.auth.AuthBase'] = None,
         raise_exc: bool = True,
         allow_reauth: bool = True,
         log: bool = True,
-        endpoint_override: ty.Optional[str] = None,
-        connect_retries: ty.Optional[int] = None,
-        logger: ty.Optional[logging.Logger] = None,
-        allow: ty.Optional[dict[str, ty.Any]] = None,
-        client_name: ty.Optional[str] = None,
-        client_version: ty.Optional[str] = None,
-        microversion: ty.Optional[str] = None,
-        microversion_service_type: ty.Optional[str] = None,
+        endpoint_override: str | None = None,
+        connect_retries: int | None = None,
+        logger: logging.Logger | None = None,
+        allow: dict[str, ty.Any] | None = None,
+        client_name: str | None = None,
+        client_version: str | None = None,
+        microversion: str | None = None,
+        microversion_service_type: str | None = None,
         status_code_retries: int = 0,
-        retriable_status_codes: ty.Optional[list[int]] = None,
-        rate_semaphore: ty.Optional[ty.ContextManager[None]] = None,
-        global_request_id: ty.Optional[str] = None,
-        connect_retry_delay: ty.Optional[float] = None,
-        status_code_retry_delay: ty.Optional[float] = None,
+        retriable_status_codes: list[int] | None = None,
+        rate_semaphore: ty.ContextManager[None] | None = None,
+        global_request_id: str | None = None,
+        connect_retry_delay: float | None = None,
+        status_code_retry_delay: float | None = None,
         **kwargs: ty.Any,
     ) -> requests.Response:
         """Send an HTTP request with the specified characteristics.
@@ -1140,10 +1132,10 @@ class Session:
         self,
         url: str,
         method: str,
-        redirect: ty.Union[int, bool],
+        redirect: int | bool,
         log: bool,
         logger: logging.Logger,
-        split_loggers: ty.Optional[bool],
+        split_loggers: bool | None,
         connect_retries: int,
         status_code_retries: int,
         retriable_status_codes: list[int],
@@ -1368,7 +1360,7 @@ class Session:
 
     def get_auth_headers(
         self, auth: ty.Optional['plugin.BaseAuthPlugin'] = None
-    ) -> ty.Optional[dict[str, str]]:
+    ) -> dict[str, str] | None:
         """Return auth headers as provided by the auth plugin.
 
         :param auth: The auth plugin to use for token. Overrides the plugin
@@ -1388,7 +1380,7 @@ class Session:
 
     def get_token(
         self, auth: ty.Optional['plugin.BaseAuthPlugin'] = None
-    ) -> ty.Optional[str]:
+    ) -> str | None:
         """Return a token as provided by the auth plugin.
 
         :param auth: The auth plugin to use for token. Overrides the plugin
@@ -1414,9 +1406,9 @@ class Session:
         self,
         auth: ty.Optional['plugin.BaseAuthPlugin'] = None,
         *,
-        endpoint_override: ty.Optional[str] = None,
+        endpoint_override: str | None = None,
         **kwargs: ty.Any,
-    ) -> ty.Optional[str]:
+    ) -> str | None:
         """Get an endpoint as provided by the auth plugin.
 
         :param auth: The auth plugin to use for token. Overrides the plugin on
@@ -1440,7 +1432,7 @@ class Session:
         self,
         auth: ty.Optional['plugin.BaseAuthPlugin'] = None,
         **kwargs: ty.Any,
-    ) -> ty.Optional[discover.EndpointData]:
+    ) -> discover.EndpointData | None:
         """Get endpoint data as provided by the auth plugin.
 
         :param auth: The auth plugin to use for token. Overrides the plugin on
@@ -1461,7 +1453,7 @@ class Session:
         self,
         auth: ty.Optional['plugin.BaseAuthPlugin'] = None,
         **kwargs: ty.Any,
-    ) -> ty.Optional[tuple[ty.Union[int, float], ...]]:
+    ) -> tuple[int | float, ...] | None:
         """Get the major API version as provided by the auth plugin.
 
         :param auth: The auth plugin to use for token. Overrides the plugin on
@@ -1480,9 +1472,9 @@ class Session:
     def get_all_version_data(
         self,
         auth: ty.Optional['plugin.BaseAuthPlugin'] = None,
-        interface: ty.Union[str, list[str], None] = 'public',
-        region_name: ty.Optional[str] = None,
-        service_type: ty.Optional[str] = None,
+        interface: str | list[str] | None = 'public',
+        region_name: str | None = None,
+        service_type: str | None = None,
     ) -> dict[str, dict[str, dict[str, list[discover.VersionData]]]]:
         """Get version data for all services in the catalog.
 
@@ -1579,7 +1571,7 @@ class Session:
 
     def get_user_id(
         self, auth: ty.Optional['plugin.BaseAuthPlugin'] = None
-    ) -> ty.Optional[str]:
+    ) -> str | None:
         """Return the authenticated user_id as provided by the auth plugin.
 
         :param auth: The auth plugin to use for token. Overrides the plugin
@@ -1599,7 +1591,7 @@ class Session:
 
     def get_project_id(
         self, auth: ty.Optional['plugin.BaseAuthPlugin'] = None
-    ) -> ty.Optional[str]:
+    ) -> str | None:
         """Return the authenticated project_id as provided by the auth plugin.
 
         :param auth: The auth plugin to use for token. Overrides the plugin

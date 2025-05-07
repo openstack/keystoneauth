@@ -52,14 +52,14 @@ class BaseAuth(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
         self,
         auth_url: str,
         *,
-        trust_id: ty.Optional[str] = None,
-        system_scope: ty.Optional[str] = None,
-        domain_id: ty.Optional[str] = None,
-        domain_name: ty.Optional[str] = None,
-        project_id: ty.Optional[str] = None,
-        project_name: ty.Optional[str] = None,
-        project_domain_id: ty.Optional[str] = None,
-        project_domain_name: ty.Optional[str] = None,
+        trust_id: str | None = None,
+        system_scope: str | None = None,
+        domain_id: str | None = None,
+        domain_name: str | None = None,
+        project_id: str | None = None,
+        project_name: str | None = None,
+        project_domain_id: str | None = None,
+        project_domain_name: str | None = None,
         reauthenticate: bool = True,
         include_catalog: bool = True,
     ):
@@ -95,7 +95,7 @@ class BaseAuth(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
 
 class _AuthIdentity(ty.TypedDict):
     identity: dict[str, ty.Any]
-    scope: ty_ext.NotRequired[ty.Union[dict[str, ty.Any], str]]
+    scope: ty_ext.NotRequired[dict[str, ty.Any] | str]
 
 
 class _AuthBody(ty.TypedDict):
@@ -129,14 +129,14 @@ class Auth(BaseAuth):
         auth_methods: list['AuthMethod'],
         *,
         unscoped: bool = False,
-        trust_id: ty.Optional[str] = None,
-        system_scope: ty.Optional[str] = None,
-        domain_id: ty.Optional[str] = None,
-        domain_name: ty.Optional[str] = None,
-        project_id: ty.Optional[str] = None,
-        project_name: ty.Optional[str] = None,
-        project_domain_id: ty.Optional[str] = None,
-        project_domain_name: ty.Optional[str] = None,
+        trust_id: str | None = None,
+        system_scope: str | None = None,
+        domain_id: str | None = None,
+        domain_name: str | None = None,
+        project_id: str | None = None,
+        project_name: str | None = None,
+        project_domain_id: str | None = None,
+        project_domain_name: str | None = None,
         reauthenticate: bool = True,
         include_catalog: bool = True,
     ):
@@ -259,7 +259,7 @@ class Auth(BaseAuth):
             auth_token=resp.headers['X-Subject-Token'], body=resp_data
         )
 
-    def get_cache_id_elements(self) -> dict[str, ty.Optional[str]]:
+    def get_cache_id_elements(self) -> dict[str, str | None]:
         if not self.auth_methods:
             return {}
 
@@ -296,7 +296,7 @@ class AuthMethod(metaclass=abc.ABCMeta):
 
     #: Deprecated parameter for defining the parameters supported by the
     #: plugin. These should now be defined by typed class attributes.
-    _method_parameters: ty.Optional[list[str]] = None
+    _method_parameters: list[str] | None = None
 
     # TODO(stephenfin): Remove support for arbitrary arguments in 2025.2 or
     # later
@@ -329,7 +329,7 @@ class AuthMethod(metaclass=abc.ABCMeta):
         auth: Auth,
         headers: dict[str, str],
         request_kwargs: dict[str, object],
-    ) -> ty.Union[tuple[None, None], tuple[str, ty.Mapping[str, object]]]:
+    ) -> tuple[None, None] | tuple[str, ty.Mapping[str, object]]:
         """Return the authentication section of an auth plugin.
 
         :param session: The communication session.
@@ -343,7 +343,7 @@ class AuthMethod(metaclass=abc.ABCMeta):
         """
         raise NotImplementedError()
 
-    def get_cache_id_elements(self) -> dict[str, ty.Optional[str]]:
+    def get_cache_id_elements(self) -> dict[str, str | None]:
         """Get the elements for this auth method that make it unique.
 
         These elements will be used as part of the
@@ -383,14 +383,14 @@ class AuthConstructor(Auth, metaclass=abc.ABCMeta):
         auth_url: str,
         *args: ty.Any,
         unscoped: bool = False,
-        trust_id: ty.Optional[str] = None,
-        system_scope: ty.Optional[str] = None,
-        domain_id: ty.Optional[str] = None,
-        domain_name: ty.Optional[str] = None,
-        project_id: ty.Optional[str] = None,
-        project_name: ty.Optional[str] = None,
-        project_domain_id: ty.Optional[str] = None,
-        project_domain_name: ty.Optional[str] = None,
+        trust_id: str | None = None,
+        system_scope: str | None = None,
+        domain_id: str | None = None,
+        domain_name: str | None = None,
+        project_id: str | None = None,
+        project_name: str | None = None,
+        project_domain_id: str | None = None,
+        project_domain_name: str | None = None,
         reauthenticate: bool = True,
         include_catalog: bool = True,
         **kwargs: ty.Any,

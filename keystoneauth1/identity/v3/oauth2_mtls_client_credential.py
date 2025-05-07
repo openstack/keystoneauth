@@ -13,7 +13,6 @@
 # under the License.
 
 import abc
-import typing as ty
 
 from keystoneauth1 import access
 from keystoneauth1 import exceptions
@@ -35,14 +34,14 @@ class OAuth2mTlsClientCredential(base.BaseAuth, metaclass=abc.ABCMeta):
         oauth2_endpoint: str,
         oauth2_client_id: str,
         *,
-        trust_id: ty.Optional[str] = None,
-        system_scope: ty.Optional[str] = None,
-        domain_id: ty.Optional[str] = None,
-        domain_name: ty.Optional[str] = None,
-        project_id: ty.Optional[str] = None,
-        project_name: ty.Optional[str] = None,
-        project_domain_id: ty.Optional[str] = None,
-        project_domain_name: ty.Optional[str] = None,
+        trust_id: str | None = None,
+        system_scope: str | None = None,
+        domain_id: str | None = None,
+        domain_name: str | None = None,
+        project_id: str | None = None,
+        project_name: str | None = None,
+        project_domain_id: str | None = None,
+        project_domain_name: str | None = None,
         reauthenticate: bool = True,
         include_catalog: bool = True,
     ):
@@ -134,7 +133,7 @@ class OAuth2mTlsClientCredential(base.BaseAuth, metaclass=abc.ABCMeta):
 
     def get_headers(
         self, session: 'ks_session.Session'
-    ) -> ty.Optional[dict[str, str]]:
+    ) -> dict[str, str] | None:
         """Fetch authentication headers for message.
 
         :param session: The session object that the auth_plugin belongs to.

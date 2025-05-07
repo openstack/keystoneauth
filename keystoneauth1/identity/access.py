@@ -10,7 +10,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import typing as ty
 
 from keystoneauth1 import access
 from keystoneauth1.identity import base
@@ -37,7 +36,7 @@ class AccessInfoPlugin(base.BaseIdentityPlugin):
     auth_ref: access.AccessInfo
 
     def __init__(
-        self, auth_ref: access.AccessInfo, auth_url: ty.Optional[str] = None
+        self, auth_ref: access.AccessInfo, auth_url: str | None = None
     ):
         super().__init__(auth_url=auth_url, reauthenticate=False)
         self.auth_ref = auth_ref

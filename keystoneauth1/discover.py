@@ -39,13 +39,11 @@ _LOGGER = utils.get_logger(__name__)
 LATEST = float('inf')
 _SERVICE_TYPES = os_service_types.ServiceTypes()
 
-_RAW_VERSION_T = ty.Union[
-    str, int, float, ty.Iterable[ty.Union[str, int, float]]
-]
-_PARSED_VERSION_T = tuple[ty.Union[int, float], ...]
+_RAW_VERSION_T = str | int | float | ty.Iterable[str | int | float]
+_PARSED_VERSION_T = tuple[int | float, ...]
 
 
-def _str_or_latest(val: ty.Union[str, int, float]) -> str:
+def _str_or_latest(val: str | int | float) -> str:
     """Convert val to a string, handling LATEST => 'latest'.
 
     :param val: An int or the special value LATEST.
@@ -55,7 +53,7 @@ def _str_or_latest(val: ty.Union[str, int, float]) -> str:
     return 'latest' if val == LATEST else str(val)
 
 
-def _int_or_latest(val: ty.Union[str, float]) -> ty.Union[int, float]:
+def _int_or_latest(val: str | float) -> int | float:
     """Convert val to an int or the special value LATEST.
 
     :param val: An int()-able, or the string 'latest', or the special value
@@ -68,8 +66,8 @@ def _int_or_latest(val: ty.Union[str, float]) -> ty.Union[int, float]:
 def get_version_data(
     session: 'ks_session.Session',
     url: str,
-    authenticated: ty.Optional[bool] = None,
-    version_header: ty.Optional[str] = None,
+    authenticated: bool | None = None,
+    version_header: str | None = None,
 ) -> list[dict[str, ty.Any]]:
     """Retrieve raw version data from a url.
 
@@ -231,7 +229,7 @@ def normalize_version_number(version: _RAW_VERSION_T) -> _PARSED_VERSION_T:
         if ver.isdigit():
             ver = f'{ver}.0'
     # If it's an int or float, turn it into a float string
-    elif isinstance(ver, (int, float)):
+    elif isinstance(ver, int | float):
         ver = _str_or_latest(float(ver))
     # If it's a non-string iterable, turn it into a string for subsequent
     # processing.  This ensures at least 1 decimal point if e.g. [1] is given.
@@ -260,13 +258,13 @@ def normalize_version_number(version: _RAW_VERSION_T) -> _PARSED_VERSION_T:
 
 
 def _normalize_version_args(
-    version: ty.Optional[_RAW_VERSION_T],
-    min_version: ty.Optional[_RAW_VERSION_T],
-    max_version: ty.Optional[_RAW_VERSION_T],
-    service_type: ty.Optional[str] = None,
-) -> tuple[ty.Optional[_PARSED_VERSION_T], ty.Optional[_PARSED_VERSION_T]]:
-    normalized_min_version: ty.Optional[_PARSED_VERSION_T]
-    normalized_max_version: ty.Optional[_PARSED_VERSION_T]
+    version: _RAW_VERSION_T | None,
+    min_version: _RAW_VERSION_T | None,
+    max_version: _RAW_VERSION_T | None,
+    service_type: str | None = None,
+) -> tuple[_PARSED_VERSION_T | None, _PARSED_VERSION_T | None]:
+    normalized_min_version: _PARSED_VERSION_T | None
+    normalized_max_version: _PARSED_VERSION_T | None
     # The sins of our fathers become the blood on our hands.
     # If a user requests an old-style service type such as volumev2, then they
     # are inherently requesting the major API version 2. It's not a good
@@ -385,8 +383,8 @@ def version_to_string(version: _PARSED_VERSION_T) -> str:
 
 
 def version_between(
-    min_version: ty.Optional[_RAW_VERSION_T],
-    max_version: ty.Optional[_RAW_VERSION_T],
+    min_version: _RAW_VERSION_T | None,
+    max_version: _RAW_VERSION_T | None,
     candidate: _RAW_VERSION_T,
 ) -> bool:
     """Determine whether a candidate version is within a specified range.
@@ -461,7 +459,7 @@ def version_match(
 
 
 def _latest_soft_match(
-    required: ty.Optional[_PARSED_VERSION_T], candidate: _PARSED_VERSION_T
+    required: _PARSED_VERSION_T | None, candidate: _PARSED_VERSION_T
 ) -> bool:
     if not required:
         return False
@@ -522,7 +520,7 @@ def _combine_relative_url(discovery_url: str, version_url: str) -> str:
     ).geturl()
 
 
-def _version_from_url(url: ty.Optional[str]) -> ty.Optional[_PARSED_VERSION_T]:
+def _version_from_url(url: str | None) -> _PARSED_VERSION_T | None:
     if not url:
         return None
 
@@ -579,7 +577,7 @@ class Discover:
         self,
         session: 'ks_session.Session',
         url: str,
-        authenticated: ty.Optional[bool] = None,
+        authenticated: bool | None = None,
     ):
         self._url = url
         self._data = get_version_data(
@@ -807,7 +805,7 @@ class Discover:
         allow_experimental: bool = False,
         allow_deprecated: bool = True,
         allow_unknown: bool = False,
-    ) -> ty.Optional[str]:
+    ) -> str | None:
         """Get the endpoint url for a version.
 
         NOTE: This method raises a TypeError if version is None. It is
@@ -831,13 +829,17 @@ class Discover:
 
     def versioned_data_for(
         self,
-        url: ty.Optional[str] = None,
-        min_version: ty.Union[
-            str, int, float, ty.Iterable[ty.Union[str, int, float]], None
-        ] = None,
-        max_version: ty.Union[
-            str, int, float, ty.Iterable[ty.Union[str, int, float]], None
-        ] = None,
+        url: str | None = None,
+        min_version: str
+        | int
+        | float
+        | ty.Iterable[str | int | float]
+        | None = None,
+        max_version: str
+        | int
+        | float
+        | ty.Iterable[str | int | float]
+        | None = None,
         *,
         allow_experimental: bool = False,
         allow_deprecated: bool = True,
@@ -924,17 +926,21 @@ class Discover:
 
     def versioned_url_for(
         self,
-        min_version: ty.Union[
-            str, int, float, ty.Iterable[ty.Union[str, int, float]], None
-        ] = None,
-        max_version: ty.Union[
-            str, int, float, ty.Iterable[ty.Union[str, int, float]], None
-        ] = None,
+        min_version: str
+        | int
+        | float
+        | ty.Iterable[str | int | float]
+        | None = None,
+        max_version: str
+        | int
+        | float
+        | ty.Iterable[str | int | float]
+        | None = None,
         *,
         allow_experimental: bool = False,
         allow_deprecated: bool = True,
         allow_unknown: bool = False,
-    ) -> ty.Optional[str]:
+    ) -> str | None:
         """Get the endpoint url for a version.
 
         min_version and max_version can be given either as strings or tuples.
@@ -965,15 +971,15 @@ class VersionData(dict[str, ty.Any]):
 
     def __init__(
         self,
-        version: ty.Union[_PARSED_VERSION_T, str, None],
+        version: _PARSED_VERSION_T | str | None,
         url: str,
-        collection: ty.Optional[str] = None,
-        max_microversion: ty.Union[_PARSED_VERSION_T, str, None] = None,
-        min_microversion: ty.Union[_PARSED_VERSION_T, str, None] = None,
-        next_min_version: ty.Union[_PARSED_VERSION_T, str, None] = None,
-        not_before: ty.Optional[str] = None,
+        collection: str | None = None,
+        max_microversion: _PARSED_VERSION_T | str | None = None,
+        min_microversion: _PARSED_VERSION_T | str | None = None,
+        next_min_version: _PARSED_VERSION_T | str | None = None,
+        not_before: str | None = None,
         status: str = 'CURRENT',
-        raw_status: ty.Optional[str] = None,
+        raw_status: str | None = None,
     ):
         super().__init__()
         self['version'] = version
@@ -987,9 +993,9 @@ class VersionData(dict[str, ty.Any]):
         self['raw_status'] = raw_status
 
     @property
-    def version(self) -> ty.Optional[_PARSED_VERSION_T]:
+    def version(self) -> _PARSED_VERSION_T | None:
         """The normalized version of the endpoint."""
-        return ty.cast(ty.Optional[_PARSED_VERSION_T], self.get('version'))
+        return ty.cast(_PARSED_VERSION_T | None, self.get('version'))
 
     @property
     def url(self) -> str:
@@ -997,32 +1003,28 @@ class VersionData(dict[str, ty.Any]):
         return ty.cast(str, self.get('url'))
 
     @property
-    def collection(self) -> ty.Optional[str]:
+    def collection(self) -> str | None:
         """The URL for the discovery document.
 
         May be None.
         """
-        return ty.cast(ty.Optional[str], self.get('collection'))
+        return ty.cast(str | None, self.get('collection'))
 
     @property
-    def min_microversion(self) -> ty.Optional[_PARSED_VERSION_T]:
+    def min_microversion(self) -> _PARSED_VERSION_T | None:
         """The minimum microversion supported by the endpoint.
 
         May be None.
         """
-        return ty.cast(
-            ty.Optional[_PARSED_VERSION_T], self.get('min_microversion')
-        )
+        return ty.cast(_PARSED_VERSION_T | None, self.get('min_microversion'))
 
     @property
-    def max_microversion(self) -> ty.Optional[_PARSED_VERSION_T]:
+    def max_microversion(self) -> _PARSED_VERSION_T | None:
         """The maximum microversion supported by the endpoint.
 
         May be None.
         """
-        return ty.cast(
-            ty.Optional[_PARSED_VERSION_T], self.get('max_microversion')
-        )
+        return ty.cast(_PARSED_VERSION_T | None, self.get('max_microversion'))
 
     # TODO(stephenfin): Use enum
     @property
@@ -1034,9 +1036,9 @@ class VersionData(dict[str, ty.Any]):
         return ty.cast(str, self.get('status'))
 
     @property
-    def raw_status(self) -> ty.Optional[str]:
+    def raw_status(self) -> str | None:
         """The status as provided by the server."""
-        return ty.cast(ty.Optional[str], self.get('raw_status'))
+        return ty.cast(str | None, self.get('raw_status'))
 
 
 class EndpointData:
@@ -1060,22 +1062,22 @@ class EndpointData:
     # do not normalize these. Should we?
     def __init__(
         self,
-        catalog_url: ty.Optional[str] = None,
-        service_url: ty.Optional[str] = None,
-        service_type: ty.Optional[str] = None,
-        service_name: ty.Optional[str] = None,
-        service_id: ty.Optional[str] = None,
-        region_name: ty.Optional[str] = None,
-        interface: ty.Optional[str] = None,
-        endpoint_id: ty.Optional[str] = None,
-        raw_endpoint: ty.Optional[str] = None,
-        api_version: ty.Optional[_PARSED_VERSION_T] = None,
-        major_version: ty.Optional[str] = None,
-        min_microversion: ty.Optional[_PARSED_VERSION_T] = None,
-        max_microversion: ty.Optional[_PARSED_VERSION_T] = None,
-        next_min_version: ty.Optional[str] = None,
-        not_before: ty.Optional[str] = None,
-        status: ty.Optional[str] = None,
+        catalog_url: str | None = None,
+        service_url: str | None = None,
+        service_type: str | None = None,
+        service_name: str | None = None,
+        service_id: str | None = None,
+        region_name: str | None = None,
+        interface: str | None = None,
+        endpoint_id: str | None = None,
+        raw_endpoint: str | None = None,
+        api_version: _PARSED_VERSION_T | None = None,
+        major_version: str | None = None,
+        min_microversion: _PARSED_VERSION_T | None = None,
+        max_microversion: _PARSED_VERSION_T | None = None,
+        next_min_version: str | None = None,
+        not_before: str | None = None,
+        status: str | None = None,
     ):
         self.catalog_url = catalog_url
         self.service_url = service_url
@@ -1094,10 +1096,10 @@ class EndpointData:
         self.status = status
         self.api_version = api_version or _version_from_url(self.url)
 
-        self._saved_project_id: ty.Optional[str] = None
+        self._saved_project_id: str | None = None
         self._catalog_matches_version = False
         self._catalog_matches_exactly: bool = False
-        self._disc: ty.Optional[Discover] = None
+        self._disc: Discover | None = None
 
     def __copy__(self) -> 'EndpointData':
         """Return a new EndpointData based on this one."""
@@ -1151,15 +1153,15 @@ class EndpointData:
         )
 
     @property
-    def url(self) -> ty.Optional[str]:
+    def url(self) -> str | None:
         return self.service_url or self.catalog_url
 
     def get_current_versioned_data(
         self,
         session: 'ks_session.Session',
-        allow: ty.Optional[dict[str, ty.Any]] = None,
-        cache: ty.Optional[dict[str, Discover]] = None,
-        project_id: ty.Optional[str] = None,
+        allow: dict[str, ty.Any] | None = None,
+        cache: dict[str, Discover] | None = None,
+        project_id: str | None = None,
     ) -> 'EndpointData':
         """Run version discovery on the current endpoint.
 
@@ -1202,17 +1204,21 @@ class EndpointData:
     def get_versioned_data(
         self,
         session: 'ks_session.Session',
-        allow: ty.Optional[dict[str, ty.Any]] = None,
-        cache: ty.Optional[dict[str, ty.Any]] = None,
+        allow: dict[str, ty.Any] | None = None,
+        cache: dict[str, ty.Any] | None = None,
         allow_version_hack: bool = True,
-        project_id: ty.Optional[str] = None,
+        project_id: str | None = None,
         discover_versions: bool = True,
-        min_version: ty.Union[
-            str, int, float, ty.Iterable[ty.Union[str, int, float]], None
-        ] = None,
-        max_version: ty.Union[
-            str, int, float, ty.Iterable[ty.Union[str, int, float]], None
-        ] = None,
+        min_version: str
+        | int
+        | float
+        | ty.Iterable[str | int | float]
+        | None = None,
+        max_version: str
+        | int
+        | float
+        | ty.Iterable[str | int | float]
+        | None = None,
     ) -> 'EndpointData':
         """Run version discovery for the service described.
 
@@ -1275,9 +1281,7 @@ class EndpointData:
         return new_data
 
     def get_all_version_string_data(
-        self,
-        session: 'ks_session.Session',
-        project_id: ty.Optional[str] = None,
+        self, session: 'ks_session.Session', project_id: str | None = None
     ) -> list['VersionData']:
         """Return version data for all versions discovery can find.
 
@@ -1304,7 +1308,7 @@ class EndpointData:
         return versions or self._infer_version_data(project_id)
 
     def _infer_version_data(
-        self, project_id: ty.Optional[str] = None
+        self, project_id: str | None = None
     ) -> list['VersionData']:
         """Return version data dict for when discovery fails.
 
@@ -1331,12 +1335,12 @@ class EndpointData:
         self,
         session: 'ks_session.Session',
         allow: dict[str, ty.Any],
-        cache: ty.Optional[dict[str, Discover]],
+        cache: dict[str, Discover] | None,
         allow_version_hack: bool,
-        project_id: ty.Optional[str],
+        project_id: str | None,
         discover_versions: bool,
-        min_version: ty.Optional[_PARSED_VERSION_T],
-        max_version: ty.Optional[_PARSED_VERSION_T],
+        min_version: _PARSED_VERSION_T | None,
+        max_version: _PARSED_VERSION_T | None,
     ) -> None:
         match_url = None
 
@@ -1436,10 +1440,10 @@ class EndpointData:
     def _run_discovery(
         self,
         session: 'ks_session.Session',
-        cache: ty.Optional[dict[str, Discover]],
-        min_version: ty.Optional[_PARSED_VERSION_T],
-        max_version: ty.Optional[_PARSED_VERSION_T],
-        project_id: ty.Optional[str],
+        cache: dict[str, Discover] | None,
+        min_version: _PARSED_VERSION_T | None,
+        max_version: _PARSED_VERSION_T | None,
+        project_id: str | None,
         allow_version_hack: bool,
         discover_versions: bool,
     ) -> None:
@@ -1512,10 +1516,10 @@ class EndpointData:
 
     def _get_discovery_url_choices(
         self,
-        project_id: ty.Optional[str],
+        project_id: str | None,
         allow_version_hack: bool = True,
-        min_version: ty.Optional[_PARSED_VERSION_T] = None,
-        max_version: ty.Optional[_PARSED_VERSION_T] = None,
+        min_version: _PARSED_VERSION_T | None = None,
+        max_version: _PARSED_VERSION_T | None = None,
     ) -> ty.Generator[str, None, None]:
         """Find potential locations for version discovery URLs.
 
@@ -1667,8 +1671,8 @@ class EndpointData:
 def get_discovery(
     session: 'ks_session.Session',
     url: str,
-    cache: ty.Optional[dict[str, Discover]] = None,
-    authenticated: ty.Optional[bool] = False,
+    cache: dict[str, Discover] | None = None,
+    authenticated: bool | None = False,
 ) -> Discover:
     """Return the discovery object for a URL.
 

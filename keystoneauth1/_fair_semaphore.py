@@ -14,7 +14,6 @@ import queue
 import threading
 import time
 import types
-import typing as ty
 
 
 class FairSemaphore:
@@ -31,7 +30,7 @@ class FairSemaphore:
         semaphore.
     """
 
-    def __init__(self, concurrency: ty.Optional[int], rate_delay: float):
+    def __init__(self, concurrency: int | None, rate_delay: float):
         self._lock = threading.Lock()
         self._concurrency = concurrency
         if concurrency:
@@ -93,9 +92,9 @@ class FairSemaphore:
 
     def __exit__(
         self,
-        exc_type: ty.Optional[type[BaseException]],
-        exc_value: ty.Optional[BaseException],
-        traceback: ty.Optional[types.TracebackType],
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: types.TracebackType | None,
     ) -> None:
         """Release the semaphore."""
         # If concurrency is None, everyone is free to immediately execute

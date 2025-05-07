@@ -37,7 +37,7 @@ from keystoneauth1 import session as ks_session
 
 
 # TODO(stephenfin): This should return an enum
-def _mutual_auth(value: ty.Optional[str]) -> str:
+def _mutual_auth(value: str | None) -> str:
     default = ty.cast(str, requests_kerberos.OPTIONAL)
     if value is None:
         return default
@@ -49,7 +49,7 @@ def _mutual_auth(value: ty.Optional[str]) -> str:
 
 
 def _requests_auth(
-    mutual_authentication: ty.Optional[str],
+    mutual_authentication: str | None,
 ) -> 'requests_kerberos.HTTPKerberosAuth':
     return requests_kerberos.HTTPKerberosAuth(
         mutual_authentication=_mutual_auth(mutual_authentication)
@@ -67,9 +67,9 @@ packages. These can be installed with::
 
 
 class KerberosMethod(v3.AuthMethod):
-    mutual_auth: ty.Optional[str]
+    mutual_auth: str | None
 
-    def __init__(self, *, mutual_auth: ty.Optional[str] = None) -> None:
+    def __init__(self, *, mutual_auth: str | None = None) -> None:
         self.mutual_auth = mutual_auth
 
         _dependency_check()
@@ -80,7 +80,7 @@ class KerberosMethod(v3.AuthMethod):
         auth: v3.Auth,
         headers: dict[str, str],
         request_kwargs: dict[str, object],
-    ) -> ty.Union[tuple[None, None], tuple[str, ty.Mapping[str, object]]]:
+    ) -> tuple[None, None] | tuple[str, ty.Mapping[str, object]]:
         # NOTE(jamielennox): request_kwargs is passed as a kwarg however it is
         # required and always present when called from keystoneclient.
         request_kwargs['requests_auth'] = _requests_auth(self.mutual_auth)
@@ -93,17 +93,17 @@ class Kerberos(v3.Auth):
     def __init__(
         self,
         auth_url: str,
-        mutual_auth: ty.Optional[str] = None,
+        mutual_auth: str | None = None,
         *,
         unscoped: bool = False,
-        trust_id: ty.Optional[str] = None,
-        system_scope: ty.Optional[str] = None,
-        domain_id: ty.Optional[str] = None,
-        domain_name: ty.Optional[str] = None,
-        project_id: ty.Optional[str] = None,
-        project_name: ty.Optional[str] = None,
-        project_domain_id: ty.Optional[str] = None,
-        project_domain_name: ty.Optional[str] = None,
+        trust_id: str | None = None,
+        system_scope: str | None = None,
+        domain_id: str | None = None,
+        domain_name: str | None = None,
+        project_id: str | None = None,
+        project_name: str | None = None,
+        project_domain_id: str | None = None,
+        project_domain_name: str | None = None,
         reauthenticate: bool = True,
         include_catalog: bool = True,
     ) -> None:
@@ -137,16 +137,16 @@ class MappedKerberos(federation.FederationBaseAuth):
         auth_url: str,
         identity_provider: str,
         protocol: str,
-        mutual_auth: ty.Optional[str] = None,
+        mutual_auth: str | None = None,
         *,
-        trust_id: ty.Optional[str] = None,
-        system_scope: ty.Optional[str] = None,
-        domain_id: ty.Optional[str] = None,
-        domain_name: ty.Optional[str] = None,
-        project_id: ty.Optional[str] = None,
-        project_name: ty.Optional[str] = None,
-        project_domain_id: ty.Optional[str] = None,
-        project_domain_name: ty.Optional[str] = None,
+        trust_id: str | None = None,
+        system_scope: str | None = None,
+        domain_id: str | None = None,
+        domain_name: str | None = None,
+        project_id: str | None = None,
+        project_name: str | None = None,
+        project_domain_id: str | None = None,
+        project_domain_name: str | None = None,
         reauthenticate: bool = True,
         include_catalog: bool = True,
     ) -> None:

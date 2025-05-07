@@ -18,7 +18,7 @@ import typing_extensions as ty_ext
 
 
 class TenantV2(ty.TypedDict):
-    description: ty_ext.NotRequired[ty.Optional[str]]
+    description: ty_ext.NotRequired[str | None]
     enabled: ty_ext.NotRequired[bool]
     id: str
     name: str

@@ -43,9 +43,7 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
         :returns: A service catalog.
         """
 
-    def _get_endpoint_region(
-        self, endpoint: dict[str, str]
-    ) -> ty.Optional[str]:
+    def _get_endpoint_region(self, endpoint: dict[str, str]) -> str | None:
         return endpoint.get('region_id') or endpoint.get('region')
 
     @property
@@ -105,7 +103,7 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
 
     def _denormalize_endpoints(
         self, endpoints: list[discover.EndpointData]
-    ) -> list[ty.Union[str, None]]:
+    ) -> list[str | None]:
         """Return original endpoint description dicts.
 
         Takes a list of EndpointData objects and returns the original
@@ -146,22 +144,22 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
         return catalog
 
     def _get_interface_list(
-        self, interface: ty.Union[str, list[str], tuple[str], set[str], None]
+        self, interface: str | list[str] | tuple[str] | set[str] | None
     ) -> list[str]:
         if not interface:
             return []
-        if not isinstance(interface, (list, tuple, set)):
+        if not isinstance(interface, list | tuple | set):
             interface = [interface]
         return [self.normalize_interface(i) for i in interface]
 
     def get_endpoints_data(
         self,
-        service_type: ty.Optional[str] = None,
-        interface: ty.Union[str, list[str], tuple[str], set[str], None] = None,
-        region_name: ty.Optional[str] = None,
-        service_name: ty.Optional[str] = None,
-        service_id: ty.Optional[str] = None,
-        endpoint_id: ty.Optional[str] = None,
+        service_type: str | None = None,
+        interface: str | list[str] | tuple[str] | set[str] | None = None,
+        region_name: str | None = None,
+        service_name: str | None = None,
+        service_id: str | None = None,
+        endpoint_id: str | None = None,
     ) -> dict[str, list[discover.EndpointData]]:
         """Fetch and filter endpoint data for the specified service(s).
 
@@ -255,7 +253,7 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
 
     def _endpoints_by_type(
         self,
-        requested: ty.Optional[str],
+        requested: str | None,
         endpoints: dict[str, list[discover.EndpointData]],
     ) -> dict[str, list[discover.EndpointData]]:
         """Get the approrpriate endpoints from the list of given endpoints.
@@ -320,13 +318,13 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
 
     def get_endpoints(
         self,
-        service_type: ty.Optional[str] = None,
-        interface: ty.Union[str, list[str], tuple[str], set[str], None] = None,
-        region_name: ty.Optional[str] = None,
-        service_name: ty.Optional[str] = None,
-        service_id: ty.Optional[str] = None,
-        endpoint_id: ty.Optional[str] = None,
-    ) -> dict[str, list[ty.Union[str, None]]]:
+        service_type: str | None = None,
+        interface: str | list[str] | tuple[str] | set[str] | None = None,
+        region_name: str | None = None,
+        service_name: str | None = None,
+        service_id: str | None = None,
+        endpoint_id: str | None = None,
+    ) -> dict[str, list[str | None]]:
         """Fetch and filter endpoint data for the specified service(s).
 
         Returns endpoints for the specified service (or all) containing
@@ -353,14 +351,12 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
 
     def get_endpoint_data_list(
         self,
-        service_type: ty.Optional[str] = None,
-        interface: ty.Union[
-            str, list[str], tuple[str], set[str], None
-        ] = 'public',
-        region_name: ty.Optional[str] = None,
-        service_name: ty.Optional[str] = None,
-        service_id: ty.Optional[str] = None,
-        endpoint_id: ty.Optional[str] = None,
+        service_type: str | None = None,
+        interface: str | list[str] | tuple[str] | set[str] | None = 'public',
+        region_name: str | None = None,
+        service_name: str | None = None,
+        service_id: str | None = None,
+        endpoint_id: str | None = None,
     ) -> list[discover.EndpointData]:
         """Fetch a flat list of matching EndpointData objects.
 
@@ -396,15 +392,13 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
 
     def get_urls(
         self,
-        service_type: ty.Optional[str] = None,
-        interface: ty.Union[
-            str, list[str], tuple[str], set[str], None
-        ] = 'public',
-        region_name: ty.Optional[str] = None,
-        service_name: ty.Optional[str] = None,
-        service_id: ty.Optional[str] = None,
-        endpoint_id: ty.Optional[str] = None,
-    ) -> tuple[ty.Optional[str], ...]:
+        service_type: str | None = None,
+        interface: str | list[str] | tuple[str] | set[str] | None = 'public',
+        region_name: str | None = None,
+        service_name: str | None = None,
+        service_id: str | None = None,
+        endpoint_id: str | None = None,
+    ) -> tuple[str | None, ...]:
         """Fetch endpoint urls from the service catalog.
 
         Fetch the urls of endpoints from the service catalog for a particular
@@ -438,15 +432,13 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
 
     def url_for(
         self,
-        service_type: ty.Optional[str] = None,
-        interface: ty.Union[
-            str, list[str], tuple[str], set[str], None
-        ] = 'public',
-        region_name: ty.Optional[str] = None,
-        service_name: ty.Optional[str] = None,
-        service_id: ty.Optional[str] = None,
-        endpoint_id: ty.Optional[str] = None,
-    ) -> ty.Optional[str]:
+        service_type: str | None = None,
+        interface: str | list[str] | tuple[str] | set[str] | None = 'public',
+        region_name: str | None = None,
+        service_name: str | None = None,
+        service_id: str | None = None,
+        endpoint_id: str | None = None,
+    ) -> str | None:
         """Fetch an endpoint from the service catalog.
 
         Fetch the specified endpoint from the service catalog for
@@ -477,14 +469,12 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
 
     def endpoint_data_for(
         self,
-        service_type: ty.Optional[str] = None,
-        interface: ty.Union[
-            str, list[str], tuple[str], set[str], None
-        ] = 'public',
-        region_name: ty.Optional[str] = None,
-        service_name: ty.Optional[str] = None,
-        service_id: ty.Optional[str] = None,
-        endpoint_id: ty.Optional[str] = None,
+        service_type: str | None = None,
+        interface: str | list[str] | tuple[str] | set[str] | None = 'public',
+        region_name: str | None = None,
+        service_name: str | None = None,
+        service_id: str | None = None,
+        endpoint_id: str | None = None,
     ) -> discover.EndpointData:
         """Fetch endpoint data from the service catalog.
 
@@ -602,7 +592,7 @@ class ServiceCatalogV2(ServiceCatalog):
 
     def _denormalize_endpoints(
         self, endpoints: list[discover.EndpointData]
-    ) -> list[ty.Union[str, None]]:
+    ) -> list[str | None]:
         """Return original endpoint description dicts.
 
         Takes a list of EndpointData objects and returns the original

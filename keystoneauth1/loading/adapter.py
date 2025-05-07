@@ -43,9 +43,7 @@ class Adapter(base._BaseLoader[adapter.Adapter]):
     @staticmethod
     def get_conf_options(
         include_deprecated: bool = True,
-        deprecated_opts: ty.Optional[
-            dict[str, list['cfg.DeprecatedOpt']]
-        ] = None,
+        deprecated_opts: dict[str, list['cfg.DeprecatedOpt']] | None = None,
     ) -> list['cfg.Opt']:
         """Get oslo_config options that are needed for a :py:class:`.Adapter`.
 
@@ -222,9 +220,7 @@ class Adapter(base._BaseLoader[adapter.Adapter]):
         conf: 'cfg.ConfigOpts',
         group: str,
         include_deprecated: bool = True,
-        deprecated_opts: ty.Optional[
-            dict[str, list['cfg.DeprecatedOpt']]
-        ] = None,
+        deprecated_opts: dict[str, list['cfg.DeprecatedOpt']] | None = None,
     ) -> list['cfg.Opt']:
         """Register the oslo_config options that are needed for an Adapter.
 
@@ -352,7 +348,7 @@ def process_conf_options(
 
 
 def register_argparse_arguments(
-    parser: argparse.ArgumentParser, service_type: ty.Optional[str] = None
+    parser: argparse.ArgumentParser, service_type: str | None = None
 ) -> None:
     return adapter.register_adapter_argparse_arguments(parser, service_type)
 
@@ -369,7 +365,7 @@ def register_conf_options(
     conf: 'cfg.ConfigOpts',
     group: str,
     include_deprecated: bool = True,
-    deprecated_opts: ty.Optional[dict[str, list['cfg.DeprecatedOpt']]] = None,
+    deprecated_opts: dict[str, list['cfg.DeprecatedOpt']] | None = None,
 ) -> list['cfg.Opt']:
     return Adapter().register_conf_options(
         conf,
@@ -387,6 +383,6 @@ def load_from_conf_options(
 
 def get_conf_options(
     include_deprecated: bool = True,
-    deprecated_opts: ty.Optional[dict[str, list['cfg.DeprecatedOpt']]] = None,
+    deprecated_opts: dict[str, list['cfg.DeprecatedOpt']] | None = None,
 ) -> list['cfg.Opt']:
     return Adapter.get_conf_options(include_deprecated, deprecated_opts)

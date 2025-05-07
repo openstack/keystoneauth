@@ -67,14 +67,14 @@ class Opt:
         self,
         name: str,
         type: type[ty.Any] = str,
-        help: ty.Optional[str] = None,
+        help: str | None = None,
         secret: bool = False,
-        dest: ty.Optional[str] = None,
-        deprecated: ty.Optional[list['Opt']] = None,
+        dest: str | None = None,
+        deprecated: list['Opt'] | None = None,
         default: ty.Any = None,
-        metavar: ty.Optional[str] = None,
+        metavar: str | None = None,
         required: bool = False,
-        prompt: ty.Optional[str] = None,
+        prompt: str | None = None,
     ):
         if not callable(type):
             raise TypeError('type must be callable')
