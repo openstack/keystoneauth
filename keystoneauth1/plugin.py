@@ -35,7 +35,7 @@ BaseAuthPluginT = ty.TypeVar(
 
 class ConnectionParams(ty.TypedDict):
     # https://github.com/python/typeshed/blob/24c78b9e0/stubs/requests/requests/sessions.pyi#L82
-    cert: ty_ext.NotRequired[ty.Union[str, ty.Tuple[str, str], None]]
+    cert: ty_ext.NotRequired[ty.Union[str, tuple[str, str], None]]
     # https://github.com/python/typeshed/blob/24c78b9e0/stubs/requests/requests/sessions.pyi#L108
     verify: ty_ext.NotRequired[ty.Union[bool, str, None]]
 

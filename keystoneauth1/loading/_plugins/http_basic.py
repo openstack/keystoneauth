@@ -10,7 +10,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import typing as ty
 
 from keystoneauth1 import http_basic
 from keystoneauth1 import loading
@@ -30,7 +29,7 @@ class HTTPBasicAuth(loading.BaseLoader[http_basic.HTTPBasicAuth]):
     """
 
     @property
-    def plugin_class(self) -> ty.Type[http_basic.HTTPBasicAuth]:
+    def plugin_class(self) -> type[http_basic.HTTPBasicAuth]:
         return http_basic.HTTPBasicAuth
 
     def get_options(self) -> list[opts.Opt]:

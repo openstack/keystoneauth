@@ -10,7 +10,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import typing as ty
 
 from keystoneauth1 import loading
 from keystoneauth1.loading import opts
@@ -31,7 +30,7 @@ class AdminToken(loading.BaseLoader[token_endpoint.Token]):
     """
 
     @property
-    def plugin_class(self) -> ty.Type[token_endpoint.Token]:
+    def plugin_class(self) -> type[token_endpoint.Token]:
         return token_endpoint.Token
 
     def get_options(self) -> list[opts.Opt]:

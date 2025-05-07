@@ -10,7 +10,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import typing as ty
 
 from keystoneauth1 import identity
 from keystoneauth1 import loading
@@ -31,7 +30,7 @@ class Token(loading.BaseGenericLoader[identity.Token]):
     """
 
     @property
-    def plugin_class(self) -> ty.Type[identity.Token]:
+    def plugin_class(self) -> type[identity.Token]:
         return identity.Token
 
     def get_options(self) -> list[opts.Opt]:
@@ -60,7 +59,7 @@ class Password(loading.BaseGenericLoader[identity.Password]):
     """
 
     @property
-    def plugin_class(self) -> ty.Type[identity.Password]:
+    def plugin_class(self) -> type[identity.Password]:
         return identity.Password
 
     def get_options(self) -> list[opts.Opt]:

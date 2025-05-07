@@ -42,7 +42,7 @@ disallow_untyped_calls = false
 
 [tool.ruff]
 line-length = 79
-target-version = "py38"
+target-version = "py39"
 
 [tool.ruff.lint]
 # enable the following rule classes:
