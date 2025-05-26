@@ -1629,9 +1629,6 @@ class Session:
         self._api_times = []
 
 
-REQUESTS_VERSION = tuple(int(v) for v in requests.__version__.split('.'))
-
-
 class TCPKeepAliveAdapter(requests.adapters.HTTPAdapter):
     """The custom adapter used to set TCP Keep-Alive on all connections.
 
@@ -1641,7 +1638,7 @@ class TCPKeepAliveAdapter(requests.adapters.HTTPAdapter):
     """
 
     def init_poolmanager(self, *args: ty.Any, **kwargs: ty.Any) -> None:
-        if 'socket_options' not in kwargs and REQUESTS_VERSION >= (2, 4, 1):
+        if 'socket_options' not in kwargs:
             socket_options = [
                 # Keep Nagle's algorithm off
                 (socket.IPPROTO_TCP, socket.TCP_NODELAY, 1),
