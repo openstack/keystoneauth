@@ -131,7 +131,7 @@ class _BaseAdapter:
         session: session.Session,
         service_type: ty.Optional[str] = None,
         service_name: ty.Optional[str] = None,
-        interface: ty.Optional[str] = None,
+        interface: ty.Union[str, list[str], None] = None,
         region_name: ty.Optional[str] = None,
         endpoint_override: ty.Optional[str] = None,
         version: ty.Optional[str] = None,
