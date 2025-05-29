@@ -1,0 +1,6 @@
+---
+fixes:
+  - |
+    OIDC Device Authorization Flow: allow acquiring either an OIDC id_token or
+    an OAuth access_token as some IDPs provide both (RFC8628 does not specify
+    if ID tokens may be acquired).
