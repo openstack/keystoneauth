@@ -42,7 +42,7 @@ def _auth_plugin_available(ext: extension.Extension) -> bool:
     return ty.cast(bool, ext.obj.available)
 
 
-def get_available_plugin_names() -> ty.FrozenSet[str]:
+def get_available_plugin_names() -> frozenset[str]:
     """Get the names of all the plugins that are available on the system.
 
     This is particularly useful for help and error text to prompt a user for
@@ -116,7 +116,7 @@ def get_plugin_options(name: str) -> list['opts.Opt']:
 
 class _BaseLoader(ty.Generic[T], metaclass=abc.ABCMeta):
     @property
-    def plugin_class(self) -> ty.Type[T]:
+    def plugin_class(self) -> type[T]:
         raise NotImplementedError()
 
     def create_plugin(self, **kwargs: ty.Any) -> T:

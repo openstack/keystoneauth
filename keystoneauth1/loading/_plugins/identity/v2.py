@@ -10,7 +10,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import typing as ty
 
 from keystoneauth1 import identity
 from keystoneauth1 import loading
@@ -27,7 +26,7 @@ class Token(loading.BaseV2Loader[identity.V2Token]):
     """
 
     @property
-    def plugin_class(self) -> ty.Type[identity.V2Token]:
+    def plugin_class(self) -> type[identity.V2Token]:
         return identity.V2Token
 
     def get_options(self) -> list[opts.Opt]:
@@ -46,7 +45,7 @@ class Password(loading.BaseV2Loader[identity.V2Password]):
     """
 
     @property
-    def plugin_class(self) -> ty.Type[identity.V2Password]:
+    def plugin_class(self) -> type[identity.V2Password]:
         return identity.V2Password
 
     def get_options(self) -> list[opts.Opt]:

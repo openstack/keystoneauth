@@ -34,7 +34,7 @@ __all__ = (
 
 class Adapter(base._BaseLoader[adapter.Adapter]):
     @property
-    def plugin_class(self) -> ty.Type[adapter.Adapter]:
+    def plugin_class(self) -> type[adapter.Adapter]:
         return adapter.Adapter
 
     def get_options(self) -> list['opts.Opt']:

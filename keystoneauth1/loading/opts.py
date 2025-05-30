@@ -66,7 +66,7 @@ class Opt:
     def __init__(
         self,
         name: str,
-        type: ty.Type[ty.Any] = str,
+        type: type[ty.Any] = str,
         help: ty.Optional[str] = None,
         secret: bool = False,
         dest: ty.Optional[str] = None,
@@ -141,7 +141,7 @@ class Opt:
         return [f'--os-{o.name}' for o in self._all_opts]
 
     @property
-    def argparse_envvars(self) -> ty.List[str]:
+    def argparse_envvars(self) -> list[str]:
         return [
             'OS_{}'.format(o.name.replace('-', '_').upper())
             for o in self._all_opts

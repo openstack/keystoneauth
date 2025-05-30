@@ -57,7 +57,7 @@ class AccessInfo:
     Provides helper methods for extracting useful values from that token.
     """
 
-    _service_catalog_class: ty.Type[service_catalog.ServiceCatalog]
+    _service_catalog_class: type[service_catalog.ServiceCatalog]
     _data: ty.Any
 
     def __init__(

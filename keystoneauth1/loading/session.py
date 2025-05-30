@@ -51,7 +51,7 @@ def _positive_non_zero_float(
 
 class Session(base._BaseLoader[session.Session]):
     @property
-    def plugin_class(self) -> ty.Type[session.Session]:
+    def plugin_class(self) -> type[session.Session]:
         return session.Session
 
     def get_options(self) -> list['opts.Opt']:

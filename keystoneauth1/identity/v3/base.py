@@ -362,7 +362,7 @@ class AuthMethod(metaclass=abc.ABCMeta):
 
 @ty.runtime_checkable
 class SupportsMultiFactor(ty.Protocol):
-    _auth_method_class: ty.ClassVar[ty.Type[AuthMethod]]
+    _auth_method_class: ty.ClassVar[type[AuthMethod]]
 
 
 class AuthConstructor(Auth, metaclass=abc.ABCMeta):
@@ -376,7 +376,7 @@ class AuthConstructor(Auth, metaclass=abc.ABCMeta):
     creates the auth plugin with only that authentication method.
     """
 
-    _auth_method_class: ty.ClassVar[ty.Type[AuthMethod]]
+    _auth_method_class: ty.ClassVar[type[AuthMethod]]
 
     def __init__(
         self,

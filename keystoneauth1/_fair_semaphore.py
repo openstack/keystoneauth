@@ -93,7 +93,7 @@ class FairSemaphore:
 
     def __exit__(
         self,
-        exc_type: ty.Optional[ty.Type[BaseException]],
+        exc_type: ty.Optional[type[BaseException]],
         exc_value: ty.Optional[BaseException],
         traceback: ty.Optional[types.TracebackType],
     ) -> None:

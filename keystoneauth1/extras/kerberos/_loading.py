@@ -20,7 +20,7 @@ from keystoneauth1.loading import opts
 
 class Kerberos(loading.BaseV3Loader[kerberos.Kerberos]):
     @property
-    def plugin_class(self) -> ty.Type[kerberos.Kerberos]:
+    def plugin_class(self) -> type[kerberos.Kerberos]:
         return kerberos.Kerberos
 
     @property
@@ -59,7 +59,7 @@ class Kerberos(loading.BaseV3Loader[kerberos.Kerberos]):
 
 class MappedKerberos(loading.BaseFederationLoader[kerberos.MappedKerberos]):
     @property
-    def plugin_class(self) -> ty.Type[kerberos.MappedKerberos]:
+    def plugin_class(self) -> type[kerberos.MappedKerberos]:
         return kerberos.MappedKerberos
 
     @property

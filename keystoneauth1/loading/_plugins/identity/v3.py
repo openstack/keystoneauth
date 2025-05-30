@@ -54,7 +54,7 @@ class Password(loading.BaseV3Loader[identity.V3Password]):
     """
 
     @property
-    def plugin_class(self) -> ty.Type[identity.V3Password]:
+    def plugin_class(self) -> type[identity.V3Password]:
         return identity.V3Password
 
     def get_options(self) -> list[opts.Opt]:
@@ -90,7 +90,7 @@ class Token(loading.BaseV3Loader[identity.V3Token]):
     """
 
     @property
-    def plugin_class(self) -> ty.Type[identity.V3Token]:
+    def plugin_class(self) -> type[identity.V3Token]:
         return identity.V3Token
 
     def get_options(self) -> list[opts.Opt]:
@@ -177,7 +177,7 @@ class OpenIDConnectClientCredentials(
     """Authenticate with the OIDC Client Credentials flow."""
 
     @property
-    def plugin_class(self) -> ty.Type[identity.V3OidcClientCredentials]:
+    def plugin_class(self) -> type[identity.V3OidcClientCredentials]:
         return identity.V3OidcClientCredentials
 
     def get_options(self) -> list[opts.Opt]:
@@ -190,7 +190,7 @@ class OpenIDConnectPassword(_OpenIDConnectBase[identity.V3OidcPassword]):
     """Authenticate with the OIDC Resource Owner Password Credentials flow."""
 
     @property
-    def plugin_class(self) -> ty.Type[identity.V3OidcPassword]:
+    def plugin_class(self) -> type[identity.V3OidcPassword]:
         return identity.V3OidcPassword
 
     def get_options(self) -> list[opts.Opt]:
@@ -220,7 +220,7 @@ class OpenIDConnectAuthorizationCode(
     """Authenticate with the OIDC Authorization Code flow."""
 
     @property
-    def plugin_class(self) -> ty.Type[identity.V3OidcAuthorizationCode]:
+    def plugin_class(self) -> type[identity.V3OidcAuthorizationCode]:
         return identity.V3OidcAuthorizationCode
 
     def get_options(self) -> list[opts.Opt]:
@@ -250,7 +250,7 @@ class OpenIDConnectAccessToken(
     """Authenticate with the OIDC Access Token flow."""
 
     @property
-    def plugin_class(self) -> ty.Type[identity.V3OidcAccessToken]:
+    def plugin_class(self) -> type[identity.V3OidcAccessToken]:
         return identity.V3OidcAccessToken
 
     def get_options(self) -> list[opts.Opt]:
@@ -275,7 +275,7 @@ class OpenIDConnectDeviceAuthorization(
     """Authenticate with the OAuth 2.0 Device Authorization flow."""
 
     @property
-    def plugin_class(self) -> ty.Type[identity.V3OidcDeviceAuthorization]:
+    def plugin_class(self) -> type[identity.V3OidcDeviceAuthorization]:
         return identity.V3OidcDeviceAuthorization
 
     def get_options(self) -> list[opts.Opt]:
@@ -312,7 +312,7 @@ class TOTP(loading.BaseV3Loader[identity.V3TOTP]):
     """
 
     @property
-    def plugin_class(self) -> ty.Type[identity.V3TOTP]:
+    def plugin_class(self) -> type[identity.V3TOTP]:
         return identity.V3TOTP
 
     def get_options(self) -> list[opts.Opt]:
@@ -342,7 +342,7 @@ class TokenlessAuth(loading.BaseLoader[identity.V3TokenlessAuth]):
     """Authenticate without a token, using an X.509 certificate."""
 
     @property
-    def plugin_class(self) -> ty.Type[identity.V3TokenlessAuth]:
+    def plugin_class(self) -> type[identity.V3TokenlessAuth]:
         return identity.V3TokenlessAuth
 
     def get_options(self) -> list[opts.Opt]:
@@ -407,7 +407,7 @@ class ApplicationCredential(
     """
 
     @property
-    def plugin_class(self) -> ty.Type[identity.V3ApplicationCredential]:
+    def plugin_class(self) -> type[identity.V3ApplicationCredential]:
         return identity.V3ApplicationCredential
 
     def get_options(self) -> list[opts.Opt]:
@@ -466,7 +466,7 @@ class MultiFactor(loading.BaseV3Loader[identity.V3MultiFactor]):
         self._methods = None
 
     @property
-    def plugin_class(self) -> ty.Type[identity.V3MultiFactor]:
+    def plugin_class(self) -> type[identity.V3MultiFactor]:
         return identity.V3MultiFactor
 
     def get_options(self) -> list[opts.Opt]:
@@ -508,7 +508,7 @@ class OAuth2ClientCredential(
     """Authenticate with an OAuth2.0 client credential."""
 
     @property
-    def plugin_class(self) -> ty.Type[identity.V3OAuth2ClientCredential]:
+    def plugin_class(self) -> type[identity.V3OAuth2ClientCredential]:
         return identity.V3OAuth2ClientCredential
 
     def get_options(self) -> list[opts.Opt]:
@@ -558,7 +558,7 @@ class OAuth2mTlsClientCredential(
     """Authenticate with an OAuth2.0 mTLS client credential."""
 
     @property
-    def plugin_class(self) -> ty.Type[identity.V3OAuth2mTlsClientCredential]:
+    def plugin_class(self) -> type[identity.V3OAuth2mTlsClientCredential]:
         return identity.V3OAuth2mTlsClientCredential
 
     def get_options(self) -> list[opts.Opt]:
