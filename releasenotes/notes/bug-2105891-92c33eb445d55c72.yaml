@@ -1,0 +1,10 @@
+---
+fixes:
+  - |
+    [`bug 2105891 <https://bugs.launchpad.net/keystoneauth/+bug/2105891>`_]
+    This change prevents ``client_id`` from appearing more than once per
+    request, fixing a previous 401 error with Okta. Credentials should
+    either be in the auth header, POST body, or a ``client_assertation``
+    in the POST body. If the ``client_secret`` is set, it will be with
+    ``client_id`` in the auth headers. If it is not, ``client_id`` will be
+    added to the payload.
