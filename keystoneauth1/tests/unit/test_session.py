@@ -2157,18 +2157,7 @@ class TCPKeepAliveAdapterTest(utils.TestCase):
             client_session.TCPKeepAliveAdapter, '__init__', lambda self: None
         )
 
-    def test_init_poolmanager_with_requests_lesser_than_2_4_1(self):
-        self.patch(client_session, 'REQUESTS_VERSION', (2, 4, 0))
-        given_adapter = client_session.TCPKeepAliveAdapter()
-
-        # when pool manager is initialized
-        given_adapter.init_poolmanager(1, 2, 3)
-
-        # then no socket_options are given
-        self.init_poolmanager.assert_called_once_with(1, 2, 3)
-
     def test_init_poolmanager_with_basic_options(self):
-        self.patch(client_session, 'REQUESTS_VERSION', (2, 4, 1))
         socket = self.patch_socket_with_options(
             ['IPPROTO_TCP', 'TCP_NODELAY', 'SOL_SOCKET', 'SO_KEEPALIVE']
         )
@@ -2189,7 +2178,6 @@ class TCPKeepAliveAdapterTest(utils.TestCase):
         )
 
     def test_init_poolmanager_with_tcp_keepidle(self):
-        self.patch(client_session, 'REQUESTS_VERSION', (2, 4, 1))
         socket = self.patch_socket_with_options(
             [
                 'IPPROTO_TCP',
@@ -2217,7 +2205,6 @@ class TCPKeepAliveAdapterTest(utils.TestCase):
         )
 
     def test_init_poolmanager_with_tcp_keepcnt(self):
-        self.patch(client_session, 'REQUESTS_VERSION', (2, 4, 1))
         self.patch(client_session.utils, 'is_windows_linux_subsystem', False)
         socket = self.patch_socket_with_options(
             [
@@ -2246,7 +2233,6 @@ class TCPKeepAliveAdapterTest(utils.TestCase):
         )
 
     def test_init_poolmanager_with_tcp_keepcnt_on_windows(self):
-        self.patch(client_session, 'REQUESTS_VERSION', (2, 4, 1))
         self.patch(client_session.utils, 'is_windows_linux_subsystem', True)
         socket = self.patch_socket_with_options(
             [
@@ -2274,7 +2260,6 @@ class TCPKeepAliveAdapterTest(utils.TestCase):
         )
 
     def test_init_poolmanager_with_tcp_keepintvl(self):
-        self.patch(client_session, 'REQUESTS_VERSION', (2, 4, 1))
         socket = self.patch_socket_with_options(
             [
                 'IPPROTO_TCP',
@@ -2302,7 +2287,6 @@ class TCPKeepAliveAdapterTest(utils.TestCase):
         )
 
     def test_init_poolmanager_with_given_optionsl(self):
-        self.patch(client_session, 'REQUESTS_VERSION', (2, 4, 1))
         given_adapter = client_session.TCPKeepAliveAdapter()
         given_options = object()
 
