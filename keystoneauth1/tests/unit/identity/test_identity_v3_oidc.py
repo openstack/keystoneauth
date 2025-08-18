@@ -52,6 +52,7 @@ class BaseOIDCTests:
         self.DISCOVERY_URL = (
             'https://localhost:8020/oidc/.well-known/openid-configuration'
         )
+        self.SCOPE = 'openid profile'
         self.GRANT_TYPE = None
 
     def test_discovery_not_found(self):
@@ -513,7 +514,7 @@ class OIDCDeviceAuthorizationTest(BaseOIDCTests, utils.TestCase):
         )
         result = self.plugin.get_payload(self.session)
 
-        payload = {'client_id': self.CLIENT_ID}
+        payload = {'client_id': self.CLIENT_ID, 'scope': self.SCOPE}
         # Verify the request matches the expected structure
         last_req = self.requests_mock.last_request
         self.assertEqual(self.DEVICE_AUTH_ENDPOINT, last_req.url)

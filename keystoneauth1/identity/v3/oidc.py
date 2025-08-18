@@ -883,10 +883,13 @@ class OidcDeviceAuthorization(_OidcBase):
 
         if self.client_secret:
             client_auth = (self.client_id, self.client_secret)
-            payload = {}
         else:
             client_auth = None
-            payload = {'client_id': self.client_id}
+
+        # rfc8628 does not require client_id when a client_secret is provided,
+        # but Microsoft EntraID does; these should be ignored by other IDPs
+        # when a client secret is provided.
+        payload = {'client_id': self.client_id, 'scope': self.scope}
 
         if self.code_challenge_method:
             self.code_challenge = self._generate_pkce_challenge()
@@ -960,7 +963,11 @@ class OidcDeviceAuthorization(_OidcBase):
             client_auth = (self.client_id, self.client_secret)
         else:
             client_auth = None
-            payload.setdefault('client_id', self.client_id)
+
+        # rfc8628 does not require client_id when a client_secret is provided,
+        # but Microsoft EntraID does; this should be ignored by other IDPs
+        # when a client secret is provided.
+        payload.setdefault('client_id', self.client_id)
 
         access_token_endpoint = self._get_access_token_endpoint(session)
         encoded_payload = urlparse.urlencode(payload)
