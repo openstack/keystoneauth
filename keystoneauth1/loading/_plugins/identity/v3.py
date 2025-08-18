@@ -281,9 +281,6 @@ class OpenIDConnectDeviceAuthorization(
     def get_options(self) -> list[opts.Opt]:
         options = super().get_options()
 
-        # RFC 8628 doesn't support id_token
-        options = [opt for opt in options if opt.name != 'access-token-type']
-
         options.extend(
             [
                 loading.Opt(

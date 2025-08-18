@@ -753,7 +753,7 @@ class OidcDeviceAuthorization(_OidcBase):
         protocol: str,
         client_id: str,
         client_secret: str | None = None,
-        # access_token_type intentionally skipped
+        access_token_type: str = "access_token",  # nosec B107
         scope: str = 'openid profile',
         access_token_endpoint: str | None = None,
         discovery_endpoint: str | None = None,
@@ -785,8 +785,6 @@ class OidcDeviceAuthorization(_OidcBase):
         :param code_challenge_method: PKCE Challenge Method (RFC 7636).
         :type code_challenge_method: string
         """
-        # RFC 8628 only allows to retrieve an access_token
-        self.access_token_type = 'access_token'  # nosec B105
         self.device_authorization_endpoint = device_authorization_endpoint
         self.code_challenge_method = code_challenge_method
 
@@ -796,7 +794,7 @@ class OidcDeviceAuthorization(_OidcBase):
             protocol=protocol,
             client_id=client_id,
             client_secret=client_secret,
-            access_token_type=self.access_token_type,
+            access_token_type=access_token_type,
             scope=scope,
             access_token_endpoint=access_token_endpoint,
             discovery_endpoint=discovery_endpoint,
