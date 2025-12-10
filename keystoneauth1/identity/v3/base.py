@@ -23,7 +23,7 @@ from keystoneauth1 import exceptions
 from keystoneauth1.identity import base
 from keystoneauth1 import session as ks_session
 
-_logger = utils.get_logger(__name__)
+LOG = utils.get_logger(__name__)
 
 __all__ = ('Auth', 'AuthMethod', 'AuthConstructor', 'BaseAuth')
 
@@ -236,7 +236,7 @@ class Auth(BaseAuth):
         if not self.include_catalog:
             token_url += '?nocatalog'
 
-        _logger.debug('Making authentication request to %s', token_url)
+        LOG.debug('Making authentication request to %s', token_url)
         resp = session.post(
             token_url,
             json=body,
@@ -247,7 +247,7 @@ class Auth(BaseAuth):
         )
 
         try:
-            _logger.debug(json.dumps(resp.json()))
+            LOG.debug(json.dumps(resp.json()))
             resp_data = resp.json()
         except ValueError:
             raise exceptions.InvalidResponse(response=resp)

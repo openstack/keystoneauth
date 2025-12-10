@@ -28,7 +28,7 @@ from keystoneauth1 import exceptions
 from keystoneauth1.identity.v3 import federation
 from keystoneauth1 import session as ks_session
 
-_logger = utils.get_logger(__name__)
+LOG = utils.get_logger(__name__)
 
 __all__ = (
     'OidcAuthorizationCode',
@@ -172,7 +172,7 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
                     self.discovery_endpoint, authenticated=False
                 )
             except exceptions.HttpError:
-                _logger.error(
+                LOG.error(
                     "Cannot fetch discovery document %s",
                     self.discovery_endpoint,
                 )
@@ -245,9 +245,9 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
             payload.setdefault('client_id', self.client_id)
         access_token_endpoint = self._get_access_token_endpoint(session)
 
-        if _logger.isEnabledFor(logging.DEBUG):
+        if LOG.isEnabledFor(logging.DEBUG):
             sanitized_payload = self._sanitize(payload)
-            _logger.debug(
+            LOG.debug(
                 "Making OpenID-Connect authentication request to %s with "
                 "data %s",
                 access_token_endpoint,
@@ -262,9 +262,9 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
             authenticated=False,
         )
         response = op_response.json()
-        if _logger.isEnabledFor(logging.DEBUG):
+        if LOG.isEnabledFor(logging.DEBUG):
             sanitized_response = self._sanitize(response)
-            _logger.debug(
+            LOG.debug(
                 "OpenID-Connect authentication response from %s is %s",
                 access_token_endpoint,
                 sanitized_response,
@@ -898,9 +898,9 @@ class OidcDeviceAuthorization(_OidcBase):
             payload.setdefault('code_challenge', self.code_challenge)
         encoded_payload = urlparse.urlencode(payload)
 
-        if _logger.isEnabledFor(logging.DEBUG):
+        if LOG.isEnabledFor(logging.DEBUG):
             sanitized_payload = self._sanitize(payload)
-            _logger.debug(
+            LOG.debug(
                 "Making OpenID-Connect authentication request to %s with "
                 "data %s",
                 device_authz_endpoint,
@@ -914,9 +914,9 @@ class OidcDeviceAuthorization(_OidcBase):
             log=False,
             authenticated=False,
         )
-        if _logger.isEnabledFor(logging.DEBUG):
+        if LOG.isEnabledFor(logging.DEBUG):
             sanitized_response = self._sanitize(op_response.json())
-            _logger.debug(
+            LOG.debug(
                 "OpenID-Connect authentication response from %s is %s",
                 device_authz_endpoint,
                 sanitized_response,
@@ -956,12 +956,12 @@ class OidcDeviceAuthorization(_OidcBase):
         """  # noqa: E501
         # verification_uri_complete is optional and not implemented by EntraID
         if self.verification_uri_complete:
-            _logger.warning(
+            LOG.warning(
                 "To authenticate please go to: %s",
                 self.verification_uri_complete,
             )
         else:
-            _logger.warning(
+            LOG.warning(
                 "To authenticate please go to %s and enter the code %s",
                 self.verification_uri,
                 self.user_code,
@@ -982,9 +982,9 @@ class OidcDeviceAuthorization(_OidcBase):
 
         while time.time() < self.timeout:
             try:
-                if _logger.isEnabledFor(logging.DEBUG):
+                if LOG.isEnabledFor(logging.DEBUG):
                     sanitized_payload = self._sanitize(payload)
-                    _logger.debug(
+                    LOG.debug(
                         "Making OpenID-Connect authentication request to %s "
                         "with data %s",
                         access_token_endpoint,
@@ -998,9 +998,9 @@ class OidcDeviceAuthorization(_OidcBase):
                     log=False,
                     authenticated=False,
                 )
-                if _logger.isEnabledFor(logging.DEBUG):
+                if LOG.isEnabledFor(logging.DEBUG):
                     sanitized_response = self._sanitize(op_response.json())
-                    _logger.debug(
+                    LOG.debug(
                         "OpenID-Connect authentication response from %s is %s",
                         access_token_endpoint,
                         sanitized_response,
