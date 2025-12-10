@@ -239,7 +239,9 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
                 ret[matched_service_type] = []
                 continue
 
-            matches_by_interface: dict[str, list[discover.EndpointData]] = {}
+            matches_by_interface: dict[
+                str | None, list[discover.EndpointData]
+            ] = {}
             for endpoint in endpoints:
                 if endpoint.interface is None:
                     # interface will always be set in a real deployment since

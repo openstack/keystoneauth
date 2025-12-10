@@ -20,6 +20,7 @@ from keystoneauth1 import exceptions
 from keystoneauth1 import plugin
 
 if ty.TYPE_CHECKING:
+    from keystoneauth1.loading import base
     from keystoneauth1.loading import opts
 
 PLUGIN_NAMESPACE = 'keystoneauth1.plugin'
@@ -37,9 +38,12 @@ __all__ = (
 T = ty.TypeVar('T', covariant=True)
 
 
-def _auth_plugin_available(ext: extension.Extension) -> bool:
+def _auth_plugin_available(
+    ext: extension.Extension['base.BaseLoader[ty.Any]'],
+) -> bool:
     """Read the value of available for whether to load this plugin."""
-    return ty.cast(bool, ext.obj.available)
+    assert ext.obj is not None
+    return ext.obj.available
 
 
 def get_available_plugin_names() -> frozenset[str]:
@@ -69,6 +73,7 @@ def get_available_plugin_loaders() -> dict[
               loader as the value.
     :rtype: dict
     """
+    mgr: stevedore.EnabledExtensionManager[BaseLoader[plugin.BaseAuthPluginT]]
     mgr = stevedore.EnabledExtensionManager(
         namespace=PLUGIN_NAMESPACE,
         check_func=_auth_plugin_available,
@@ -76,7 +81,9 @@ def get_available_plugin_loaders() -> dict[
         propagate_map_exceptions=True,
     )
 
-    return dict(mgr.map(lambda ext: (ext.entry_point.name, ext.obj)))
+    # NOTE(stephenfin): We know obj is not None since we passed
+    # invoke_on_load=True above. The hints in stevedore need work.
+    return dict(mgr.map(lambda ext: (ext.entry_point.name, ext.obj)))  # type: ignore
 
 
 def get_plugin_loader(name: str) -> 'BaseLoader[plugin.BaseAuthPluginT]':
@@ -91,12 +98,16 @@ def get_plugin_loader(name: str) -> 'BaseLoader[plugin.BaseAuthPluginT]':
         if a plugin cannot be created.
     """
     try:
+        mgr: stevedore.DriverManager[BaseLoader[plugin.BaseAuthPluginT]]
         mgr = stevedore.DriverManager(
             namespace=PLUGIN_NAMESPACE, invoke_on_load=True, name=name
         )
     except RuntimeError:
         raise exceptions.NoMatchingPlugin(name)
 
+    # NOTE(stephenfin): We know this will return an instance of the BaseLoader
+    # rather than the class itself since we passed invoke_on_load=True above.
+    # The hints in stevedore need work.
     return ty.cast('BaseLoader[plugin.BaseAuthPluginT]', mgr.driver)
 
 

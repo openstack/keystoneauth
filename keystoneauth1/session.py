@@ -39,7 +39,7 @@ except ImportError:
     netaddr = None
 
 try:
-    import osprofiler.web as osprofiler_web
+    import osprofiler.web as osprofiler_web  # type: ignore[import-not-found]
 except ImportError:
     osprofiler_web = None
 

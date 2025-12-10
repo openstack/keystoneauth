@@ -620,9 +620,13 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
 
         for endpoint_service_type, services in endpoints_data.items():
             if service_types.is_known(endpoint_service_type):
-                endpoint_service_type = service_types.get_service_type(
+                _service_type = service_types.get_service_type(
                     endpoint_service_type
                 )
+                # we know this will not be None since we already checked that
+                # it was official with if_known
+                assert _service_type is not None
+                endpoint_service_type = _service_type
 
             for service in services:
                 if not service.region_name or not service.interface:
