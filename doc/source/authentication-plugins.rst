@@ -540,8 +540,8 @@ Creating an Identity Plugin
 
 If you have implemented a new authentication mechanism into the Identity
 service then you will be able to reuse a lot of the infrastructure available
-for the existing Identity mechanisms. As the V2 identity API is essentially
-frozen, it is expected that new plugins are for the V3 API.
+for the existing Identity mechanisms. As the V2 identity API has been removed,
+it is expected that new plugins are for the V3 API.
 
 To implement a new V3 plugin that can be combined with others you should
 implement the base :py:class:`keystoneauth1.identity.v3.AuthMethod` class
