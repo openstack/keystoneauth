@@ -35,7 +35,7 @@ from keystoneauth1 import exceptions
 if ty.TYPE_CHECKING:
     from keystoneauth1 import session as ks_session
 
-_LOGGER = utils.get_logger(__name__)
+LOG = utils.get_logger(__name__)
 LATEST = float('inf')
 _SERVICE_TYPES = os_service_types.ServiceTypes()
 
@@ -609,7 +609,7 @@ class Discover:
             try:
                 status = v['status']
             except KeyError:
-                _LOGGER.warning(
+                LOG.warning(
                     'Skipping over invalid version data. '
                     'No stability status in version.'
                 )
@@ -659,13 +659,13 @@ class Discover:
             try:
                 version_str = v['id']
             except KeyError:
-                _LOGGER.info('Skipping invalid version data. Missing ID.')
+                LOG.info('Skipping invalid version data. Missing ID.')
                 continue
 
             try:
                 links = v['links']
             except KeyError:
-                _LOGGER.info('Skipping invalid version data. Missing links')
+                LOG.info('Skipping invalid version data. Missing links')
                 continue
 
             version_number = normalize_version_number(version_str)
@@ -695,7 +695,7 @@ class Discover:
                     rel = link['rel']
                     url = _combine_relative_url(self._url, link['href'])
                 except (KeyError, TypeError):
-                    _LOGGER.info(
+                    LOG.info(
                         'Skipping invalid version link. '
                         'Missing link URL or relationship.'
                     )
@@ -706,7 +706,7 @@ class Discover:
                 elif rel.lower() == 'collection':
                     collection_url = url
             if not self_url:
-                _LOGGER.info(
+                LOG.info(
                     'Skipping invalid version data. Missing link to endpoint.'
                 )
                 continue
@@ -1298,7 +1298,7 @@ class EndpointData:
             except Exception as e:
                 # Ignore errors here - we're just searching for one of the
                 # URLs that will give us data.
-                _LOGGER.debug(
+                LOG.debug(
                     "Failed attempt at discovery on %s: %s", vers_url, str(e)
                 )
                 continue
@@ -1477,7 +1477,7 @@ class EndpointData:
                 exceptions.HttpError,
                 exceptions.ConnectionError,
             ) as exc:
-                _LOGGER.debug('No version document at %s: %s', vers_url, exc)
+                LOG.debug('No version document at %s: %s', vers_url, exc)
                 continue
         if not self._disc:
             # We couldn't find a version discovery document anywhere.
@@ -1495,7 +1495,7 @@ class EndpointData:
                 # other choice. Realistically if you have provided a version
                 # you should be able to rely on that version being returned or
                 # the request failing.
-                _LOGGER.warning(
+                LOG.warning(
                     'Failed to contact the endpoint at %s for '
                     'discovery. Fallback to using that endpoint as '
                     'the base url.',

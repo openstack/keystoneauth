@@ -20,7 +20,7 @@ from keystoneauth1 import exceptions
 from keystoneauth1.identity import base
 from keystoneauth1 import session as ks_session
 
-_logger = utils.get_logger(__name__)
+LOG = utils.get_logger(__name__)
 
 
 class Auth(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
@@ -63,7 +63,7 @@ class Auth(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
         if self.trust_id:
             params['auth']['trust_id'] = self.trust_id
 
-        _logger.debug('Making authentication request to %s', url)
+        LOG.debug('Making authentication request to %s', url)
         resp = session.post(
             url, json=params, headers=headers, authenticated=False, log=False
         )
