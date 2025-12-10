@@ -10,6 +10,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from typing import Any
 import uuid
 
 import fixtures
@@ -24,7 +25,7 @@ __all__ = ('LoadingFixture', 'TestPlugin')
 DEFAULT_TEST_ENDPOINT = 'https://openstack.example.com/%(service_type)s'
 
 
-def _format_endpoint(endpoint, **kwargs):
+def _format_endpoint(endpoint: str, **kwargs: Any) -> str:
     # can't format AUTH_INTERFACE object so replace with string
     if kwargs.get('service_type') is plugin.AUTH_INTERFACE:
         kwargs['service_type'] = 'identity'
@@ -60,8 +61,12 @@ class TestPlugin(plugin.BaseAuthPlugin):
     auth_type = 'test_plugin'
 
     def __init__(
-        self, token=None, endpoint=None, user_id=None, project_id=None
-    ):
+        self,
+        token: str | None = None,
+        endpoint: str | None = None,
+        user_id: str | None = None,
+        project_id: str | None = None,
+    ) -> None:
         super().__init__()
 
         self.token = token or uuid.uuid4().hex
@@ -69,19 +74,19 @@ class TestPlugin(plugin.BaseAuthPlugin):
         self.user_id = user_id or uuid.uuid4().hex
         self.project_id = project_id or uuid.uuid4().hex
 
-    def get_endpoint(self, session, **kwargs):
+    def get_endpoint(self, session: Any, **kwargs: Any) -> str:
         return _format_endpoint(self.endpoint, **kwargs)
 
-    def get_token(self, session):
+    def get_token(self, session: Any) -> str:
         return self.token
 
-    def get_user_id(self, session):
+    def get_user_id(self, session: Any) -> str:
         return self.user_id
 
-    def get_project_id(self, session):
+    def get_project_id(self, session: Any) -> str:
         return self.project_id
 
-    def invalidate(self):
+    def invalidate(self) -> bool:
         self.token = uuid.uuid4().hex
         return True
 
@@ -96,14 +101,14 @@ class TestPlugin(plugin.BaseAuthPlugin):
 
 
 class _TestPluginLoader(loading.BaseLoader[TestPlugin]):
-    def __init__(self, plugin):
+    def __init__(self, plugin: TestPlugin) -> None:
         super().__init__()
         self._plugin = plugin
 
-    def create_plugin(self, **kwargs):
+    def create_plugin(self, **kwargs: Any) -> TestPlugin:
         return self._plugin
 
-    def get_options(self):
+    def get_options(self) -> list[Any]:
         return []
 
 
@@ -127,8 +132,12 @@ class LoadingFixture(fixtures.Fixture):
     MOCK_POINT = 'keystoneauth1.loading.base.get_plugin_loader'
 
     def __init__(
-        self, token=None, endpoint=None, user_id=None, project_id=None
-    ):
+        self,
+        token: str | None = None,
+        endpoint: str | None = None,
+        user_id: str | None = None,
+        project_id: str | None = None,
+    ) -> None:
         super().__init__()
 
         # these are created and saved here so that a test could use them
@@ -137,14 +146,14 @@ class LoadingFixture(fixtures.Fixture):
         self.user_id = user_id or uuid.uuid4().hex
         self.project_id = project_id or uuid.uuid4().hex
 
-    def setUp(self):
+    def setUp(self) -> None:
         super().setUp()
 
         self.useFixture(
             fixtures.MonkeyPatch(self.MOCK_POINT, self.get_plugin_loader)
         )
 
-    def create_plugin(self):
+    def create_plugin(self) -> TestPlugin:
         return TestPlugin(
             token=self.token,
             endpoint=self.endpoint,
@@ -152,12 +161,12 @@ class LoadingFixture(fixtures.Fixture):
             project_id=self.project_id,
         )
 
-    def get_plugin_loader(self, auth_type):
+    def get_plugin_loader(self, auth_type: str) -> _TestPluginLoader:
         plugin = self.create_plugin()
         plugin.auth_type = auth_type
         return _TestPluginLoader(plugin)
 
-    def get_endpoint(self, path=None, **kwargs):
+    def get_endpoint(self, path: str | None = None, **kwargs: Any) -> str:
         """Utility function to get the endpoint the plugin would return.
 
         This function is provided as a convenience so you can do comparisons in

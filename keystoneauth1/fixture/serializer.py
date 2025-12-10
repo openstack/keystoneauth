@@ -14,19 +14,26 @@
 
 import json
 import os
+import typing as ty
 
-import betamax.serializers.base
+from betamax import cassette
+from betamax import serializers
 import yaml
 
 
-def _should_use_block(value):
+def _should_use_block(value: str) -> bool:
     for c in "\u000a\u000d\u001c\u001d\u001e\u0085\u2028\u2029":
         if c in value:
             return True
     return False
 
 
-def _represent_scalar(self, tag, value, style=None):
+def _represent_scalar(
+    self: yaml.representer.BaseRepresenter,
+    tag: str,
+    value: str,
+    style: str | None = None,
+) -> yaml.representer.ScalarNode:
     if style is None:
         if _should_use_block(value):
             style = '|'
@@ -39,12 +46,12 @@ def _represent_scalar(self, tag, value, style=None):
     return node
 
 
-def _unicode_representer(dumper, uni):
+def _unicode_representer(dumper: yaml.Dumper, uni: str) -> yaml.ScalarNode:
     node = yaml.ScalarNode(tag='tag:yaml.org,2002:str', value=uni)
     return node
 
 
-def _indent_json(val):
+def _indent_json(val: str | None) -> str:
     if not val:
         return ''
 
@@ -57,19 +64,21 @@ def _indent_json(val):
     )
 
 
-def _is_json_body(interaction):
+def _is_json_body(interaction: cassette.Interaction) -> bool:
     content_type = interaction['headers'].get('Content-Type', [])
     return 'application/json' in content_type
 
 
-class YamlJsonSerializer(betamax.serializers.base.BaseSerializer):
+class YamlJsonSerializer(serializers.BaseSerializer):  # type: ignore
     name = "yamljson"
 
     @staticmethod
-    def generate_cassette_name(cassette_library_dir, cassette_name):
+    def generate_cassette_name(
+        cassette_library_dir: str, cassette_name: str
+    ) -> str:
         return os.path.join(cassette_library_dir, f"{cassette_name}.yaml")
 
-    def serialize(self, cassette_data):
+    def serialize(self, cassette_data: dict[str, ty.Any]) -> str:
         # Reserialize internal json with indentation
         for interaction in cassette_data['http_interactions']:
             for key in ('request', 'response'):
@@ -89,7 +98,7 @@ class YamlJsonSerializer(betamax.serializers.base.BaseSerializer):
             cassette_data, Dumper=MyDumper, default_flow_style=False
         )
 
-    def deserialize(self, cassette_data):
+    def deserialize(self, cassette_data: str) -> ty.Any:
         try:
             deserialized = yaml.safe_load(cassette_data)
         except yaml.error.YAMLError:

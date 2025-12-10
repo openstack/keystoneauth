@@ -12,10 +12,14 @@
 
 """A fixture to wrap the session constructor for use with Betamax."""
 
+import collections.abc
 from functools import partial
+import typing as ty
 from unittest import mock
 
 import betamax
+from betamax import cassette
+from betamax import serializers
 import fixtures
 import requests
 
@@ -24,17 +28,24 @@ from keystoneauth1.fixture import serializer as yaml_serializer
 from keystoneauth1 import session
 
 
+PreRecordHookT: ty.TypeAlias = collections.abc.Callable[
+    [cassette.Interaction, cassette.Cassette], None
+]
+
+
 class BetamaxFixture(fixtures.Fixture):
+    recorder: betamax.Betamax
+
     def __init__(
         self,
-        cassette_name,
-        cassette_library_dir=None,
-        serializer=None,
-        record=False,
-        pre_record_hook=hooks.pre_record_hook,
-        serializer_name=None,
-        request_matchers=None,
-    ):
+        cassette_name: str,
+        cassette_library_dir: str | None = None,
+        serializer: type[serializers.BaseSerializer] | None = None,
+        record: bool | str = False,
+        pre_record_hook: PreRecordHookT = hooks.pre_record_hook,
+        serializer_name: str | None = None,
+        request_matchers: list[str] | None = None,
+    ) -> None:
         """Configure Betamax for the test suite.
 
         :param str cassette_name:
@@ -82,7 +93,7 @@ class BetamaxFixture(fixtures.Fixture):
             self.use_cassette_kwargs['match_requests_on'] = request_matchers
 
     @property
-    def serializer_name(self):
+    def serializer_name(self) -> str | None:
         """Determine the name of the selected serializer.
 
         If a class was specified, use the name attribute to generate this,
@@ -94,10 +105,11 @@ class BetamaxFixture(fixtures.Fixture):
             str
         """
         if self.serializer:
-            return self.serializer.name
+            # betamax is not typed yet
+            return self.serializer.name  # type: ignore
         return self._serializer_name
 
-    def setUp(self):
+    def setUp(self) -> None:
         super().setUp()
         self.mockpatch = mock.patch.object(
             session,
@@ -109,7 +121,9 @@ class BetamaxFixture(fixtures.Fixture):
         self.addCleanup(self.mockpatch.stop)
 
 
-def _construct_session_with_betamax(fixture, session_obj=None):
+def _construct_session_with_betamax(
+    fixture: BetamaxFixture, session_obj: requests.Session | None = None
+) -> requests.Session:
     # NOTE(morganfainberg): This function should contain the logic of
     # keystoneauth1.session._construct_session as it replaces the
     # _construct_session function to apply betamax magic to the requests
@@ -122,6 +136,7 @@ def _construct_session_with_betamax(fixture, session_obj=None):
 
     with betamax.Betamax.configure() as config:
         config.before_record(callback=fixture.pre_record_hook)
+
     fixture.recorder = betamax.Betamax(
         session_obj, cassette_library_dir=fixture.cassette_library_dir
     )
@@ -130,6 +145,8 @@ def _construct_session_with_betamax(fixture, session_obj=None):
     serializer = None
 
     if fixture.record in ['once', 'all', 'new_episodes']:
+        # NOTE(stephenfin): idk why we need to do this, but we do
+        assert isinstance(fixture.record, str)  # narrow type
         record = fixture.record
 
     serializer = fixture.serializer_name

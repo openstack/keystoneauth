@@ -96,7 +96,6 @@ ignore_errors = true
 
 [[tool.mypy.overrides]]
 module = [
-    "keystoneauth1.fixture.*",
     "keystoneauth1.hacking.*",
 ]
 disallow_subclassing_any = false

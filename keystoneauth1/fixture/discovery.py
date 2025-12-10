@@ -10,13 +10,27 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import datetime
 import typing as ty
+
+import typing_extensions as ty_ext
 
 from keystoneauth1 import _utils as utils
 
 __all__ = ('DiscoveryList', 'V2Discovery', 'V3Discovery', 'VersionDiscovery')
 
 _DEFAULT_DAYS_AGO = 30
+
+
+class Link(ty.TypedDict):
+    href: str
+    rel: str
+    type: ty_ext.NotRequired[str]
+
+
+class MediaType(ty.TypedDict):
+    base: str
+    type: str
 
 
 class DiscoveryBase(dict[str, ty.Any]):
@@ -29,7 +43,13 @@ class DiscoveryBase(dict[str, ty.Any]):
     :param DateTime updated: When the API was last updated.
     """
 
-    def __init__(self, id, status=None, updated=None):
+    def __init__(
+        self,
+        id: str,
+        *,
+        status: str | None = None,
+        updated: datetime.datetime | None = None,
+    ) -> None:
         super().__init__()
 
         self.id = id
@@ -37,54 +57,60 @@ class DiscoveryBase(dict[str, ty.Any]):
         self.updated = updated or utils.before_utcnow(days=_DEFAULT_DAYS_AGO)
 
     @property
-    def id(self):
-        return self.get('id')
+    def id(self) -> str:
+        result: str = self['id']
+        return result
 
     @id.setter
-    def id(self, value):
+    def id(self, value: str) -> None:
         self['id'] = value
 
     @property
-    def status(self):
+    def status(self) -> str | None:
         return self.get('status')
 
     @status.setter
-    def status(self, value):
+    def status(self, value: str | None) -> None:
         self['status'] = value
 
     @property
-    def links(self):
-        return self.setdefault('links', [])
-
-    @property
-    def updated_str(self):
+    def updated_str(self) -> str | None:
         return self.get('updated')
 
     @updated_str.setter
-    def updated_str(self, value):
+    def updated_str(self, value: str) -> None:
         self['updated'] = value
 
     @property
-    def updated(self):
+    def updated(self) -> datetime.datetime:
+        assert self.updated_str is not None
         return utils.parse_isotime(self.updated_str)
 
     @updated.setter
-    def updated(self, value):
+    def updated(self, value: datetime.datetime) -> None:
         self.updated_str = value.isoformat()
 
-    def add_link(self, href, rel='self', type=None):
-        link = {'href': href, 'rel': rel}
+    @property
+    def links(self) -> list[Link]:
+        result: list[Link] = self.setdefault('links', [])
+        return result
+
+    def add_link(
+        self, href: str, rel: str = 'self', type: str | None = None
+    ) -> Link:
+        link: Link = {'href': href, 'rel': rel}
         if type:
             link['type'] = type
         self.links.append(link)
         return link
 
     @property
-    def media_types(self):
-        return self.setdefault('media-types', [])
+    def media_types(self) -> list[MediaType]:
+        result: list[MediaType] = self.setdefault('media-types', [])
+        return result
 
-    def add_media_type(self, base, type):
-        mt = {'base': base, 'type': type}
+    def add_media_type(self, base: str, type: str) -> MediaType:
+        mt: MediaType = {'base': base, 'type': type}
         self.media_types.append(mt)
         return mt
 
@@ -100,8 +126,15 @@ class VersionDiscovery(DiscoveryBase):
     :param string id: The version id that should be reported.
     """
 
-    def __init__(self, href, id, **kwargs):
-        super().__init__(id, **kwargs)
+    def __init__(
+        self,
+        href: str,
+        id: str,
+        *,
+        status: str | None = None,
+        updated: datetime.datetime | None = None,
+    ) -> None:
+        super().__init__(id, status=status, updated=updated)
 
         self.add_link(href)
 
@@ -119,8 +152,17 @@ class MicroversionDiscovery(DiscoveryBase):
     :param string max_version: The maximum supported microversion. (optional)
     """
 
-    def __init__(self, href, id, min_version='', max_version='', **kwargs):
-        super().__init__(id, **kwargs)
+    def __init__(
+        self,
+        href: str,
+        id: str,
+        *,
+        min_version: str = '',
+        max_version: str = '',
+        status: str | None = None,
+        updated: datetime.datetime | None = None,
+    ) -> None:
+        super().__init__(id, status=status, updated=updated)
 
         self.add_link(href)
 
@@ -128,19 +170,21 @@ class MicroversionDiscovery(DiscoveryBase):
         self.max_version = max_version
 
     @property
-    def min_version(self):
-        return self.get('min_version')
+    def min_version(self) -> str:
+        result: str = self.get('min_version', '')
+        return result
 
     @min_version.setter
-    def min_version(self, value):
+    def min_version(self, value: str) -> None:
         self['min_version'] = value
 
     @property
-    def max_version(self):
-        return self.get('max_version')
+    def max_version(self) -> str:
+        result: str = self.get('max_version', '')
+        return result
 
     @max_version.setter
-    def max_version(self, value):
+    def max_version(self, value: str) -> None:
         self['max_version'] = value
 
 
@@ -157,8 +201,17 @@ class NovaMicroversionDiscovery(DiscoveryBase):
     :param string version: The maximum microversion supported. (optional)
     """
 
-    def __init__(self, href, id, min_version=None, version=None, **kwargs):
-        super().__init__(id, **kwargs)
+    def __init__(
+        self,
+        href: str,
+        id: str,
+        *,
+        min_version: str = '',
+        version: str = '',
+        status: str | None = None,
+        updated: datetime.datetime | None = None,
+    ) -> None:
+        super().__init__(id, status=status, updated=updated)
 
         self.add_link(href)
 
@@ -166,20 +219,22 @@ class NovaMicroversionDiscovery(DiscoveryBase):
         self.version = version
 
     @property
-    def min_version(self):
-        return self.get('min_version')
+    def min_version(self) -> str:
+        result: str = self.get('min_version', '')
+        return result
 
     @min_version.setter
-    def min_version(self, value):
+    def min_version(self, value: str) -> None:
         if value:
             self['min_version'] = value
 
     @property
-    def version(self):
-        return self.get('version')
+    def version(self) -> str:
+        result: str = self.get('version', '')
+        return result
 
     @version.setter
-    def version(self, value):
+    def version(self, value: str) -> None:
         if value:
             self['version'] = value
 
@@ -201,8 +256,17 @@ class V2Discovery(DiscoveryBase):
 
     _DESC_URL = 'https://developer.openstack.org/api-ref/identity/v2/'
 
-    def __init__(self, href, id=None, html=True, pdf=True, **kwargs):
-        super().__init__(id or 'v2.0', **kwargs)
+    def __init__(
+        self,
+        href: str,
+        id: str = 'v2.0',
+        *,
+        html: bool = True,
+        pdf: bool = True,
+        status: str | None = None,
+        updated: datetime.datetime | None = None,
+    ):
+        super().__init__(id, status=status, updated=updated)
 
         self.add_link(href)
 
@@ -211,7 +275,7 @@ class V2Discovery(DiscoveryBase):
         if pdf:
             self.add_pdf_description()
 
-    def add_html_description(self):
+    def add_html_description(self) -> None:
         """Add the HTML described by links.
 
         The standard structure includes a link to a HTML document with the
@@ -223,7 +287,7 @@ class V2Discovery(DiscoveryBase):
             type='text/html',
         )
 
-    def add_pdf_description(self):
+    def add_pdf_description(self) -> None:
         """Add the PDF described by links.
 
         The standard structure includes a link to a PDF document with the
@@ -250,8 +314,17 @@ class V3Discovery(DiscoveryBase):
     :param bool xml: Add XML media-type elements to the structure.
     """
 
-    def __init__(self, href, id=None, json=True, xml=True, **kwargs):
-        super().__init__(id or 'v3.0', **kwargs)
+    def __init__(
+        self,
+        href: str,
+        id: str = 'v3.0',
+        *,
+        json: bool = True,
+        xml: bool = True,
+        status: str | None = None,
+        updated: datetime.datetime | None = None,
+    ):
+        super().__init__(id, status=status, updated=updated)
 
         self.add_link(href)
 
@@ -260,7 +333,7 @@ class V3Discovery(DiscoveryBase):
         if xml:
             self.add_xml_media_type()
 
-    def add_json_media_type(self):
+    def add_json_media_type(self) -> None:
         """Add the JSON media-type links.
 
         The standard structure includes a list of media-types that the endpoint
@@ -271,7 +344,7 @@ class V3Discovery(DiscoveryBase):
             type='application/vnd.openstack.identity-v3+json',
         )
 
-    def add_xml_media_type(self):
+    def add_xml_media_type(self) -> None:
         """Add the XML media-type links.
 
         The standard structure includes a list of media-types that the endpoint
@@ -306,20 +379,20 @@ class DiscoveryList(dict[str, ty.Any]):
 
     def __init__(
         self,
-        href=None,
-        v2=True,
-        v3=True,
-        v2_id=None,
-        v3_id=None,
-        v2_status=None,
-        v2_updated=None,
-        v2_html=True,
-        v2_pdf=True,
-        v3_status=None,
-        v3_updated=None,
-        v3_json=True,
-        v3_xml=True,
-    ):
+        href: str | None = None,
+        v2: bool = True,
+        v3: bool = True,
+        v2_id: str = 'v2.0',
+        v3_id: str = 'v3.0',
+        v2_status: str | None = None,
+        v2_updated: datetime.datetime | None = None,
+        v2_html: bool = True,
+        v2_pdf: bool = True,
+        v3_status: str | None = None,
+        v3_updated: datetime.datetime | None = None,
+        v3_json: bool = True,
+        v3_xml: bool = True,
+    ) -> None:
         super().__init__(versions={'values': []})
 
         href = href or self.TEST_URL
@@ -347,48 +420,103 @@ class DiscoveryList(dict[str, ty.Any]):
             )
 
     @property
-    def versions(self):
-        return self['versions']['values']
+    def versions(self) -> list[DiscoveryBase]:
+        versions: list[DiscoveryBase] = self['versions']['values']
+        return versions
 
-    def add_version(self, version):
+    def add_version(self, version: DiscoveryBase) -> None:
         """Add a new version structure to the list.
 
         :param dict version: A new version structure to add to the list.
         """
         self.versions.append(version)
 
-    def add_v2(self, href, **kwargs):
+    def add_v2(
+        self,
+        href: str,
+        id: str = 'v2.0',
+        *,
+        html: bool = True,
+        pdf: bool = True,
+        status: str | None = None,
+        updated: datetime.datetime | None = None,
+    ) -> V2Discovery:
         """Add a v2 version to the list.
 
         The parameters are the same as V2Discovery.
         """
-        obj = V2Discovery(href, **kwargs)
+        obj = V2Discovery(
+            href, id, html=html, pdf=pdf, status=status, updated=updated
+        )
         self.add_version(obj)
         return obj
 
-    def add_v3(self, href, **kwargs):
+    def add_v3(
+        self,
+        href: str,
+        id: str = 'v3.0',
+        *,
+        json: bool = True,
+        xml: bool = True,
+        status: str | None = None,
+        updated: datetime.datetime | None = None,
+    ) -> V3Discovery:
         """Add a v3 version to the list.
 
         The parameters are the same as V3Discovery.
         """
-        obj = V3Discovery(href, **kwargs)
+        obj = V3Discovery(
+            href, id, json=json, xml=xml, status=status, updated=updated
+        )
         self.add_version(obj)
         return obj
 
-    def add_microversion(self, href, id, **kwargs):
+    def add_microversion(
+        self,
+        href: str,
+        id: str,
+        *,
+        min_version: str = '',
+        max_version: str = '',
+        status: str | None = None,
+        updated: datetime.datetime | None = None,
+    ) -> MicroversionDiscovery:
         """Add a microversion version to the list.
 
         The parameters are the same as MicroversionDiscovery.
         """
-        obj = MicroversionDiscovery(href=href, id=id, **kwargs)
+        obj = MicroversionDiscovery(
+            href,
+            id,
+            min_version=min_version,
+            max_version=max_version,
+            status=status,
+            updated=updated,
+        )
         self.add_version(obj)
         return obj
 
-    def add_nova_microversion(self, href, id, **kwargs):
+    def add_nova_microversion(
+        self,
+        href: str,
+        id: str,
+        *,
+        min_version: str = '',
+        version: str = '',
+        status: str | None = None,
+        updated: datetime.datetime | None = None,
+    ) -> NovaMicroversionDiscovery:
         """Add a nova microversion version to the list.
 
         The parameters are the same as NovaMicroversionDiscovery.
         """
-        obj = NovaMicroversionDiscovery(href=href, id=id, **kwargs)
+        obj = NovaMicroversionDiscovery(
+            href,
+            id,
+            min_version=min_version,
+            version=version,
+            status=status,
+            updated=updated,
+        )
         self.add_version(obj)
         return obj

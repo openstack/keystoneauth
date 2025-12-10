@@ -14,21 +14,83 @@ import datetime
 import typing as ty
 import uuid
 
+import typing_extensions as ty_ext
+
 from keystoneauth1 import _utils
 from keystoneauth1.fixture import exception
+
+
+class V2Role(ty.TypedDict):
+    name: str
+
+
+class V2Endpoint(ty.TypedDict):
+    tenantId: str
+    publicURL: str
+    adminURL: str
+    internalURL: str
+    region: str | None
+    id: str
+
+
+class V2Service(ty.TypedDict):
+    name: str
+    type: str
+    endpoints: ty_ext.NotRequired[list[V2Endpoint]]
+
+
+class V2Tenant(ty.TypedDict, total=False):
+    id: str
+    name: str
+
+
+class V2Trust(ty.TypedDict, total=False):
+    id: str
+    trustee_user_id: str
+
+
+class V2Token(ty.TypedDict):
+    id: str
+    expires: str
+    issued_at: str
+    tenant: ty_ext.NotRequired[V2Tenant]
+    audit_ids: ty_ext.NotRequired[list[str]]
+    bind: ty_ext.NotRequired[dict[str, ty.Any]]
+
+
+class V2User(ty.TypedDict):
+    id: str
+    name: str
+    roles: ty_ext.NotRequired[list[V2Role]]
+
+
+class V2Metadata(ty.TypedDict):
+    roles: ty_ext.NotRequired[list[str]]
+
+
+class V2Access(ty.TypedDict):
+    token: V2Token
+    user: V2User
+    metadata: ty_ext.NotRequired[V2Metadata]
+    serviceCatalog: ty_ext.NotRequired[list[dict[str, ty.Any]]]
+    trust: ty_ext.NotRequired[V2Trust]
+
+
+class V2TokenRoot(ty.TypedDict):
+    access: V2Access
 
 
 class _Service(dict[str, ty.Any]):
     def add_endpoint(
         self,
-        public,
-        admin=None,
-        internal=None,
-        tenant_id=None,
-        region=None,
-        id=None,
-    ):
-        data = {
+        public: str,
+        admin: str | None = None,
+        internal: str | None = None,
+        tenant_id: str | None = None,
+        region: str | None = None,
+        id: str | None = None,
+    ) -> V2Endpoint:
+        data: V2Endpoint = {
             'tenantId': tenant_id or uuid.uuid4().hex,
             'publicURL': public,
             'adminURL': admin or public,
@@ -37,7 +99,8 @@ class _Service(dict[str, ty.Any]):
             'id': id or uuid.uuid4().hex,
         }
 
-        self.setdefault('endpoints', []).append(data)
+        endpoints = self.setdefault('endpoints', [])
+        endpoints.append(data)
         return data
 
 
@@ -52,18 +115,18 @@ class Token(dict[str, ty.Any]):
 
     def __init__(
         self,
-        token_id=None,
-        expires=None,
-        issued=None,
-        tenant_id=None,
-        tenant_name=None,
-        user_id=None,
-        user_name=None,
-        trust_id=None,
-        trustee_user_id=None,
-        audit_id=None,
-        audit_chain_id=None,
-    ):
+        token_id: str | None = None,
+        expires: datetime.datetime | str | None = None,
+        issued: datetime.datetime | str | None = None,
+        tenant_id: str | None = None,
+        tenant_name: str | None = None,
+        user_id: str | None = None,
+        user_name: str | None = None,
+        trust_id: str | None = None,
+        trustee_user_id: str | None = None,
+        audit_id: str | None = None,
+        audit_chain_id: str | None = None,
+    ) -> None:
         super().__init__()
 
         self.token_id = token_id or uuid.uuid4().hex
@@ -73,20 +136,19 @@ class Token(dict[str, ty.Any]):
 
         if not issued:
             issued = _utils.before_utcnow(minutes=2)
-        if not expires:
+
+        if not expires and isinstance(issued, datetime.datetime):
             expires = issued + datetime.timedelta(hours=1)
 
-        try:
-            self.issued = issued
-        except (TypeError, AttributeError):
-            # issued should be able to be passed as a string so ignore
+        if isinstance(issued, str):
             self.issued_str = issued
+        else:
+            self.issued = issued
 
-        try:
-            self.expires = expires
-        except (TypeError, AttributeError):
-            # expires should be able to be passed as a string so ignore
+        if isinstance(expires, str):
             self.expires_str = expires
+        elif expires is not None:
+            self.expires = expires
 
         if tenant_id or tenant_name:
             self.set_scope(tenant_id, tenant_name)
@@ -102,134 +164,157 @@ class Token(dict[str, ty.Any]):
             self.audit_chain_id = audit_chain_id
 
     @property
-    def root(self):
-        return self.setdefault('access', {})
+    def root(self) -> V2Access:
+        if 'access' not in self:
+            self['access'] = {
+                'token': {'id': '', 'expires': '', 'issued_at': ''},
+                'user': {'id': '', 'name': ''},
+            }
+        access: V2Access = self['access']
+        return access
 
     @property
-    def _token(self):
-        return self.root.setdefault('token', {})
+    def _token(self) -> V2Token:
+        return self.root['token']
 
     @property
-    def token_id(self):
+    def token_id(self) -> str:
         return self._token['id']
 
     @token_id.setter
-    def token_id(self, value):
+    def token_id(self, value: str) -> None:
         self._token['id'] = value
 
     @property
-    def expires_str(self):
+    def expires_str(self) -> str:
         return self._token['expires']
 
     @expires_str.setter
-    def expires_str(self, value):
+    def expires_str(self, value: str) -> None:
         self._token['expires'] = value
 
     @property
-    def expires(self):
+    def expires(self) -> datetime.datetime:
         return _utils.parse_isotime(self.expires_str)
 
     @expires.setter
-    def expires(self, value):
+    def expires(self, value: datetime.datetime) -> None:
         self.expires_str = value.isoformat()
 
     @property
-    def issued_str(self):
+    def issued_str(self) -> str:
         return self._token['issued_at']
 
     @issued_str.setter
-    def issued_str(self, value):
+    def issued_str(self, value: str) -> None:
         self._token['issued_at'] = value
 
     @property
-    def issued(self):
+    def issued(self) -> datetime.datetime:
         return _utils.parse_isotime(self.issued_str)
 
     @issued.setter
-    def issued(self, value):
+    def issued(self, value: datetime.datetime) -> None:
         self.issued_str = value.isoformat()
 
     @property
-    def _user(self):
-        return self.root.setdefault('user', {})
+    def _user(self) -> V2User:
+        return self.root['user']
 
     @property
-    def user_id(self):
+    def user_id(self) -> str:
         return self._user['id']
 
     @user_id.setter
-    def user_id(self, value):
+    def user_id(self, value: str) -> None:
         self._user['id'] = value
 
     @property
-    def user_name(self):
+    def user_name(self) -> str:
         return self._user['name']
 
     @user_name.setter
-    def user_name(self, value):
+    def user_name(self, value: str) -> None:
         self._user['name'] = value
 
     @property
-    def tenant_id(self):
+    def tenant_id(self) -> str | None:
         return self._token.get('tenant', {}).get('id')
 
     @tenant_id.setter
-    def tenant_id(self, value):
-        self._token.setdefault('tenant', {})['id'] = value
+    def tenant_id(self, value: str) -> None:
+        if 'tenant' not in self._token:
+            self._token['tenant'] = {}
+        self._token['tenant']['id'] = value
 
     @property
-    def tenant_name(self):
+    def tenant_name(self) -> str | None:
         return self._token.get('tenant', {}).get('name')
 
     @tenant_name.setter
-    def tenant_name(self, value):
-        self._token.setdefault('tenant', {})['name'] = value
+    def tenant_name(self, value: str) -> None:
+        if 'tenant' not in self._token:
+            self._token['tenant'] = {}
+        self._token['tenant']['name'] = value
 
     @property
-    def _metadata(self):
-        return self.root.setdefault('metadata', {})
+    def _metadata(self) -> V2Metadata:
+        if 'metadata' not in self.root:
+            self.root['metadata'] = {}
+        return self.root['metadata']
 
     @property
-    def trust_id(self):
-        return self.root.setdefault('trust', {}).get('id')
+    def trust_id(self) -> str | None:
+        return self.root.get('trust', {}).get('id')
 
     @trust_id.setter
-    def trust_id(self, value):
-        self.root.setdefault('trust', {})['id'] = value
+    def trust_id(self, value: str) -> None:
+        if 'trust' not in self.root:
+            self.root['trust'] = {}
+        self.root['trust']['id'] = value
 
     @property
-    def trustee_user_id(self):
-        return self.root.setdefault('trust', {}).get('trustee_user_id')
+    def trustee_user_id(self) -> str | None:
+        return self.root.get('trust', {}).get('trustee_user_id')
 
     @trustee_user_id.setter
-    def trustee_user_id(self, value):
-        self.root.setdefault('trust', {})['trustee_user_id'] = value
+    def trustee_user_id(self, value: str) -> None:
+        if 'trust' not in self.root:
+            self.root['trust'] = {}
+        self.root['trust']['trustee_user_id'] = value
 
     @property
-    def audit_id(self):
+    def audit_id(self) -> str | None:
         try:
             return self._token.get('audit_ids', [])[0]
         except IndexError:
             return None
 
     @audit_id.setter
-    def audit_id(self, value):
+    def audit_id(self, value: str) -> None:
         audit_chain_id = self.audit_chain_id
-        lval = [value] if audit_chain_id else [value, audit_chain_id]
+        if audit_chain_id:
+            lval = [value, audit_chain_id]
+        else:
+            lval = [value]
         self._token['audit_ids'] = lval
 
     @property
-    def audit_chain_id(self):
+    def audit_chain_id(self) -> str | None:
         try:
             return self._token.get('audit_ids', [])[1]
         except IndexError:
             return None
 
     @audit_chain_id.setter
-    def audit_chain_id(self, value):
-        self._token['audit_ids'] = [self.audit_id, value]
+    def audit_chain_id(self, value: str) -> None:
+        audit_id = self.audit_id
+        if audit_id:
+            self._token['audit_ids'] = [audit_id, value]
+        else:
+            self._token['audit_ids'] = [value]
 
-    def validate(self):
+    def validate(self) -> None:
         scoped = 'tenant' in self._token
         catalog = self.root.get('serviceCatalog')
 
@@ -241,34 +326,50 @@ class Token(dict[str, ty.Any]):
             msg = 'You must have roles on a token to scope it'
             raise exception.FixtureValidationError(msg)
 
-    def add_role(self, name=None, id=None):
-        id = id or uuid.uuid4().hex
-        name = name or uuid.uuid4().hex
-        roles = self._user.setdefault('roles', [])
-        roles.append({'name': name})
-        self._metadata.setdefault('roles', []).append(id)
-        return {'id': id, 'name': name}
+    def add_role(
+        self, name: str | None = None, id: str | None = None
+    ) -> dict[str, str]:
+        role_id = id or uuid.uuid4().hex
+        role_name = name or uuid.uuid4().hex
 
-    def add_service(self, type, name=None):
-        name = name or uuid.uuid4().hex
-        service = _Service(name=name, type=type)
-        self.root.setdefault('serviceCatalog', []).append(service)
+        if 'roles' not in self._user:
+            self._user['roles'] = []
+        self._user['roles'].append({'name': role_name})
+
+        if 'roles' not in self._metadata:
+            self._metadata['roles'] = []
+        self._metadata['roles'].append(role_id)
+
+        return {'id': role_id, 'name': role_name}
+
+    def add_service(self, type: str, name: str | None = None) -> _Service:
+        service_name = name or uuid.uuid4().hex
+        service = _Service(name=service_name, type=type)
+
+        if 'serviceCatalog' not in self.root:
+            self.root['serviceCatalog'] = []
+        self.root['serviceCatalog'].append(service)
         return service
 
-    def remove_service(self, type):
-        self.root['serviceCatalog'] = [
-            f
-            for f in self.root.setdefault('serviceCatalog', [])
-            if f['type'] != type
-        ]
+    def remove_service(self, type: str) -> None:
+        if 'serviceCatalog' in self.root:
+            self.root['serviceCatalog'] = [
+                f for f in self.root['serviceCatalog'] if f['type'] != type
+            ]
 
-    def set_scope(self, id=None, name=None):
+    def set_scope(
+        self, id: str | None = None, name: str | None = None
+    ) -> None:
         self.tenant_id = id or uuid.uuid4().hex
         self.tenant_name = name or uuid.uuid4().hex
 
-    def set_trust(self, id=None, trustee_user_id=None):
+    def set_trust(
+        self, id: str | None = None, trustee_user_id: str | None = None
+    ) -> None:
         self.trust_id = id or uuid.uuid4().hex
         self.trustee_user_id = trustee_user_id or uuid.uuid4().hex
 
-    def set_bind(self, name, data):
-        self._token.setdefault('bind', {})[name] = data
+    def set_bind(self, name: str, data: ty.Any) -> None:
+        if 'bind' not in self._token:
+            self._token['bind'] = {}
+        self._token['bind'][name] = data

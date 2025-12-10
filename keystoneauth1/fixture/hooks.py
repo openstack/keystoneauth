@@ -20,9 +20,14 @@
 """
 
 import json
+import typing as ty
+
+from betamax import cassette
 
 
-def mask_fixture_values(nested, prev_key):
+def mask_fixture_values(
+    nested: dict[str, ty.Any], prev_key: str | None
+) -> None:
     for key, value in nested.items():
         if isinstance(value, dict):
             mask_fixture_values(value, key)
@@ -39,7 +44,9 @@ def mask_fixture_values(nested, prev_key):
                 nested[key] = '9999-12-31T23:59:59Z'
 
 
-def pre_record_hook(interaction, cassette):
+def pre_record_hook(
+    interaction: cassette.Interaction, cassette: cassette.Cassette
+) -> None:
     """Hook to mask saved data.
 
     This hook will be triggered before saving the interaction, and
