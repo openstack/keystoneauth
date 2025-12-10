@@ -173,7 +173,8 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
                 )
             except exceptions.HttpError:
                 _logger.error(
-                    f"Cannot fetch discovery document {self.discovery_endpoint}"
+                    "Cannot fetch discovery document %s",
+                    self.discovery_endpoint,
                 )
                 raise
 
@@ -952,16 +953,18 @@ class OidcDeviceAuthorization(_OidcBase):
                     'device_code': self.device_code,
                 }
         :type payload: dict
-        """
+        """  # noqa: E501
         # verification_uri_complete is optional and not implemented by EntraID
         if self.verification_uri_complete:
             _logger.warning(
-                f"To authenticate please go to: {self.verification_uri_complete}"
+                "To authenticate please go to: %s",
+                self.verification_uri_complete,
             )
         else:
             _logger.warning(
-                f"To authenticate please go to {self.verification_uri} "
-                f"and enter the code {self.user_code}"
+                "To authenticate please go to %s and enter the code %s",
+                self.verification_uri,
+                self.user_code,
             )
 
         if self.client_secret:

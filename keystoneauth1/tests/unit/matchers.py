@@ -86,4 +86,7 @@ class XMLMismatch(matchers.Mismatch):
                 doc, encoding='utf-8', pretty_print=True
             ).decode('utf-8')
 
-        return f'expected =\n{pretty_xml(self.expected)}\nactual =\n{pretty_xml(self.other)}'
+        return (
+            f'expected =\n{pretty_xml(self.expected)}\n'
+            f'actual =\n{pretty_xml(self.other)}'
+        )

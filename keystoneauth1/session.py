@@ -47,7 +47,11 @@ if ty.TYPE_CHECKING:
     from keystoneauth1 import plugin
     import requests.auth
 
-DEFAULT_USER_AGENT = f'keystoneauth1/{keystoneauth1.__version__} {requests.utils.default_user_agent()} {platform.python_implementation()}/{platform.python_version()}'
+DEFAULT_USER_AGENT = (
+    f'keystoneauth1/{keystoneauth1.__version__} '
+    f'{requests.utils.default_user_agent()} '
+    f'{platform.python_implementation()}/{platform.python_version()}'
+)
 
 # NOTE(jamielennox): Clients will likely want to print more than json. Please
 # propose a patch if you have a content type you think is reasonable to print
