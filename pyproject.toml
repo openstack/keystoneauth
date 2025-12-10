@@ -126,16 +126,15 @@ disallow_untyped_calls = false
 
 [tool.ruff]
 line-length = 79
-target-version = "py310"
 
 [tool.ruff.lint]
-# enable the following rule classes:
-#
-# C4: https://docs.astral.sh/ruff/rules/#flake8-comprehensions-c4
-# E:  https://docs.astral.sh/ruff/rules/#pycodestyle-e-w
-# F:  https://docs.astral.sh/ruff/rules/#pyflakes-f
-# UP: https://docs.astral.sh/ruff/rules/#pyupgrade-up
-select = ["C4", "E4", "E5", "E7", "E9", "F", "UP"]
+select = ["C4", "E4", "E5", "E7", "E9", "F", "S", "UP"]
+ignore = [
+    "S101",  # asserts are only used for type narrowing
+]
+
+[tool.ruff.lint.per-file-ignores]
+"keystoneauth1/tests/*" = ["S"]
 
 [tool.ruff.format]
 quote-style = "preserve"

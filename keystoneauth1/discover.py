@@ -533,7 +533,8 @@ def _version_from_url(url: str | None) -> _PARSED_VERSION_T | None:
             if part[0] != 'v':
                 continue
             return normalize_version_number(part)
-        except Exception:
+        except Exception:  # noqa: S110
+            # we just return None instead
             pass
     return None
 
