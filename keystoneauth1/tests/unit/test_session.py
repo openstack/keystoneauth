@@ -862,7 +862,7 @@ class SessionTests(utils.TestCase):
         session = client_session.Session()
 
         # The exception should contain the information from the error response
-        msg = f'Multiple error responses, showing first only: {title} (HTTP 9000)'
+        msg = f'Multiple error responses, showing first only: {title} (HTTP 9000)'  # noqa: E501
         try:
             session.get(self.TEST_URL)
         except exceptions.HttpError as ex:

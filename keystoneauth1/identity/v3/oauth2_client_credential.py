@@ -87,7 +87,9 @@ class OAuth2ClientCredentialMethod(base.AuthMethod):
         return {
             'oauth2_client_credential_oauth2_endpoint': self.oauth2_endpoint,
             'oauth2_client_credential_oauth2_client_id': self.oauth2_client_id,
-            'oauth2_client_credential_oauth2_client_secret': self.oauth2_client_secret,
+            'oauth2_client_credential_oauth2_client_secret': (
+                self.oauth2_client_secret
+            ),
         }
 
 

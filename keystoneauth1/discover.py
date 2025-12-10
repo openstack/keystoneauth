@@ -1393,16 +1393,19 @@ class EndpointData:
         if not discovered_data:
             if min_version and not max_version:
                 raise exceptions.DiscoveryFailure(
-                    f"Minimum version {version_to_string(min_version)} was not found"
+                    f"Minimum version {version_to_string(min_version)} was "
+                    f"not found"
                 )
             elif max_version and not min_version:
                 raise exceptions.DiscoveryFailure(
-                    f"Maximum version {version_to_string(max_version)} was not found"
+                    f"Maximum version {version_to_string(max_version)} was "
+                    f"not found"
                 )
             elif min_version and max_version:
                 raise exceptions.DiscoveryFailure(
-                    f"No version found between {version_to_string(min_version)}"
-                    f" and {version_to_string(max_version)}"
+                    f"No version found between "
+                    f"{version_to_string(min_version)} and "
+                    f"{version_to_string(max_version)}"
                 )
             else:
                 raise exceptions.DiscoveryFailure(
@@ -1509,7 +1512,8 @@ class EndpointData:
                 raise exceptions.DiscoveryFailure(
                     "Unable to find a version discovery document at {}, "
                     "the service is unavailable or misconfigured. "
-                    "Required version range ({} - {}), version hack disabled.".format(
+                    "Required version range ({} - {}), "
+                    "version hack disabled.".format(
                         self.url, min_version or "any", max_version or "any"
                     )
                 )

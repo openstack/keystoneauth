@@ -99,9 +99,15 @@ class ApplicationCredentialMethod(base.AuthMethod):
 
     def get_cache_id_elements(self) -> dict[str, str | None]:
         return {
-            'application_credential_application_credential_secret': self.application_credential_secret,
-            'application_credential_application_credential_id': self.application_credential_id,
-            'application_credential_application_credential_name': self.application_credential_name,
+            'application_credential_application_credential_secret': (
+                self.application_credential_secret
+            ),
+            'application_credential_application_credential_id': (
+                self.application_credential_id
+            ),
+            'application_credential_application_credential_name': (
+                self.application_credential_name
+            ),
             'application_credential_user_id': self.user_id,
             'application_credential_username': self.username,
             'application_credential_user_domain_id': self.user_domain_id,
