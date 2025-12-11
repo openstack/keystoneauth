@@ -35,7 +35,7 @@ class ListAuthPluginsDirective(rst.Directive):
     has_content = True
 
     def report_load_failure(mgr, ep, err):
-        LOG.warning(f'Failed to load {ep.module_name}: {err}')
+        LOG.warning('Failed to load %s: %s', ep.module_name, err)
 
     def display_plugin(self, ext):
         overline_style = self.options.get('overline-style', '')

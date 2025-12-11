@@ -108,7 +108,7 @@ disallow_untyped_calls = false
 line-length = 79
 
 [tool.ruff.lint]
-select = ["C4", "E4", "E5", "E7", "E9", "F", "S", "UP"]
+select = ["C4", "E4", "E5", "E7", "E9", "F", "G", "LOG", "S", "UP"]
 ignore = [
     "S101",  # asserts are only used for type narrowing
 ]
