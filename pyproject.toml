@@ -126,7 +126,6 @@ disallow_untyped_calls = false
 
 [tool.ruff]
 line-length = 79
-target-version = "py310"
 
 [tool.ruff.lint]
 # enable the following rule classes:
