@@ -41,6 +41,5 @@ repos:
         exclude: |
           (?x)(
             doc/.*
-            | examples/.*
             | releasenotes/.*
           )
