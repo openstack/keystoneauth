@@ -180,7 +180,8 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
 
             try:
                 self._discovery_document = resp.json()
-            except Exception:
+            except Exception:  # noqa: S110
+                # we handle this below
                 pass
 
             if not self._discovery_document:
@@ -382,7 +383,7 @@ class OidcPassword(_OidcBase):
         protocol: str,
         client_id: str,
         client_secret: str,
-        access_token_type: str = 'access_token',  # nosec B107
+        access_token_type: str = 'access_token',  # noqa: S107
         scope: str = 'openid profile',
         access_token_endpoint: str | None = None,
         discovery_endpoint: str | None = None,
@@ -501,7 +502,7 @@ class OidcClientCredentials(_OidcBase):
         protocol: str,
         client_id: str,
         client_secret: str,
-        access_token_type: str = 'access_token',  # nosec B107
+        access_token_type: str = 'access_token',  # noqa: S107
         scope: str = 'openid profile',
         access_token_endpoint: str | None = None,
         discovery_endpoint: str | None = None,
@@ -574,7 +575,7 @@ class OidcAuthorizationCode(_OidcBase):
         protocol: str,
         client_id: str,
         client_secret: str,
-        access_token_type: str = 'access_token',  # nosec B107
+        access_token_type: str = 'access_token',  # noqa: S107
         scope: str = 'openid profile',
         access_token_endpoint: str | None = None,
         discovery_endpoint: str | None = None,
@@ -651,7 +652,7 @@ class OidcAccessToken(_OidcBase):
         protocol: str,
         # client_id and client_id intentionally omitted since they don't make
         # sense with an access token
-        access_token_type: str = 'access_token',  # nosec B107
+        access_token_type: str = 'access_token',  # noqa: S107
         scope: str = 'openid profile',
         access_token_endpoint: str | None = None,
         discovery_endpoint: str | None = None,
@@ -754,7 +755,7 @@ class OidcDeviceAuthorization(_OidcBase):
         protocol: str,
         client_id: str,
         client_secret: str | None = None,
-        access_token_type: str = "access_token",  # nosec B107
+        access_token_type: str = "access_token",  # noqa: S107
         scope: str = 'openid profile',
         access_token_endpoint: str | None = None,
         discovery_endpoint: str | None = None,

@@ -428,7 +428,7 @@ class Session:
             # If we created a requests.Session, try to close it out correctly
             try:
                 self._session.close()
-            except Exception:
+            except Exception:  # noqa: S110
                 pass
             finally:
                 self._session = None
@@ -466,8 +466,7 @@ class Session:
             if 'serviceCatalog' in data['access']:
                 data['access']['serviceCatalog'] = '<removed>'
                 return self._json.encode(data)
-
-        except Exception:
+        except Exception:  # noqa: S110
             # Don't fail trying to clean up the request body.
             pass
         return body
