@@ -1,18 +1,11 @@
-========================
-Team and repository tags
-========================
-
-.. image:: https://governance.openstack.org/tc/badges/keystoneauth.svg
-    :target: https://governance.openstack.org/tc/reference/tags/index.html
-
-.. Change things from this point on
-
 ============
 keystoneauth
 ============
 
+.. image:: https://governance.openstack.org/tc/badges/keystoneauth.svg
+
 .. image:: https://img.shields.io/pypi/v/keystoneauth1.svg
-    :target:https://pypi.org/project/keystoneauth1
+    :target: https://pypi.org/project/keystoneauth1/
     :alt: Latest Version
 
 .. image:: https://img.shields.io/pypi/dm/keystoneauth1.svg
