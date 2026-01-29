@@ -241,6 +241,12 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
 
             matches_by_interface: dict[str, list[discover.EndpointData]] = {}
             for endpoint in endpoints:
+                if endpoint.interface is None:
+                    # interface will always be set in a real deployment since
+                    # it is non-nullable: if we get here, we're in a test or
+                    # broken
+                    continue
+
                 matches_by_interface.setdefault(endpoint.interface, [])
                 matches_by_interface[endpoint.interface].append(endpoint)
 
