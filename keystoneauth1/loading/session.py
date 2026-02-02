@@ -216,7 +216,7 @@ class Session(base._BaseLoader[session.Session]):
                 deprecated_opts=deprecated_opts.get('insecure'),
                 help='Verify HTTPS connections.',
             ),
-            cfg.IntOpt(
+            cfg.FloatOpt(
                 'timeout',
                 deprecated_opts=deprecated_opts.get('timeout'),
                 help='Timeout value for http requests',

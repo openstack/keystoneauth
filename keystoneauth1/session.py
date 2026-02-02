@@ -370,7 +370,7 @@ class Session:
         original_ip: str | None = None,
         verify: bool | str | None = True,
         cert: str | tuple[str, str] | None = None,
-        timeout: int | None = None,
+        timeout: float | int | None = None,
         user_agent: str | None = None,
         redirect: int | bool = _DEFAULT_REDIRECT_LIMIT,
         additional_headers: collections.abc.MutableMapping[str, str]
