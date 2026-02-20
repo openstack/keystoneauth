@@ -20,8 +20,8 @@ import typing as ty
 import requests
 
 from keystoneauth1 import _utils as utils
-from keystoneauth1.access import service_catalog
-from keystoneauth1.access import service_providers
+from keystoneauth1.access import service_catalog as service_catalog_mod
+from keystoneauth1.access import service_providers as service_providers_mod
 from keystoneauth1.access import types
 
 # gap, in seconds, to determine whether the given token is about to expire
@@ -57,19 +57,19 @@ class AccessInfo:
     Provides helper methods for extracting useful values from that token.
     """
 
-    _service_catalog_class: type[service_catalog.ServiceCatalog]
+    _service_catalog_class: type[service_catalog_mod.ServiceCatalog]
     _data: ty.Any
 
     def __init__(self, body: dict[str, ty.Any], auth_token: str | None = None):
         self._data = body
         self._auth_token = auth_token
-        self._service_catalog: service_catalog.ServiceCatalog | None = None
-        self._service_providers: service_providers.ServiceProviders | None = (
-            None
-        )
+        self._service_catalog: service_catalog_mod.ServiceCatalog | None = None
+        self._service_providers: (
+            service_providers_mod.ServiceProviders | None
+        ) = None
 
     @property
-    def service_catalog(self) -> service_catalog.ServiceCatalog:
+    def service_catalog(self) -> service_catalog_mod.ServiceCatalog:
         if not self._service_catalog:
             self._service_catalog = self._service_catalog_class.from_token(
                 self._data
@@ -376,7 +376,9 @@ class AccessInfo:
         return self.audit_chain_id or self.audit_id
 
     @property
-    def service_providers(self) -> service_providers.ServiceProviders | None:
+    def service_providers(
+        self,
+    ) -> service_providers_mod.ServiceProviders | None:
         """Return an object representing the list of trusted service providers.
 
         Used for Keystone2Keystone federating-out.
@@ -415,7 +417,7 @@ class AccessInfoV2(AccessInfo):
     """An object for encapsulating raw v2 auth token from identity service."""
 
     version = 'v2.0'
-    _service_catalog_class = service_catalog.ServiceCatalogV2
+    _service_catalog_class = service_catalog_mod.ServiceCatalogV2
     _data: types.TokenResponseV2
 
     def has_service_catalog(self) -> bool:
@@ -577,7 +579,9 @@ class AccessInfoV2(AccessInfo):
             return None
 
     @property
-    def service_providers(self) -> service_providers.ServiceProviders | None:
+    def service_providers(
+        self,
+    ) -> service_providers_mod.ServiceProviders | None:
         return None
 
     @property
@@ -589,7 +593,7 @@ class AccessInfoV3(AccessInfo):
     """An object encapsulating raw v3 auth token from identity service."""
 
     version = 'v3'
-    _service_catalog_class = service_catalog.ServiceCatalogV3
+    _service_catalog_class = service_catalog_mod.ServiceCatalogV3
     _data: types.TokenResponseV3
 
     @property
@@ -773,10 +777,12 @@ class AccessInfoV3(AccessInfo):
         return ret[1] if len(ret) > 1 else None
 
     @property
-    def service_providers(self) -> service_providers.ServiceProviders | None:
+    def service_providers(
+        self,
+    ) -> service_providers_mod.ServiceProviders | None:
         if not self._service_providers:
             self._service_providers = (
-                service_providers.ServiceProviders.from_token(self._data)
+                service_providers_mod.ServiceProviders.from_token(self._data)
             )
 
         return self._service_providers
