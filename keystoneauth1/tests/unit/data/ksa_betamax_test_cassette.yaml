@@ -70,7 +70,7 @@ http_interactions:
       X-Openstack-Request-Id:
       - req-f9e188b4-06fd-4a4c-a952-2315b368218c
       Content-Length:
-      - '2684'
+      - '780'
       Connection:
       - keep-alive
       Date:
