@@ -1,0 +1,5 @@
+---
+fixes:
+  - |
+    The ``timeout`` option now accepts float values, in addition to integer
+    values, for more fine-grained tuning.
