@@ -9,14 +9,13 @@ authors = [
     {name = "OpenStack", email = "openstack-discuss@lists.openstack.org"},
 ]
 readme = {file = "README.rst", content-type = "text/x-rst"}
-license = {text = "Apache-2.0"}
+license = "Apache-2.0"
 dynamic = ["version", "dependencies"]
 requires-python = ">=3.10"
 classifiers = [
     "Environment :: OpenStack",
     "Intended Audience :: Information Technology",
     "Intended Audience :: System Administrators",
-    "License :: OSI Approved :: Apache Software License",
     "Operating System :: POSIX :: Linux",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -77,10 +76,8 @@ v3multifactor = "keystoneauth1.loading._plugins.identity.v3:MultiFactor"
 v3oauth2clientcredential = "keystoneauth1.loading._plugins.identity.v3:OAuth2ClientCredential"
 v3oauth2mtlsclientcredential = "keystoneauth1.loading._plugins.identity.v3:OAuth2mTlsClientCredential"
 
-[tool.setuptools]
-packages = [
-    "keystoneauth1"
-]
+[tool.setuptools.packages.find]
+include = ["keystoneauth1"]
 
 [tool.mypy]
 python_version = "3.10"
