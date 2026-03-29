@@ -103,7 +103,7 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
 
     def _denormalize_endpoints(
         self, endpoints: list[discover.EndpointData]
-    ) -> list[str | None]:
+    ) -> list[dict[str, ty.Any] | None]:
         """Return original endpoint description dicts.
 
         Takes a list of EndpointData objects and returns the original
@@ -332,7 +332,7 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
         service_name: str | None = None,
         service_id: str | None = None,
         endpoint_id: str | None = None,
-    ) -> dict[str, list[str | None]]:
+    ) -> dict[str, list[dict[str, ty.Any] | None]]:
         """Fetch and filter endpoint data for the specified service(s).
 
         Returns endpoints for the specified service (or all) containing
@@ -600,7 +600,7 @@ class ServiceCatalogV2(ServiceCatalog):
 
     def _denormalize_endpoints(
         self, endpoints: list[discover.EndpointData]
-    ) -> list[str | None]:
+    ) -> list[dict[str, ty.Any] | None]:
         """Return original endpoint description dicts.
 
         Takes a list of EndpointData objects and returns the original

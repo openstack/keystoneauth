@@ -1071,7 +1071,7 @@ class EndpointData:
         region_name: str | None = None,
         interface: str | None = None,
         endpoint_id: str | None = None,
-        raw_endpoint: str | None = None,
+        raw_endpoint: dict[str, ty.Any] | None = None,
         api_version: _PARSED_VERSION_T | None = None,
         major_version: str | None = None,
         min_microversion: _PARSED_VERSION_T | None = None,
