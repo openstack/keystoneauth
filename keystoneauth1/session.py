@@ -19,6 +19,7 @@ import logging
 import os
 import platform
 import socket
+import ssl
 import sys
 import time
 import types
@@ -67,8 +68,18 @@ _RETRIABLE_STATUS_CODES = [503]
 _REQUEST_ID_HEADER = 'X-Openstack-Request-Id'
 
 
+TLSVersionT = ty.Literal['1.2', '1.3']
+
+_TLS_VERSION_MAP: dict[TLSVersionT, ssl.TLSVersion] = {
+    '1.2': ssl.TLSVersion.TLSv1_2,
+    '1.3': ssl.TLSVersion.TLSv1_3,
+}
+
+
 def _construct_session(
     session_obj: requests.Session | None = None,
+    tls_ciphers: str | None = None,
+    tls_min_version: TLSVersionT | None = None,
 ) -> requests.Session:
     # NOTE(morganfainberg): if the logic in this function changes be sure to
     # update the betamax fixture's '_construct_session_with_betamax" function
@@ -76,8 +87,11 @@ def _construct_session(
     if not session_obj:
         session_obj = requests.Session()
         # Use TCPKeepAliveAdapter to fix bug 1323862
+        adapter = TCPKeepAliveAdapter(
+            tls_ciphers=tls_ciphers, tls_min_version=tls_min_version
+        )
         for scheme in list(session_obj.adapters):
-            session_obj.mount(scheme, TCPKeepAliveAdapter())
+            session_obj.mount(scheme, adapter)
     return session_obj
 
 
@@ -355,6 +369,15 @@ class Session:
     :param int connect_retries: the maximum number of retries that should
                                 be attempted for connection errors.
                                 (optional, defaults to 0 - never retry).
+    :param str tls_ciphers: An OpenSSL cipher string to set the allowed
+                            ciphers for TLS connections. (optional,
+                            defaults to None which uses the default
+                            ciphers from the underlying OpenSSL
+                            library)
+    :param tls_min_version: The minimum TLS protocol version to allow.
+                           Supported values are ``'1.2'`` and
+                           ``'1.3'``. (optional, defers to the system
+                           crypto policy when not set)
     """
 
     user_agent = None
@@ -383,9 +406,15 @@ class Session:
         collect_timing: bool = False,
         rate_semaphore: ty.ContextManager[None] | None = None,
         connect_retries: int = 0,
+        tls_ciphers: str | None = None,
+        tls_min_version: TLSVersionT | None = None,
     ):
         self.auth = auth
-        self.session = _construct_session(session)
+        self.tls_ciphers = tls_ciphers
+        self.tls_min_version = tls_min_version
+        self.session = _construct_session(
+            session, tls_ciphers=tls_ciphers, tls_min_version=tls_min_version
+        )
         # NOTE(mwhahaha): keep a reference to the session object so we can
         # clean it up when this object goes away. We don't want to close the
         # session if it was passed into us as it may be reused externally.
@@ -1630,7 +1659,26 @@ class TCPKeepAliveAdapter(requests.adapters.HTTPAdapter):
     This Adapter also preserves the default behaviour of Requests which
     disables Nagle's Algorithm. See also:
     https://blogs.msdn.com/b/windowsazurestorage/archive/2010/06/25/nagle-s-algorithm-is-not-friendly-towards-small-requests.aspx
+
+    :param str tls_ciphers: An OpenSSL cipher string to set the
+        allowed ciphers for TLS connections. (optional, defaults
+        to the default ciphers from the underlying OpenSSL
+        library)
+    :param tls_min_version: The minimum TLS protocol version
+        to allow (e.g. ``'1.2'`` or ``'1.3'``). (optional, defers
+        to the system crypto policy when not set)
     """
+
+    def __init__(
+        self,
+        *args: ty.Any,
+        tls_ciphers: str | None = None,
+        tls_min_version: TLSVersionT | None = None,
+        **kwargs: ty.Any,
+    ):
+        self.tls_ciphers = tls_ciphers
+        self.tls_min_version = tls_min_version
+        super().__init__(*args, **kwargs)
 
     def init_poolmanager(self, *args: ty.Any, **kwargs: ty.Any) -> None:
         if 'socket_options' not in kwargs:
@@ -1670,4 +1718,25 @@ class TCPKeepAliveAdapter(requests.adapters.HTTPAdapter):
             # hands for no longer than 2 minutes before a ConnectionError is
             # raised.
             kwargs['socket_options'] = socket_options
+
+        if self.tls_ciphers or self.tls_min_version:
+            ssl_context = ssl.create_default_context()
+            if self.tls_min_version:
+                if self.tls_min_version not in _TLS_VERSION_MAP:
+                    raise ValueError(
+                        "Unknown TLS version: {}. Supported"
+                        " values are {}".format(
+                            self.tls_min_version,
+                            ', '.join(
+                                str(v) for v in sorted(_TLS_VERSION_MAP)
+                            ),
+                        )
+                    )
+                ssl_context.minimum_version = _TLS_VERSION_MAP[
+                    self.tls_min_version
+                ]
+            if self.tls_ciphers:
+                ssl_context.set_ciphers(self.tls_ciphers)
+            kwargs['ssl_context'] = ssl_context
+
         super().init_poolmanager(*args, **kwargs)

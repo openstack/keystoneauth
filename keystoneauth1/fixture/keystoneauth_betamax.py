@@ -122,7 +122,10 @@ class BetamaxFixture(fixtures.Fixture):
 
 
 def _construct_session_with_betamax(
-    fixture: BetamaxFixture, session_obj: requests.Session | None = None
+    fixture: BetamaxFixture,
+    session_obj: requests.Session | None = None,
+    tls_ciphers: str | None = None,
+    tls_min_version: 'session.TLSVersionT | None' = None,
 ) -> requests.Session:
     # NOTE(morganfainberg): This function should contain the logic of
     # keystoneauth1.session._construct_session as it replaces the

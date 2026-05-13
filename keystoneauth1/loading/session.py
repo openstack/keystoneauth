@@ -145,6 +145,30 @@ class Session(base._BaseLoader[session.Session]):
             help='Collect per-API call timing information.',
         )
 
+        session_group.add_argument(
+            '--tls-ciphers',
+            metavar='<ciphers>',
+            default=os.environ.get('OS_TLS_CIPHERS'),
+            help='An OpenSSL cipher string to set the '
+            'allowed ciphers for TLS connections. '
+            'If not specified, the default ciphers '
+            'from the underlying OpenSSL library '
+            'are used. '
+            'Defaults to env[OS_TLS_CIPHERS].',
+        )
+
+        session_group.add_argument(
+            '--tls-min-version',
+            choices=[None, '1.2', '1.3'],
+            default=os.environ.get('OS_TLS_MIN_VERSION'),
+            help='The minimum TLS version to require '
+            'for TLS connections. When not '
+            'specified, the behavior is undefined '
+            'and defers to the system '
+            'cryptographic policy. '
+            'Defaults to env[OS_TLS_MIN_VERSION].',
+        )
+
     def load_from_argparse_arguments(
         self, namespace: argparse.Namespace, **kwargs: ty.Any
     ) -> session.Session:
@@ -154,6 +178,8 @@ class Session(base._BaseLoader[session.Session]):
         kwargs.setdefault('key', namespace.os_key)
         kwargs.setdefault('timeout', namespace.timeout)
         kwargs.setdefault('collect_timing', namespace.collect_timing)
+        kwargs.setdefault('tls_ciphers', namespace.tls_ciphers)
+        kwargs.setdefault('tls_min_version', namespace.tls_min_version)
 
         return self.load_from_options(**kwargs)
 
@@ -174,6 +200,8 @@ class Session(base._BaseLoader[session.Session]):
             :timeout: The max time to wait for HTTP connections.
             :collect-timing: Whether to collect API timing information.
             :split-loggers: Whether to log requests to multiple loggers.
+            :tls-ciphers: OpenSSL cipher string for TLS.
+            :tls-min-version: Minimum TLS version to require.
 
         :param dict deprecated_opts: Deprecated options that should be included
              in the definition of new options. This should be a dict from the
@@ -233,6 +261,33 @@ class Session(base._BaseLoader[session.Session]):
                 default=False,
                 help='Log requests to multiple loggers.',
             ),
+            cfg.StrOpt(
+                'tls-ciphers',
+                deprecated_opts=deprecated_opts.get('tls-ciphers'),
+                help='An OpenSSL cipher string to set the '
+                'allowed ciphers for TLS connections. '
+                'If not specified, the default ciphers '
+                'from the underlying OpenSSL library '
+                'are used.',
+            ),
+            cfg.StrOpt(
+                'tls-min-version',
+                choices=[
+                    (
+                        None,
+                        'None - the absence of a setting, defers to the '
+                        'system cryptographic policy',
+                    ),
+                    ('1.2', 'TLS 1.2 - enforce minimum TLS version 1.2'),
+                    ('1.3', 'TLS 1.3 - enforce minimum TLS version 1.3'),
+                ],
+                deprecated_opts=deprecated_opts.get('tls-min-version'),
+                help='The minimum TLS version to require '
+                'for TLS connections. When not '
+                'specified, the behavior is undefined '
+                'and defers to the system '
+                'cryptographic policy.',
+            ),
         ]
 
     def register_conf_options(
@@ -251,6 +306,8 @@ class Session(base._BaseLoader[session.Session]):
             :timeout: The max time to wait for HTTP connections.
             :collect-timing: Whether to collect API timing information.
             :split-loggers: Whether to log requests to multiple loggers.
+            :tls-ciphers: OpenSSL cipher string for TLS.
+            :tls-min-version: Minimum TLS version to require.
 
         :param oslo_config.Cfg conf: config object to register with.
         :param string group: The ini group to register options in.
@@ -296,6 +353,8 @@ class Session(base._BaseLoader[session.Session]):
         kwargs.setdefault('timeout', c.timeout)
         kwargs.setdefault('collect_timing', c.collect_timing)
         kwargs.setdefault('split_loggers', c.split_loggers)
+        kwargs.setdefault('tls_ciphers', c.tls_ciphers)
+        kwargs.setdefault('tls_min_version', c.tls_min_version)
 
         return self.load_from_options(**kwargs)
 

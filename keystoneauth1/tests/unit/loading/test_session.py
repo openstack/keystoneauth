@@ -66,6 +66,38 @@ class ConfLoadingTests(utils.TestCase):
 
         self.assertEqual(cafile, s.verify)
 
+    def test_tls_ciphers(self):
+        self.config(tls_ciphers='HIGH:!aNULL:!MD5')
+        s = self.get_session()
+
+        self.assertEqual('HIGH:!aNULL:!MD5', s.tls_ciphers)
+
+    def test_tls_min_version(self):
+        self.config(tls_min_version='1.2')
+        s = self.get_session()
+
+        self.assertEqual('1.2', s.tls_min_version)
+
+    def test_tls_min_version_1_3(self):
+        self.config(tls_min_version='1.3')
+        s = self.get_session()
+
+        self.assertEqual('1.3', s.tls_min_version)
+
+    def test_tls_min_version_none(self):
+        self.config(tls_min_version=None)
+        s = self.get_session()
+
+        self.assertIsNone(s.tls_min_version)
+
+    def test_tls_min_version_unset(self):
+        s = self.get_session()
+
+        self.assertIsNone(s.tls_min_version)
+
+    def test_tls_min_version_invalid(self):
+        self.assertRaises(ValueError, self.config, tls_min_version='1.0')
+
     def test_deprecated(self):
         def new_deprecated():
             return cfg.DeprecatedOpt(uuid.uuid4().hex, group=uuid.uuid4().hex)
@@ -78,6 +110,8 @@ class ConfLoadingTests(utils.TestCase):
             'timeout',
             'collect-timing',
             'split-loggers',
+            'tls-ciphers',
+            'tls-min-version',
         ]
         depr = {n: [new_deprecated()] for n in opt_names}
         opts = loading.get_session_conf_options(deprecated_opts=depr)
@@ -119,3 +153,28 @@ class CliLoadingTests(utils.TestCase):
         s = self.get_session(f'--os-cacert {cacert}')
 
         self.assertEqual(cacert, s.verify)
+
+    def test_tls_ciphers(self):
+        s = self.get_session('--tls-ciphers HIGH:!aNULL:!MD5')
+
+        self.assertEqual('HIGH:!aNULL:!MD5', s.tls_ciphers)
+
+    def test_tls_min_version(self):
+        s = self.get_session('--tls-min-version 1.2')
+
+        self.assertEqual('1.2', s.tls_min_version)
+
+    def test_tls_min_version_1_3(self):
+        s = self.get_session('--tls-min-version 1.3')
+
+        self.assertEqual('1.3', s.tls_min_version)
+
+    def test_tls_min_version_unset(self):
+        s = self.get_session('')
+
+        self.assertIsNone(s.tls_min_version)
+
+    def test_tls_min_version_invalid(self):
+        self.assertRaises(
+            SystemExit, self.get_session, '--tls-min-version 1.0'
+        )
