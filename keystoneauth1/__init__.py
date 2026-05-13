@@ -10,7 +10,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import pbr.version
+import importlib.metadata
 
 
-__version__ = pbr.version.VersionInfo('keystoneauth1').version_string()
+__version__ = importlib.metadata.version('keystoneauth1')
