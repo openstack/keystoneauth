@@ -14,7 +14,6 @@ import argparse
 import os
 import typing as ty
 
-from keystoneauth1.loading import _utils
 from keystoneauth1.loading import base
 from keystoneauth1 import session
 
@@ -188,7 +187,7 @@ class Session(base._BaseLoader[session.Session]):
 
         :returns: A list of oslo_config options.
         """
-        cfg = _utils.get_oslo_config()
+        from oslo_config import cfg
 
         if deprecated_opts is None:
             deprecated_opts = {}
@@ -267,8 +266,10 @@ class Session(base._BaseLoader[session.Session]):
 
         :returns: The list of options that was registered.
         """
+        from oslo_config import cfg
+
         opts = self.get_conf_options(deprecated_opts=deprecated_opts)
-        conf.register_group(_utils.get_oslo_config().OptGroup(group))
+        conf.register_group(cfg.OptGroup(group))
         conf.register_opts(opts, group=group)
         return opts
 

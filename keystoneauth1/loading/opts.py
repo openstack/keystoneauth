@@ -14,8 +14,6 @@ import itertools
 import os
 import typing as ty
 
-from keystoneauth1.loading import _utils
-
 if ty.TYPE_CHECKING:
     from oslo_config import cfg
 
@@ -103,12 +101,13 @@ class Opt:
         return f'<Opt: {self.name}>'
 
     def _to_oslo_opt(self) -> 'cfg.Opt':
-        cfg = _utils.get_oslo_config()
+        from oslo_config import cfg
+
         deprecated_opts = [cfg.DeprecatedOpt(o.name) for o in self.deprecated]
 
         return cfg.Opt(
             name=self.name,
-            type=self.type,
+            type=self.type,  # type: ignore[arg-type]
             help=self.help,
             secret=self.secret,
             required=self.required,
