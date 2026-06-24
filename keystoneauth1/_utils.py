@@ -66,7 +66,7 @@ def from_utcnow(
     :rtype:
         datetime.datetime
     """
-    now = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
+    now = datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
     delta = datetime.timedelta(
         days, seconds, microseconds, milliseconds, minutes, hours, weeks
     )
@@ -97,7 +97,7 @@ def before_utcnow(
     :rtype:
         datetime.datetime
     """
-    now = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
+    now = datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
     delta = datetime.timedelta(
         days, seconds, microseconds, milliseconds, minutes, hours, weeks
     )
