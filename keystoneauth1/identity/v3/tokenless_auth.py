@@ -11,12 +11,12 @@
 # under the License.
 
 import abc
-import typing as ty
+from typing import Any, TYPE_CHECKING
 
 from keystoneauth1 import _utils as utils
 from keystoneauth1 import plugin
 
-if ty.TYPE_CHECKING:
+if TYPE_CHECKING:
     from keystoneauth1 import session as ks_session
 
 LOG = utils.get_logger(__name__)
@@ -108,7 +108,7 @@ class TokenlessAuth(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         self,
         session: 'ks_session.Session',
         service_type: str | None = None,
-        **kwargs: ty.Any,
+        **kwargs: Any,
     ) -> str | None:
         """Return a valid endpoint for a service.
 

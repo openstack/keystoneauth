@@ -55,11 +55,11 @@ Keystone federation installation guides rather than values of our choosing.
    token it accepts, and times out.
 """
 
-import collections.abc
+from collections.abc import Callable
 import ipaddress
 import socket
 import time
-import typing as ty
+from typing import Any
 import urllib.parse
 import webbrowser
 import wsgiref.simple_server
@@ -280,7 +280,7 @@ class _CallbackApp:
 class _QuietWSGIRequestHandler(wsgiref.simple_server.WSGIRequestHandler):
     """Request handler that keeps its access log off stderr."""
 
-    def log_message(self, format: str, *args: ty.Any) -> None:
+    def log_message(self, format: str, *args: Any) -> None:
         """Do not log requests to stderr."""
 
 
@@ -288,7 +288,7 @@ def _wait_for_token(
     redirect_host: str,
     redirect_port: int,
     keystone_origin: str,
-    start_flow: collections.abc.Callable[[], None],
+    start_flow: Callable[[], None],
     timeout: float = _DEFAULT_TIMEOUT,
 ) -> str:
     """Serve the callback endpoint until Keystone posts a token to it.

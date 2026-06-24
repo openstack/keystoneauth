@@ -10,30 +10,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import typing as ty
-
-import typing_extensions as ty_ext
+from typing import Any, NotRequired, TypedDict
 
 # Identity V2 auth fields
 
 
-class TenantV2(ty.TypedDict):
-    description: ty_ext.NotRequired[str | None]
-    enabled: ty_ext.NotRequired[bool]
+class TenantV2(TypedDict):
+    description: NotRequired[str | None]
+    enabled: NotRequired[bool]
     id: str
     name: str
 
 
-class TokenV2(ty.TypedDict):
+class TokenV2(TypedDict):
     audit_ids: list[str]
-    bind: ty_ext.NotRequired[dict[str, ty.Any]]
+    bind: NotRequired[dict[str, Any]]
     expires: str
     id: str
-    issued_at: ty_ext.NotRequired[str]
-    tenant: ty_ext.NotRequired[TenantV2]
+    issued_at: NotRequired[str]
+    tenant: NotRequired[TenantV2]
 
 
-class EndpointV2(ty.TypedDict):
+class EndpointV2(TypedDict):
     adminURL: str
     region: str
     internalURL: str
@@ -41,55 +39,55 @@ class EndpointV2(ty.TypedDict):
     publicURL: str
 
 
-class CatalogServiceV2(ty.TypedDict):
+class CatalogServiceV2(TypedDict):
     endpoints: list[EndpointV2]
-    endpoints_links: list[ty.Any]
+    endpoints_links: list[Any]
     type: str
     name: str
 
 
-class RoleV2(ty.TypedDict):
+class RoleV2(TypedDict):
     name: str
 
 
-class UserV2(ty.TypedDict):
+class UserV2(TypedDict):
     id: str
     name: str
-    role_links: list[ty.Any]
+    role_links: list[Any]
     roles: list[RoleV2]
-    tenantId: ty_ext.NotRequired[str]
-    tenantName: ty_ext.NotRequired[str]
+    tenantId: NotRequired[str]
+    tenantName: NotRequired[str]
     username: str
 
 
-class MetadataV2(ty.TypedDict):
+class MetadataV2(TypedDict):
     is_admin: int
     roles: list[str]
 
 
-class TrustV2(ty.TypedDict):
+class TrustV2(TypedDict):
     id: str
     impersonation: bool
     trustee_user_id: str
     trustor_user_id: str
 
 
-class AccessV2(ty.TypedDict):
+class AccessV2(TypedDict):
     token: TokenV2
-    serviceCatalog: ty_ext.NotRequired[list[CatalogServiceV2]]
+    serviceCatalog: NotRequired[list[CatalogServiceV2]]
     user: UserV2
-    metadata: ty_ext.NotRequired[MetadataV2]
-    trust: ty_ext.NotRequired[TrustV2]
+    metadata: NotRequired[MetadataV2]
+    trust: NotRequired[TrustV2]
 
 
-class TokenResponseV2(ty.TypedDict):
+class TokenResponseV2(TypedDict):
     access: AccessV2
 
 
 # Identity V3 auth fields
 
 
-class EndpointV3(ty.TypedDict):
+class EndpointV3(TypedDict):
     id: str
     interface: str
     region: str
@@ -97,137 +95,137 @@ class EndpointV3(ty.TypedDict):
     url: str
 
 
-class ServiceV3(ty.TypedDict):
+class ServiceV3(TypedDict):
     endpoints: list[EndpointV3]
     id: str
     name: str
     type: str
 
 
-class ProjectDomainV3(ty.TypedDict):
+class ProjectDomainV3(TypedDict):
     id: str
     name: str
 
 
-class ProjectV3(ty.TypedDict):
+class ProjectV3(TypedDict):
     domain: ProjectDomainV3
     id: str
     name: str
 
 
-class DomainV3(ty.TypedDict):
+class DomainV3(TypedDict):
     id: str
     name: str
 
 
-class UserDomainV3(ty.TypedDict):
+class UserDomainV3(TypedDict):
     id: str
     name: str
 
 
-class FederationGroupV3(ty.TypedDict):
+class FederationGroupV3(TypedDict):
     id: str
 
 
-class FederationProviderV3(ty.TypedDict):
+class FederationProviderV3(TypedDict):
     id: str
 
 
-class FederationProtocolV3(ty.TypedDict):
+class FederationProtocolV3(TypedDict):
     id: str
 
 
-class FederationV3(ty.TypedDict):
+class FederationV3(TypedDict):
     groups: list[FederationGroupV3]
     identity_provider: FederationProviderV3
     protocol: FederationProtocolV3
 
 
-UserV3 = ty.TypedDict(
+UserV3 = TypedDict(
     'UserV3',
     {
         'domain': UserDomainV3,
         'id': str,
         'name': str,
-        'password_expires_at': ty_ext.NotRequired[str],
-        'OS-FEDERATION': ty_ext.NotRequired[FederationV3],
+        'password_expires_at': NotRequired[str],
+        'OS-FEDERATION': NotRequired[FederationV3],
     },
 )
 
 
-class RoleV3(ty.TypedDict):
+class RoleV3(TypedDict):
     id: str
     name: str
 
 
-class ApplicationCredentialAccessRuleV3(ty.TypedDict):
+class ApplicationCredentialAccessRuleV3(TypedDict):
     id: str
 
 
-class ApplicationCredentialV3(ty.TypedDict):
-    access_rules: ty_ext.NotRequired[list[ApplicationCredentialAccessRuleV3]]
+class ApplicationCredentialV3(TypedDict):
+    access_rules: NotRequired[list[ApplicationCredentialAccessRuleV3]]
     id: str
     name: str
     restricted: bool
 
 
-class ServiceProviderV3(ty.TypedDict):
+class ServiceProviderV3(TypedDict):
     auth_url: str
     id: str
     sp_url: str
 
 
-class TrustorUser(ty.TypedDict):
+class TrustorUser(TypedDict):
     id: str
 
 
-class TrusteeUser(ty.TypedDict):
+class TrusteeUser(TypedDict):
     id: str
 
 
-class TrustV3(ty.TypedDict):
+class TrustV3(TypedDict):
     id: str
     impersonation: bool
     trustee_user: TrusteeUser
     trustor_user: TrustorUser
 
 
-class OAuth1V3(ty.TypedDict):
+class OAuth1V3(TypedDict):
     access_token_id: str
     consumer_id: str
 
 
-OAuth2V3 = ty.TypedDict('OAuth2V3', {'x5t#S256': str})
+OAuth2V3 = TypedDict('OAuth2V3', {'x5t#S256': str})
 
 
-class SystemV3(ty.TypedDict):
+class SystemV3(TypedDict):
     all: bool
 
 
-TokenV3 = ty.TypedDict(
+TokenV3 = TypedDict(
     'TokenV3',
     {
-        'application_credential': ty_ext.NotRequired[ApplicationCredentialV3],
+        'application_credential': NotRequired[ApplicationCredentialV3],
         'audit_ids': list[str],
-        'bind': ty_ext.NotRequired[dict[str, ty.Any]],
-        'catalog': ty_ext.NotRequired[list[ServiceV3]],
-        'domain': ty_ext.NotRequired[DomainV3],
+        'bind': NotRequired[dict[str, Any]],
+        'catalog': NotRequired[list[ServiceV3]],
+        'domain': NotRequired[DomainV3],
         'expires_at': str,
-        'is_admin_project': ty_ext.NotRequired[bool],
-        'is_domain': ty_ext.NotRequired[bool],
+        'is_admin_project': NotRequired[bool],
+        'is_domain': NotRequired[bool],
         'issued_at': str,
         'methods': list[str],
-        'oauth2_credential': ty_ext.NotRequired[OAuth2V3],
+        'oauth2_credential': NotRequired[OAuth2V3],
         'project': ProjectV3,
         'roles': list[RoleV3],
-        'service_providers': ty_ext.NotRequired[list[ServiceProviderV3]],
-        'system': ty_ext.NotRequired[SystemV3],
+        'service_providers': NotRequired[list[ServiceProviderV3]],
+        'system': NotRequired[SystemV3],
         'user': UserV3,
-        'OS-OAUTH1': ty_ext.NotRequired[OAuth1V3],
-        'OS-TRUST:trust': ty_ext.NotRequired[TrustV3],
+        'OS-OAUTH1': NotRequired[OAuth1V3],
+        'OS-TRUST:trust': NotRequired[TrustV3],
     },
 )
 
 
-class TokenResponseV3(ty.TypedDict):
+class TokenResponseV3(TypedDict):
     token: TokenV3

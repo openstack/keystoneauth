@@ -11,7 +11,7 @@
 # under the License.
 
 import abc
-import collections.abc
+from collections.abc import MutableMapping
 import enum
 
 from keystoneauth1 import _utils as utils
@@ -80,7 +80,7 @@ class Auth(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def get_auth_data(
-        self, headers: collections.abc.MutableMapping[str, str] | None = None
+        self, headers: MutableMapping[str, str] | None = None
     ) -> dict[str, object]:
         """Return the authentication section of an auth plugin.
 
@@ -163,7 +163,7 @@ class Password(Auth):
         self.password = password
 
     def get_auth_data(
-        self, headers: collections.abc.MutableMapping[str, str] | None = None
+        self, headers: MutableMapping[str, str] | None = None
     ) -> dict[str, object]:
         auth = {'password': self.password}
 
@@ -218,7 +218,7 @@ class Token(Auth):
         self.token = token
 
     def get_auth_data(
-        self, headers: collections.abc.MutableMapping[str, str] | None = None
+        self, headers: MutableMapping[str, str] | None = None
     ) -> dict[str, object]:
         if headers is not None:
             headers['X-Auth-Token'] = self.token

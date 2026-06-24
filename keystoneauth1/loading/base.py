@@ -11,8 +11,9 @@
 # under the License.
 
 import abc
+from collections.abc import Callable
 import logging
-import typing as ty
+from typing import Any, cast, Generic, TYPE_CHECKING, TypeVar
 
 import stevedore
 from stevedore import extension
@@ -20,7 +21,7 @@ from stevedore import extension
 from keystoneauth1 import exceptions
 from keystoneauth1 import plugin
 
-if ty.TYPE_CHECKING:
+if TYPE_CHECKING:
     from keystoneauth1.loading import base
     from keystoneauth1.loading import opts
 
@@ -38,11 +39,11 @@ __all__ = (
     'PLUGIN_NAMESPACE',
 )
 
-T = ty.TypeVar('T', covariant=True)
+T = TypeVar('T', covariant=True)
 
 
 def _auth_plugin_available(
-    ext: extension.Extension['base.BaseLoader[ty.Any]'],
+    ext: extension.Extension['base.BaseLoader[Any]'],
 ) -> bool:
     """Read the value of available for whether to load this plugin."""
     assert ext.obj is not None
@@ -50,8 +51,8 @@ def _auth_plugin_available(
 
 
 def _prefer_out_of_tree_plugin(
-    namespace: str, name: str, extensions: list[extension.Extension[ty.Any]]
-) -> extension.Extension[ty.Any]:
+    namespace: str, name: str, extensions: list[extension.Extension[Any]]
+) -> extension.Extension[Any]:
     """Resolve duplicate plugin entry points, preferring out-of-tree ones.
 
     keystoneauth1 ships in-tree loaders for some plugins that also have an
@@ -60,7 +61,7 @@ def _prefer_out_of_tree_plugin(
     implementation so deployers can override the one we ship.
     """
 
-    def _is_in_tree(ext: extension.Extension[ty.Any]) -> bool:
+    def _is_in_tree(ext: extension.Extension[Any]) -> bool:
         dist = ext.entry_point.dist
         if dist is not None:
             return dist.name == 'keystoneauth1'
@@ -118,7 +119,7 @@ def get_available_plugin_loaders() -> dict[
     # Access the extensions by name so stevedore applies the conflict resolver.
     # We know obj is not None since we passed invoke_on_load=True above.
     return {
-        name: ty.cast('BaseLoader[plugin.BaseAuthPluginT]', ext.obj)
+        name: cast('BaseLoader[plugin.BaseAuthPluginT]', ext.obj)
         for name, ext in mgr.items()
     }
 
@@ -148,7 +149,7 @@ def get_plugin_loader(name: str) -> 'BaseLoader[plugin.BaseAuthPluginT]':
     # NOTE(stephenfin): We know this will return an instance of the BaseLoader
     # rather than the class itself since we passed invoke_on_load=True above.
     # The hints in stevedore need work.
-    return ty.cast('BaseLoader[plugin.BaseAuthPluginT]', mgr.driver)
+    return cast('BaseLoader[plugin.BaseAuthPluginT]', mgr.driver)
 
 
 def get_plugin_options(name: str) -> list['opts.Opt']:
@@ -165,12 +166,12 @@ def get_plugin_options(name: str) -> list['opts.Opt']:
     return get_plugin_loader(name).get_options()
 
 
-class _BaseLoader(ty.Generic[T], metaclass=abc.ABCMeta):
+class _BaseLoader(Generic[T], metaclass=abc.ABCMeta):
     @property
     def plugin_class(self) -> type[T]:
         raise NotImplementedError()
 
-    def create_plugin(self, **kwargs: ty.Any) -> T:
+    def create_plugin(self, **kwargs: Any) -> T:
         """Create a plugin from the options available for the loader.
 
         Given the options that were specified by the loader create an
@@ -212,7 +213,7 @@ class _BaseLoader(ty.Generic[T], metaclass=abc.ABCMeta):
         """
         return True
 
-    def load_from_options(self, **kwargs: ty.Any) -> T:
+    def load_from_options(self, **kwargs: Any) -> T:
         """Create a plugin from the arguments retrieved from get_options.
 
         A client can override this function to do argument validation or to
@@ -231,7 +232,7 @@ class _BaseLoader(ty.Generic[T], metaclass=abc.ABCMeta):
         return self.create_plugin(**kwargs)
 
     def load_from_options_getter(
-        self, getter: ty.Callable[['opts.Opt'], ty.Any], **kwargs: ty.Any
+        self, getter: Callable[['opts.Opt'], Any], **kwargs: Any
     ) -> T:
         """Load a plugin from getter function that returns appropriate values.
 

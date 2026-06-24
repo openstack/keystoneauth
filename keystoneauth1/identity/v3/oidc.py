@@ -17,7 +17,7 @@ import hashlib
 import logging
 import os
 import time
-import typing as ty
+from typing import cast, ClassVar, TypeVar
 from urllib import parse as urlparse
 
 import requests
@@ -40,7 +40,7 @@ __all__ = (
 SENSITIVE_KEYS = ("password", "code", "token", "secret")
 
 
-_OidcBaseT = ty.TypeVar('_OidcBaseT', bound='_OidcBase')
+_OidcBaseT = TypeVar('_OidcBaseT', bound='_OidcBase')
 
 
 class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
@@ -50,7 +50,7 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
     ``http://openid.net/specs/openid-connect-core-1_0.html``
     """
 
-    grant_type: ty.ClassVar[str]
+    grant_type: ClassVar[str]
 
     def __init__(
         self,
@@ -225,7 +225,7 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
         endpoint = discovery.get("token_endpoint")
         if endpoint is None:
             raise exceptions.OidcAccessTokenEndpointNotFound()
-        return ty.cast(str, endpoint)
+        return cast(str, endpoint)
 
     def _sanitize(self, data: dict[str, str | None]) -> dict[str, str | None]:
         sanitized = copy.deepcopy(data)
@@ -341,7 +341,7 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
         """
         # First of all, check if the grant type is supported
         discovery = self._get_discovery_document(session)
-        grant_types = ty.cast(
+        grant_types = cast(
             list[str] | None, discovery.get("grant_types_supported")
         )
         if (
@@ -881,7 +881,7 @@ class OidcDeviceAuthorization(_OidcBase):
         endpoint = discovery.get("device_authorization_endpoint")
         if endpoint is None:
             raise exceptions.oidc.OidcDeviceAuthorizationEndpointNotFound()
-        return ty.cast(str, endpoint)
+        return cast(str, endpoint)
 
     def _generate_pkce_verifier(self) -> str:
         """Generate PKCE verifier string as defined in RFC 7636."""

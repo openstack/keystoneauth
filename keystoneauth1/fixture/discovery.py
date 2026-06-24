@@ -11,9 +11,7 @@
 # under the License.
 
 import datetime
-import typing as ty
-
-import typing_extensions as ty_ext
+from typing import Any, NotRequired, TypedDict
 
 from keystoneauth1 import _utils as utils
 
@@ -22,18 +20,18 @@ __all__ = ('DiscoveryList', 'V2Discovery', 'V3Discovery', 'VersionDiscovery')
 _DEFAULT_DAYS_AGO = 30
 
 
-class Link(ty.TypedDict):
+class Link(TypedDict):
     href: str
     rel: str
-    type: ty_ext.NotRequired[str]
+    type: NotRequired[str]
 
 
-class MediaType(ty.TypedDict):
+class MediaType(TypedDict):
     base: str
     type: str
 
 
-class DiscoveryBase(dict[str, ty.Any]):
+class DiscoveryBase(dict[str, Any]):
     """The basic version discovery structure.
 
     All version discovery elements should have access to these values.
@@ -356,7 +354,7 @@ class V3Discovery(DiscoveryBase):
         )
 
 
-class DiscoveryList(dict[str, ty.Any]):
+class DiscoveryList(dict[str, Any]):
     """A List of version elements.
 
     Creates a correctly structured list of identity service endpoints for

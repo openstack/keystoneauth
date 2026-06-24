@@ -12,7 +12,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import typing as ty
+from collections.abc import Mapping
 
 import requests.auth
 
@@ -52,7 +52,7 @@ class OAuth2ClientCredentialMethod(base.AuthMethod):
         auth: base.Auth,
         headers: dict[str, str],
         request_kwargs: dict[str, object],
-    ) -> tuple[None, None] | tuple[str, ty.Mapping[str, object]]:
+    ) -> tuple[None, None] | tuple[str, Mapping[str, object]]:
         """Return the authentication section of an auth plugin.
 
         :param session: The communication session.

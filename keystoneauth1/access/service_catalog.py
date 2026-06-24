@@ -18,14 +18,12 @@
 
 import abc
 import copy
-import typing as ty
-
-import typing_extensions as ty_ext
+from typing import Any, Self
 
 from keystoneauth1 import discover
 from keystoneauth1 import exceptions
 
-_SERVICE_CATALOG_T = list[dict[str, ty.Any]]
+_SERVICE_CATALOG_T = list[dict[str, Any]]
 
 
 class ServiceCatalog(metaclass=abc.ABCMeta):
@@ -36,7 +34,7 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
 
     @classmethod
     @abc.abstractmethod
-    def from_token(cls, token: dict[str, ty.Any]) -> ty_ext.Self:
+    def from_token(cls, token: dict[str, Any]) -> Self:
         """Retrieve the service catalog from a token.
 
         :param token:
@@ -80,8 +78,8 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
         return interface
 
     def _normalize_endpoints(
-        self, endpoints: list[dict[str, ty.Any]]
-    ) -> list[dict[str, ty.Any]]:
+        self, endpoints: list[dict[str, Any]]
+    ) -> list[dict[str, Any]]:
         """Translate endpoint description dicts into v3 form.
 
         Takes a raw endpoint description from the catalog and changes
@@ -103,7 +101,7 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
 
     def _denormalize_endpoints(
         self, endpoints: list[discover.EndpointData]
-    ) -> list[dict[str, ty.Any] | None]:
+    ) -> list[dict[str, Any] | None]:
         """Return original endpoint description dicts.
 
         Takes a list of EndpointData objects and returns the original
@@ -115,7 +113,7 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
         """
         return [endpoint.raw_endpoint for endpoint in endpoints]
 
-    def normalize_catalog(self) -> list[dict[str, ty.Any]]:
+    def normalize_catalog(self) -> list[dict[str, Any]]:
         """Return the catalog normalized into v3 format."""
         catalog = []
         for service in copy.deepcopy(self._catalog):
@@ -332,7 +330,7 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
         service_name: str | None = None,
         service_id: str | None = None,
         endpoint_id: str | None = None,
-    ) -> dict[str, list[dict[str, ty.Any] | None]]:
+    ) -> dict[str, list[dict[str, Any] | None]]:
         """Fetch and filter endpoint data for the specified service(s).
 
         Returns endpoints for the specified service (or all) containing
@@ -547,7 +545,7 @@ class ServiceCatalogV2(ServiceCatalog):
     """
 
     @classmethod
-    def from_token(cls, token: dict[str, ty.Any]) -> ty_ext.Self:
+    def from_token(cls, token: dict[str, Any]) -> Self:
         if 'access' not in token:
             raise ValueError('Invalid token format for fetching catalog')
 
@@ -566,8 +564,8 @@ class ServiceCatalogV2(ServiceCatalog):
         return interface in endpoint
 
     def _normalize_endpoints(
-        self, endpoints: list[dict[str, ty.Any]]
-    ) -> list[dict[str, ty.Any]]:
+        self, endpoints: list[dict[str, Any]]
+    ) -> list[dict[str, Any]]:
         """Translate endpoint description dicts into v3 form.
 
         Takes a raw endpoint description from the catalog and changes
@@ -600,7 +598,7 @@ class ServiceCatalogV2(ServiceCatalog):
 
     def _denormalize_endpoints(
         self, endpoints: list[discover.EndpointData]
-    ) -> list[dict[str, ty.Any] | None]:
+    ) -> list[dict[str, Any] | None]:
         """Return original endpoint description dicts.
 
         Takes a list of EndpointData objects and returns the original
@@ -631,7 +629,7 @@ class ServiceCatalogV3(ServiceCatalog):
     """
 
     @classmethod
-    def from_token(cls, token: dict[str, ty.Any]) -> ty_ext.Self:
+    def from_token(cls, token: dict[str, Any]) -> Self:
         if 'token' not in token:
             raise ValueError('Invalid token format for fetching catalog')
 

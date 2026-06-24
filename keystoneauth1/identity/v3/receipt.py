@@ -10,7 +10,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import typing as ty
+from collections.abc import Mapping
 
 from keystoneauth1.identity.v3 import base
 from keystoneauth1 import session as ks_session
@@ -36,7 +36,7 @@ class ReceiptMethod(base.AuthMethod):
         auth: base.Auth,
         headers: dict[str, str],
         request_kwargs: dict[str, object],
-    ) -> tuple[None, None] | tuple[str, ty.Mapping[str, object]]:
+    ) -> tuple[None, None] | tuple[str, Mapping[str, object]]:
         """Add the auth receipt to the headers.
 
         We explicitly return None to avoid being added to the request

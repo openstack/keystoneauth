@@ -10,7 +10,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import typing as ty
+from collections.abc import Mapping
+from typing import Any, cast, TypeVar
 
 try:
     # explicitly re-export symbol
@@ -33,13 +34,13 @@ class _Saml2TokenAuthMethod(v3.AuthMethod):
         auth: v3.Auth,
         headers: dict[str, str],
         request_kwargs: dict[str, object],
-    ) -> tuple[None, None] | tuple[str, ty.Mapping[str, object]]:
+    ) -> tuple[None, None] | tuple[str, Mapping[str, object]]:
         raise exceptions.HttpNotImplemented(
             'This method should never be called'
         )
 
 
-_T = ty.TypeVar('_T')
+_T = TypeVar('_T')
 
 
 class BaseSAMLPlugin(v3.FederationBaseAuth):
@@ -137,5 +138,5 @@ class BaseSAMLPlugin(v3.FederationBaseAuth):
             raise exceptions.AuthorizationFailure(msg)
 
     @staticmethod
-    def xml_to_str(content: etree._Element, **kwargs: ty.Any) -> bytes:
-        return ty.cast(bytes, etree.tostring(content, **kwargs))
+    def xml_to_str(content: etree._Element, **kwargs: Any) -> bytes:
+        return cast(bytes, etree.tostring(content, **kwargs))

@@ -12,9 +12,9 @@
 
 import itertools
 import os
-import typing as ty
+from typing import Any, TYPE_CHECKING
 
-if ty.TYPE_CHECKING:
+if TYPE_CHECKING:
     from oslo_config import cfg
 
 __all__ = ('Opt',)
@@ -64,12 +64,12 @@ class Opt:
     def __init__(
         self,
         name: str,
-        type: type[ty.Any] = str,
+        type: type[Any] = str,
         help: str | None = None,
         secret: bool = False,
         dest: str | None = None,
         deprecated: list['Opt'] | None = None,
-        default: ty.Any = None,
+        default: Any = None,
         metavar: str | None = None,
         required: bool = False,
         prompt: str | None = None,
@@ -116,7 +116,7 @@ class Opt:
             metavar=self.metavar,
         )
 
-    def __eq__(self, other: ty.Any) -> bool:
+    def __eq__(self, other: Any) -> bool:
         """Define equality operator on option parameters."""
         return (
             type(self) is type(other)
@@ -147,7 +147,7 @@ class Opt:
         ]
 
     @property
-    def argparse_default(self) -> ty.Any:
+    def argparse_default(self) -> Any:
         # select the first ENV that is not false-y or return None
         for envvar in self.argparse_envvars:
             v = os.environ.get(envvar)

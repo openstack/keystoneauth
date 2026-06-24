@@ -11,11 +11,17 @@
 # under the License.
 
 import abc
+from collections.abc import Mapping
 import json
-import typing as ty
+from typing import (
+    Any,
+    ClassVar,
+    NotRequired,
+    Protocol,
+    runtime_checkable,
+    TypedDict,
+)
 import warnings
-
-import typing_extensions as ty_ext
 
 from keystoneauth1 import _utils as utils
 from keystoneauth1 import access
@@ -93,12 +99,12 @@ class BaseAuth(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
         )
 
 
-class _AuthIdentity(ty.TypedDict):
-    identity: dict[str, ty.Any]
-    scope: ty_ext.NotRequired[dict[str, ty.Any] | str]
+class _AuthIdentity(TypedDict):
+    identity: dict[str, Any]
+    scope: NotRequired[dict[str, Any] | str]
 
 
-class _AuthBody(ty.TypedDict):
+class _AuthBody(TypedDict):
     auth: _AuthIdentity
 
 
@@ -165,7 +171,7 @@ class Auth(BaseAuth):
         body: _AuthBody = {'auth': {'identity': {}}}
         ident = body['auth']['identity']
         # this is passed around for its side-effects
-        rkwargs: dict[str, ty.Any] = {}
+        rkwargs: dict[str, Any] = {}
 
         for method in self.auth_methods:
             name, auth_data = method.get_auth_data(
@@ -328,7 +334,7 @@ class AuthMethod(metaclass=abc.ABCMeta):
         auth: Auth,
         headers: dict[str, str],
         request_kwargs: dict[str, object],
-    ) -> tuple[None, None] | tuple[str, ty.Mapping[str, object]]:
+    ) -> tuple[None, None] | tuple[str, Mapping[str, object]]:
         """Return the authentication section of an auth plugin.
 
         :param session: The communication session.
@@ -359,9 +365,9 @@ class AuthMethod(metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
 
-@ty.runtime_checkable
-class SupportsMultiFactor(ty.Protocol):
-    _auth_method_class: ty.ClassVar[type[AuthMethod]]
+@runtime_checkable
+class SupportsMultiFactor(Protocol):
+    _auth_method_class: ClassVar[type[AuthMethod]]
 
 
 class AuthConstructor(Auth, metaclass=abc.ABCMeta):
@@ -375,12 +381,12 @@ class AuthConstructor(Auth, metaclass=abc.ABCMeta):
     creates the auth plugin with only that authentication method.
     """
 
-    _auth_method_class: ty.ClassVar[type[AuthMethod]]
+    _auth_method_class: ClassVar[type[AuthMethod]]
 
     def __init__(
         self,
         auth_url: str,
-        *args: ty.Any,
+        *args: Any,
         unscoped: bool = False,
         trust_id: str | None = None,
         system_scope: str | None = None,
@@ -392,7 +398,7 @@ class AuthConstructor(Auth, metaclass=abc.ABCMeta):
         project_domain_name: str | None = None,
         reauthenticate: bool = True,
         include_catalog: bool = True,
-        **kwargs: ty.Any,
+        **kwargs: Any,
     ):
         warnings.warn(
             f"'{AuthConstructor.__qualname__}' is deprecated and will be "

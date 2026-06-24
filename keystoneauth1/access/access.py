@@ -15,7 +15,7 @@
 # limitations under the License.
 
 import datetime
-import typing as ty
+from typing import Any
 
 import requests
 
@@ -58,9 +58,9 @@ class AccessInfo:
     """
 
     _service_catalog_class: type[service_catalog_mod.ServiceCatalog]
-    _data: ty.Any
+    _data: Any
 
-    def __init__(self, body: dict[str, ty.Any], auth_token: str | None = None):
+    def __init__(self, body: dict[str, Any], auth_token: str | None = None):
         self._data = body
         self._auth_token = auth_token
         self._service_catalog: service_catalog_mod.ServiceCatalog | None = None
@@ -389,7 +389,7 @@ class AccessInfo:
         raise NotImplementedError()
 
     @property
-    def bind(self) -> dict[str, ty.Any] | None:
+    def bind(self) -> dict[str, Any] | None:
         """Information about external mechanisms the token is bound to.
 
         If a token is bound to an external authentication mechanism it can only
@@ -585,7 +585,7 @@ class AccessInfoV2(AccessInfo):
         return None
 
     @property
-    def bind(self) -> dict[str, ty.Any] | None:
+    def bind(self) -> dict[str, Any] | None:
         return self._token.get('bind')
 
 
@@ -788,7 +788,7 @@ class AccessInfoV3(AccessInfo):
         return self._service_providers
 
     @property
-    def bind(self) -> dict[str, ty.Any] | None:
+    def bind(self) -> dict[str, Any] | None:
         return self._token.get('bind')
 
     # TODO(stephenfin): Should this be private like every other high-level

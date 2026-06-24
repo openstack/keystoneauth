@@ -10,7 +10,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import typing as ty
+from collections.abc import Mapping
+from typing import Any
 
 from keystoneauth1.identity.v3 import base
 from keystoneauth1 import session as ks_session
@@ -55,8 +56,8 @@ class PasswordMethod(base.AuthMethod):
         auth: base.Auth,
         headers: dict[str, str],
         request_kwargs: dict[str, object],
-    ) -> tuple[None, None] | tuple[str, ty.Mapping[str, object]]:
-        user: dict[str, ty.Any] = {'password': self.password}
+    ) -> tuple[None, None] | tuple[str, Mapping[str, object]]:
+        user: dict[str, Any] = {'password': self.password}
 
         if self.user_id:
             user['id'] = self.user_id

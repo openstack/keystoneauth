@@ -12,12 +12,12 @@
 
 import argparse
 import os
-import typing as ty
+from typing import Any, TYPE_CHECKING
 
 from keystoneauth1.loading import base
 from keystoneauth1 import session
 
-if ty.TYPE_CHECKING:
+if TYPE_CHECKING:
     from oslo_config import cfg
 
     from keystoneauth1.loading import opts
@@ -61,7 +61,7 @@ class Session(base._BaseLoader[session.Session]):
         cacert: str | None = None,
         cert: str | None = None,
         key: str | None = None,
-        **kwargs: ty.Any,
+        **kwargs: Any,
     ) -> session.Session:
         """Create a session with individual certificate parameters.
 
@@ -170,7 +170,7 @@ class Session(base._BaseLoader[session.Session]):
         )
 
     def load_from_argparse_arguments(
-        self, namespace: argparse.Namespace, **kwargs: ty.Any
+        self, namespace: argparse.Namespace, **kwargs: Any
     ) -> session.Session:
         kwargs.setdefault('insecure', namespace.insecure)
         kwargs.setdefault('cacert', namespace.os_cacert)
@@ -339,7 +339,7 @@ class Session(base._BaseLoader[session.Session]):
         self,
         conf: 'cfg.ConfigOpts',
         group: 'str | cfg.OptGroup',
-        **kwargs: ty.Any,
+        **kwargs: Any,
     ) -> session.Session:
         """Create a session object from an oslo_config object.
 
@@ -375,7 +375,7 @@ def register_argparse_arguments(parser: argparse.ArgumentParser) -> None:
 
 
 def load_from_argparse_arguments(
-    namespace: argparse.Namespace, **kwargs: ty.Any
+    namespace: argparse.Namespace, **kwargs: Any
 ) -> session.Session:
     return Session().load_from_argparse_arguments(namespace, **kwargs)
 
@@ -391,7 +391,7 @@ def register_conf_options(
 
 
 def load_from_conf_options(
-    conf: 'cfg.ConfigOpts', group: 'str | cfg.OptGroup', **kwargs: ty.Any
+    conf: 'cfg.ConfigOpts', group: 'str | cfg.OptGroup', **kwargs: Any
 ) -> session.Session:
     return Session().load_from_conf_options(conf, group, **kwargs)
 

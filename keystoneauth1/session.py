@@ -11,6 +11,8 @@
 # under the License.
 
 import collections
+from collections.abc import MutableMapping
+from contextlib import AbstractContextManager
 import datetime
 import functools
 import hashlib
@@ -23,7 +25,7 @@ import ssl
 import sys
 import time
 import types
-import typing as ty
+from typing import Any, cast, Literal, Optional, TYPE_CHECKING
 import urllib
 import uuid
 
@@ -34,6 +36,11 @@ from keystoneauth1 import _utils as utils
 from keystoneauth1 import discover
 from keystoneauth1 import exceptions
 
+if TYPE_CHECKING:
+    import requests.auth
+
+    from keystoneauth1 import plugin
+
 try:
     import netaddr
 except ImportError:
@@ -43,10 +50,6 @@ try:
     import osprofiler.web as osprofiler_web  # type: ignore[import-not-found]
 except ImportError:
     osprofiler_web = None
-
-if ty.TYPE_CHECKING:
-    from keystoneauth1 import plugin
-    import requests.auth
 
 DEFAULT_USER_AGENT = (
     f'keystoneauth1/{keystoneauth1.__version__} '
@@ -68,7 +71,7 @@ _RETRIABLE_STATUS_CODES = [429, 503]
 _REQUEST_ID_HEADER = 'X-Openstack-Request-Id'
 
 
-TLSVersionT = ty.Literal['1.2', '1.3']
+TLSVersionT = Literal['1.2', '1.3']
 
 _TLS_VERSION_MAP: dict[TLSVersionT, ssl.TLSVersion] = {
     '1.2': ssl.TLSVersion.TLSv1_2,
@@ -112,7 +115,7 @@ def _mv_legacy_headers_for_service(mv_service_type: str) -> list[str]:
     return headers
 
 
-def _sanitize_headers(headers: dict[str | bytes, ty.Any]) -> dict[str, ty.Any]:
+def _sanitize_headers(headers: dict[str | bytes, Any]) -> dict[str, Any]:
     """Ensure headers are strings and not bytes."""
     str_dict = {}
     for k, v in headers.items():
@@ -143,7 +146,7 @@ class NoOpSemaphore:
 
 
 class _JSONEncoder(json.JSONEncoder):
-    def default(self, o: object) -> ty.Any:
+    def default(self, o: object) -> Any:
         if isinstance(o, datetime.datetime):
             return o.isoformat()
         if isinstance(o, uuid.UUID):
@@ -158,12 +161,12 @@ class _StringFormatter:
     """A String formatter that fetches values on demand."""
 
     def __init__(
-        self, session: 'Session', auth: ty.Optional['plugin.BaseAuthPlugin']
+        self, session: 'Session', auth: Optional['plugin.BaseAuthPlugin']
     ):
         self.session = session
         self.auth = auth
 
-    def __getitem__(self, item: str) -> ty.Any:
+    def __getitem__(self, item: str) -> Any:
         if item == 'project_id':
             value = self.session.get_project_id(self.auth)
         elif item == 'user_id':
@@ -388,7 +391,7 @@ class Session:
 
     def __init__(
         self,
-        auth: ty.Optional['plugin.BaseAuthPlugin'] = None,
+        auth: Optional['plugin.BaseAuthPlugin'] = None,
         session: requests.Session | None = None,
         original_ip: str | None = None,
         verify: bool | str | None = True,
@@ -396,15 +399,14 @@ class Session:
         timeout: float | int | None = None,
         user_agent: str | None = None,
         redirect: int | bool = _DEFAULT_REDIRECT_LIMIT,
-        additional_headers: collections.abc.MutableMapping[str, str]
-        | None = None,
+        additional_headers: MutableMapping[str, str] | None = None,
         app_name: str | None = None,
         app_version: str | None = None,
         additional_user_agent: list[tuple[str, str]] | None = None,
-        discovery_cache: dict[str, ty.Any] | None = None,
+        discovery_cache: dict[str, Any] | None = None,
         split_loggers: bool | None = None,
         collect_timing: bool = False,
-        rate_semaphore: ty.ContextManager[None] | None = None,
+        rate_semaphore: AbstractContextManager[None] | None = None,
         connect_retries: int = 0,
         tls_ciphers: str | None = None,
         tls_min_version: TLSVersionT | None = None,
@@ -498,7 +500,7 @@ class Session:
     #
     #     collections.OrderedDict[str, requests.adapters.BaseAdapter]
     @property
-    def adapters(self) -> ty.MutableMapping[ty.Any, ty.Any]:
+    def adapters(self) -> MutableMapping[Any, Any]:
         return self.session.adapters
 
     @adapters.setter
@@ -571,8 +573,8 @@ class Session:
         method: str | None = None,
         data: str | bytes | None = None,
         json: object = None,
-        headers: collections.abc.MutableMapping[str, str] | None = None,
-        query_params: dict[str, ty.Any] | None = None,
+        headers: MutableMapping[str, str] | None = None,
+        query_params: dict[str, Any] | None = None,
         logger: logging.Logger | None = None,
         split_loggers: bool | None = None,
     ) -> None:
@@ -639,7 +641,7 @@ class Session:
         response: requests.Response | None = None,
         json: object = None,
         status_code: int | None = None,
-        headers: collections.abc.MutableMapping[str, str] | None = None,
+        headers: MutableMapping[str, str] | None = None,
         text: str | None = None,
         *,
         logger: logging.Logger,
@@ -712,10 +714,10 @@ class Session:
 
     @staticmethod
     def _set_microversion_headers(
-        headers: collections.abc.MutableMapping[str, str],
+        headers: MutableMapping[str, str],
         microversion: str,
         service_type: str | None,
-        endpoint_filter: dict[str, ty.Any] | None,
+        endpoint_filter: dict[str, Any] | None,
     ) -> None:
         # We're converting it to normalized version number for two reasons.
         # First, to validate it's a real version number. Second, so that in
@@ -747,7 +749,7 @@ class Session:
                     " microversion_service_type as an argument."
                 )
 
-        service_type = ty.cast(str, service_type)  # narrow the type
+        service_type = cast(str, service_type)  # narrow the type
 
         # TODO(mordred) cinder uses volume in its microversion header. This
         # logic should be handled in the future by os-service-types but for
@@ -781,27 +783,27 @@ class Session:
         user_agent: str | None = None,
         redirect: int | bool | None = None,
         authenticated: bool | None = None,
-        endpoint_filter: dict[str, ty.Any] | None = None,
-        auth: ty.Optional['plugin.BaseAuthPlugin'] = None,
-        requests_auth: ty.Optional['requests.auth.AuthBase'] = None,
+        endpoint_filter: dict[str, Any] | None = None,
+        auth: Optional['plugin.BaseAuthPlugin'] = None,
+        requests_auth: Optional['requests.auth.AuthBase'] = None,
         raise_exc: bool = True,
         allow_reauth: bool = True,
         log: bool = True,
         endpoint_override: str | None = None,
         connect_retries: int | None = None,
         logger: logging.Logger | None = None,
-        allow: dict[str, ty.Any] | None = None,
+        allow: dict[str, Any] | None = None,
         client_name: str | None = None,
         client_version: str | None = None,
         microversion: str | None = None,
         microversion_service_type: str | None = None,
         status_code_retries: int = 0,
         retriable_status_codes: list[int] | None = None,
-        rate_semaphore: ty.ContextManager[None] | None = None,
+        rate_semaphore: AbstractContextManager[None] | None = None,
         global_request_id: str | None = None,
         connect_retry_delay: float | None = None,
         status_code_retry_delay: float | None = None,
-        **kwargs: ty.Any,
+        **kwargs: Any,
     ) -> requests.Response:
         """Send an HTTP request with the specified characteristics.
 
@@ -1202,10 +1204,10 @@ class Session:
         connect_retries: int,
         status_code_retries: int,
         retriable_status_codes: list[int],
-        rate_semaphore: ty.ContextManager[None],
+        rate_semaphore: AbstractContextManager[None],
         connect_retry_delays: _Retries,
         status_code_retry_delays: _Retries,
-        **kwargs: ty.Any,
+        **kwargs: Any,
     ) -> requests.Response:
         # NOTE(jamielennox): We handle redirection manually because the
         # requests lib follows some browser patterns where it will redirect
@@ -1374,42 +1376,42 @@ class Session:
 
         return resp
 
-    def get(self, url: str, **kwargs: ty.Any) -> requests.Response:
+    def get(self, url: str, **kwargs: Any) -> requests.Response:
         """Perform a GET request.
 
         This calls :py:meth:`.request()` with ``method`` set to ``GET``.
         """
         return self.request(url, 'GET', **kwargs)
 
-    def head(self, url: str, **kwargs: ty.Any) -> requests.Response:
+    def head(self, url: str, **kwargs: Any) -> requests.Response:
         """Perform a HEAD request.
 
         This calls :py:meth:`.request()` with ``method`` set to ``HEAD``.
         """
         return self.request(url, 'HEAD', **kwargs)
 
-    def post(self, url: str, **kwargs: ty.Any) -> requests.Response:
+    def post(self, url: str, **kwargs: Any) -> requests.Response:
         """Perform a POST request.
 
         This calls :py:meth:`.request()` with ``method`` set to ``POST``.
         """
         return self.request(url, 'POST', **kwargs)
 
-    def put(self, url: str, **kwargs: ty.Any) -> requests.Response:
+    def put(self, url: str, **kwargs: Any) -> requests.Response:
         """Perform a PUT request.
 
         This calls :py:meth:`.request()` with ``method`` set to ``PUT``.
         """
         return self.request(url, 'PUT', **kwargs)
 
-    def patch(self, url: str, **kwargs: ty.Any) -> requests.Response:
+    def patch(self, url: str, **kwargs: Any) -> requests.Response:
         """Perform a PATCH request.
 
         This calls :py:meth:`.request()` with ``method`` set to ``PATCH``.
         """
         return self.request(url, 'PATCH', **kwargs)
 
-    def delete(self, url: str, **kwargs: ty.Any) -> requests.Response:
+    def delete(self, url: str, **kwargs: Any) -> requests.Response:
         """Perform a DELETE request.
 
         This calls :py:meth:`.request()` with ``method`` set to ``DELETE``.
@@ -1417,7 +1419,7 @@ class Session:
         return self.request(url, 'DELETE', **kwargs)
 
     def _auth_required(
-        self, auth: ty.Optional['plugin.BaseAuthPlugin'], msg: str
+        self, auth: Optional['plugin.BaseAuthPlugin'], msg: str
     ) -> 'plugin.BaseAuthPlugin':
         if not auth:
             auth = self.auth
@@ -1429,7 +1431,7 @@ class Session:
         return auth
 
     def get_auth_headers(
-        self, auth: ty.Optional['plugin.BaseAuthPlugin'] = None
+        self, auth: Optional['plugin.BaseAuthPlugin'] = None
     ) -> dict[str, str] | None:
         """Return auth headers as provided by the auth plugin.
 
@@ -1449,7 +1451,7 @@ class Session:
         return auth.get_headers(self)
 
     def get_token(
-        self, auth: ty.Optional['plugin.BaseAuthPlugin'] = None
+        self, auth: Optional['plugin.BaseAuthPlugin'] = None
     ) -> str | None:
         """Return a token as provided by the auth plugin.
 
@@ -1474,10 +1476,10 @@ class Session:
 
     def get_endpoint(
         self,
-        auth: ty.Optional['plugin.BaseAuthPlugin'] = None,
+        auth: Optional['plugin.BaseAuthPlugin'] = None,
         *,
         endpoint_override: str | None = None,
-        **kwargs: ty.Any,
+        **kwargs: Any,
     ) -> str | None:
         """Get an endpoint as provided by the auth plugin.
 
@@ -1499,9 +1501,7 @@ class Session:
         return auth.get_endpoint(self, **kwargs)
 
     def get_endpoint_data(
-        self,
-        auth: ty.Optional['plugin.BaseAuthPlugin'] = None,
-        **kwargs: ty.Any,
+        self, auth: Optional['plugin.BaseAuthPlugin'] = None, **kwargs: Any
     ) -> discover.EndpointData | None:
         """Get endpoint data as provided by the auth plugin.
 
@@ -1520,9 +1520,7 @@ class Session:
         return auth.get_endpoint_data(self, **kwargs)
 
     def get_api_major_version(
-        self,
-        auth: ty.Optional['plugin.BaseAuthPlugin'] = None,
-        **kwargs: ty.Any,
+        self, auth: Optional['plugin.BaseAuthPlugin'] = None, **kwargs: Any
     ) -> tuple[int | float, ...] | None:
         """Get the major API version as provided by the auth plugin.
 
@@ -1541,7 +1539,7 @@ class Session:
 
     def get_all_version_data(
         self,
-        auth: ty.Optional['plugin.BaseAuthPlugin'] = None,
+        auth: Optional['plugin.BaseAuthPlugin'] = None,
         interface: str | list[str] | None = 'public',
         region_name: str | None = None,
         service_type: str | None = None,
@@ -1576,7 +1574,7 @@ class Session:
         )
 
     def get_auth_connection_params(
-        self, auth: ty.Optional['plugin.BaseAuthPlugin'] = None
+        self, auth: Optional['plugin.BaseAuthPlugin'] = None
     ) -> 'plugin.ConnectionParams':
         """Return auth connection params as provided by the auth plugin.
 
@@ -1628,7 +1626,7 @@ class Session:
         return params
 
     def invalidate(
-        self, auth: ty.Optional['plugin.BaseAuthPlugin'] = None
+        self, auth: Optional['plugin.BaseAuthPlugin'] = None
     ) -> bool:
         """Invalidate an authentication plugin.
 
@@ -1640,7 +1638,7 @@ class Session:
         return auth.invalidate()
 
     def get_user_id(
-        self, auth: ty.Optional['plugin.BaseAuthPlugin'] = None
+        self, auth: Optional['plugin.BaseAuthPlugin'] = None
     ) -> str | None:
         """Return the authenticated user_id as provided by the auth plugin.
 
@@ -1660,7 +1658,7 @@ class Session:
         return auth.get_user_id(self)
 
     def get_project_id(
-        self, auth: ty.Optional['plugin.BaseAuthPlugin'] = None
+        self, auth: Optional['plugin.BaseAuthPlugin'] = None
     ) -> str | None:
         """Return the authenticated project_id as provided by the auth plugin.
 
@@ -1709,16 +1707,16 @@ class TCPKeepAliveAdapter(requests.adapters.HTTPAdapter):
 
     def __init__(
         self,
-        *args: ty.Any,
+        *args: Any,
         tls_ciphers: str | None = None,
         tls_min_version: TLSVersionT | None = None,
-        **kwargs: ty.Any,
+        **kwargs: Any,
     ):
         self.tls_ciphers = tls_ciphers
         self.tls_min_version = tls_min_version
         super().__init__(*args, **kwargs)
 
-    def init_poolmanager(self, *args: ty.Any, **kwargs: ty.Any) -> None:
+    def init_poolmanager(self, *args: Any, **kwargs: Any) -> None:
         if 'socket_options' not in kwargs:
             socket_options = [
                 # Keep Nagle's algorithm off

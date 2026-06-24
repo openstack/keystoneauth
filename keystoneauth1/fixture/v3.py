@@ -11,39 +11,37 @@
 # under the License.
 
 import datetime
-import typing as ty
+from typing import Any, NotRequired, TypedDict
 import uuid
-
-import typing_extensions as ty_ext
 
 from keystoneauth1 import _utils
 from keystoneauth1.fixture import exception
 
 
-class V3Domain(ty.TypedDict, total=False):
+class V3Domain(TypedDict, total=False):
     id: str
     name: str
 
 
-class V3Project(ty.TypedDict, total=False):
+class V3Project(TypedDict, total=False):
     id: str
     name: str
     domain: V3Domain
     is_domain: bool
 
 
-class V3User(ty.TypedDict):
+class V3User(TypedDict):
     id: str
     name: str
     domain: V3Domain
 
 
-class V3Role(ty.TypedDict):
+class V3Role(TypedDict):
     id: str
     name: str
 
 
-class V3Endpoint(ty.TypedDict):
+class V3Endpoint(TypedDict):
     id: str
     interface: str
     url: str
@@ -51,41 +49,41 @@ class V3Endpoint(ty.TypedDict):
     region_id: str | None
 
 
-class V3Service(ty.TypedDict):
+class V3Service(TypedDict):
     id: str
     type: str
-    name: ty_ext.NotRequired[str]
-    endpoints: ty_ext.NotRequired[list[V3Endpoint]]
+    name: NotRequired[str]
+    endpoints: NotRequired[list[V3Endpoint]]
 
 
-class V3System(ty.TypedDict):
+class V3System(TypedDict):
     all: bool
 
 
-class V3Trust(ty.TypedDict, total=False):
+class V3Trust(TypedDict, total=False):
     id: str
     impersonation: bool
     trustee_user_id: str
     trustor_user_id: str
 
 
-class V3ApplicationCredential(ty.TypedDict, total=False):
+class V3ApplicationCredential(TypedDict, total=False):
     id: str
-    access_rules: list[dict[str, ty.Any]]
+    access_rules: list[dict[str, Any]]
 
 
-class V3OAuth(ty.TypedDict, total=False):
+class V3OAuth(TypedDict, total=False):
     access_token_id: str
     consumer_id: str
 
 
-class V3ServiceProvider(ty.TypedDict):
+class V3ServiceProvider(TypedDict):
     id: str
     auth_url: str
     sp_url: str
 
 
-class V3TokenData(ty.TypedDict, total=False):
+class V3TokenData(TypedDict, total=False):
     expires_at: str
     issued_at: str
     methods: list[str]
@@ -95,28 +93,28 @@ class V3TokenData(ty.TypedDict, total=False):
     system: V3System
     roles: list[V3Role]
     catalog: list[V3Service]
-    bind: dict[str, ty.Any]
+    bind: dict[str, Any]
     audit_ids: list[str]
     service_providers: list[V3ServiceProvider]
     is_admin_project: bool
     is_domain: bool
     oauth2_thumbprint: str
-    oauth2_credential: dict[str, ty.Any]
-    application_credential: dict[str, ty.Any]
+    oauth2_credential: dict[str, Any]
+    application_credential: dict[str, Any]
 
 
 class V3TokenDataWithNamespaces(V3TokenData, total=False):
     pass
 
 
-V3TokenDict = dict[str, ty.Any]
+V3TokenDict = dict[str, Any]
 
 
-class V3TokenRoot(ty.TypedDict):
+class V3TokenRoot(TypedDict):
     token: V3TokenData
 
 
-class _Service(dict[str, ty.Any]):
+class _Service(dict[str, Any]):
     """One of the services that exist in the catalog.
 
     You use this by adding a service to a token which returns an instance of
@@ -160,7 +158,7 @@ class _Service(dict[str, ty.Any]):
         return ret
 
 
-class Token(dict[str, ty.Any]):
+class Token(dict[str, Any]):
     """A V3 Keystone token that can be used for testing.
 
     This object is designed to allow clients to generate a correct V3 token for
@@ -189,7 +187,7 @@ class Token(dict[str, ty.Any]):
         trustee_user_id: str | None = None,
         trustor_user_id: str | None = None,
         application_credential_id: str | None = None,
-        application_credential_access_rules: list[dict[str, ty.Any]]
+        application_credential_access_rules: list[dict[str, Any]]
         | None = None,
         oauth_access_token_id: str | None = None,
         oauth_consumer_id: str | None = None,
@@ -284,7 +282,7 @@ class Token(dict[str, ty.Any]):
             self.oauth2_thumbprint = oauth2_thumbprint
 
     @property
-    def root(self) -> dict[str, ty.Any]:
+    def root(self) -> dict[str, Any]:
         if 'token' not in self:
             self['token'] = {
                 'methods': [],
@@ -294,7 +292,7 @@ class Token(dict[str, ty.Any]):
                     'domain': {'id': '', 'name': ''},
                 },
             }
-        root: dict[str, ty.Any] = self['token']
+        root: dict[str, Any] = self['token']
         return root
 
     @property
@@ -332,8 +330,8 @@ class Token(dict[str, ty.Any]):
         self.issued_str = value.isoformat()
 
     @property
-    def _user(self) -> dict[str, ty.Any]:
-        user: dict[str, ty.Any] = self.root['user']
+    def _user(self) -> dict[str, Any]:
+        user: dict[str, Any] = self.root['user']
         return user
 
     @property
@@ -353,12 +351,12 @@ class Token(dict[str, ty.Any]):
         self._user['name'] = value
 
     @property
-    def _user_domain(self) -> dict[str, ty.Any]:
-        domain: dict[str, ty.Any] = self._user['domain']
+    def _user_domain(self) -> dict[str, Any]:
+        domain: dict[str, Any] = self._user['domain']
         return domain
 
     @_user_domain.setter
-    def _user_domain(self, domain: dict[str, ty.Any]) -> None:
+    def _user_domain(self, domain: dict[str, Any]) -> None:
         self._user['domain'] = domain
 
     @property
@@ -449,17 +447,17 @@ class Token(dict[str, ty.Any]):
         self.root.setdefault('domain', {})['name'] = value
 
     @property
-    def system(self) -> dict[str, ty.Any]:
-        system: dict[str, ty.Any] = self.root.get('system', {})
+    def system(self) -> dict[str, Any]:
+        system: dict[str, Any] = self.root.get('system', {})
         return system
 
     @system.setter
-    def system(self, value: dict[str, ty.Any]) -> None:
+    def system(self, value: dict[str, Any]) -> None:
         self.root['system'] = value
 
     @property
     def trust_id(self) -> str | None:
-        trust: dict[str, ty.Any] = self.root.get('OS-TRUST:trust', {})
+        trust: dict[str, Any] = self.root.get('OS-TRUST:trust', {})
         result: str | None = trust.get('id')
         return result
 
@@ -469,7 +467,7 @@ class Token(dict[str, ty.Any]):
 
     @property
     def trust_impersonation(self) -> bool | None:
-        trust: dict[str, ty.Any] = self.root.get('OS-TRUST:trust', {})
+        trust: dict[str, Any] = self.root.get('OS-TRUST:trust', {})
         result: bool | None = trust.get('impersonation')
         return result
 
@@ -479,7 +477,7 @@ class Token(dict[str, ty.Any]):
 
     @property
     def trustee_user_id(self) -> str | None:
-        trust: dict[str, ty.Any] = self.root.get('OS-TRUST:trust', {})
+        trust: dict[str, Any] = self.root.get('OS-TRUST:trust', {})
         trustee_user: dict[str, str | None] = trust.get('trustee_user', {})
         return trustee_user.get('id')
 
@@ -490,7 +488,7 @@ class Token(dict[str, ty.Any]):
 
     @property
     def trustor_user_id(self) -> str | None:
-        trust: dict[str, ty.Any] = self.root.get('OS-TRUST:trust', {})
+        trust: dict[str, Any] = self.root.get('OS-TRUST:trust', {})
         trustor_user: dict[str, str | None] = trust.get('trustor_user', {})
         return trustor_user.get('id')
 
@@ -501,7 +499,7 @@ class Token(dict[str, ty.Any]):
 
     @property
     def application_credential_id(self) -> str | None:
-        ac: dict[str, ty.Any] = self.root.get('application_credential', {})
+        ac: dict[str, Any] = self.root.get('application_credential', {})
         result: str | None = ac.get('id')
         return result
 
@@ -515,14 +513,14 @@ class Token(dict[str, ty.Any]):
     @property
     def application_credential_access_rules(
         self,
-    ) -> list[dict[str, ty.Any]] | None:
-        ac: dict[str, ty.Any] = self.root.get('application_credential', {})
-        result: list[dict[str, ty.Any]] | None = ac.get('access_rules')
+    ) -> list[dict[str, Any]] | None:
+        ac: dict[str, Any] = self.root.get('application_credential', {})
+        result: list[dict[str, Any]] | None = ac.get('access_rules')
         return result
 
     @application_credential_access_rules.setter
     def application_credential_access_rules(
-        self, value: list[dict[str, ty.Any]]
+        self, value: list[dict[str, Any]]
     ) -> None:
         application_credential = self.root.setdefault(
             'application_credential', {}
@@ -531,7 +529,7 @@ class Token(dict[str, ty.Any]):
 
     @property
     def oauth_access_token_id(self) -> str | None:
-        oauth: dict[str, ty.Any] = self.root.get('OS-OAUTH1', {})
+        oauth: dict[str, Any] = self.root.get('OS-OAUTH1', {})
         result: str | None = oauth.get('access_token_id')
         return result
 
@@ -541,7 +539,7 @@ class Token(dict[str, ty.Any]):
 
     @property
     def oauth_consumer_id(self) -> str | None:
-        oauth: dict[str, ty.Any] = self.root.get('OS-OAUTH1', {})
+        oauth: dict[str, Any] = self.root.get('OS-OAUTH1', {})
         result: str | None = oauth.get('consumer_id')
         return result
 
@@ -600,7 +598,7 @@ class Token(dict[str, ty.Any]):
 
     @property
     def oauth2_thumbprint(self) -> str | None:
-        oauth2_cred: dict[str, ty.Any] = self.root.get('oauth2_credential', {})
+        oauth2_cred: dict[str, Any] = self.root.get('oauth2_credential', {})
         result: str | None = oauth2_cred.get('x5t#S256')
         return result
 
@@ -609,7 +607,7 @@ class Token(dict[str, ty.Any]):
         self.root.setdefault('oauth2_credential', {})['x5t#S256'] = value
 
     @property
-    def oauth2_credential(self) -> dict[str, ty.Any] | None:
+    def oauth2_credential(self) -> dict[str, Any] | None:
         return self.root.get('oauth2_credential')
 
     def validate(self) -> None:
@@ -716,7 +714,7 @@ class Token(dict[str, ty.Any]):
     def set_application_credential(
         self,
         application_credential_id: str,
-        access_rules: list[dict[str, ty.Any]] | None = None,
+        access_rules: list[dict[str, Any]] | None = None,
     ) -> None:
         self.application_credential_id = application_credential_id
         if access_rules is not None:
@@ -736,7 +734,7 @@ class Token(dict[str, ty.Any]):
         _service_providers.append(sp)
         return sp
 
-    def set_bind(self, name: str, data: ty.Any) -> None:
+    def set_bind(self, name: str, data: Any) -> None:
         self.root.setdefault('bind', {})[name] = data
 
 

@@ -12,9 +12,9 @@
 
 """A fixture to wrap the session constructor for use with Betamax."""
 
-import collections.abc
+from collections.abc import Callable
 from functools import partial
-import typing as ty
+from typing import TypeAlias
 from unittest import mock
 
 import betamax
@@ -28,7 +28,7 @@ from keystoneauth1.fixture import serializer as yaml_serializer
 from keystoneauth1 import session
 
 
-PreRecordHookT: ty.TypeAlias = collections.abc.Callable[
+PreRecordHookT: TypeAlias = Callable[
     [cassette.Interaction, cassette.Cassette], None
 ]
 

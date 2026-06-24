@@ -14,7 +14,7 @@
 
 import json
 import os
-import typing as ty
+from typing import Any
 
 from betamax import cassette
 from betamax import serializers
@@ -78,7 +78,7 @@ class YamlJsonSerializer(serializers.BaseSerializer):  # type: ignore
     ) -> str:
         return os.path.join(cassette_library_dir, f"{cassette_name}.yaml")
 
-    def serialize(self, cassette_data: dict[str, ty.Any]) -> str:
+    def serialize(self, cassette_data: dict[str, Any]) -> str:
         # Reserialize internal json with indentation
         for interaction in cassette_data['http_interactions']:
             for key in ('request', 'response'):
@@ -98,7 +98,7 @@ class YamlJsonSerializer(serializers.BaseSerializer):  # type: ignore
             cassette_data, Dumper=MyDumper, default_flow_style=False
         )
 
-    def deserialize(self, cassette_data: str) -> ty.Any:
+    def deserialize(self, cassette_data: str) -> Any:
         try:
             deserialized = yaml.safe_load(cassette_data)
         except yaml.error.YAMLError:

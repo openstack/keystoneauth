@@ -10,7 +10,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import typing as ty
+from typing import Any
 
 from keystoneauth1 import exceptions
 from keystoneauth1.extras import kerberos
@@ -43,7 +43,7 @@ class Kerberos(loading.BaseV3Loader[kerberos.Kerberos]):
 
         return options
 
-    def load_from_options(self, **kwargs: ty.Any) -> kerberos.Kerberos:
+    def load_from_options(self, **kwargs: Any) -> kerberos.Kerberos:
         if kwargs.get('mutual_auth'):
             value = kwargs['mutual_auth']
             if value.lower() not in ['required', 'optional', 'disabled']:
@@ -82,7 +82,7 @@ class MappedKerberos(loading.BaseFederationLoader[kerberos.MappedKerberos]):
 
         return options
 
-    def load_from_options(self, **kwargs: ty.Any) -> kerberos.MappedKerberos:
+    def load_from_options(self, **kwargs: Any) -> kerberos.MappedKerberos:
         if kwargs.get('mutual_auth'):
             value = kwargs['mutual_auth']
             if value.lower() not in ['required', 'optional', 'disabled']:

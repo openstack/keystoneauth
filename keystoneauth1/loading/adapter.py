@@ -11,12 +11,12 @@
 # under the License.
 
 import argparse
-import typing as ty
+from typing import Any, TYPE_CHECKING
 
 from keystoneauth1 import adapter
 from keystoneauth1.loading import base
 
-if ty.TYPE_CHECKING:
+if TYPE_CHECKING:
     from oslo_config import cfg
 
     from keystoneauth1.loading import opts
@@ -300,7 +300,7 @@ class Adapter(base._BaseLoader[adapter.Adapter]):
         self,
         conf: 'cfg.ConfigOpts',
         group: 'str | cfg.OptGroup',
-        **kwargs: ty.Any,
+        **kwargs: Any,
     ) -> adapter.Adapter:
         """Create an Adapter object from an oslo_config object.
 
@@ -322,7 +322,7 @@ class Adapter(base._BaseLoader[adapter.Adapter]):
 
 
 def process_conf_options(
-    confgrp: 'cfg.ConfigOpts.GroupAttr', kwargs: dict[str, ty.Any]
+    confgrp: 'cfg.ConfigOpts.GroupAttr', kwargs: dict[str, Any]
 ) -> None:
     """Set Adapter constructor kwargs based on conf options.
 
@@ -397,7 +397,7 @@ def register_conf_options(
 
 
 def load_from_conf_options(
-    conf: 'cfg.ConfigOpts', group: 'str | cfg.OptGroup', **kwargs: ty.Any
+    conf: 'cfg.ConfigOpts', group: 'str | cfg.OptGroup', **kwargs: Any
 ) -> adapter.Adapter:
     return Adapter().load_from_conf_options(conf, group, **kwargs)
 

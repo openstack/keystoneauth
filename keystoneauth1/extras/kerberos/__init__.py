@@ -21,7 +21,8 @@
       $ pip install keystoneauth1[kerberos]
 """
 
-import typing as ty
+from collections.abc import Mapping
+from typing import cast
 
 try:
     # explicitly re-export symbol
@@ -38,13 +39,13 @@ from keystoneauth1 import session as ks_session
 
 # TODO(stephenfin): This should return an enum
 def _mutual_auth(value: str | None) -> str:
-    default = ty.cast(str, requests_kerberos.OPTIONAL)
+    default = cast(str, requests_kerberos.OPTIONAL)
     if value is None:
         return default
     return {
-        'required': ty.cast(str, requests_kerberos.REQUIRED),
-        'optional': ty.cast(str, requests_kerberos.OPTIONAL),
-        'disabled': ty.cast(str, requests_kerberos.DISABLED),
+        'required': cast(str, requests_kerberos.REQUIRED),
+        'optional': cast(str, requests_kerberos.OPTIONAL),
+        'disabled': cast(str, requests_kerberos.DISABLED),
     }.get(value.lower(), default)
 
 
@@ -80,7 +81,7 @@ class KerberosMethod(v3.AuthMethod):
         auth: v3.Auth,
         headers: dict[str, str],
         request_kwargs: dict[str, object],
-    ) -> tuple[None, None] | tuple[str, ty.Mapping[str, object]]:
+    ) -> tuple[None, None] | tuple[str, Mapping[str, object]]:
         # NOTE(jamielennox): request_kwargs is passed as a kwarg however it is
         # required and always present when called from keystoneclient.
         request_kwargs['requests_auth'] = _requests_auth(self.mutual_auth)

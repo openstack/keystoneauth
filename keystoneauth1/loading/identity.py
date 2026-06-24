@@ -10,13 +10,13 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import typing as ty
+from typing import Any, TYPE_CHECKING, TypeVar
 
 from keystoneauth1 import exceptions
 from keystoneauth1.loading import base
 from keystoneauth1.loading import opts
 
-if ty.TYPE_CHECKING:
+if TYPE_CHECKING:
     from keystoneauth1.identity import base as base_plugins
     from keystoneauth1.identity import generic as generic_plugins
     from keystoneauth1.identity import v2 as v2_plugins
@@ -31,13 +31,13 @@ __all__ = (
 )
 
 
-PluginT = ty.TypeVar('PluginT', bound='base_plugins.BaseIdentityPlugin')
-V2PluginT = ty.TypeVar('V2PluginT', bound='v2_plugins.Auth')
-V3PluginT = ty.TypeVar('V3PluginT', bound='v3_plugins.BaseAuth')
-V3FederationPluginT = ty.TypeVar(
+PluginT = TypeVar('PluginT', bound='base_plugins.BaseIdentityPlugin')
+V2PluginT = TypeVar('V2PluginT', bound='v2_plugins.Auth')
+V3PluginT = TypeVar('V3PluginT', bound='v3_plugins.BaseAuth')
+V3FederationPluginT = TypeVar(
     'V3FederationPluginT', bound='v3_plugins.FederationBaseAuth'
 )
-GenericPluginT = ty.TypeVar(
+GenericPluginT = TypeVar(
     'GenericPluginT', bound='generic_plugins.BaseGenericPlugin'
 )
 
@@ -118,7 +118,7 @@ class BaseV3Loader(BaseIdentityLoader[V3PluginT]):
 
         return options
 
-    def load_from_options(self, **kwargs: ty.Any) -> V3PluginT:
+    def load_from_options(self, **kwargs: Any) -> V3PluginT:
         if kwargs.get('project_name') and not (
             kwargs.get('project_domain_name')
             or kwargs.get('project_domain_id')

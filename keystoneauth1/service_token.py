@@ -10,11 +10,11 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import typing as ty
+from typing import Any, TYPE_CHECKING
 
 from keystoneauth1 import plugin
 
-if ty.TYPE_CHECKING:
+if TYPE_CHECKING:
     from keystoneauth1 import discover
     from keystoneauth1 import session as ks_session
 
@@ -72,17 +72,17 @@ class ServiceTokenAuthWrapper(plugin.BaseAuthPlugin):
         return self.user_auth.get_token(session)
 
     def get_endpoint(
-        self, session: 'ks_session.Session', **kwargs: ty.Any
+        self, session: 'ks_session.Session', **kwargs: Any
     ) -> str | None:
         return self.user_auth.get_endpoint(session, **kwargs)
 
     def get_endpoint_data(
-        self, session: 'ks_session.Session', **kwargs: ty.Any
+        self, session: 'ks_session.Session', **kwargs: Any
     ) -> 'discover.EndpointData | None':
         return self.user_auth.get_endpoint_data(session, **kwargs)
 
     def get_api_major_version(
-        self, session: 'ks_session.Session', **kwargs: ty.Any
+        self, session: 'ks_session.Session', **kwargs: Any
     ) -> tuple[int | float, ...] | None:
         return self.user_auth.get_api_major_version(session, **kwargs)
 

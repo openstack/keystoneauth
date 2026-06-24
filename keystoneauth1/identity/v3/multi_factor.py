@@ -10,7 +10,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import typing as ty
+from typing import Any
 import warnings
 
 from keystoneauth1.identity.v3 import base
@@ -55,7 +55,7 @@ class MultiFactor(base.Auth):
         project_domain_name: str | None = None,
         reauthenticate: bool = True,
         include_catalog: bool = True,
-        **kwargs: ty.Any,
+        **kwargs: Any,
     ):
         method_instances: list[base.AuthMethod] = []
         method_keys: set[str] = set()

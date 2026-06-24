@@ -11,11 +11,11 @@
 # under the License.
 
 import base64
-import typing as ty
+from typing import TYPE_CHECKING
 
 from keystoneauth1 import plugin
 
-if ty.TYPE_CHECKING:
+if TYPE_CHECKING:
     from keystoneauth1 import session as ks_session
 
 AUTH_HEADER_NAME = 'Authorization'

@@ -20,8 +20,8 @@
       $ pip install keystoneauth['oauth1']
 """
 
+from collections.abc import Mapping
 import logging
-import typing as ty
 
 try:
     # explicitly re-export symbol
@@ -71,7 +71,7 @@ class OAuth1Method(v3.AuthMethod):
         auth: v3.Auth,
         headers: dict[str, str],
         request_kwargs: dict[str, object],
-    ) -> tuple[None, None] | tuple[str, ty.Mapping[str, object]]:
+    ) -> tuple[None, None] | tuple[str, Mapping[str, object]]:
         # Add the oauth specific content into the headers
         oauth_client = oauth1.Client(
             self.consumer_key,

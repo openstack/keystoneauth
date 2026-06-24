@@ -11,20 +11,18 @@
 # under the License.
 
 import datetime
-import typing as ty
+from typing import Any, NotRequired, TypedDict
 import uuid
-
-import typing_extensions as ty_ext
 
 from keystoneauth1 import _utils
 from keystoneauth1.fixture import exception
 
 
-class V2Role(ty.TypedDict):
+class V2Role(TypedDict):
     name: str
 
 
-class V2Endpoint(ty.TypedDict):
+class V2Endpoint(TypedDict):
     tenantId: str
     publicURL: str
     adminURL: str
@@ -33,54 +31,54 @@ class V2Endpoint(ty.TypedDict):
     id: str
 
 
-class V2Service(ty.TypedDict):
+class V2Service(TypedDict):
     name: str
     type: str
-    endpoints: ty_ext.NotRequired[list[V2Endpoint]]
+    endpoints: NotRequired[list[V2Endpoint]]
 
 
-class V2Tenant(ty.TypedDict, total=False):
+class V2Tenant(TypedDict, total=False):
     id: str
     name: str
 
 
-class V2Trust(ty.TypedDict, total=False):
+class V2Trust(TypedDict, total=False):
     id: str
     trustee_user_id: str
 
 
-class V2Token(ty.TypedDict):
+class V2Token(TypedDict):
     id: str
     expires: str
     issued_at: str
-    tenant: ty_ext.NotRequired[V2Tenant]
-    audit_ids: ty_ext.NotRequired[list[str]]
-    bind: ty_ext.NotRequired[dict[str, ty.Any]]
+    tenant: NotRequired[V2Tenant]
+    audit_ids: NotRequired[list[str]]
+    bind: NotRequired[dict[str, Any]]
 
 
-class V2User(ty.TypedDict):
+class V2User(TypedDict):
     id: str
     name: str
-    roles: ty_ext.NotRequired[list[V2Role]]
+    roles: NotRequired[list[V2Role]]
 
 
-class V2Metadata(ty.TypedDict):
-    roles: ty_ext.NotRequired[list[str]]
+class V2Metadata(TypedDict):
+    roles: NotRequired[list[str]]
 
 
-class V2Access(ty.TypedDict):
+class V2Access(TypedDict):
     token: V2Token
     user: V2User
-    metadata: ty_ext.NotRequired[V2Metadata]
-    serviceCatalog: ty_ext.NotRequired[list[dict[str, ty.Any]]]
-    trust: ty_ext.NotRequired[V2Trust]
+    metadata: NotRequired[V2Metadata]
+    serviceCatalog: NotRequired[list[dict[str, Any]]]
+    trust: NotRequired[V2Trust]
 
 
-class V2TokenRoot(ty.TypedDict):
+class V2TokenRoot(TypedDict):
     access: V2Access
 
 
-class _Service(dict[str, ty.Any]):
+class _Service(dict[str, Any]):
     def add_endpoint(
         self,
         public: str,
@@ -104,7 +102,7 @@ class _Service(dict[str, ty.Any]):
         return data
 
 
-class Token(dict[str, ty.Any]):
+class Token(dict[str, Any]):
     """A V2 Keystone token that can be used for testing.
 
     This object is designed to allow clients to generate a correct V2 token for
@@ -369,7 +367,7 @@ class Token(dict[str, ty.Any]):
         self.trust_id = id or uuid.uuid4().hex
         self.trustee_user_id = trustee_user_id or uuid.uuid4().hex
 
-    def set_bind(self, name: str, data: ty.Any) -> None:
+    def set_bind(self, name: str, data: Any) -> None:
         if 'bind' not in self._token:
             self._token['bind'] = {}
         self._token['bind'][name] = data

@@ -10,12 +10,12 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import typing as ty
+from typing import Any, Optional, TYPE_CHECKING
 
 from keystoneauth1 import discover
 from keystoneauth1 import plugin
 
-if ty.TYPE_CHECKING:
+if TYPE_CHECKING:
     from keystoneauth1.access import access
     from keystoneauth1 import session as ks_session
 
@@ -43,7 +43,7 @@ class Token(plugin.BaseAuthPlugin):
         *,
         endpoint_override: str | None = None,
         discover_versions: bool = True,
-        **kwargs: ty.Any,
+        **kwargs: Any,
     ) -> discover.EndpointData | None:
         """Return a valid endpoint data for a the service.
 
@@ -73,7 +73,7 @@ class Token(plugin.BaseAuthPlugin):
         )
 
     def get_endpoint(
-        self, session: 'ks_session.Session', **kwargs: ty.Any
+        self, session: 'ks_session.Session', **kwargs: Any
     ) -> str | None:
         """Return the supplied endpoint.
 
@@ -84,7 +84,7 @@ class Token(plugin.BaseAuthPlugin):
 
     def get_auth_ref(
         self, session: 'ks_session.Session'
-    ) -> ty.Optional['access.AccessInfo']:
+    ) -> Optional['access.AccessInfo']:
         """Return the authentication reference of an auth plugin.
 
         :param session: A session object to be used for communication

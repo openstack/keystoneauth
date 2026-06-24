@@ -10,13 +10,13 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import typing as ty
+from typing import Any, TYPE_CHECKING
 
 from keystoneauth1.loading import base
 from keystoneauth1.loading import opts
 import keystoneauth1.plugin
 
-if ty.TYPE_CHECKING:
+if TYPE_CHECKING:
     from oslo_config import cfg
 
 
@@ -111,7 +111,7 @@ def register_conf_options(
 
 
 def load_from_conf_options(
-    conf: 'cfg.ConfigOpts', group: str, **kwargs: ty.Any
+    conf: 'cfg.ConfigOpts', group: str, **kwargs: Any
 ) -> 'keystoneauth1.plugin.BaseAuthPlugin | None':
     """Load a plugin from an oslo_config CONF object.
 
@@ -146,7 +146,7 @@ def load_from_conf_options(
 
     conf.register_opts(oslo_opts, group=group)
 
-    def _getter(opt: opts.Opt) -> ty.Any:
+    def _getter(opt: opts.Opt) -> Any:
         return conf[group][opt.dest]
 
     return loader.load_from_options_getter(_getter, **kwargs)

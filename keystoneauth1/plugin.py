@@ -10,13 +10,19 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import typing as ty
-
-import typing_extensions as ty_ext
+from typing import (
+    Any,
+    ClassVar,
+    NotRequired,
+    Optional,
+    TYPE_CHECKING,
+    TypedDict,
+    TypeVar,
+)
 
 from keystoneauth1 import discover
 
-if ty.TYPE_CHECKING:
+if TYPE_CHECKING:
     from keystoneauth1.access import access
     from keystoneauth1 import session as ks_session
 
@@ -28,16 +34,16 @@ AUTH_INTERFACE = object()
 IDENTITY_AUTH_HEADER_NAME = 'X-Auth-Token'
 
 
-BaseAuthPluginT = ty.TypeVar(
+BaseAuthPluginT = TypeVar(
     'BaseAuthPluginT', bound='BaseAuthPlugin', covariant=True
 )
 
 
-class ConnectionParams(ty.TypedDict):
+class ConnectionParams(TypedDict):
     # https://github.com/python/typeshed/blob/24c78b9e0/stubs/requests/requests/sessions.pyi#L82
-    cert: ty_ext.NotRequired[str | tuple[str, str] | None]
+    cert: NotRequired[str | tuple[str, str] | None]
     # https://github.com/python/typeshed/blob/24c78b9e0/stubs/requests/requests/sessions.pyi#L108
-    verify: ty_ext.NotRequired[bool | str | None]
+    verify: NotRequired[bool | str | None]
 
 
 class BaseAuthPlugin:
@@ -80,7 +86,7 @@ class BaseAuthPlugin:
 
     def get_auth_ref(
         self, session: 'ks_session.Session'
-    ) -> ty.Optional['access.AccessInfo']:
+    ) -> Optional['access.AccessInfo']:
         """Return the authentication reference of an auth plugin.
 
         :param session: A session object to be used for communication
@@ -134,7 +140,7 @@ class BaseAuthPlugin:
         *,
         endpoint_override: str | None = None,
         discover_versions: bool = True,
-        **kwargs: ty.Any,
+        **kwargs: Any,
     ) -> discover.EndpointData | None:
         """Return a valid endpoint data for a service.
 
@@ -172,7 +178,7 @@ class BaseAuthPlugin:
         session: 'ks_session.Session',
         *,
         endpoint_override: str | None = None,
-        **kwargs: ty.Any,
+        **kwargs: Any,
     ) -> tuple[int | float, ...] | None:
         """Get the major API version from the endpoint.
 
@@ -240,7 +246,7 @@ class BaseAuthPlugin:
         raise NotImplementedError()
 
     def get_endpoint(
-        self, session: 'ks_session.Session', **kwargs: ty.Any
+        self, session: 'ks_session.Session', **kwargs: Any
     ) -> str | None:
         """Return an endpoint for the client.
 
@@ -384,7 +390,7 @@ class BaseAuthPlugin:
     #: Whether authenticating requires the user to do something, such as
     #: completing a login in a browser. Where it does, holding on to the
     #: credential saves an interaction rather than merely a round trip.
-    interactive_unscoped_auth: ty.ClassVar[bool] = False
+    interactive_unscoped_auth: ClassVar[bool] = False
 
     def get_unscoped_cache_id(self) -> str | None:
         """Fetch an identifier for the unscoped credential of this plugin.
@@ -469,7 +475,7 @@ class FixedEndpointPlugin(BaseAuthPlugin):
         self,
         session: 'ks_session.Session',
         endpoint_override: str | None = None,
-        **kwargs: ty.Any,
+        **kwargs: Any,
     ) -> str | None:
         """Return the supplied endpoint.
 
@@ -485,7 +491,7 @@ class FixedEndpointPlugin(BaseAuthPlugin):
         *,
         endpoint_override: str | None = None,
         discover_versions: bool = True,
-        **kwargs: ty.Any,
+        **kwargs: Any,
     ) -> discover.EndpointData | None:
         """Return a valid endpoint data for a the service.
 

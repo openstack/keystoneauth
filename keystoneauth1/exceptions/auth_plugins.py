@@ -10,11 +10,12 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import typing as ty
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 from keystoneauth1.exceptions import base
 
-if ty.TYPE_CHECKING:
+if TYPE_CHECKING:
     from keystoneauth1 import loading
 
 
@@ -62,7 +63,7 @@ class UnsupportedParameters(AuthPluginException):
         Names of the unsupported parameters.
     """
 
-    def __init__(self, names: ty.Sequence[str]):
+    def __init__(self, names: Sequence[str]):
         self.names = names
 
         m = 'The following parameters were given that are unsupported: %s'
@@ -92,7 +93,7 @@ class MissingRequiredOptions(OptionError):
         List of the missing options.
     """
 
-    def __init__(self, options: ty.Sequence['loading.Opt']):
+    def __init__(self, options: Sequence['loading.Opt']):
         self.options = options
 
         names = ", ".join(o.dest for o in options)

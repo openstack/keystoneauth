@@ -11,7 +11,8 @@
 # under the License.
 
 import abc
-import typing as ty
+from collections.abc import Mapping
+from typing import Any, TypeVar
 
 try:
     # explicitly re-export symbol
@@ -87,7 +88,7 @@ def _str_from_xml(xml: etree._Element, path: str) -> str:
     return str(result)  # case from _ElementUnicodeResult
 
 
-_PreparedRequestT = ty.TypeVar(
+_PreparedRequestT = TypeVar(
     '_PreparedRequestT', bound=requests.PreparedRequest
 )
 
@@ -145,7 +146,7 @@ class _SamlAuth(requests.auth.AuthBase):
         return request
 
     def _handle_response(
-        self, response: requests.Response, **kwargs: ty.Any
+        self, response: requests.Response, **kwargs: Any
     ) -> requests.Response:
         if (
             response.status_code == 200
@@ -156,14 +157,14 @@ class _SamlAuth(requests.auth.AuthBase):
         return response
 
     def _ecp_retry(
-        self, sp_response: requests.Response, **kwargs: ty.Any
+        self, sp_response: requests.Response, **kwargs: Any
     ) -> requests.Response:
         history = [sp_response]
 
         def send(
             method: str,
             url: str,
-            headers: ty.Mapping[str, str],
+            headers: Mapping[str, str],
             data: bytes,
             auth: None | requests.auth.AuthBase | tuple[str, str] = None,
             cookies: requests.cookies.RequestsCookieJar | None = None,

@@ -16,7 +16,7 @@ import functools
 import hashlib
 import json
 import threading
-import typing as ty
+from typing import Any
 
 from keystoneauth1 import _utils as utils
 from keystoneauth1 import access
@@ -113,7 +113,7 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         return False
 
     def get_access(
-        self, session: ks_session.Session, **kwargs: ty.Any
+        self, session: ks_session.Session, **kwargs: Any
     ) -> access.AccessInfo:
         """Fetch or return a current AccessInfo object.
 
@@ -173,12 +173,12 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         interface: str | None = None,
         region_name: str | None = None,
         service_name: str | None = None,
-        allow: dict[str, ty.Any] | None = None,
+        allow: dict[str, Any] | None = None,
         allow_version_hack: bool = True,
         skip_discovery: bool = False,
         min_version: discover._RAW_VERSION_T | None = None,
         max_version: discover._RAW_VERSION_T | None = None,
-        **kwargs: ty.Any,
+        **kwargs: Any,
     ) -> discover.EndpointData | None:
         """Return a valid endpoint data for a service.
 
@@ -341,12 +341,12 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         region_name: str | None = None,
         service_name: str | None = None,
         version: discover._RAW_VERSION_T | None = None,
-        allow: dict[str, ty.Any] | None = None,
+        allow: dict[str, Any] | None = None,
         allow_version_hack: bool = True,
         skip_discovery: bool = False,
         min_version: discover._RAW_VERSION_T | None = None,
         max_version: discover._RAW_VERSION_T | None = None,
-        **kwargs: ty.Any,
+        **kwargs: Any,
     ) -> str | None:
         """Return a valid endpoint for a service.
 
@@ -438,13 +438,13 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         region_name: str | None = None,
         service_name: str | None = None,
         version: str | None = None,
-        allow: dict[str, ty.Any] | None = None,
+        allow: dict[str, Any] | None = None,
         allow_version_hack: bool = True,
         skip_discovery: bool = False,
         discover_versions: bool = False,
         min_version: discover._RAW_VERSION_T | None = None,
         max_version: discover._RAW_VERSION_T | None = None,
-        **kwargs: ty.Any,
+        **kwargs: Any,
     ) -> discover._PARSED_VERSION_T | None:
         """Return the major API version for a service.
 

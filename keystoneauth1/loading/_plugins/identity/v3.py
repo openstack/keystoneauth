@@ -10,7 +10,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import typing as ty
+from typing import Any
 
 from keystoneauth1 import exceptions
 from keystoneauth1 import identity
@@ -34,7 +34,7 @@ def _add_common_identity_options(options: list[opts.Opt]) -> None:
     )
 
 
-def _assert_identity_options(options: dict[str, ty.Any]) -> None:
+def _assert_identity_options(options: dict[str, Any]) -> None:
     if options.get('username') and not (
         options.get('user_domain_name') or options.get('user_domain_id')
     ):
@@ -74,7 +74,7 @@ class Password(loading.BaseV3Loader[identity.V3Password]):
 
         return options
 
-    def load_from_options(self, **kwargs: ty.Any) -> identity.V3Password:
+    def load_from_options(self, **kwargs: Any) -> identity.V3Password:
         _assert_identity_options(kwargs)
 
         return super().load_from_options(**kwargs)
@@ -108,7 +108,7 @@ class Token(loading.BaseV3Loader[identity.V3Token]):
 
 
 class _OpenIDConnectBase(loading.BaseFederationLoader[oidc._OidcBaseT]):
-    def load_from_options(self, **kwargs: ty.Any) -> oidc._OidcBaseT:
+    def load_from_options(self, **kwargs: Any) -> oidc._OidcBaseT:
         if not (
             kwargs.get('access_token_endpoint')
             or kwargs.get('discovery_endpoint')
@@ -329,7 +329,7 @@ class TOTP(loading.BaseV3Loader[identity.V3TOTP]):
 
         return options
 
-    def load_from_options(self, **kwargs: ty.Any) -> identity.V3TOTP:
+    def load_from_options(self, **kwargs: Any) -> identity.V3TOTP:
         _assert_identity_options(kwargs)
 
         return super().load_from_options(**kwargs)
@@ -366,7 +366,7 @@ class TokenlessAuth(loading.BaseLoader[identity.V3TokenlessAuth]):
 
         return options
 
-    def load_from_options(self, **kwargs: ty.Any) -> identity.V3TokenlessAuth:
+    def load_from_options(self, **kwargs: Any) -> identity.V3TokenlessAuth:
         if (
             not kwargs.get('domain_id')
             and not kwargs.get('domain_name')
@@ -433,7 +433,7 @@ class ApplicationCredential(
         return options
 
     def load_from_options(
-        self, **kwargs: ty.Any
+        self, **kwargs: Any
     ) -> identity.V3ApplicationCredential:
         _assert_identity_options(kwargs)
         if not kwargs.get('application_credential_id') and not kwargs.get(
@@ -488,7 +488,7 @@ class MultiFactor(loading.BaseV3Loader[identity.V3MultiFactor]):
             options = list(options_dict.values())
         return options
 
-    def load_from_options(self, **kwargs: ty.Any) -> identity.V3MultiFactor:
+    def load_from_options(self, **kwargs: Any) -> identity.V3MultiFactor:
         _assert_identity_options(kwargs)
 
         if 'auth_methods' not in kwargs:
@@ -534,7 +534,7 @@ class OAuth2ClientCredential(
         return options
 
     def load_from_options(
-        self, **kwargs: ty.Any
+        self, **kwargs: Any
     ) -> identity.V3OAuth2ClientCredential:
         if not kwargs.get('oauth2_endpoint'):
             m = 'You must provide an OAuth2.0 endpoint.'
@@ -578,7 +578,7 @@ class OAuth2mTlsClientCredential(
         return options
 
     def load_from_options(
-        self, **kwargs: ty.Any
+        self, **kwargs: Any
     ) -> identity.V3OAuth2mTlsClientCredential:
         if not kwargs.get('oauth2_endpoint'):
             m = 'You must provide an OAuth2.0 Mutual-TLS endpoint.'

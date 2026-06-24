@@ -10,11 +10,11 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import typing as ty
+from typing import TYPE_CHECKING
 
 from keystoneauth1 import plugin
 
-if ty.TYPE_CHECKING:
+if TYPE_CHECKING:
     from keystoneauth1 import session as ks_session
 
 
