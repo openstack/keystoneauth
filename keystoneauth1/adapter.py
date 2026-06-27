@@ -21,7 +21,7 @@ import requests
 
 from keystoneauth1 import _fair_semaphore
 from keystoneauth1 import discover
-from keystoneauth1 import session
+from keystoneauth1 import session as _session
 
 if ty.TYPE_CHECKING:
     from keystoneauth1 import plugin
@@ -123,19 +123,42 @@ class _BaseAdapter:
         a maximum of 60 seconds is used.
     """
 
+    session: _session.Session
+    service_type: str | None
+    service_name: str | None
+    interface: str | list[str] | None
+    region_name: str | None
+    endpoint_override: str | None
+    version: str | None
+    auth: 'plugin.BaseAuthPlugin | None'
+    user_agent: str | None
+    connect_retries: int | None
+    logger: logging.Logger | None
+    allow: dict[str, ty.Any]
+    additional_headers: collections.abc.MutableMapping[str, str]
     client_name: str | None = None
     client_version: str | None = None
+    allow_version_hack: bool | None
+    global_request_id: str | None
+    min_version: str | None
+    max_version: str | None
+    default_microversion: str | None
+    status_code_retries: int | None
+    retriable_status_codes: list[int] | None
+    raise_exc: bool | None
+    connect_retry_delay: float | None
+    status_code_retry_delay: float | None
 
     def __init__(
         self,
-        session: session.Session,
+        session: _session.Session,
         service_type: str | None = None,
         service_name: str | None = None,
         interface: str | list[str] | None = None,
         region_name: str | None = None,
         endpoint_override: str | None = None,
         version: str | None = None,
-        auth: ty.Optional['plugin.BaseAuthPlugin'] = None,
+        auth: 'plugin.BaseAuthPlugin | None' = None,
         user_agent: str | None = None,
         connect_retries: int | None = None,
         logger: logging.Logger | None = None,
@@ -174,23 +197,22 @@ class _BaseAdapter:
         self.region_name = region_name
         self.endpoint_override = endpoint_override
         self.version = version
-        self.user_agent = user_agent
         self.auth = auth
+        self.user_agent = user_agent
         self.connect_retries = connect_retries
         self.logger = logger
         self.allow = allow or {}
         self.additional_headers = additional_headers or {}
         self.allow_version_hack = allow_version_hack
+        self.global_request_id = global_request_id
         self.min_version = min_version
         self.max_version = max_version
         self.default_microversion = default_microversion
         self.status_code_retries = status_code_retries
         self.retriable_status_codes = retriable_status_codes
+        self.raise_exc = raise_exc
         self.connect_retry_delay = connect_retry_delay
         self.status_code_retry_delay = status_code_retry_delay
-        self.raise_exc = raise_exc
-
-        self.global_request_id = global_request_id
 
         if client_name:
             self.client_name = client_name
@@ -262,7 +284,7 @@ class _BaseAdapter:
         if self.default_microversion is not None:
             kwargs.setdefault('microversion', self.default_microversion)
 
-        if isinstance(self.session, session.Session | Adapter):
+        if isinstance(self.session, _session.Session | Adapter):
             # these things are unsupported by keystoneclient's session so be
             # careful with them until everyone has transitioned to ksa.
             # Allowing adapter allows adapter nesting that auth_token does.
