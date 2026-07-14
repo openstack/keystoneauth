@@ -60,7 +60,7 @@ _LOG_CONTENT_TYPES = {'application/json', 'text/plain'}
 
 _MAX_RETRY_INTERVAL = 60.0
 _EXPONENTIAL_DELAY_START = 0.5
-_RETRIABLE_STATUS_CODES = [503]
+_RETRIABLE_STATUS_CODES = [429, 503]
 
 # NOTE(efried): This is defined in oslo_middleware.request_id.INBOUND_HEADER,
 # but it didn't seem worth adding oslo_middleware to requirements just for that
@@ -1274,7 +1274,14 @@ class Session:
             resp.status_code in retriable_status_codes
             and status_code_retries > 0
         ):
-            delay = next(status_code_retry_delays)
+            retry_after = resp.headers.get('Retry-After')
+            if retry_after:
+                try:
+                    delay = int(retry_after)
+                except ValueError:
+                    delay = next(status_code_retry_delays)
+            else:
+                delay = next(status_code_retry_delays)
             logger.warning(
                 'Retriable status code %(code)s. Retrying in '
                 '%(delay).1fs. %(retries)s retries left',

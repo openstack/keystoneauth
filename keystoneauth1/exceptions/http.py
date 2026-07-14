@@ -46,6 +46,7 @@ __all__ = (
     'RequestedRangeNotSatisfiable',
     'ExpectationFailed',
     'UnprocessableEntity',
+    'TooManyRequests',
     'HttpServerError',
     'InternalServerError',
     'HttpNotImplemented',
@@ -335,6 +336,17 @@ class UnprocessableEntity(HTTPClientError):
     message = "Unprocessable Entity"
 
 
+class TooManyRequests(HTTPClientError):
+    """HTTP 429 - Too Many Requests.
+
+    The user has sent too many requests in a given amount of time.
+    The response may include a Retry-After header indicating how long to wait.
+    """
+
+    http_status = 429
+    message = "Too Many Requests"
+
+
 class InternalServerError(HttpServerError):
     """HTTP 500 - Internal Server Error.
 
@@ -420,6 +432,7 @@ _code_map = {
     416: RequestedRangeNotSatisfiable,
     417: ExpectationFailed,
     422: UnprocessableEntity,
+    429: TooManyRequests,
     500: InternalServerError,
     501: HttpNotImplemented,
     502: BadGateway,
