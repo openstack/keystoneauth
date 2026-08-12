@@ -1,0 +1,23 @@
+---
+features:
+  - |
+    Added a ``v3websso`` authentication plugin,
+    ``keystoneauth1.identity.v3.WebSSO``, which implements the identity
+    service's WebSSO protocol. The plugin opens the WebSSO endpoint in the
+    user's browser and receives the resulting unscoped token on a loopback
+    listener, letting a client authenticate against an external identity
+    provider without holding any credentials of its own.
+
+    The callback URL, by default ``http://localhost:9990/auth/websso/``, must
+    be listed in the identity service's ``[federation] trusted_dashboard``
+    option.
+security:
+  - |
+    The ``v3websso`` plugin's loopback callback is open to login CSRF. While a
+    login is in progress, another page open in the user's browser can submit a
+    form to the callback port and have its own token accepted. The protocol
+    offers no way to prevent this, because the identity service requires the
+    callback's ``origin`` to match a ``trusted_dashboard`` entry exactly and so
+    it cannot carry a nonce. The listener binds to loopback only, runs only for
+    the duration of a login, and stops at the first token it accepts. See the
+    plugin documentation for details.
