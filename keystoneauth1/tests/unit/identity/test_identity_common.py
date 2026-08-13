@@ -2663,3 +2663,49 @@ class DiscoveryFailures(utils.TestCase):
         sess = session.Session()
         p = identity.generic.password.Password(self.TEST_ROOT_URL)
         self.assertRaises(exceptions.DiscoveryFailure, p.get_auth_ref, sess)
+
+
+class CacheIdElementsPlugin(identity.BaseIdentityPlugin):
+    """A plugin whose cache id elements are whatever the test passes in."""
+
+    def __init__(self, **elements):
+        super().__init__()
+        self._elements = elements
+
+    def get_auth_ref(self, session):
+        raise NotImplementedError()
+
+    def get_cache_id_elements(self):
+        return self._elements
+
+
+class CacheIdTests(utils.TestCase):
+    def test_cache_id_matches_for_equal_elements(self):
+        a = CacheIdElementsPlugin(project_name='a', trust_id='b')
+        b = CacheIdElementsPlugin(trust_id='b', project_name='a')
+
+        self.assertEqual(a.get_cache_id(), b.get_cache_id())
+
+    def test_cache_id_ignores_none_elements(self):
+        a = CacheIdElementsPlugin(project_name='a', trust_id=None)
+        b = CacheIdElementsPlugin(project_name='a')
+
+        self.assertEqual(a.get_cache_id(), b.get_cache_id())
+
+    def test_cache_id_is_unambiguous_across_elements(self):
+        # The elements are hashed one after another, so each has to be
+        # terminated: without that these two produce the same bytes and so the
+        # same cache id, and either plugin can be handed the other's cached
+        # token.
+        a = CacheIdElementsPlugin(project_name='a', trust_id='b')
+        b = CacheIdElementsPlugin(project_name='atrust_idb')
+
+        self.assertNotEqual(a.get_cache_id(), b.get_cache_id())
+
+    def test_cache_id_is_unambiguous_across_empty_elements(self):
+        # Same again for the values the terminator itself introduces: an empty
+        # value has to stay distinct from the element not being there at all.
+        a = CacheIdElementsPlugin(project_name='a', trust_id='')
+        b = CacheIdElementsPlugin(project_name='a')
+
+        self.assertNotEqual(a.get_cache_id(), b.get_cache_id())
