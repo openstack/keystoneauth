@@ -1,0 +1,11 @@
+---
+fixes:
+  - |
+    Federated authentication plugins now honour ``system_scope``. The
+    rescoping step that every federated plugin performs after obtaining an
+    unscoped token considered every other scope but not this one, so asking a
+    plugin such as ``v3oidcpassword``, ``v3samlpassword``, ``v3fedkerb`` or
+    Keystone to Keystone for a system-scoped token silently produced an
+    unscoped one instead. Requests made with it were then refused by the
+    service being called rather than by the identity service, which gave no
+    indication of the real cause.

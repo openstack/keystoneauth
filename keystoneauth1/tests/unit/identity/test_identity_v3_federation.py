@@ -98,6 +98,33 @@ class V3FederatedPlugin(utils.TestCase):
         self.assertTrue(self.unscoped_mock.called)
         self.assertTrue(self.scoped_mock.called)
 
+    def test_scoped_behaviour_for_each_scope(self):
+        # Every scope the plugin accepts has to reach the rescoping request.
+        # Silently returning the unscoped token instead leaves the caller
+        # authenticated as nobody in particular, which only shows up later as
+        # an unexplained 403 or 404 from whatever they were trying to reach.
+        scopes = [
+            (
+                'project',
+                {
+                    'project_id': uuid.uuid4().hex,
+                    'project_domain_id': uuid.uuid4().hex,
+                },
+            ),
+            ('domain', {'domain_id': uuid.uuid4().hex}),
+            ('system', {'system_scope': 'all'}),
+            ('trust', {'trust_id': uuid.uuid4().hex}),
+        ]
+
+        for description, kwargs in scopes:
+            with self.subTest(description):
+                sess = session.Session(auth=self.get_plugin(**kwargs))
+
+                self.assertEqual(self.scoped_token_id, sess.get_token())
+
+                scope = self.scoped_mock.last_request.json()['auth']['scope']
+                self.assertIsNotNone(scope)
+
 
 class K2KAuthPluginTest(utils.TestCase):
     TEST_ROOT_URL = 'http://127.0.0.1:5000/'
