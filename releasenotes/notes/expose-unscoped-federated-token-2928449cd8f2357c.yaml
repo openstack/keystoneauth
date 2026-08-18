@@ -1,0 +1,21 @@
+---
+features:
+  - |
+    Federated authentication plugins now retain the unscoped token they
+    obtain and expose it, so a single authentication - including a single
+    interactive login - can be rescoped to any project, domain or system
+    rather than costing a fresh authentication each time. The new
+    ``get_unscoped_cache_id``, ``get_unscoped_auth_state`` and
+    ``set_unscoped_auth_state`` methods on
+    ``keystoneauth1.plugin.BaseAuthPlugin`` let a caller identify, store and
+    restore that unscoped token independently of the scope, and the new
+    ``interactive_unscoped_auth`` class attribute tells a caller whether
+    obtaining it requires the user to complete a login. The defaults on
+    ``BaseAuthPlugin`` let any plugin be queried without knowing which kind
+    it is.
+upgrade:
+  - |
+    Federated plugins no longer discard their unscoped token after rescoping;
+    it is held for the lifetime of the plugin so that it can be reused. It is
+    dropped when the plugin is invalidated, so an unscoped token the identity
+    service has rejected is not reused.
