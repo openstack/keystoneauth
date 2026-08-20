@@ -748,8 +748,20 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
 
         for k, v in sorted(elements.items()):
             if v is not None:
+                # Terminate each key and value so that the elements cannot be
+                # read out of the hash input in more than one way. Without the
+                # terminators a plugin with project_name 'a' and trust_id 'b'
+                # hashes the same bytes as one with project_name 'atrust_idb'
+                # and no trust, so the two share a cache id and either can be
+                # handed the other's cached token. A value that contains a null
+                # byte can still imitate the elements that follow it, but these
+                # values are names and secrets that reach us through config
+                # files, the environment and the command line, so one is not
+                # realistically going to turn up in them.
                 hasher.update(k.encode('utf-8'))
+                hasher.update(b'\x00')
                 hasher.update(v.encode('utf-8'))
+                hasher.update(b'\x00')
 
         return base64.b64encode(hasher.digest()).decode('utf-8')
 

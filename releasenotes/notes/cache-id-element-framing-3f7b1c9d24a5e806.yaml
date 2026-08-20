@@ -1,0 +1,12 @@
+---
+fixes:
+  - |
+    ``BaseIdentityPlugin.get_cache_id()`` now terminates each of the elements
+    that it hashes. The key and value of each element used to be hashed one
+    after another with nothing in between, so plugins with different elements
+    could produce the same cache id: one scoped to a project named ``a`` with
+    the trust ``b`` hashed the same bytes as one scoped to a project named
+    ``atrust_idb``. Two plugins that agree on their cache id are taken to be
+    the same identity, so either could be handed a token that was issued for
+    the other. The cache ids a plugin returns change with this, so
+    authentication state already cached under the old ones is not reused.
