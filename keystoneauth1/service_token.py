@@ -15,6 +15,7 @@ import typing as ty
 from keystoneauth1 import plugin
 
 if ty.TYPE_CHECKING:
+    from keystoneauth1 import discover
     from keystoneauth1 import session as ks_session
 
 SERVICE_AUTH_HEADER_NAME = 'X-Service-Token'
@@ -74,6 +75,16 @@ class ServiceTokenAuthWrapper(plugin.BaseAuthPlugin):
         self, session: 'ks_session.Session', **kwargs: ty.Any
     ) -> str | None:
         return self.user_auth.get_endpoint(session, **kwargs)
+
+    def get_endpoint_data(
+        self, session: 'ks_session.Session', **kwargs: ty.Any
+    ) -> 'discover.EndpointData | None':
+        return self.user_auth.get_endpoint_data(session, **kwargs)
+
+    def get_api_major_version(
+        self, session: 'ks_session.Session', **kwargs: ty.Any
+    ) -> tuple[int | float, ...] | None:
+        return self.user_auth.get_api_major_version(session, **kwargs)
 
     def get_user_id(self, session: 'ks_session.Session') -> str | None:
         return self.user_auth.get_user_id(session)

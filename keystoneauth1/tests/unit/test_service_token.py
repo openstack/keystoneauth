@@ -12,6 +12,7 @@
 
 import uuid
 
+from keystoneauth1 import adapter
 from keystoneauth1 import fixture
 from keystoneauth1 import identity
 from keystoneauth1 import service_token
@@ -50,9 +51,9 @@ class ServiceTokenTests(utils.TestCase):
         for t in (self.user_token, self.service_token):
             s = t.add_service('identity')
             s.add_standard_endpoints(
-                public='http://keystone.example.com',
-                admin='http://keystone.example.com',
-                internal='http://keystone.example.com',
+                public='http://keystone.example.com/v3',
+                admin='http://keystone.example.com/v3',
+                internal='http://keystone.example.com/v3',
             )
 
         self.test_data = {'data': uuid.uuid4().hex}
@@ -115,6 +116,26 @@ class ServiceTokenTests(utils.TestCase):
             ),
         )
 
+        user_epd = self.user_auth.get_endpoint_data(
+            self.session, service_type='identity', discover_versions=False
+        )
+        combined_epd = self.combined_auth.get_endpoint_data(
+            self.session, service_type='identity', discover_versions=False
+        )
+        self.assertEqual(user_epd.url, combined_epd.url)
+        self.assertEqual(user_epd.api_version, combined_epd.api_version)
+
+        self.assertEqual(
+            self.user_auth.get_api_major_version(
+                self.session,
+                endpoint_override='http://keystone.example.com/v3',
+            ),
+            self.combined_auth.get_api_major_version(
+                self.session,
+                endpoint_override='http://keystone.example.com/v3',
+            ),
+        )
+
         self.assertEqual(
             self.user_auth.get_user_id(self.session),
             self.combined_auth.get_user_id(self.session),
@@ -134,3 +155,18 @@ class ServiceTokenTests(utils.TestCase):
             self.user_auth.get_sp_url(self.session, 'a'),
             self.combined_auth.get_sp_url(self.session, 'a'),
         )
+
+    def test_adapter_get_api_major_version(self):
+        """Regression test for LP#2164939 [1].
+
+        openstacksdk creates an Adapter with service_type and no
+        endpoint_override, then calls get_api_major_version(). This
+        goes through session.get_api_major_version(auth=None) which
+        falls back to session.auth. If ServiceTokenAuthWrapper does
+        not delegate get_endpoint_data() to user_auth, the base
+        class returns None and the SDK raises NotSupported.
+
+        [1] https://bugs.launchpad.net/keystoneauth/+bug/2164939
+        """
+        adpt = adapter.Adapter(session=self.session, service_type='identity')
+        self.assertEqual((3, 0), adpt.get_api_major_version())
