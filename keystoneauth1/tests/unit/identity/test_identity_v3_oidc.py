@@ -194,6 +194,37 @@ class OIDCClientCredentialsTests(BaseOIDCTests, utils.TestCase):
             project_name=self.PROJECT_NAME,
         )
 
+    def test_unscoped_cache_id_varies_by_credentials(self):
+        base_id = self.plugin.get_unscoped_cache_id()
+        self.assertIsNotNone(base_id)
+
+        def build(**overrides):
+            params = {
+                'client_id': self.CLIENT_ID,
+                'client_secret': self.CLIENT_SECRET,
+                'access_token_endpoint': self.ACCESS_TOKEN_ENDPOINT,
+                'project_name': self.PROJECT_NAME,
+            }
+            params.update(overrides)
+            return oidc.OidcClientCredentials(
+                self.AUTH_URL, self.IDENTITY_PROVIDER, self.PROTOCOL, **params
+            )
+
+        for description, overrides in (
+            ('client id', {'client_id': uuid.uuid4().hex}),
+            ('client secret', {'client_secret': uuid.uuid4().hex}),
+        ):
+            with self.subTest(f'changed by {description}'):
+                self.assertNotEqual(
+                    base_id, build(**overrides).get_unscoped_cache_id()
+                )
+
+        with self.subTest('unchanged by project scope'):
+            self.assertEqual(
+                base_id,
+                build(project_name='another project').get_unscoped_cache_id(),
+            )
+
     def test_initial_call_to_get_access_token(self):
         """Test initial call, expect JSON access token."""
         # Mock the output that creates the access token
@@ -270,6 +301,40 @@ class OIDCPasswordTests(BaseOIDCTests, utils.TestCase):
             username=self.USER_NAME,
             password=self.PASSWORD,
         )
+
+    def _password_plugin(self, **overrides):
+        params = {
+            'client_id': self.CLIENT_ID,
+            'client_secret': self.CLIENT_SECRET,
+            'access_token_endpoint': self.ACCESS_TOKEN_ENDPOINT,
+            'project_name': self.PROJECT_NAME,
+            'username': self.USER_NAME,
+            'password': self.PASSWORD,
+        }
+        params.update(overrides)
+        return oidc.OidcPassword(
+            self.AUTH_URL, self.IDENTITY_PROVIDER, self.PROTOCOL, **params
+        )
+
+    def test_unscoped_cache_id_varies_by_identity_and_credentials(self):
+        base_id = self.plugin.get_unscoped_cache_id()
+        self.assertIsNotNone(base_id)
+
+        for description, overrides in (
+            ('username', {'username': 'someone-else@example.com'}),
+            ('client id', {'client_id': uuid.uuid4().hex}),
+            ('password', {'password': uuid.uuid4().hex}),
+            ('client secret', {'client_secret': uuid.uuid4().hex}),
+        ):
+            with self.subTest(f'changed by {description}'):
+                other = self._password_plugin(**overrides)
+                self.assertNotEqual(base_id, other.get_unscoped_cache_id())
+
+    def test_unscoped_cache_id_ignores_scope(self):
+        base_id = self.plugin.get_unscoped_cache_id()
+
+        other = self._password_plugin(project_name='another project')
+        self.assertEqual(base_id, other.get_unscoped_cache_id())
 
     def test_initial_call_to_get_access_token(self):
         """Test initial call, expect JSON access token."""
@@ -447,6 +512,19 @@ class OIDCTokenTests(utils.TestCase):
 
         response = self.plugin.get_unscoped_auth_ref(self.session)
         self.assertEqual(KEYSTONE_TOKEN_VALUE, response.auth_token)
+
+    def test_unscoped_cache_id_varies_by_access_token(self):
+        base_id = self.plugin.get_unscoped_cache_id()
+        self.assertIsNotNone(base_id)
+
+        other = oidc.OidcAccessToken(
+            self.AUTH_URL,
+            self.IDENTITY_PROVIDER,
+            self.PROTOCOL,
+            access_token=uuid.uuid4().hex,
+            project_name=self.PROJECT_NAME,
+        )
+        self.assertNotEqual(base_id, other.get_unscoped_cache_id())
 
 
 class OIDCDeviceAuthorizationTest(BaseOIDCTests, utils.TestCase):

@@ -11,6 +11,8 @@
 # under the License.
 
 import copy
+import datetime
+import json
 import uuid
 
 from keystoneauth1 import access
@@ -30,7 +32,13 @@ class TesterFederationPlugin(v3.FederationBaseAuth):
         return access.create(resp=resp)
 
 
-class V3FederatedPlugin(utils.TestCase):
+class V3FederatedPluginBase(utils.TestCase):
+    """Fixtures for a federated plugin, without any tests of its own.
+
+    Separate from the tests so that another test class can reuse the setup
+    without also inheriting and rerunning them.
+    """
+
     AUTH_URL = 'http://keystone/v3'
 
     def setUp(self):
@@ -75,6 +83,8 @@ class V3FederatedPlugin(utils.TestCase):
         kwargs.setdefault('identity_provider', self.idp)
         return TesterFederationPlugin(**kwargs)
 
+
+class V3FederatedPlugin(V3FederatedPluginBase):
     def test_federated_url(self):
         plugin = self.get_plugin()
         self.assertEqual(self.token_url, plugin.federated_token_url)
@@ -363,3 +373,177 @@ class K2KAuthPluginTest(utils.TestCase):
             k2k_fixtures.UNSCOPED_TOKEN_HEADER,
             k2kplugin.get_token(self.session),
         )
+
+
+class V3FederatedUnscopedState(V3FederatedPluginBase):
+    """The API a caller uses to hold on to the unscoped token itself."""
+
+    def test_state_is_empty_before_authenticating(self):
+        self.assertIsNone(self.get_plugin().get_unscoped_auth_state())
+
+    def test_one_unscoped_token_serves_every_scope(self):
+        origin = self.get_plugin()
+        session.Session(auth=origin).get_token()
+        state = origin.get_unscoped_auth_state()
+
+        self.assertIsNotNone(state)
+        self.assertEqual(1, self.unscoped_mock.call_count)
+
+        scopes = [
+            {'project_id': self.scoped_token.project_id},
+            {'domain_id': uuid.uuid4().hex},
+            {'system_scope': 'all'},
+            {'trust_id': uuid.uuid4().hex},
+        ]
+
+        for kwargs in scopes:
+            with self.subTest(next(iter(kwargs))):
+                plugin = self.get_plugin(**kwargs)
+                plugin.set_unscoped_auth_state(state)
+
+                self.assertEqual(
+                    self.scoped_token_id,
+                    session.Session(auth=plugin).get_token(),
+                )
+
+        # One authentication, and a rescope for each of the scopes.
+        self.assertEqual(1, self.unscoped_mock.call_count)
+        self.assertEqual(len(scopes), self.scoped_mock.call_count)
+
+    def test_cache_id_ignores_the_scope_but_not_the_identity(self):
+        base_id = self.get_plugin().get_unscoped_cache_id()
+        self.assertIsNotNone(base_id)
+
+        for kwargs in (
+            {'project_id': uuid.uuid4().hex},
+            {'domain_id': uuid.uuid4().hex},
+            {'system_scope': 'all'},
+            {'trust_id': uuid.uuid4().hex},
+        ):
+            with self.subTest(f'unchanged by {next(iter(kwargs))}'):
+                self.assertEqual(
+                    base_id, self.get_plugin(**kwargs).get_unscoped_cache_id()
+                )
+
+        for description, kwargs in (
+            ('identity provider', {'identity_provider': uuid.uuid4().hex}),
+            ('protocol', {'protocol': uuid.uuid4().hex}),
+            ('auth url', {'auth_url': 'http://elsewhere/v3'}),
+            # 'foo'/'bar' against 'foob'/'ar' needs the elements terminated
+            # rather than simply concatenated.
+            (
+                'element boundaries',
+                {'identity_provider': 'foo', 'protocol': 'bar'},
+            ),
+        ):
+            with self.subTest(f'changed by {description}'):
+                self.assertNotEqual(
+                    base_id, self.get_plugin(**kwargs).get_unscoped_cache_id()
+                )
+
+    def test_expired_state_is_replaced(self):
+        expired = fixture.V3Token()
+        expired.expires = datetime.datetime.now(
+            datetime.UTC
+        ) - datetime.timedelta(hours=1)
+        plugin = self.get_plugin(project_id=self.scoped_token.project_id)
+        plugin.set_unscoped_auth_state(
+            json.dumps({'auth_token': uuid.uuid4().hex, 'body': expired})
+        )
+
+        session.Session(auth=plugin).get_token()
+
+        self.assertEqual(1, self.unscoped_mock.call_count)
+
+    def test_a_refused_unscoped_token_is_replaced(self):
+        # A revoked token is not expired, so nothing about it says it will be
+        # refused until the rescope is. The rescope carries the token in its
+        # body rather than a header, so the session cannot retry it either.
+        plugin = self.get_plugin(project_id=self.scoped_token.project_id)
+        plugin.set_unscoped_auth_state(
+            json.dumps({'auth_token': 'revoked', 'body': fixture.V3Token()})
+        )
+
+        def rescope(request, context):
+            token = request.json()['auth']['identity']['token']['id']
+            if token == 'revoked':
+                context.status_code = 401
+                return {'error': {'message': 'revoked'}}
+            context.status_code = 201
+            context.headers['X-Subject-Token'] = self.scoped_token_id
+            return self.scoped_token
+
+        self.scoped_mock = self.requests_mock.post(
+            self.AUTH_URL + '/auth/tokens', json=rescope
+        )
+
+        self.assertEqual(
+            self.scoped_token_id, session.Session(auth=plugin).get_token()
+        )
+        self.assertEqual(1, self.unscoped_mock.call_count)
+
+    def test_a_refused_fresh_unscoped_token_is_not_retried(self):
+        # Authenticating again would only produce the same refusal, so the
+        # error belongs to the caller rather than another round trip.
+        self.requests_mock.post(
+            self.AUTH_URL + '/auth/tokens',
+            status_code=401,
+            json={'error': {'message': 'nope'}},
+        )
+        plugin = self.get_plugin(project_id=self.scoped_token.project_id)
+
+        self.assertRaises(
+            exceptions.Unauthorized, session.Session(auth=plugin).get_token
+        )
+        self.assertEqual(1, self.unscoped_mock.call_count)
+
+    def test_invalidate_discards_the_unscoped_token(self):
+        plugin = self.get_plugin(project_id=self.scoped_token.project_id)
+        session.Session(auth=plugin).get_token()
+        self.assertIsNotNone(plugin.get_unscoped_auth_state())
+
+        self.assertTrue(plugin.invalidate())
+
+        # Otherwise the retry after an unauthorized response would rescope
+        # from a token the identity service has already refused.
+        self.assertIsNone(plugin.get_unscoped_auth_state())
+
+    def test_state_that_did_not_come_from_here_is_refused(self):
+        plugin = self.get_plugin()
+
+        for data in (
+            '{}',
+            '{"auth_token": "x"}',
+            '{"body": {"access": {}}}',
+            # Valid JSON, but not the object shape this API produces. These
+            # come back from persistent storage, where stale or malformed
+            # data is possible, so they must be a ValueError rather than the
+            # TypeError the key lookup would otherwise raise.
+            '[]',
+            'null',
+            '"x"',
+        ):
+            with self.subTest(data):
+                self.assertRaises(
+                    ValueError, plugin.set_unscoped_auth_state, data
+                )
+
+    def test_empty_state_clears(self):
+        plugin = self.get_plugin(project_id=self.scoped_token.project_id)
+        session.Session(auth=plugin).get_token()
+
+        plugin.set_unscoped_auth_state(None)
+
+        self.assertIsNone(plugin.get_unscoped_auth_state())
+
+    def test_interactive_flows_are_marked(self):
+        for plugin_class, interactive in (
+            (identity.V3OidcAuthorizationCode, True),
+            (identity.V3OidcDeviceAuthorization, True),
+            (identity.V3OidcPassword, False),
+            (identity.V3OidcClientCredentials, False),
+        ):
+            with self.subTest(plugin_class.__name__):
+                self.assertEqual(
+                    interactive, plugin_class.interactive_unscoped_auth
+                )

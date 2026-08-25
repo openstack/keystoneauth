@@ -381,6 +381,54 @@ class BaseAuthPlugin:
         """
         return None
 
+    #: Whether authenticating requires the user to do something, such as
+    #: completing a login in a browser. Where it does, holding on to the
+    #: credential saves an interaction rather than merely a round trip.
+    interactive_unscoped_auth: ty.ClassVar[bool] = False
+
+    def get_unscoped_cache_id(self) -> str | None:
+        """Fetch an identifier for the unscoped credential of this plugin.
+
+        Some plugins authenticate once to obtain a credential and then derive
+        a scoped token from it. That credential outlives any single scope, so
+        it is identified separately from :py:meth:`get_cache_id`, whose
+        identity includes the scope.
+
+        If this returns a str value suggesting that caching is supported then
+        get_unscoped_auth_state and set_unscoped_auth_state must also be
+        implemented.
+
+        :returns: A unique string for the unscoped credential, or None where
+                  there is no such credential to identify.
+        :rtype: str or None if this is unsupported or unavailable.
+        """
+        return None
+
+    def get_unscoped_auth_state(self) -> str | None:
+        """Retrieve the unscoped credential, for a caller that will store it.
+
+        This should not fetch any new data if it is not present.
+
+        :raises NotImplementedError: if the plugin does not support this
+            feature.
+
+        :returns: A string that can be handed back to
+                  set_unscoped_auth_state, or None if there is nothing to
+                  store yet.
+        """
+        raise NotImplementedError()
+
+    def set_unscoped_auth_state(self, data: str | None) -> None:
+        """Install a previously stored unscoped credential.
+
+        Take the output of get_unscoped_auth_state and install it, so that
+        the plugin need not authenticate again to obtain it.
+
+        :raises NotImplementedError: if the plugin does not support this
+            feature.
+        """
+        raise NotImplementedError()
+
     def get_auth_state(self) -> object:
         """Retrieve the current authentication state for the plugin.
 

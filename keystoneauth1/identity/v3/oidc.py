@@ -145,6 +145,20 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
         self.access_token_type = access_token_type
         self.scope = scope
 
+    def get_unscoped_cache_id_elements(self) -> dict[str, str | None]:
+        """Add the OAuth client to what identifies the unscoped token.
+
+        The token is issued to a particular client, so the client id and
+        secret join the federation elements from the base. Including the
+        secret means rotating it discards any cached token, matching how the
+        password plugin treats a changed password. The elements are only
+        ever hashed, never stored in the clear.
+        """
+        elements = super().get_unscoped_cache_id_elements()
+        elements['client_id'] = self.client_id
+        elements['client_secret'] = self.client_secret
+        return elements
+
     def _get_discovery_document(
         self, session: ks_session.Session
     ) -> dict[str, object]:
@@ -435,6 +449,20 @@ class OidcPassword(_OidcBase):
         self.password = password
         self.idp_otp_key = idp_otp_key
 
+    def get_unscoped_cache_id_elements(self) -> dict[str, str | None]:
+        """Add the resource owner to what identifies the unscoped token.
+
+        The token stands in for a particular user, so the username and
+        password identify it. Without the username two users of the same
+        client and identity provider would share one cached unscoped token;
+        including the password discards it when the password changes, as the
+        password plugin does.
+        """
+        elements = super().get_unscoped_cache_id_elements()
+        elements['username'] = self.username
+        elements['password'] = self.password
+        return elements
+
     def get_payload(
         self, session: ks_session.Session
     ) -> dict[str, str | None]:
@@ -565,6 +593,9 @@ class OidcClientCredentials(_OidcBase):
 
 class OidcAuthorizationCode(_OidcBase):
     """Implementation for OpenID Connect Authorization Code."""
+
+    # The user completes the authorization request in a browser.
+    interactive_unscoped_auth = True
 
     grant_type = 'authorization_code'
 
@@ -712,6 +743,16 @@ class OidcAccessToken(_OidcBase):
         assert access_token is not None  # nosec B101
         self.access_token = access_token
 
+    def get_unscoped_cache_id_elements(self) -> dict[str, str | None]:
+        """Add the access token to what identifies the unscoped token.
+
+        The access token is the whole of the credential here, so it alone
+        distinguishes one caller's unscoped token from another's.
+        """
+        elements = super().get_unscoped_cache_id_elements()
+        elements['access_token'] = self.access_token
+        return elements
+
     def get_payload(
         self, session: ks_session.Session
     ) -> dict[str, str | None]:
@@ -744,6 +785,9 @@ class OidcAccessToken(_OidcBase):
 
 class OidcDeviceAuthorization(_OidcBase):
     """Implementation for OAuth 2.0 Device Authorization Grant."""
+
+    # The user visits the verification URI and enters a code.
+    interactive_unscoped_auth = True
 
     grant_type = "urn:ietf:params:oauth:grant-type:device_code"
     HEADER_X_FORM = {"Content-Type": "application/x-www-form-urlencoded"}
