@@ -1,0 +1,7 @@
+---
+features:
+  - >
+    When two auth plugins register the same ``keystoneauth1.plugin`` entry-point
+    name with one being an in-tree plugin and one an out-of-tree implementation
+    of the same name, the out-of-tree implementation is now preferred. This lets
+    deployers override a plugin shipped by keystoneauth1 with their own package.

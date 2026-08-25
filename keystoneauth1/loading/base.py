@@ -11,6 +11,7 @@
 # under the License.
 
 import abc
+import logging
 import typing as ty
 
 import stevedore
@@ -24,6 +25,8 @@ if ty.TYPE_CHECKING:
     from keystoneauth1.loading import opts
 
 PLUGIN_NAMESPACE = 'keystoneauth1.plugin'
+
+LOG = logging.getLogger(__name__)
 
 
 __all__ = (
@@ -46,6 +49,35 @@ def _auth_plugin_available(
     return ext.obj.available
 
 
+def _prefer_out_of_tree_plugin(
+    namespace: str, name: str, extensions: list[extension.Extension[ty.Any]]
+) -> extension.Extension[ty.Any]:
+    """Resolve duplicate plugin entry points, preferring out-of-tree ones.
+
+    keystoneauth1 ships in-tree loaders for some plugins that also have an
+    out-of-tree implementation (e.g. ``v3websso``). When both are installed
+    they register the same entry-point name; prefer the out-of-tree
+    implementation so deployers can override the one we ship.
+    """
+
+    def _is_in_tree(ext: extension.Extension[ty.Any]) -> bool:
+        dist = ext.entry_point.dist
+        if dist is not None:
+            return dist.name == 'keystoneauth1'
+        # distribution metadata missing: fall back to the module path
+        return ext.entry_point_target.startswith('keystoneauth1.')
+
+    out_of_tree = [ext for ext in extensions if not _is_in_tree(ext)]
+    chosen = (out_of_tree or extensions)[-1]
+    LOG.debug(
+        "multiple implementations found for '%s' in %s; using %s",
+        name,
+        namespace,
+        chosen.entry_point_target,
+    )
+    return chosen
+
+
 def get_available_plugin_names() -> frozenset[str]:
     """Get the names of all the plugins that are available on the system.
 
@@ -60,6 +92,7 @@ def get_available_plugin_names() -> frozenset[str]:
         check_func=_auth_plugin_available,
         invoke_on_load=True,
         propagate_map_exceptions=True,
+        conflict_resolver=_prefer_out_of_tree_plugin,
     )
     return frozenset(mgr.names())
 
@@ -79,11 +112,15 @@ def get_available_plugin_loaders() -> dict[
         check_func=_auth_plugin_available,
         invoke_on_load=True,
         propagate_map_exceptions=True,
+        conflict_resolver=_prefer_out_of_tree_plugin,
     )
 
-    # NOTE(stephenfin): We know obj is not None since we passed
-    # invoke_on_load=True above. The hints in stevedore need work.
-    return dict(mgr.map(lambda ext: (ext.entry_point.name, ext.obj)))  # type: ignore
+    # Access the extensions by name so stevedore applies the conflict resolver.
+    # We know obj is not None since we passed invoke_on_load=True above.
+    return {
+        name: ty.cast('BaseLoader[plugin.BaseAuthPluginT]', ext.obj)
+        for name, ext in mgr.items()
+    }
 
 
 def get_plugin_loader(name: str) -> 'BaseLoader[plugin.BaseAuthPluginT]':
@@ -100,7 +137,10 @@ def get_plugin_loader(name: str) -> 'BaseLoader[plugin.BaseAuthPluginT]':
     try:
         mgr: stevedore.DriverManager[BaseLoader[plugin.BaseAuthPluginT]]
         mgr = stevedore.DriverManager(
-            namespace=PLUGIN_NAMESPACE, invoke_on_load=True, name=name
+            namespace=PLUGIN_NAMESPACE,
+            invoke_on_load=True,
+            name=name,
+            conflict_resolver=_prefer_out_of_tree_plugin,
         )
     except RuntimeError:
         raise exceptions.NoMatchingPlugin(name)

@@ -147,6 +147,7 @@ class ConfTests(utils.TestCase):
             namespace=loading.PLUGIN_NAMESPACE,
             name=driver_name,
             invoke_on_load=True,
+            conflict_resolver=loading.base._prefer_out_of_tree_plugin,
         )
 
     @utils.mock_plugin()
