@@ -60,6 +60,7 @@ class _Rescoped(base.BaseAuth, metaclass=abc.ABCMeta):
         if any(
             [
                 self.trust_id,
+                self.system_scope,
                 self.domain_id,
                 self.domain_name,
                 self.project_id,
@@ -72,6 +73,7 @@ class _Rescoped(base.BaseAuth, metaclass=abc.ABCMeta):
                 self.auth_url,
                 token=auth_ref.auth_token,
                 trust_id=self.trust_id,
+                system_scope=self.system_scope,
                 domain_id=self.domain_id,
                 domain_name=self.domain_name,
                 project_id=self.project_id,
