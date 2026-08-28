@@ -25,6 +25,7 @@ from keystoneauth1.identity.v3.totp import *  # noqa
 from keystoneauth1.identity.v3.tokenless_auth import *  # noqa
 from keystoneauth1.identity.v3.oauth2_client_credential import *  # noqa
 from keystoneauth1.identity.v3.oauth2_mtls_client_credential import *  # noqa
+from keystoneauth1.identity.v3.websso import *  # noqa
 
 
 __all__ = (
@@ -52,4 +53,5 @@ __all__ = (
     'OAuth2ClientCredential',
     'OAuth2ClientCredentialMethod',
     'OAuth2mTlsClientCredential',
+    'WebSSO',
 )

@@ -664,3 +664,89 @@ class V3Oauth2mTlsClientCredentialTests(utils.TestCase):
             oauth2_endpoint=oauth2_endpoint,
             oauth2_client_secret=uuid.uuid4().hex,
         )
+
+
+class V3WebSSOTests(utils.TestCase):
+    def setUp(self):
+        super().setUp()
+
+        self.auth_url = uuid.uuid4().hex
+
+    def create(self, **kwargs):
+        kwargs.setdefault('auth_url', self.auth_url)
+        kwargs.setdefault('identity_provider', uuid.uuid4().hex)
+        kwargs.setdefault('protocol', uuid.uuid4().hex)
+        loader = loading.get_plugin_loader('v3websso')
+        return loader.load_from_options(**kwargs)
+
+    def test_options(self):
+        options = loading.get_plugin_loader('v3websso').get_options()
+        self.assertTrue(
+            {
+                'auth-url',
+                'identity-provider',
+                'protocol',
+                'redirect-host',
+                'redirect-port',
+                'login-timeout',
+                'username',
+            }.issubset({o.name for o in options})
+        )
+
+    def test_defaults(self):
+        plugin = self.create()
+
+        self.assertEqual('localhost', plugin.redirect_host)
+        self.assertEqual(9990, plugin.redirect_port)
+        self.assertEqual(
+            'http://localhost:9990/auth/websso/', plugin.redirect_uri
+        )
+        self.assertEqual(60, plugin.login_timeout)
+        self.assertIsNone(plugin.username)
+
+    def test_username_is_loaded(self):
+        plugin = self.create(username='alice')
+
+        self.assertEqual('alice', plugin.username)
+
+    def test_login_timeout_is_loaded(self):
+        plugin = self.create(login_timeout=300)
+
+        self.assertEqual(300, plugin.login_timeout)
+
+    def test_basic(self):
+        identity_provider = uuid.uuid4().hex
+        protocol = uuid.uuid4().hex
+
+        plugin = self.create(
+            identity_provider=identity_provider,
+            protocol=protocol,
+            redirect_host='127.0.0.1',
+            redirect_port=9991,
+        )
+
+        self.assertEqual(self.auth_url, plugin.auth_url)
+        self.assertEqual(identity_provider, plugin.identity_provider)
+        self.assertEqual(protocol, plugin.protocol)
+        self.assertEqual('127.0.0.1', plugin.redirect_host)
+        self.assertEqual(9991, plugin.redirect_port)
+
+    def test_identity_provider_is_required(self):
+        loader = loading.get_plugin_loader('v3websso')
+        self.assertRaises(
+            exceptions.MissingRequiredOptions,
+            loader.load_from_options,
+            auth_url=self.auth_url,
+            protocol=uuid.uuid4().hex,
+        )
+
+    def test_scoped(self):
+        project_name = uuid.uuid4().hex
+        project_domain_name = uuid.uuid4().hex
+
+        plugin = self.create(
+            project_name=project_name, project_domain_name=project_domain_name
+        )
+
+        self.assertEqual(project_name, plugin.project_name)
+        self.assertEqual(project_domain_name, plugin.project_domain_name)

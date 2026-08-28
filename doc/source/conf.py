@@ -121,6 +121,11 @@ def maybe_skip_member(app, what, name, obj, skip, options):
     # workaround for https://github.com/sphinx-doc/sphinx/issues/10322
     if '-' in name or '#' in name:
         return True
+
+    # the docstring for http.server.BaseHTTPRequestHandler is not valid rST
+    if 'BaseHTTPRequestHandler' in name:
+        return True
+
     return False
 
 

@@ -15,6 +15,7 @@ Contents
    using-sessions
    authentication-plugins
    plugin-options
+   plugins/index
 
    extras
    migrating

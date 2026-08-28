@@ -277,6 +277,8 @@ The following V3 plugins are provided to support federation:
   Connect Client Credentials grant type.
 - :py:class:`~keystoneauth1.identity.v3:OpenIDConnectPassword`: OpenID Connect
   Resource Owner Password Credentials grant type.
+- :py:class:`~keystoneauth1.identity.v3.WebSSO`: Browser-based Web Single Sign
+  On. See :doc:`plugins/websso`.
 - :py:class:`~keystoneauth1.identity.v3.Keystone2Keystone`: Keystone to
   Keystone Federation.
 
@@ -530,6 +532,7 @@ authentication plugins that are available in `keystoneauth` are:
 - v3totp: :py:class:`keystoneauth1.identity.v3.TOTP`
 - v3oauth2clientcredential: :py:class:`keystoneauth1.identity.v3.OAuth2ClientCredential`
 - v3oauth2mtlsclientcredential: :py:class:`keystoneauth1.identity.v3.OAuth2mTlsClientCredential`
+- v3websso: :py:class:`keystoneauth1.identity.v3.WebSSO`
 
 
 Creating Authentication Plugins

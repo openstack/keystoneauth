@@ -70,6 +70,9 @@ V3OAuth2ClientCredential = v3.OAuth2ClientCredential
 V3OAuth2mTlsClientCredential = v3.OAuth2mTlsClientCredential
 """See :class:`keystoneauth1.identity.v3.OAuth2mTlsClientCredential`"""
 
+V3WebSSO = v3.WebSSO
+"""See :class:`keystoneauth1.identity.v3.WebSSO`"""
+
 __all__ = (
     'BaseIdentityPlugin',
     'Password',
@@ -88,4 +91,5 @@ __all__ = (
     'V3MultiFactor',
     'V3OAuth2ClientCredential',
     'V3OAuth2mTlsClientCredential',
+    'V3WebSSO',
 )
