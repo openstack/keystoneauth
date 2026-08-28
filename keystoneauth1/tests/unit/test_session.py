@@ -2153,8 +2153,15 @@ class TCPKeepAliveAdapterTest(utils.TestCase):
         self.init_poolmanager = self.patch(
             client_session.requests.adapters.HTTPAdapter, 'init_poolmanager'
         )
+
+        def _fake_init(
+            self, *args, tls_ciphers=None, tls_min_version=None, **kwargs
+        ):
+            self.tls_ciphers = tls_ciphers
+            self.tls_min_version = tls_min_version
+
         self.constructor = self.patch(
-            client_session.TCPKeepAliveAdapter, '__init__', lambda self: None
+            client_session.TCPKeepAliveAdapter, '__init__', _fake_init
         )
 
     def test_init_poolmanager_with_basic_options(self):
@@ -2298,6 +2305,82 @@ class TCPKeepAliveAdapterTest(utils.TestCase):
             1, 2, 3, socket_options=given_options
         )
 
+    def test_init_poolmanager_with_tls_ciphers(self):
+        self.patch_socket_with_options(
+            ['IPPROTO_TCP', 'TCP_NODELAY', 'SOL_SOCKET', 'SO_KEEPALIVE']
+        )
+        given_adapter = client_session.TCPKeepAliveAdapter(
+            tls_ciphers='HIGH:!aNULL:!MD5'
+        )
+
+        with mock.patch('ssl.create_default_context') as mock_ctx:
+            ctx_instance = mock_ctx.return_value
+            given_adapter.init_poolmanager(1, 2, 3)
+            ctx_instance.set_ciphers.assert_called_once_with(
+                'HIGH:!aNULL:!MD5'
+            )
+            self.init_poolmanager.assert_called_once()
+            call_kwargs = self.init_poolmanager.call_args[1]
+            self.assertIs(call_kwargs['ssl_context'], ctx_instance)
+
+    def test_init_poolmanager_with_tls_min_version(self):
+        import ssl
+
+        self.patch_socket_with_options(
+            ['IPPROTO_TCP', 'TCP_NODELAY', 'SOL_SOCKET', 'SO_KEEPALIVE']
+        )
+        given_adapter = client_session.TCPKeepAliveAdapter(
+            tls_min_version='1.2'
+        )
+
+        with mock.patch('ssl.create_default_context') as mock_ctx:
+            ctx_instance = mock_ctx.return_value
+            given_adapter.init_poolmanager(1, 2, 3)
+            self.assertEqual(
+                ssl.TLSVersion.TLSv1_2, ctx_instance.minimum_version
+            )
+            call_kwargs = self.init_poolmanager.call_args[1]
+            self.assertIs(call_kwargs['ssl_context'], ctx_instance)
+
+    def test_init_poolmanager_with_both_tls_options(self):
+        import ssl
+
+        self.patch_socket_with_options(
+            ['IPPROTO_TCP', 'TCP_NODELAY', 'SOL_SOCKET', 'SO_KEEPALIVE']
+        )
+        given_adapter = client_session.TCPKeepAliveAdapter(
+            tls_ciphers='HIGH:!aNULL', tls_min_version='1.3'
+        )
+
+        with mock.patch('ssl.create_default_context') as mock_ctx:
+            ctx_instance = mock_ctx.return_value
+            given_adapter.init_poolmanager(1, 2, 3)
+            self.assertEqual(
+                ssl.TLSVersion.TLSv1_3, ctx_instance.minimum_version
+            )
+            ctx_instance.set_ciphers.assert_called_once_with('HIGH:!aNULL')
+
+    def test_init_poolmanager_invalid_tls_version(self):
+        self.patch_socket_with_options(
+            ['IPPROTO_TCP', 'TCP_NODELAY', 'SOL_SOCKET', 'SO_KEEPALIVE']
+        )
+        given_adapter = client_session.TCPKeepAliveAdapter(
+            tls_min_version='1.0'
+        )
+
+        self.assertRaises(ValueError, given_adapter.init_poolmanager, 1, 2, 3)
+
+    def test_init_poolmanager_no_ssl_context_by_default(self):
+        self.patch_socket_with_options(
+            ['IPPROTO_TCP', 'TCP_NODELAY', 'SOL_SOCKET', 'SO_KEEPALIVE']
+        )
+        given_adapter = client_session.TCPKeepAliveAdapter()
+
+        given_adapter.init_poolmanager(1, 2, 3)
+
+        call_kwargs = self.init_poolmanager.call_args[1]
+        self.assertNotIn('ssl_context', call_kwargs)
+
     def patch_socket_with_options(self, option_names):
         # to mock socket module with exactly the attributes I want I create
         # a class with that attributes
@@ -2313,3 +2396,23 @@ class TCPKeepAliveAdapterTest(utils.TestCase):
         patch = context.start()
         self.addCleanup(context.stop)
         return patch
+
+
+class SessionTLSTests(utils.TestCase):
+    TEST_URL = 'http://127.0.0.1:5000/'
+
+    def test_tls_params_stored(self):
+        session = client_session.Session(
+            tls_ciphers='HIGH:!aNULL', tls_min_version='1.2'
+        )
+        self.assertEqual('HIGH:!aNULL', session.tls_ciphers)
+        self.assertEqual('1.2', session.tls_min_version)
+
+    def test_tls_params_default_none(self):
+        session = client_session.Session()
+        self.assertIsNone(session.tls_ciphers)
+        self.assertIsNone(session.tls_min_version)
+
+    def test_tls_min_version_none_explicit(self):
+        session = client_session.Session(tls_min_version=None)
+        self.assertIsNone(session.tls_min_version)

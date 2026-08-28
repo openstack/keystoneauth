@@ -1,0 +1,16 @@
+---
+features:
+  - |
+    Add support for configuring TLS cipher suites and minimum TLS
+    protocol version on Session objects. Two new parameters are
+    available: ``tls_ciphers`` accepts an OpenSSL cipher string to
+    restrict the allowed cipher suites, and ``tls_min_version``
+    accepts a float (``1.2`` or ``1.3``) to enforce a minimum TLS
+    protocol version. When neither is specified, the default
+    ciphers from the OpenSSL library are used and the highest
+    protocol version supported by both client and server is
+    negotiated. These can be set via the
+    Session constructor, oslo.config options (``tls-ciphers``,
+    ``tls-min-version``), CLI arguments (``--tls-ciphers``,
+    ``--tls-min-version``), or environment variables
+    (``OS_TLS_CIPHERS``, ``OS_TLS_MIN_VERSION``).
