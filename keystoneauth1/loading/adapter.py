@@ -50,29 +50,41 @@ class Adapter(base._BaseLoader[adapter.Adapter]):
         or to manipulate the options before registering them yourself.
 
         The options that are set are:
-            :service_type:      The default service_type for URL discovery.
-            :service_name:      The default service_name for URL discovery.
-            :interface:         The default interface for URL discovery.
-                                (deprecated)
-            :valid_interfaces:  List of acceptable interfaces for URL
-                                discovery. Can be a list of any of
-                                'public', 'internal' or 'admin'.
-            :region_name:       The default region_name for URL discovery.
-            :endpoint_override: Always use this endpoint URL for requests
-                                for this client.
-            :version:           The minimum version restricted to a given Major
-                                API. Mutually exclusive with min_version and
-                                max_version.
-            :min_version:       The minimum major version of a given API,
-                                intended to be used as the lower bound of a
-                                range with max_version. Mutually exclusive with
-                                version. If min_version is given with no
-                                max_version it is as if max version is
-                                'latest'.
-            :max_version:       The maximum major version of a given API,
-                                intended to be used as the upper bound of a
-                                range with min_version. Mutually exclusive with
-                                version.
+
+            :service_type: The default service_type for URL discovery.
+            :service_name: The default service_name for URL discovery.
+            :valid_interfaces: List of acceptable interfaces for URL discovery.
+                Can be a list of any of 'public', 'internal' or 'admin'.
+            :region_name: The default region_name for URL discovery.
+            :endpoint_override: Always use this endpoint URL for requests for
+                this client.
+            :version: The minimum version restricted to a given Major API.
+                Mutually exclusive with min_version and max_version.
+            :min_version: The minimum major version of a given API, intended to
+                be used as the lower bound of a range with max_version.
+                Mutually exclusive with version. If min_version is given with
+                no max_version it is as if max version is 'latest'.
+            :max_version: The maximum major version of a given API, intended to
+                be used as the upper bound of a range with min_version.
+                Mutually exclusive with version.
+            :connect_retries: The maximum number of retries that should be
+                attempted for connection errors.
+            :connect_retry_delay: Delay (in seconds) between two retries
+                for connection errors. If not set, exponential retry starting
+                with 0.5 seconds up to a maximum of 60 seconds is used.
+            :status_code_retries: The maximum number of retries that should be
+                attempted for retriable HTTP status codes.
+            :status_code_retry_delay: Delay (in seconds) between two retries
+                for retriable status codes. If not set, exponential retry
+                starting with 0.5 seconds up to a maximum of 60 seconds is
+                used.
+            :retriable_status_codes: List of retriable HTTP status codes that
+                should be retried. If not set default to [503].
+
+        Additionally, the following options are registered if
+        ``include_deprecated`` is set to ``True`` (default).
+
+            :interface: The default interface for URL discovery.
 
         :param include_deprecated: If True (the default, for backward
                                    compatibility), deprecated options are
