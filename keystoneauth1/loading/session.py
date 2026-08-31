@@ -83,8 +83,9 @@ class Session(base._BaseLoader[session.Session]):
 
         return super().load_from_options(verify=verify, cert=cert_, **kwargs)
 
+    @classmethod
     def register_argparse_arguments(
-        self, parser: argparse.ArgumentParser
+        cls, parser: argparse.ArgumentParser
     ) -> None:
         session_group = parser.add_argument_group(
             'API Connection Options',
@@ -182,8 +183,8 @@ class Session(base._BaseLoader[session.Session]):
 
         return self.load_from_options(**kwargs)
 
+    @staticmethod
     def get_conf_options(
-        self,
         deprecated_opts: dict[str, list['cfg.DeprecatedOpt']] | None = None,
     ) -> list['cfg.Opt']:
         """Get oslo_config options that are needed for a :py:class:`.Session`.
@@ -289,8 +290,9 @@ class Session(base._BaseLoader[session.Session]):
             ),
         ]
 
+    @classmethod
     def register_conf_options(
-        self,
+        cls,
         conf: 'cfg.ConfigOpts',
         group: 'str | cfg.OptGroup',
         deprecated_opts: dict[str, list['cfg.DeprecatedOpt']] | None = None,
@@ -328,7 +330,7 @@ class Session(base._BaseLoader[session.Session]):
         if isinstance(group, str):
             group = cfg.OptGroup(group)
 
-        opts = self.get_conf_options(deprecated_opts=deprecated_opts)
+        opts = cls.get_conf_options(deprecated_opts=deprecated_opts)
         conf.register_group(group)
         conf.register_opts(opts, group=group)
         return opts
@@ -383,7 +385,7 @@ def register_conf_options(
     group: 'str | cfg.OptGroup',
     deprecated_opts: dict[str, list['cfg.DeprecatedOpt']] | None = None,
 ) -> list['cfg.Opt']:
-    return Session().register_conf_options(
+    return Session.register_conf_options(
         conf, group, deprecated_opts=deprecated_opts
     )
 
@@ -397,4 +399,4 @@ def load_from_conf_options(
 def get_conf_options(
     deprecated_opts: dict[str, list['cfg.DeprecatedOpt']] | None = None,
 ) -> list['cfg.Opt']:
-    return Session().get_conf_options(deprecated_opts=deprecated_opts)
+    return Session.get_conf_options(deprecated_opts=deprecated_opts)

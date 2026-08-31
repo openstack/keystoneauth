@@ -226,8 +226,9 @@ class Adapter(base._BaseLoader[adapter.Adapter]):
             ]
         return opts
 
+    @classmethod
     def register_conf_options(
-        self,
+        cls,
         conf: 'cfg.ConfigOpts',
         group: 'str | cfg.OptGroup',
         include_deprecated: bool = True,
@@ -287,7 +288,7 @@ class Adapter(base._BaseLoader[adapter.Adapter]):
         if isinstance(group, str):
             group = cfg.OptGroup(group)
 
-        opts = self.get_conf_options(
+        opts = cls.get_conf_options(
             include_deprecated=include_deprecated,
             deprecated_opts=deprecated_opts,
         )
@@ -387,7 +388,7 @@ def register_conf_options(
     include_deprecated: bool = True,
     deprecated_opts: dict[str, list['cfg.DeprecatedOpt']] | None = None,
 ) -> list['cfg.Opt']:
-    return Adapter().register_conf_options(
+    return Adapter.register_conf_options(
         conf,
         group,
         include_deprecated=include_deprecated,
