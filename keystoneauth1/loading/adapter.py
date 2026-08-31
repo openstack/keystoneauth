@@ -87,19 +87,18 @@ class Adapter(base._BaseLoader[adapter.Adapter]):
             :interface: The default interface for URL discovery.
 
         :param include_deprecated: If True (the default, for backward
-                                   compatibility), deprecated options are
-                                   included in the result.  If False, they are
-                                   excluded.
-        :param dict deprecated_opts: Deprecated options that should be included
-             in the definition of new options. This should be a dict from the
-             name of the new option to a list of oslo.DeprecatedOpts that
-             correspond to the new option. (optional)
+            compatibility), deprecated options are included in the result.  If
+            False, they are excluded.
+        :param deprecated_opts: Deprecated options that should be included in
+            the definition of new options. This should be a dict from the name
+            of the new option to a list of oslo.DeprecatedOpts that correspond
+            to the new option. (optional)
 
-             For example, to support the ``api_endpoint`` option pointing to
-             the new ``endpoint_override`` option name::
+            For example, to support the ``api_endpoint`` option pointing to
+            the new ``endpoint_override`` option name::
 
-                 old_opt = oslo_cfg.DeprecatedOpt('api_endpoint', 'old_group')
-                 deprecated_opts = {'endpoint_override': [old_opt]}
+                old_opt = oslo_cfg.DeprecatedOpt('api_endpoint', 'old_group')
+                deprecated_opts = {'endpoint_override': [old_opt]}
 
         :returns: A list of oslo_config options.
         """
@@ -230,7 +229,7 @@ class Adapter(base._BaseLoader[adapter.Adapter]):
     def register_conf_options(
         self,
         conf: 'cfg.ConfigOpts',
-        group: str,
+        group: 'str | cfg.OptGroup',
         include_deprecated: bool = True,
         deprecated_opts: dict[str, list['cfg.DeprecatedOpt']] | None = None,
     ) -> list['cfg.Opt']:
@@ -265,49 +264,57 @@ class Adapter(base._BaseLoader[adapter.Adapter]):
             :status_code_retries: The maximum number of retries that should be
                                   attempted for retriable HTTP status codes.
 
-        :param oslo_config.Cfg conf: config object to register with.
-        :param string group: The ini group to register options in.
+        :param conf: config object to register with.
+        :param group: The ini group to register options in.
         :param include_deprecated: If True (the default, for backward
-                                   compatibility), deprecated options are
-                                   registered.  If False, they are excluded.
-        :param dict deprecated_opts: Deprecated options that should be included
-             in the definition of new options. This should be a dict from the
-             name of the new option to a list of oslo.DeprecatedOpts that
-             correspond to the new option. (optional)
+            compatibility), deprecated options are registered.  If False, they
+            are excluded.
+        :param deprecated_opts: Deprecated options that should be included in
+            the definition of new options. This should be a dict from the name
+            of the new option to a list of oslo.DeprecatedOpts that correspond
+            to the new option. (optional)
 
-             For example, to support the ``api_endpoint`` option pointing to
-             the new ``endpoint_override`` option name::
+            For example, to support the ``api_endpoint`` option pointing to the
+            new ``endpoint_override`` option name::
 
-                 old_opt = oslo_cfg.DeprecatedOpt('api_endpoint', 'old_group')
-                 deprecated_opts = {'endpoint_override': [old_opt]}
+                old_opt = oslo_cfg.DeprecatedOpt('api_endpoint', 'old_group')
+                deprecated_opts = {'endpoint_override': [old_opt]}
 
         :returns: The list of options that was registered.
         """
         from oslo_config import cfg
 
+        if isinstance(group, str):
+            group = cfg.OptGroup(group)
+
         opts = self.get_conf_options(
             include_deprecated=include_deprecated,
             deprecated_opts=deprecated_opts,
         )
-        conf.register_group(cfg.OptGroup(group))
+        conf.register_group(group)
         conf.register_opts(opts, group=group)
         return opts
 
     def load_from_conf_options(
-        self, conf: 'cfg.ConfigOpts', group: str, **kwargs: ty.Any
+        self,
+        conf: 'cfg.ConfigOpts',
+        group: 'str | cfg.OptGroup',
+        **kwargs: ty.Any,
     ) -> adapter.Adapter:
         """Create an Adapter object from an oslo_config object.
 
         The options must have been previously registered with
         register_conf_options.
 
-        :param oslo_config.Cfg conf: config object to register with.
-        :param string group: The ini group to register options in.
-        :param dict kwargs: Additional parameters to pass to Adapter
-                            construction.
+        :param conf: config object to register with.
+        :param group: The ini group to register options in.
+        :param kwargs: Additional parameters to pass to Adapter construction.
         :returns: A new Adapter object.
-        :rtype: :py:class:`.Adapter`
         """
+        from oslo_config import cfg
+
+        if isinstance(group, cfg.OptGroup):
+            group = group.name
         c = conf[group]
         process_conf_options(c, kwargs)
         return self.load_from_options(**kwargs)
@@ -318,11 +325,10 @@ def process_conf_options(
 ) -> None:
     """Set Adapter constructor kwargs based on conf options.
 
-    :param oslo_config.cfg.OptGroup confgrp: Config object group containing
-            options to inspect.
-    :param dict kwargs: Keyword arguments suitable for the constructor of
-            keystoneauth1.adapter.Adapter. Will be modified by this method.
-            Values already set remain unaffected.
+    :param confgrp: Config object group containing options to inspect.
+    :param kwargs: Keyword arguments suitable for the constructor of
+        keystoneauth1.adapter.Adapter. Will be modified by this method. Values
+        already set remain unaffected.
     :raise TypeError: If invalid conf option values or combinations are found.
     """
     if confgrp.valid_interfaces and getattr(confgrp, 'interface', None):
@@ -377,7 +383,7 @@ def register_service_argparse_arguments(
 
 def register_conf_options(
     conf: 'cfg.ConfigOpts',
-    group: str,
+    group: 'str | cfg.OptGroup',
     include_deprecated: bool = True,
     deprecated_opts: dict[str, list['cfg.DeprecatedOpt']] | None = None,
 ) -> list['cfg.Opt']:
@@ -390,7 +396,7 @@ def register_conf_options(
 
 
 def load_from_conf_options(
-    conf: 'cfg.ConfigOpts', group: str, **kwargs: ty.Any
+    conf: 'cfg.ConfigOpts', group: 'str | cfg.OptGroup', **kwargs: ty.Any
 ) -> adapter.Adapter:
     return Adapter().load_from_conf_options(conf, group, **kwargs)
 

@@ -62,7 +62,6 @@ def get_plugin_conf_options(
     the specified plugin.
 
     :param plugin: The name of the plugin loader or a plugin loader object
-    :type plugin: str or keystoneauth1.loading.BaseLoader
 
     :returns: A list of oslo_config options.
     """
@@ -74,7 +73,9 @@ def get_plugin_conf_options(
     return [o._to_oslo_opt() for o in opts]
 
 
-def register_conf_options(conf: 'cfg.ConfigOpts', group: str) -> None:
+def register_conf_options(
+    conf: 'cfg.ConfigOpts', group: 'str | cfg.OptGroup'
+) -> None:
     """Register the oslo_config options that are needed for a plugin.
 
     This only registers the basic options shared by all plugins. Options that
@@ -89,9 +90,13 @@ def register_conf_options(conf: 'cfg.ConfigOpts', group: str) -> None:
          taken from the same group as provided in the parameters.
 
     :param conf: config object to register with.
-    :type conf: oslo_config.cfg.ConfigOpts
-    :param string group: The ini group to register options in.
+    :param group: The ini group to register options in.
     """
+    from oslo_config import cfg
+
+    if isinstance(group, cfg.OptGroup):
+        group = group.name
+
     conf.register_opt(_AUTH_SECTION_OPT._to_oslo_opt(), group=group)
 
     # NOTE(jamielennox): plugins are allowed to specify a 'section' which is
@@ -107,7 +112,7 @@ def register_conf_options(conf: 'cfg.ConfigOpts', group: str) -> None:
 
 def load_from_conf_options(
     conf: 'cfg.ConfigOpts', group: str, **kwargs: ty.Any
-) -> ty.Optional['keystoneauth1.plugin.BaseAuthPlugin']:
+) -> 'keystoneauth1.plugin.BaseAuthPlugin | None':
     """Load a plugin from an oslo_config CONF object.
 
     Each plugin will register their own required options and so there is no
@@ -117,12 +122,9 @@ def load_from_conf_options(
     before this function is called.
 
     :param conf: A conf object.
-    :type conf: oslo_config.cfg.ConfigOpts
-    :param str group: The group name that options should be read from.
+    :param group: The group name that options should be read from.
 
     :returns: An authentication Plugin or None if a name is not provided
-    :rtype: :class:`keystoneauth1.plugin.BaseAuthPlugin`
-
     :raises keystoneauth1.exceptions.auth_plugins.NoMatchingPlugin:
         if a plugin cannot be created.
     """
