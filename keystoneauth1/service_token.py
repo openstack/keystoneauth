@@ -10,13 +10,11 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from typing import Any, TYPE_CHECKING
+from typing import Any
 
+from keystoneauth1 import discover
 from keystoneauth1 import plugin
-
-if TYPE_CHECKING:
-    from keystoneauth1 import discover
-    from keystoneauth1 import session as ks_session
+from keystoneauth1 import session as ks_session
 
 SERVICE_AUTH_HEADER_NAME = 'X-Service-Token'
 
@@ -34,7 +32,7 @@ class ServiceTokenAuthWrapper(plugin.BaseAuthPlugin):
         self.service_auth = service_auth
 
     def get_headers(
-        self, session: 'ks_session.Session'
+        self, session: ks_session.Session
     ) -> dict[str, str] | None:
         headers = self.user_auth.get_headers(session) or {}
         token = self.service_auth.get_token(session)
@@ -52,7 +50,7 @@ class ServiceTokenAuthWrapper(plugin.BaseAuthPlugin):
         return user or service
 
     def get_connection_params(
-        self, session: 'ks_session.Session'
+        self, session: ks_session.Session
     ) -> plugin.ConnectionParams:
         # NOTE(jamielennox): This is also a bit of a guess but unlikely to be a
         # problem in practice. We don't know how merging connection parameters
@@ -68,36 +66,36 @@ class ServiceTokenAuthWrapper(plugin.BaseAuthPlugin):
     # be extracted into a base wrapper class. We can do this as soon as there
     # is a need for it, but we may never actually need it.
 
-    def get_token(self, session: 'ks_session.Session') -> str | None:
+    def get_token(self, session: ks_session.Session) -> str | None:
         return self.user_auth.get_token(session)
 
     def get_endpoint(
-        self, session: 'ks_session.Session', **kwargs: Any
+        self, session: ks_session.Session, **kwargs: Any
     ) -> str | None:
         return self.user_auth.get_endpoint(session, **kwargs)
 
     def get_endpoint_data(
-        self, session: 'ks_session.Session', **kwargs: Any
-    ) -> 'discover.EndpointData | None':
+        self, session: ks_session.Session, **kwargs: Any
+    ) -> discover.EndpointData | None:
         return self.user_auth.get_endpoint_data(session, **kwargs)
 
     def get_api_major_version(
-        self, session: 'ks_session.Session', **kwargs: Any
+        self, session: ks_session.Session, **kwargs: Any
     ) -> tuple[int | float, ...] | None:
         return self.user_auth.get_api_major_version(session, **kwargs)
 
-    def get_user_id(self, session: 'ks_session.Session') -> str | None:
+    def get_user_id(self, session: ks_session.Session) -> str | None:
         return self.user_auth.get_user_id(session)
 
-    def get_project_id(self, session: 'ks_session.Session') -> str | None:
+    def get_project_id(self, session: ks_session.Session) -> str | None:
         return self.user_auth.get_project_id(session)
 
     def get_sp_auth_url(
-        self, session: 'ks_session.Session', sp_id: str
+        self, session: ks_session.Session, sp_id: str
     ) -> str | None:
         return self.user_auth.get_sp_auth_url(session, sp_id)
 
     def get_sp_url(
-        self, session: 'ks_session.Session', sp_id: str
+        self, session: ks_session.Session, sp_id: str
     ) -> str | None:
         return self.user_auth.get_sp_url(session, sp_id)

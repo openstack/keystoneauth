@@ -10,14 +10,12 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from typing import Any, Optional, TYPE_CHECKING
+from typing import Any
 
+from keystoneauth1.access import access
 from keystoneauth1 import discover
 from keystoneauth1 import plugin
-
-if TYPE_CHECKING:
-    from keystoneauth1.access import access
-    from keystoneauth1 import session as ks_session
+from keystoneauth1 import session as ks_session
 
 
 class Token(plugin.BaseAuthPlugin):
@@ -34,12 +32,12 @@ class Token(plugin.BaseAuthPlugin):
         self.endpoint = endpoint
         self.token = token
 
-    def get_token(self, session: 'ks_session.Session') -> str | None:
+    def get_token(self, session: ks_session.Session) -> str | None:
         return self.token
 
     def get_endpoint_data(
         self,
-        session: 'ks_session.Session',
+        session: ks_session.Session,
         *,
         endpoint_override: str | None = None,
         discover_versions: bool = True,
@@ -73,7 +71,7 @@ class Token(plugin.BaseAuthPlugin):
         )
 
     def get_endpoint(
-        self, session: 'ks_session.Session', **kwargs: Any
+        self, session: ks_session.Session, **kwargs: Any
     ) -> str | None:
         """Return the supplied endpoint.
 
@@ -83,8 +81,8 @@ class Token(plugin.BaseAuthPlugin):
         return self.endpoint
 
     def get_auth_ref(
-        self, session: 'ks_session.Session'
-    ) -> Optional['access.AccessInfo']:
+        self, session: ks_session.Session
+    ) -> access.AccessInfo | None:
         """Return the authentication reference of an auth plugin.
 
         :param session: A session object to be used for communication

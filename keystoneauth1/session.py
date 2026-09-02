@@ -25,21 +25,18 @@ import ssl
 import sys
 import time
 import types
-from typing import Any, cast, Literal, Optional, TYPE_CHECKING
+from typing import Any, cast, Literal
 import urllib
 import uuid
 
 import requests
+import requests.auth
 
 import keystoneauth1
 from keystoneauth1 import _utils as utils
 from keystoneauth1 import discover
 from keystoneauth1 import exceptions
-
-if TYPE_CHECKING:
-    import requests.auth
-
-    from keystoneauth1 import plugin
+from keystoneauth1 import plugin
 
 try:
     import netaddr
@@ -161,8 +158,8 @@ class _StringFormatter:
     """A String formatter that fetches values on demand."""
 
     def __init__(
-        self, session: 'Session', auth: Optional['plugin.BaseAuthPlugin']
-    ):
+        self, session: 'Session', auth: plugin.BaseAuthPlugin | None
+    ) -> None:
         self.session = session
         self.auth = auth
 
@@ -391,7 +388,7 @@ class Session:
 
     def __init__(
         self,
-        auth: Optional['plugin.BaseAuthPlugin'] = None,
+        auth: plugin.BaseAuthPlugin | None = None,
         session: requests.Session | None = None,
         original_ip: str | None = None,
         verify: bool | str | None = True,
@@ -784,8 +781,8 @@ class Session:
         redirect: int | bool | None = None,
         authenticated: bool | None = None,
         endpoint_filter: dict[str, Any] | None = None,
-        auth: Optional['plugin.BaseAuthPlugin'] = None,
-        requests_auth: Optional['requests.auth.AuthBase'] = None,
+        auth: plugin.BaseAuthPlugin | None = None,
+        requests_auth: requests.auth.AuthBase | None = None,
         raise_exc: bool = True,
         allow_reauth: bool = True,
         log: bool = True,
@@ -1419,8 +1416,8 @@ class Session:
         return self.request(url, 'DELETE', **kwargs)
 
     def _auth_required(
-        self, auth: Optional['plugin.BaseAuthPlugin'], msg: str
-    ) -> 'plugin.BaseAuthPlugin':
+        self, auth: plugin.BaseAuthPlugin | None, msg: str
+    ) -> plugin.BaseAuthPlugin:
         if not auth:
             auth = self.auth
 
@@ -1431,7 +1428,7 @@ class Session:
         return auth
 
     def get_auth_headers(
-        self, auth: Optional['plugin.BaseAuthPlugin'] = None
+        self, auth: plugin.BaseAuthPlugin | None = None
     ) -> dict[str, str] | None:
         """Return auth headers as provided by the auth plugin.
 
@@ -1451,7 +1448,7 @@ class Session:
         return auth.get_headers(self)
 
     def get_token(
-        self, auth: Optional['plugin.BaseAuthPlugin'] = None
+        self, auth: plugin.BaseAuthPlugin | None = None
     ) -> str | None:
         """Return a token as provided by the auth plugin.
 
@@ -1476,7 +1473,7 @@ class Session:
 
     def get_endpoint(
         self,
-        auth: Optional['plugin.BaseAuthPlugin'] = None,
+        auth: plugin.BaseAuthPlugin | None = None,
         *,
         endpoint_override: str | None = None,
         **kwargs: Any,
@@ -1501,7 +1498,7 @@ class Session:
         return auth.get_endpoint(self, **kwargs)
 
     def get_endpoint_data(
-        self, auth: Optional['plugin.BaseAuthPlugin'] = None, **kwargs: Any
+        self, auth: plugin.BaseAuthPlugin | None = None, **kwargs: Any
     ) -> discover.EndpointData | None:
         """Get endpoint data as provided by the auth plugin.
 
@@ -1520,7 +1517,7 @@ class Session:
         return auth.get_endpoint_data(self, **kwargs)
 
     def get_api_major_version(
-        self, auth: Optional['plugin.BaseAuthPlugin'] = None, **kwargs: Any
+        self, auth: plugin.BaseAuthPlugin | None = None, **kwargs: Any
     ) -> tuple[int | float, ...] | None:
         """Get the major API version as provided by the auth plugin.
 
@@ -1539,7 +1536,7 @@ class Session:
 
     def get_all_version_data(
         self,
-        auth: Optional['plugin.BaseAuthPlugin'] = None,
+        auth: plugin.BaseAuthPlugin | None = None,
         interface: str | list[str] | None = 'public',
         region_name: str | None = None,
         service_type: str | None = None,
@@ -1574,8 +1571,8 @@ class Session:
         )
 
     def get_auth_connection_params(
-        self, auth: Optional['plugin.BaseAuthPlugin'] = None
-    ) -> 'plugin.ConnectionParams':
+        self, auth: plugin.BaseAuthPlugin | None = None
+    ) -> plugin.ConnectionParams:
         """Return auth connection params as provided by the auth plugin.
 
         An auth plugin may specify connection parameters to the request like
@@ -1625,9 +1622,7 @@ class Session:
 
         return params
 
-    def invalidate(
-        self, auth: Optional['plugin.BaseAuthPlugin'] = None
-    ) -> bool:
+    def invalidate(self, auth: plugin.BaseAuthPlugin | None = None) -> bool:
         """Invalidate an authentication plugin.
 
         :param auth: The auth plugin to invalidate. Overrides the plugin on the
@@ -1638,7 +1633,7 @@ class Session:
         return auth.invalidate()
 
     def get_user_id(
-        self, auth: Optional['plugin.BaseAuthPlugin'] = None
+        self, auth: plugin.BaseAuthPlugin | None = None
     ) -> str | None:
         """Return the authenticated user_id as provided by the auth plugin.
 
@@ -1658,7 +1653,7 @@ class Session:
         return auth.get_user_id(self)
 
     def get_project_id(
-        self, auth: Optional['plugin.BaseAuthPlugin'] = None
+        self, auth: plugin.BaseAuthPlugin | None = None
     ) -> str | None:
         """Return the authenticated project_id as provided by the auth plugin.
 

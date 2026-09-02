@@ -14,16 +14,15 @@ from typing import (
     Any,
     ClassVar,
     NotRequired,
-    Optional,
-    TYPE_CHECKING,
     TypedDict,
     TypeVar,
+    TYPE_CHECKING,
 )
 
+from keystoneauth1.access import access
 from keystoneauth1 import discover
 
 if TYPE_CHECKING:
-    from keystoneauth1.access import access
     from keystoneauth1 import session as ks_session
 
 # NOTE(jamielennox): The AUTH_INTERFACE is a special value that can be
@@ -86,7 +85,7 @@ class BaseAuthPlugin:
 
     def get_auth_ref(
         self, session: 'ks_session.Session'
-    ) -> Optional['access.AccessInfo']:
+    ) -> access.AccessInfo | None:
         """Return the authentication reference of an auth plugin.
 
         :param session: A session object to be used for communication

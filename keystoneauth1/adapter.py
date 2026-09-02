@@ -14,17 +14,15 @@ import argparse
 from collections.abc import MutableMapping
 import logging
 import os
-from typing import Any, Optional, TYPE_CHECKING
+from typing import Any
 import warnings
 
 import requests
 
 from keystoneauth1 import _fair_semaphore
 from keystoneauth1 import discover
+from keystoneauth1 import plugin
 from keystoneauth1 import session as _session
-
-if TYPE_CHECKING:
-    from keystoneauth1 import plugin
 
 
 class _BaseAdapter:
@@ -130,7 +128,7 @@ class _BaseAdapter:
     region_name: str | None
     endpoint_override: str | None
     version: str | None
-    auth: 'plugin.BaseAuthPlugin | None'
+    auth: plugin.BaseAuthPlugin | None
     user_agent: str | None
     connect_retries: int | None
     logger: logging.Logger | None
@@ -158,7 +156,7 @@ class _BaseAdapter:
         region_name: str | None = None,
         endpoint_override: str | None = None,
         version: str | None = None,
-        auth: 'plugin.BaseAuthPlugin | None' = None,
+        auth: plugin.BaseAuthPlugin | None = None,
         user_agent: str | None = None,
         connect_retries: int | None = None,
         logger: logging.Logger | None = None,
@@ -314,7 +312,7 @@ class _BaseAdapter:
         return self.session.request(url, method, **kwargs)
 
     def get_token(
-        self, auth: Optional['plugin.BaseAuthPlugin'] = None
+        self, auth: plugin.BaseAuthPlugin | None = None
     ) -> str | None:
         """Return a token as provided by the auth plugin.
 
@@ -331,7 +329,7 @@ class _BaseAdapter:
         return self.session.get_token(auth or self.auth)
 
     def get_endpoint(
-        self, auth: Optional['plugin.BaseAuthPlugin'] = None, **kwargs: Any
+        self, auth: plugin.BaseAuthPlugin | None = None, **kwargs: Any
     ) -> str | None:
         """Get an endpoint as provided by the auth plugin.
 
@@ -352,8 +350,8 @@ class _BaseAdapter:
         return self.session.get_endpoint(auth or self.auth, **kwargs)
 
     def get_endpoint_data(
-        self, auth: Optional['plugin.BaseAuthPlugin'] = None
-    ) -> Optional['discover.EndpointData']:
+        self, auth: plugin.BaseAuthPlugin | None = None
+    ) -> discover.EndpointData | None:
         """Get the endpoint data for this Adapter's endpoint.
 
         :param auth: The auth plugin to use for token. Overrides the plugin on
@@ -400,7 +398,7 @@ class _BaseAdapter:
         )
 
     def get_api_major_version(
-        self, auth: Optional['plugin.BaseAuthPlugin'] = None, **kwargs: Any
+        self, auth: plugin.BaseAuthPlugin | None = None, **kwargs: Any
     ) -> tuple[int | float, ...] | None:
         """Get the major API version as provided by the auth plugin.
 
@@ -420,9 +418,7 @@ class _BaseAdapter:
 
         return self.session.get_api_major_version(auth or self.auth, **kwargs)
 
-    def invalidate(
-        self, auth: Optional['plugin.BaseAuthPlugin'] = None
-    ) -> bool:
+    def invalidate(self, auth: plugin.BaseAuthPlugin | None = None) -> bool:
         """Invalidate an authentication plugin.
 
         :param auth: The auth plugin to invalidate. Overrides the plugin on the
@@ -432,7 +428,7 @@ class _BaseAdapter:
         return self.session.invalidate(auth or self.auth)
 
     def get_user_id(
-        self, auth: Optional['plugin.BaseAuthPlugin'] = None
+        self, auth: plugin.BaseAuthPlugin | None = None
     ) -> str | None:
         """Return the authenticated user_id as provided by the auth plugin.
 
@@ -451,7 +447,7 @@ class _BaseAdapter:
         return self.session.get_user_id(auth or self.auth)
 
     def get_project_id(
-        self, auth: Optional['plugin.BaseAuthPlugin'] = None
+        self, auth: plugin.BaseAuthPlugin | None = None
     ) -> str | None:
         """Return the authenticated project_id as provided by the auth plugin.
 
