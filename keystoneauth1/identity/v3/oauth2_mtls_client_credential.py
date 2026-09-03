@@ -23,9 +23,9 @@ from keystoneauth1 import session as ks_session
 class OAuth2mTlsClientCredential(base.BaseAuth, metaclass=abc.ABCMeta):
     """A plugin for authenticating via an OAuth2.0 mTLS client credential.
 
-    :param string auth_url: keystone authorization endpoint.
-    :param string oauth2_endpoint: OAuth2.0 endpoint.
-    :param string oauth2_client_id: OAuth2.0 client credential id.
+    :param auth_url: keystone authorization endpoint.
+    :param oauth2_endpoint: OAuth2.0 endpoint.
+    :param oauth2_client_id: OAuth2.0 client credential id.
     """
 
     def __init__(
@@ -76,17 +76,13 @@ class OAuth2mTlsClientCredential(base.BaseAuth, metaclass=abc.ABCMeta):
         data then you should use get_access.
 
         :param session: A session object that can be used for communication.
-        :type session: keystoneauth1.session.Session
-
         :raises keystoneauth1.exceptions.response.InvalidResponse:
             The response returned wasn't appropriate.
         :raises keystoneauth1.exceptions.http.HttpError:
             An error from an invalid HTTP response.
         :raises keystoneauth1.exceptions.ClientException:
             An error from getting OAuth2.0 access token.
-
         :returns: Token access information.
-        :rtype: :class:`keystoneauth1.access.AccessInfo`
         """
         # Get OAuth2.0 access token and add the field 'Authorization' when
         # using the HTTPS protocol.
@@ -137,12 +133,9 @@ class OAuth2mTlsClientCredential(base.BaseAuth, metaclass=abc.ABCMeta):
         """Fetch authentication headers for message.
 
         :param session: The session object that the auth_plugin belongs to.
-        :type session: keystoneauth1.session.Session
-
         :returns: Headers that are set to authenticate a message or None for
-                  failure. Note that when checking this value that the empty
-                  dict is a valid, non-failure response.
-        :rtype: dict
+            failure. Note that when checking this value that the empty dict is
+            a valid, non-failure response.
         """
         # get headers for X-Auth-Token
         headers = super().get_headers(session)

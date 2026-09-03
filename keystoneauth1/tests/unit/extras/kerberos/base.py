@@ -34,8 +34,8 @@ class TestCase(test_utils.TestCase):
     def assertRequestBody(self, body=None):
         """Ensure the request body is the standard Kerberos auth request.
 
-        :param dict body: the body to compare. If not provided the last request
-                          body will be used.
+        :param body: the body to compare. If not provided the last request body
+            will be used.
         """
         if not body:
             body = self.requests_mock.last_request.json()

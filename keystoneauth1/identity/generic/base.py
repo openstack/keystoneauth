@@ -84,11 +84,9 @@ class BaseGenericPlugin(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
         call will be made with other available URLs.
 
         :param session: A session object.
-        :type session: keystoneauth1.session.Session
-        :param tuple version: A tuple of the API version at the URL.
-        :param str url: The base URL for this version.
-        :param str raw_status: The status that was in the discovery field.
-
+        :param version: A tuple of the API version at the URL.
+        :param url: The base URL for this version.
+        :param raw_status: The status that was in the discovery field.
         :returns: A plugin that can match the parameters or None if nothing.
         """
         return None

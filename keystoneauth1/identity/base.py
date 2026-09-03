@@ -63,15 +63,11 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         data then you should use get_access.
 
         :param session: A session object that can be used for communication.
-        :type session: keystoneauth1.session.Session
-
         :raises keystoneauth1.exceptions.response.InvalidResponse:
             The response returned wasn't appropriate.
         :raises keystoneauth1.exceptions.http.HttpError:
             An error from an invalid HTTP response.
-
         :returns: Token access information.
-        :rtype: :class:`keystoneauth1.access.AccessInfo`
         """
 
     def get_token(self, session: ks_session.Session) -> str | None:
@@ -80,13 +76,9 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         If a valid token is not present then a new one will be fetched.
 
         :param session: A session object that can be used for communication.
-        :type session: keystoneauth1.session.Session
-
         :raises keystoneauth1.exceptions.http.HttpError: An error from an
-                                                         invalid HTTP response.
-
+            invalid HTTP response.
         :return: A valid token.
-        :rtype: string
         """
         return self.get_access(session).auth_token
 
@@ -121,13 +113,9 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         one will be fetched.
 
         :param session: A session object that can be used for communication.
-        :type session: keystoneauth1.session.Session
-
         :raises keystoneauth1.exceptions.http.HttpError: An error from an
-                                                         invalid HTTP response.
-
+            invalid HTTP response.
         :returns: Valid AccessInfo
-        :rtype: :class:`keystoneauth1.access.AccessInfo`
         """
         # Hey Kids! Thread safety is important particularly in the case where
         # a service is creating an admin style plugin that will then proceed
@@ -153,9 +141,8 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         otherwise now invalid.
 
         :returns: True if there was something that the plugin did to
-                  invalidate. This means that it makes sense to try again. If
-                  nothing happens returns False to indicate give up.
-        :rtype: bool
+            invalidate. This means that it makes sense to try again. If nothing
+            happens returns False to indicate give up.
         """
         if self.auth_ref:
             self.auth_ref = None
@@ -185,63 +172,47 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         If a valid token is not present then a new one will be fetched using
         the session and kwargs.
 
-        version, min_version and max_version can all be given either as a
-        string or a tuple.
+        ``version``, ``min_version`` and ``max_version`` can all be given
+        either as a string or a tuple.
 
-        Valid interface types: `public` or `publicURL`,
-                               `internal` or `internalURL`,
-                               `admin` or 'adminURL`
+        Valid interface types: ``public`` or ``publicURL`` ``internal`` or
+        ``internalURL``, ``admin`` or '`adminURL``
 
         :param session: A session object that can be used for communication.
-        :type session: keystoneauth1.session.Session
-        :param str endpoint_override: URL to use instead of looking in the
-                                      catalog. Catalog lookup will be skipped,
-                                      but version discovery will be run.
-                                      Sets allow_version_hack to False
-                                      (optional)
-        :param bool discover_versions: Whether to get version metadata from
-                                       the version discovery document even
-                                       if it's not neccessary to fulfill the
-                                       major version request. (optional,
-                                       defaults to True)
-        :param string service_type: The type of service to lookup the endpoint
-                                    for. This plugin will return None (failure)
-                                    if service_type is not provided.
-        :param interface: Type of endpoint. Can be a single value or a list
-                          of values. If it's a list of values, they will be
-                          looked for in order of preference. Can also be
-                          `keystoneauth1.plugin.AUTH_INTERFACE` to indicate
-                          that the auth_url should be used instead of the
-                          value in the catalog. (optional, defaults to public)
-        :param string region_name: The region the endpoint should exist in.
-                                   (optional)
-        :param string service_name: The name of the service in the catalog.
-                                   (optional)
-        :param dict allow: Extra filters to pass when discovering API
-                           versions. (optional)
-        :param bool allow_version_hack: Allow keystoneauth to hack up catalog
-                                        URLS to support older schemes.
-                                        (optional, default True)
-        :param bool skip_discovery: Whether to skip version discovery even
-                                    if a version has been given. This is useful
-                                    if endpoint_override or similar has been
-                                    given and grabbing additional information
-                                    about the endpoint is not useful.
+        :param endpoint_override: URL to use instead of looking in the catalog.
+            Catalog lookup will be skipped, but version discovery will be run.
+            Sets allow_version_hack to False (optional)
+        :param discover_versions: Whether to get version metadata from the
+            version discovery document even if it's not neccessary to fulfill
+            the major version request. (optional, defaults to True)
+        :param service_type: The type of service to lookup the endpoint for.
+            This plugin will return None (failure) if service_type is not
+            provided.
+        :param interface: Type of endpoint. Can be a single value or a list of
+            values. If it's a list of values, they will be looked for in order
+            of preference. Can also be ``keystoneauth1.plugin.AUTH_INTERFACE``
+            to indicate that the auth_url should be used instead of the value
+            in the catalog. (optional, defaults to public)
+        :param region_name: The region the endpoint should exist in. (optional)
+        :param service_name: The name of the service in the catalog. (optional)
+        :param allow: Extra filters to pass when discovering API versions.
+            (optional)
+        :param allow_version_hack: Allow keystoneauth to hack up catalog URLS
+            to support older schemes. (optional, default True)
+        :param skip_discovery: Whether to skip version discovery even if a
+            version has been given. This is useful if endpoint_override or
+            similar has been given and grabbing additional information about
+            the endpoint is not useful.
         :param min_version: The minimum version that is acceptable. Mutually
-                            exclusive with version. If min_version is given
-                            with no max_version it is as if max version is
-                            'latest'. (optional)
+            exclusive with version. If min_version is given with no max_version
+            it is as if max version is 'latest'. (optional)
         :param max_version: The maximum version that is acceptable. Mutually
-                            exclusive with version. If min_version is given
-                            with no max_version it is as if max version is
-                            'latest'. (optional)
+            exclusive with version. If min_version is given with no max_version
+            it is as if max version is 'latest'. (optional)
         :param kwargs: Ignored.
-
         :raises keystoneauth1.exceptions.http.HttpError: An error from an
-                                                         invalid HTTP response.
-
+            invalid HTTP response.
         :return: Valid EndpointData or None if not available.
-        :rtype: `keystoneauth1.discover.EndpointData` or None
         """
         allow = allow or {}
 
@@ -353,54 +324,42 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         If a valid token is not present then a new one will be fetched using
         the session and kwargs.
 
-        version, min_version and max_version can all be given either as a
-        string or a tuple.
+        ``version``, ``min_version`` and ``max_version`` can all be given
+        either as a string or a tuple.
 
-        Valid interface types: `public` or `publicURL`,
-                               `internal` or `internalURL`,
-                               `admin` or 'adminURL`
+        Valid interface types: ``public`` or ``publicURL`` ``internal`` or
+        ``internalURL``, ``admin`` or '`adminURL``
 
         :param session: A session object that can be used for communication.
-        :type session: keystoneauth1.session.Session
-        :param string service_type: The type of service to lookup the endpoint
-                                    for. This plugin will return None (failure)
-                                    if service_type is not provided.
-        :param interface: Type of endpoint. Can be a single value or a list
-                          of values. If it's a list of values, they will be
-                          looked for in order of preference. Can also be
-                          `keystoneauth1.plugin.AUTH_INTERFACE` to indicate
-                          that the auth_url should be used instead of the
-                          value in the catalog. (optional, defaults to public)
-        :param string region_name: The region the endpoint should exist in.
-                                   (optional)
-        :param string service_name: The name of the service in the catalog.
-                                   (optional)
-        :param version: The minimum version number required for this
-                        endpoint. (optional)
-        :param dict allow: Extra filters to pass when discovering API
-                           versions. (optional)
-        :param bool allow_version_hack: Allow keystoneauth to hack up catalog
-                                        URLS to support older schemes.
-                                        (optional, default True)
-        :param bool skip_discovery: Whether to skip version discovery even
-                                    if a version has been given. This is useful
-                                    if endpoint_override or similar has been
-                                    given and grabbing additional information
-                                    about the endpoint is not useful.
+        :param service_type: The type of service to lookup the endpoint for.
+            This plugin will return None (failure) if service_type is not
+            provided.
+        :param interface: Type of endpoint. Can be a single value or a list of
+            values. If it's a list of values, they will be looked for in order
+            of preference. Can also be `keystoneauth1.plugin.AUTH_INTERFACE` to
+            indicate that the auth_url should be used instead of the value in
+            the catalog. (optional, defaults to public)
+        :param region_name: The region the endpoint should exist in. (optional)
+        :param service_name: The name of the service in the catalog. (optional)
+        :param version: The minimum version number required for this endpoint.
+            (optional)
+        :param allow: Extra filters to pass when discovering API versions.
+            (optional)
+        :param allow_version_hack: Allow keystoneauth to hack up catalog URLS
+            to support older schemes. (optional, default True)
+        :param skip_discovery: Whether to skip version discovery even if a
+            version has been given. This is useful if endpoint_override or
+            similar has been given and grabbing additional information about
+            the endpoint is not useful.
         :param min_version: The minimum version that is acceptable. Mutually
-                            exclusive with version. If min_version is given
-                            with no max_version it is as if max version is
-                            'latest'. (optional)
+            exclusive with version. If min_version is given with no max_version
+            it is as if max version is 'latest'. (optional)
         :param max_version: The maximum version that is acceptable. Mutually
-                            exclusive with version. If min_version is given
-                            with no max_version it is as if max version is
-                            'latest'. (optional)
-
+            exclusive with version. If min_version is given with no max_version
+            it is as if max version is 'latest'. (optional)
         :raises keystoneauth1.exceptions.http.HttpError: An error from an
-                                                         invalid HTTP response.
-
+            invalid HTTP response.
         :return: A valid endpoint URL or None if not available.
-        :rtype: string or None
         """
         # Explode `version` into min_version and max_version - everything below
         # here uses the latter rather than the former.
@@ -451,91 +410,82 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         If a valid token is not present then a new one will be fetched using
         the session and kwargs.
 
-        version, min_version and max_version can all be given either as a
-        string or a tuple.
+        ``version``, ``min_version`` and ``max_version`` can all be given
+        either as a string or a tuple.
 
-        Valid interface types: `public` or `publicURL`,
-                               `internal` or `internalURL`,
-                               `admin` or 'adminURL`
+        Valid interface types: ``public`` or ``publicURL`` ``internal`` or
+        ``internalURL``, ``admin`` or '`adminURL``
 
         :param session: A session object that can be used for communication.
-        :type session: keystoneauth1.session.Session
-        :param str endpoint_override: URL to use for version discovery.
-        :param string service_type: The type of service to lookup the endpoint
-                                    for. This plugin will return None (failure)
-                                    if service_type is not provided.
-        :param interface: Type of endpoint. Can be a single value or a list
-                          of values. If it's a list of values, they will be
-                          looked for in order of preference. Can also be
-                          `keystoneauth1.plugin.AUTH_INTERFACE` to indicate
-                          that the auth_url should be used instead of the
-                          value in the catalog. (optional, defaults to public)
-        :param string region_name: The region the endpoint should exist in.
-                                   (optional)
-        :param string service_name: The name of the service in the catalog.
-                                   (optional)
-        :param version: The minimum version number required for this
-                        endpoint. (optional)
-        :param dict allow: Extra filters to pass when discovering API
-                           versions. (optional)
-        :param bool allow_version_hack: Allow keystoneauth to hack up catalog
-                                        URLS to support older schemes.
-                                        (optional, default True)
-        :param bool skip_discovery: Whether to skip version discovery even
-                                    if a version has been given. This is useful
-                                    if endpoint_override or similar has been
-                                    given and grabbing additional information
-                                    about the endpoint is not useful.
-        :param bool discover_versions: Whether to get version metadata from
-                                       the version discovery document even
-                                       if it's not neccessary to fulfill the
-                                       major version request. Defaults to False
-                                       because get_endpoint doesn't need
-                                       metadata. (optional, defaults to False)
+        :param endpoint_override: URL to use for version discovery.
+        :param service_type: The type of service to lookup the endpoint for.
+            This plugin will return None (failure) if service_type is not
+            provided.
+        :param interface: Type of endpoint. Can be a single value or a list of
+            values. If it's a list of values, they will be looked for in order
+            of preference. Can also be `keystoneauth1.plugin.AUTH_INTERFACE` to
+            indicate that the auth_url should be used instead of the value in
+            the catalog. (optional, defaults to public)
+        :param region_name: The region the endpoint should exist in. (optional)
+        :param service_name: The name of the service in the catalog. (optional)
+        :param version: The minimum version number required for this endpoint.
+            (optional)
+        :param allow: Extra filters to pass when discovering API versions.
+            (optional)
+        :param allow_version_hack: Allow keystoneauth to hack up catalog URLS
+            to support older schemes. (optional, default True)
+        :param skip_discovery: Whether to skip version discovery even if a
+            version has been given. This is useful if endpoint_override or
+            similar has been given and grabbing additional information about
+            the endpoint is not useful.
+        :param discover_versions: Whether to get version metadata from the
+            version discovery document even if it's not neccessary to fulfill
+            the major version request. Defaults to False because get_endpoint
+            doesn't need metadata. (optional, defaults to False)
         :param min_version: The minimum version that is acceptable. Mutually
-                            exclusive with version. If min_version is given
-                            with no max_version it is as if max version is
-                            'latest'. (optional)
+            exclusive with version. If min_version is given with no max_version
+            it is as if max version is 'latest'. (optional)
         :param max_version: The maximum version that is acceptable. Mutually
-                            exclusive with version. If min_version is given
-                            with no max_version it is as if max version is
-                            'latest'. (optional)
-
+            exclusive with version. If min_version is given with no max_version
+            it is as if max version is 'latest'. (optional)
         :raises keystoneauth1.exceptions.http.HttpError: An error from an
-                                                         invalid HTTP response.
-
+            invalid HTTP response.
         :return: The major version of the API of the service discovered.
-        :rtype: tuple or None
 
-        .. note:: Implementation notes follow. Users should not need to wrap
-                  their head around these implementation notes.
-                  `get_api_major_version` should do what is expected with the
-                  least possible cost while still consistently returning a
-                  value if possible.
+        .. note::
 
-        There are many cases when major version can be satisfied
-        without actually calling the discovery endpoint (like when the version
-        is in the url). If the user has a cloud with the versioned endpoint
+            Implementation notes follow. Users should not need to wrap their
+            head around these implementation notes. ``get_api_major_version``
+            should do what is expected with the least possible cost while still
+            consistently returning a value if possible.
+
+        There are many cases when major version can be satisfied without
+        actually calling the discovery endpoint (like when the version is in
+        the url). If the user has a cloud with the versioned endpoint
         ``https://volume.example.com/v3`` in the catalog for the
-        ``block-storage`` service and they do::
+        ``block-storage`` service and they do:
 
-          client = adapter.Adapter(
-              session,
-              service_type='block-storage',
-              min_version=2,
-              max_version=3,
-          )
-          volume_version = client.get_api_major_version()
+        .. code-block:: python
+
+            client = adapter.Adapter(
+                session,
+                service_type='block-storage',
+                min_version=2,
+                max_version=3,
+            )
+            volume_version = client.get_api_major_version()
 
         The version actually be returned with no api calls other than getting
         the token. For that reason, :meth:`.get_api_major_version` first
         calls :meth:`.get_endpoint_data` with ``discover_versions=False``.
 
         If their catalog has an unversioned endpoint
-        ``https://volume.example.com`` for the ``block-storage`` service
-        and they do this::
+        ``https://volume.example.com`` for the ``block-storage`` service and
+        they do this:
 
-          client = adapter.Adapter(session, service_type='block-storage')
+        .. code-block:: python
+
+            client = adapter.Adapter(session, service_type='block-storage')
 
         client is now set up to "use whatever is in the catalog". Since the
         url doesn't have a version, :meth:`.get_endpoint_data` with
@@ -546,7 +496,6 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         make a round trip. Therefore, if ``api_version`` is ``None`` after
         the first call, :meth:`.get_api_major_version` will make a second
         call to :meth:`.get_endpoint_data` with ``discover_versions=True``.
-
         """
         allow = allow or {}
         # Explode `version` into min_version and max_version - everything below
@@ -591,18 +540,14 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         """Get version data for all services in the catalog.
 
         :param session: A session object that can be used for communication.
-        :type session: keystoneauth1.session.Session
-        :param interface:
-            Type of endpoint to get version data for. Can be a single value
-            or a list of values. A value of None indicates that all interfaces
-            should be queried. (optional, defaults to public)
-        :param string region_name:
-            Region of endpoints to get version data for. A valueof None
-            indicates that all regions should be queried. (optional, defaults
-            to None)
-        :param string service_type:
-            Limit the version data to a single service. (optional, defaults
-            to None)
+        :param interface: Type of endpoint to get version data for. Can be a
+            single value or a list of values. A value of None indicates that
+            all interfaces should be queried. (optional, defaults to public)
+        :param region_name: Region of endpoints to get version data for. A
+            value of None indicates that all regions should be queried.
+            (optional, defaults to None)
+        :param service_type: Limit the version data to a single service.
+            (optional, defaults to None)
         :returns: A dictionary keyed by region_name with values containing
             dictionaries keyed by interface with values being a list of
             :class:`~keystoneauth1.discover.VersionData`.
@@ -691,17 +636,13 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         be needed by users.
 
         :param session: A session object to discover with.
-        :type session: keystoneauth1.session.Session
-        :param str url: The url to lookup.
-        :param bool authenticated: Include a token in the discovery call.
-                                   (optional) Defaults to None (use a token
-                                   if a plugin is installed).
-
+        :param url: The url to lookup.
+        :param authenticated: Include a token in the discovery call. (optional)
+            Defaults to None (use a token if a plugin is installed).
         :raises keystoneauth1.exceptions.discovery.DiscoveryFailure:
             if for some reason the lookup fails.
         :raises keystoneauth1.exceptions.http.HttpError: An error from an
-                                                         invalid HTTP response.
-
+            invalid HTTP response.
         :returns: A discovery object with the results of looking up that URL.
         """
         return discover.get_discovery(
@@ -719,10 +660,9 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
 
         This should be overridden by plugins that wish to allow caching.
 
-        :returns: The unique attributes and values of this plugin.
-        :rtype: A flat dict with a str key and str or None value. This is
-                required as we feed these values into a hash. Pairs where the
-                value is None are ignored in the hashed id.
+        :returns: A flat dict with a str key and str or None value. This is
+            required as we feed these values into a hash. Pairs where the value
+            is None are ignored in the hashed id.
         """
         raise NotImplementedError()
 
@@ -736,8 +676,8 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         uniquely identity this plugin change. It should not change upon a
         reauthentication of the plugin.
 
-        :returns: A unique string for the set of options
-        :rtype: str or None if this is unsupported or unavailable.
+        :returns: A unique string for the set of options, else None if this is
+            unsupported or unavailable.
         """
         try:
             elements = self.get_cache_id_elements()
@@ -773,9 +713,8 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         This should not fetch any new data if it is not present.
 
         :returns: a string that can be stored or None if there is no auth state
-                  present in the plugin. This string can be reloaded with
-                  set_auth_state to set the same authentication.
-        :rtype: str or None if no auth present.
+            present in the plugin. This string can be reloaded with
+            set_auth_state to set the same authentication.
         """
         if not self.auth_ref:
             return None

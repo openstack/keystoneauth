@@ -86,7 +86,6 @@ def get_available_plugin_names() -> frozenset[str]:
     example what plugins they may specify.
 
     :returns: A list of names.
-    :rtype: frozenset
     """
     mgr = stevedore.EnabledExtensionManager(
         namespace=PLUGIN_NAMESPACE,
@@ -104,8 +103,7 @@ def get_available_plugin_loaders() -> dict[
     """Retrieve all the plugin classes available on the system.
 
     :returns: A dict with plugin entrypoint name as the key and the plugin
-              loader as the value.
-    :rtype: dict
+        loader as the value.
     """
     mgr: stevedore.EnabledExtensionManager[BaseLoader[plugin.BaseAuthPluginT]]
     mgr = stevedore.EnabledExtensionManager(
@@ -127,11 +125,8 @@ def get_available_plugin_loaders() -> dict[
 def get_plugin_loader(name: str) -> 'BaseLoader[plugin.BaseAuthPluginT]':
     """Retrieve a plugin class by its entrypoint name.
 
-    :param str name: The name of the object to get.
-
+    :param name: The name of the object to get.
     :returns: An auth plugin class.
-    :rtype: :py:class:`keystoneauth1.loading.BaseLoader`
-
     :raises keystoneauth1.exceptions.auth_plugins.NoMatchingPlugin:
         if a plugin cannot be created.
     """
@@ -197,7 +192,6 @@ class _BaseLoader(Generic[T], metaclass=abc.ABCMeta):
 
         :returns: A list of Param objects describing available plugin
                   parameters.
-        :rtype: list
         """
         return []
 
@@ -209,7 +203,7 @@ class _BaseLoader(Generic[T], metaclass=abc.ABCMeta):
         be available to the current system it should override this property and
         return False to exclude itself from the plugin list.
 
-        :rtype: bool
+        :returns: True if the plugin is available for loading, else False.
         """
         return True
 
@@ -243,10 +237,7 @@ class _BaseLoader(Generic[T], metaclass=abc.ABCMeta):
         :py:class:`keystoneauth1.loading.Opt` and returns a value to load with.
 
         :param getter: A function that returns a value for the given opt.
-        :type getter: callable
-
         :returns: An authentication Plugin.
-        :rtype: :py:class:`keystoneauth1.plugin.BaseAuthPlugin`
         """
         for opt in (o for o in self.get_options() if o.dest not in kwargs):
             val = getter(opt)

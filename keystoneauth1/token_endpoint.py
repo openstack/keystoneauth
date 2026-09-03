@@ -46,22 +46,14 @@ class Token(plugin.BaseAuthPlugin):
         """Return a valid endpoint data for a the service.
 
         :param session: A session object that can be used for communication.
-        :type session: keystoneauth1.session.Session
-        :param str endpoint_override: URL to use for version discovery other
-                                      than the endpoint stored in the plugin.
-                                      (optional, defaults to None)
-        :param bool discover_versions: Whether to get version metadata from
-                                       the version discovery document even
-                                       if it major api version info can be
-                                       inferred from the url.
-                                       (optional, defaults to True)
-        :param kwargs: Ignored.
-
+        :param endpoint_override: URL to use for version discovery other than
+            the endpoint stored in the plugin. (optional, defaults to None)
+        :param discover_versions: Whether to get version metadata from the
+            version discovery document even if it major api version info can be
+            inferred from the url. (optional, defaults to True)
         :raises keystoneauth1.exceptions.http.HttpError: An error from an
-                                                         invalid HTTP response.
-
+            invalid HTTP response.
         :return: Valid EndpointData or None if not available.
-        :rtype: `keystoneauth1.discover.EndpointData` or None
         """
         return super().get_endpoint_data(
             session,
@@ -86,7 +78,6 @@ class Token(plugin.BaseAuthPlugin):
         """Return the authentication reference of an auth plugin.
 
         :param session: A session object to be used for communication
-        :type session: keystoneauth1.session.session
         """
         # token plugin does not have an auth ref, because it's a
         # "static" authentication using a pre-existing token.

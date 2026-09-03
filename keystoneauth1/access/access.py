@@ -83,7 +83,6 @@ class AccessInfo:
         """Determine if expiration is about to occur.
 
         :returns: true if expiration is within the given duration
-        :rtype: boolean
         """
         if self.expires is None:
             return False
@@ -107,7 +106,7 @@ class AccessInfo:
 
         To be used in headers for authenticating OpenStack API requests.
 
-        :returns: str
+        :returns: The token ID associated with the auth request.
         """
         return self._auth_token
 

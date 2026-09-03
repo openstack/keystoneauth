@@ -40,7 +40,7 @@ class MissingAuthPlugin(AuthPluginException):
 class NoMatchingPlugin(AuthPluginException):
     """No auth plugins could be created from the parameters provided.
 
-    :param str name: The name of the plugin that was attempted to load.
+    :param name: The name of the plugin that was attempted to load.
 
     .. py:attribute:: name
 
@@ -56,7 +56,7 @@ class NoMatchingPlugin(AuthPluginException):
 class UnsupportedParameters(AuthPluginException):
     """A parameter that was provided or returned is not supported.
 
-    :param list(str) names: Names of the unsupported parameters.
+    :param names: Names of the unsupported parameters.
 
     .. py:attribute:: names
 
@@ -86,7 +86,7 @@ class OptionError(AuthPluginException):
 class MissingRequiredOptions(OptionError):
     """One or more required options were not provided.
 
-    :param list(keystoneauth1.loading.Opt) options: Missing options.
+    :param options: Missing options.
 
     .. py:attribute:: options
 

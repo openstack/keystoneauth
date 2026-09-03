@@ -26,12 +26,12 @@ LOG = utils.get_logger(__name__)
 class Auth(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
     """Identity V2 Authentication Plugin.
 
-    :param string auth_url: Identity service endpoint for authorization.
-    :param string trust_id: Trust ID for trust scoping.
-    :param string tenant_id: Tenant ID for project scoping.
-    :param string tenant_name: Tenant name for project scoping.
-    :param bool reauthenticate: Allow fetching a new token if the current one
-                                is going to expire. (optional) default True
+    :param auth_url: Identity service endpoint for authorization.
+    :param trust_id: Trust ID for trust scoping.
+    :param tenant_id: Tenant ID for project scoping.
+    :param tenant_name: Tenant name for project scoping.
+    :param reauthenticate: Allow fetching a new token if the current one is
+        going to expire. (optional) default True
     """
 
     auth_url: str
@@ -84,10 +84,9 @@ class Auth(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
     ) -> dict[str, object]:
         """Return the authentication section of an auth plugin.
 
-        :param dict headers: The headers that will be sent with the auth
-                             request if a plugin needs to add to them.
+        :param headers: The headers that will be sent with the auth request if
+            a plugin needs to add to them.
         :return: A dict of authentication data for the auth type.
-        :rtype: dict
         """
 
     @property
@@ -109,16 +108,15 @@ class Password(Auth):
 
     A username or user_id must be provided.
 
-    :param string auth_url: Identity service endpoint for authorization.
-    :param string username: Username for authentication.
-    :param string password: Password for authentication.
-    :param string user_id: User ID for authentication.
-    :param string trust_id: Trust ID for trust scoping.
-    :param string tenant_id: Tenant ID for tenant scoping.
-    :param string tenant_name: Tenant name for tenant scoping.
-    :param bool reauthenticate: Allow fetching a new token if the current one
-                                is going to expire. (optional) default True
-
+    :param auth_url: Identity service endpoint for authorization.
+    :param username: Username for authentication.
+    :param password: Password for authentication.
+    :param user_id: User ID for authentication.
+    :param trust_id: Trust ID for trust scoping.
+    :param tenant_id: Tenant ID for tenant scoping.
+    :param tenant_name: Tenant name for tenant scoping.
+    :param reauthenticate: Allow fetching a new token if the current one is
+        going to expire. (optional) default True
     :raises TypeError: if a user_id or username is not provided.
     """
 
@@ -189,13 +187,13 @@ class Password(Auth):
 class Token(Auth):
     """A plugin for authenticating with an existing token.
 
-    :param string auth_url: Identity service endpoint for authorization.
-    :param string token: Existing token for authentication.
-    :param string tenant_id: Tenant ID for tenant scoping.
-    :param string tenant_name: Tenant name for tenant scoping.
-    :param string trust_id: Trust ID for trust scoping.
-    :param bool reauthenticate: Allow fetching a new token if the current one
-                                is going to expire. (optional) default True
+    :param auth_url: Identity service endpoint for authorization.
+    :param token: Existing token for authentication.
+    :param tenant_id: Tenant ID for tenant scoping.
+    :param tenant_name: Tenant name for tenant scoping.
+    :param trust_id: Trust ID for trust scoping.
+    :param reauthenticate: Allow fetching a new token if the current one is
+        going to expire. (optional) default True
     """
 
     def __init__(

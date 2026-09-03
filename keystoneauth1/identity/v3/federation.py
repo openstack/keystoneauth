@@ -180,10 +180,7 @@ class _Rescoped(base.BaseAuth, metaclass=abc.ABCMeta):
         is present then the token is rescoped to that target.
 
         :param session: a session object to send out HTTP requests.
-        :type session: keystoneauth1.session.Session
-
         :returns: a token data representation
-        :rtype: :py:class:`keystoneauth1.access.AccessInfo`
 
         """
         auth_ref = self._unscoped_auth_ref
@@ -269,16 +266,10 @@ class FederationBaseAuth(_Rescoped):
     """Federation authentication plugin.
 
     :param auth_url: URL of the Identity Service
-    :type auth_url: string
-    :param identity_provider: name of the Identity Provider the client
-                              will authenticate against. This parameter
-                              will be used to build a dynamic URL used to
-                              obtain unscoped OpenStack token.
-    :type identity_provider: string
-    :param protocol: name of the protocol the client will authenticate
-                     against.
-    :type protocol: string
-
+    :param identity_provider: name of the Identity Provider the client will
+        authenticate against. This parameter will be used to build a dynamic
+        URL used to obtain unscoped OpenStack token.
+    :param protocol: name of the protocol the client will authenticate against.
     """
 
     def __init__(

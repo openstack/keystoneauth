@@ -38,87 +38,68 @@ class _BaseAdapter:
     given either as a string or a tuple.
 
     :param session: The session object to wrap.
-    :type session: keystoneauth1.session.Session
-    :param str service_type: The default service_type for URL discovery.
-    :param str service_name: The default service_name for URL discovery.
-    :param str interface: The default interface for URL discovery.
-    :param str region_name: The default region_name for URL discovery.
-    :param str endpoint_override:
-        Always use this endpoint URL for requests for this client.
-    :param version:
-        The minimum version restricted to a given Major API.
-        Mutually exclusive with min_version and max_version.
-        (optional)
+    :param service_type: The default service_type for URL discovery.
+    :param service_name: The default service_name for URL discovery.
+    :param interface: The default interface for URL discovery.
+    :param region_name: The default region_name for URL discovery.
+    :param endpoint_override: Always use this endpoint URL for requests for
+        this client.
+    :param version: The minimum version restricted to a given Major API.
+        Mutually exclusive with min_version and max_version. (optional)
     :param auth: An auth plugin to use instead of the session one.
-    :type auth: keystoneauth1.plugin.BaseAuthPlugin
-    :param str user_agent: The User-Agent string to set.
-    :param int connect_retries:
-        The maximum number of retries that should be attempted for
-        connection errors. Default None - use session default which
-        is don't retry.
-    :param logger:
-        A logging object to use for requests that pass through this
+    :param user_agent: The User-Agent string to set.
+    :param connect_retries: The maximum number of retries that should be
+        attempted for connection errors. Default None - use session default
+        which is don't retry.
+    :param logger: A logging object to use for requests that pass through this
         adapter.
-    :type logger: logging.Logger
-    :param dict allow:
-        Extra filters to pass when discovering API versions.  (optional)
-    :param dict additional_headers:
-        Additional headers that should be attached to every request
-        passing through the adapter. Headers of the same name specified
-        per request will take priority.
-    :param str client_name:
-        The name of the client that created the adapter. This will be
-        used to create the user_agent.
-    :param str client_version:
-        The version of the client that created the adapter. This will
-        be used to create the user_agent.
-    :param bool allow_version_hack:
-        Allow keystoneauth to hack up catalog URLS to support older schemes.
-        (optional, default True)
-    :param str global_request_id:
-        A global_request_id (in the form of ``req-$uuid``) that will be
-        passed on all requests. Enables cross project request id tracking.
-    :param min_version:
-        The minimum major version of a given API, intended to be used as
-        the lower bound of a range with max_version. Mutually exclusive with
-        version. If min_version is given with no max_version it is as
-        if max version is 'latest'. (optional)
-    :param max_version:
-        The maximum major version of a given API, intended to be used as
-        the upper bound of a range with min_version. Mutually exclusive with
-        version. (optional)
-    :param default_microversion:
-        The default microversion value to send with API requests. While
-        microversions are a per-request feature, a user may know they
-        want to default to sending a specific value.  (optional)
-    :param int status_code_retries:
-        The maximum number of retries that should be attempted for retriable
-        HTTP status codes (optional, defaults to 0 - never retry).
-    :param list retriable_status_codes:
-        List of HTTP status codes that should be retried (optional,
-        defaults to HTTP 503, has no effect when status_code_retries is 0).
-    :param bool raise_exc:
-        If True, requests returning failing HTTP responses will raise an
-        exception; if False, the response is returned. This can be
+    :param allow: Extra filters to pass when discovering API versions.
+        (optional)
+    :param additional_headers: Additional headers that should be attached to
+        every request passing through the adapter. Headers of the same name
+        specified per request will take priority.
+    :param client_name: The name of the client that created the adapter. This
+        will be used to create the user_agent.
+    :param client_version: The version of the client that created the adapter.
+        This will be used to create the user_agent.
+    :param allow_version_hack: Allow keystoneauth to hack up catalog URLS to
+        support older schemes. (optional, default True)
+    :param global_request_id: A global_request_id (in the form of
+        ``req-$uuid``) that will be passed on all requests. Enables cross
+        project request id tracking.
+    :param min_version: The minimum major version of a given API, intended to
+        be used as the lower bound of a range with max_version. Mutually
+        exclusive with version. If min_version is given with no max_version it
+        is as if max version is 'latest'. (optional)
+    :param max_version: The maximum major version of a given API, intended to
+        be used as the upper bound of a range with min_version. Mutually
+        exclusive with version. (optional)
+    :param default_microversion: The default microversion value to send with
+        API requests. While microversions are a per-request feature, a user may
+        know they want to default to sending a specific value.  (optional)
+    :param status_code_retries: The maximum number of retries that should be
+        attempted for retriable HTTP status codes (optional, defaults to 0 -
+        never retry).
+    :param retriable_status_codes: List of HTTP status codes that should be
+        retried (optional, defaults to HTTP 503, has no effect when
+        status_code_retries is 0).
+    :param raise_exc: If True, requests returning failing HTTP responses will
+        raise an exception; if False, the response is returned. This can be
         overridden on a per-request basis via the kwarg of the same name.
-    :param float rate_limit:
-        A client-side rate limit to impose on requests made through this
-        adapter in requests per second. For instance, a rate_limit of 2
-        means to allow no more than 2 requests per second, and a rate_limit
-        of 0.5 means to allow no more than 1 request every two seconds.
-        (optional, defaults to None, which means no rate limiting will be
-        applied).
-    :param int concurrency:
-        How many simultaneous http requests this Adapter can be used for.
-        (optional, defaults to None, which means no limit).
-    :param float connect_retry_delay:
-        Delay (in seconds) between two connect retries (if enabled).
-        By default exponential retry starting with 0.5 seconds up to
-        a maximum of 60 seconds is used.
-    :param float status_code_retry_delay:
-        Delay (in seconds) between two status code retries (if enabled).
-        By default exponential retry starting with 0.5 seconds up to
-        a maximum of 60 seconds is used.
+    :param rate_limit: A client-side rate limit to impose on requests made
+        through this adapter in requests per second. For instance, a rate_limit
+        of 2 means to allow no more than 2 requests per second, and a
+        rate_limit of 0.5 means to allow no more than 1 request every two
+        seconds. (optional, defaults to None, which means no rate limiting will
+        be applied).
+    :param concurrency: How many simultaneous http requests this Adapter can be
+        used for. (optional, defaults to None, which means no limit).
+    :param connect_retry_delay: Delay (in seconds) between two connect retries
+        (if enabled). By default exponential retry starting with 0.5 seconds up
+        to a maximum of 60 seconds is used.
+    :param status_code_retry_delay: Delay (in seconds) between two status code
+        retries (if enabled). By default exponential retry starting with 0.5
+        seconds up to a maximum of 60 seconds is used.
     """
 
     session: _session.Session
@@ -316,15 +297,11 @@ class _BaseAdapter:
     ) -> str | None:
         """Return a token as provided by the auth plugin.
 
-        :param auth: The auth plugin to use for token. Overrides the plugin
-                     on the session. (optional)
-        :type auth: keystoneauth1.plugin.BaseAuthPlugin
-
+        :param auth: The auth plugin to use for token. Overrides the plugin on
+            the session. (optional)
         :raises keystoneauth1.exceptions.auth.AuthorizationFailure: if a new
             token fetch fails.
-
         :returns: A valid token.
-        :rtype: :class:`str`
         """
         return self.session.get_token(auth or self.auth)
 
@@ -334,14 +311,10 @@ class _BaseAdapter:
         """Get an endpoint as provided by the auth plugin.
 
         :param auth: The auth plugin to use for token. Overrides the plugin on
-                     the session. (optional)
-        :type auth: keystoneauth1.plugin.BaseAuthPlugin
-
+            the session. (optional)
         :raises keystoneauth1.exceptions.auth_plugins.MissingAuthPlugin: if a
             plugin is not available.
-
         :returns: An endpoint if available or None.
-        :rtype: :class:`str`
         """
         if self.endpoint_override:
             return self.endpoint_override
@@ -355,15 +328,11 @@ class _BaseAdapter:
         """Get the endpoint data for this Adapter's endpoint.
 
         :param auth: The auth plugin to use for token. Overrides the plugin on
-                     the session. (optional)
-        :type auth: keystoneauth1.plugin.BaseAuthPlugin
-
+            the session. (optional)
         :raises keystoneauth1.exceptions.auth_plugins.MissingAuthPlugin: if a
             plugin is not available.
         :raises TypeError: If arguments are invalid
-
         :returns: Endpoint data if available or None.
-        :rtype: keystoneauth1.discover.EndpointData
         """
         kwargs: dict[str, Any] = {}
         self._set_endpoint_filter_kwargs(kwargs)
@@ -379,14 +348,12 @@ class _BaseAdapter:
     ) -> dict[str, dict[str, dict[str, list[discover.VersionData]]]]:
         """Get data about all versions of a service.
 
-        :param interface:
-            Type of endpoint to get version data for. Can be a single value
-            or a list of values. A value of None indicates that all interfaces
-            should be queried. (optional, defaults to public)
-        :param string region_name:
-            Region of endpoints to get version data for. A valueof None
-            indicates that all regions should be queried. (optional, defaults
-            to None)
+        :param interface: Type of endpoint to get version data for. Can be a
+            single value or a list of values. A value of None indicates that
+            all interfaces should be queried. (optional, defaults to public)
+        :param region_name: Region of endpoints to get version data for. A
+            value of None indicates that all regions should be queried.
+            (optional, defaults to None)
         :returns: A dictionary keyed by region_name with values containing
             dictionaries keyed by interface with values being a list of
             :class:`~keystoneauth1.discover.VersionData`.
@@ -403,14 +370,10 @@ class _BaseAdapter:
         """Get the major API version as provided by the auth plugin.
 
         :param auth: The auth plugin to use for token. Overrides the plugin on
-                     the session. (optional)
-        :type auth: keystoneauth1.plugin.BaseAuthPlugin
-
+            the session. (optional)
         :raises keystoneauth1.exceptions.auth_plugins.MissingAuthPlugin: if a
             plugin is not available.
-
         :return: The major version of the API of the service discovered.
-        :rtype: tuple or None
         """
         self._set_endpoint_filter_kwargs(kwargs)
         if self.endpoint_override:
@@ -422,8 +385,7 @@ class _BaseAdapter:
         """Invalidate an authentication plugin.
 
         :param auth: The auth plugin to invalidate. Overrides the plugin on the
-                     session. (optional)
-        :type auth: keystoneauth1.plugin.BaseAuthPlugin
+            session. (optional)
         """
         return self.session.invalidate(auth or self.auth)
 
@@ -432,17 +394,13 @@ class _BaseAdapter:
     ) -> str | None:
         """Return the authenticated user_id as provided by the auth plugin.
 
-        :param auth: The auth plugin to use for token. Overrides the plugin
-                     on the session. (optional)
-        :type auth: keystoneauth1.plugin.BaseAuthPlugin
-
+        :param auth: The auth plugin to use for token. Overrides the plugin on
+            the session. (optional)
         :raises keystoneauth1.exceptions.auth.AuthorizationFailure:
             if a new token fetch fails.
         :raises keystoneauth1.exceptions.auth_plugins.MissingAuthPlugin:
             if a plugin is not available.
-
         :returns: Current `user_id` or None if not supported by plugin.
-        :rtype: :class:`str`
         """
         return self.session.get_user_id(auth or self.auth)
 
@@ -451,17 +409,13 @@ class _BaseAdapter:
     ) -> str | None:
         """Return the authenticated project_id as provided by the auth plugin.
 
-        :param auth: The auth plugin to use for token. Overrides the plugin
-                     on the session. (optional)
-        :type auth: keystoneauth1.plugin.BaseAuthPlugin
-
+        :param auth: The auth plugin to use for token. Overrides the plugin on
+            the session. (optional)
         :raises keystoneauth1.exceptions.auth.AuthorizationFailure:
             if a new token fetch fails.
         :raises keystoneauth1.exceptions.auth_plugins.MissingAuthPlugin:
             if a plugin is not available.
-
         :returns: Current `project_id` or None if not supported by plugin.
-        :rtype: :class:`str`
         """
         return self.session.get_project_id(auth or self.auth)
 
@@ -473,8 +427,7 @@ class _BaseAdapter:
         """Attach arguments to a given argparse Parser for Adapters.
 
         :param parser: The argparse parser to attach options to.
-        :type parser: argparse.ArgumentParser
-        :param str service_type: Default service_type value. (optional)
+        :param service_type: Default service_type value. (optional)
         """
         adapter_group = parser.add_argument_group(
             'Service Options',
@@ -532,9 +485,8 @@ class _BaseAdapter:
         """Attach arguments to a given argparse Parser for Adapters.
 
         :param parser: The argparse parser to attach options to.
-        :type parser: argparse.ArgumentParser
-        :param str service_type: Name of a service to generate additional
-                                 arguments for.
+        :param service_type: Name of a service to generate additional arguments
+            for.
         """
         service_env = service_type.upper().replace('-', '_')
         adapter_group = parser.add_argument_group(

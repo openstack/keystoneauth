@@ -75,9 +75,19 @@ class ServiceTokenAuthWrapper(plugin.BaseAuthPlugin):
         return self.user_auth.get_endpoint(session, **kwargs)
 
     def get_endpoint_data(
-        self, session: ks_session.Session, **kwargs: Any
+        self,
+        session: ks_session.Session,
+        *,
+        endpoint_override: str | None = None,
+        discover_versions: bool = True,
+        **kwargs: Any,
     ) -> discover.EndpointData | None:
-        return self.user_auth.get_endpoint_data(session, **kwargs)
+        return self.user_auth.get_endpoint_data(
+            session,
+            endpoint_override=endpoint_override,
+            discover_versions=discover_versions,
+            **kwargs,
+        )
 
     def get_api_major_version(
         self, session: ks_session.Session, **kwargs: Any

@@ -79,30 +79,16 @@ class Password(base.BaseSAMLPlugin):
         """Constructor for ``ADFSPassword``.
 
         :param auth_url: URL of the Identity Service
-        :type auth_url: string
-
-        :param identity_provider: name of the Identity Provider the client
-                                  will authenticate against. This parameter
-                                  will be used to build a dynamic URL used to
-                                  obtain unscoped OpenStack token.
-        :type identity_provider: string
-
+        :param identity_provider: Name of the Identity Provider the client will
+            authenticate against. This parameter will be used to build a
+            dynamic URL used to obtain unscoped OpenStack token.
         :param identity_provider_url: An Identity Provider URL, where the SAML2
-                                      authentication request will be sent.
-        :type identity_provider_url: string
-
+            authentication request will be sent.
         :param service_provider_endpoint: Endpoint where an assertion is being
             sent, for instance: ``https://host.domain/Shibboleth.sso/ADFS``
-        :type service_provider_endpoint: string
         :param service_provider_entity_id: Service Provider SAML Entity ID
-        :type service_provider_entity_id: string
-
         :param username: User's login
-        :type username: string
-
         :param password: User's password
-        :type password: string
-
         """
         super().__init__(
             auth_url=auth_url,
@@ -152,11 +138,9 @@ class Password(base.BaseSAMLPlugin):
         doesn't have mechanisms for reusing such tokens (every time ADFS authn
         method is called, keystoneauth1 will login with the ADFS instance).
 
-        :param fmt: Datetime format for specifying string format of a date.
-                    It should not be changed if the method is going to be used
-                    for building the ADFS security token request.
-        :type fmt: string
-
+        :param fmt: Datetime format for specifying string format of a date. It
+            should not be changed if the method is going to be used for
+            building the ADFS security token request.
         """
         date_created = datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
         date_expires = date_created + datetime.timedelta(
@@ -370,16 +354,12 @@ class Password(base.BaseSAMLPlugin):
         raised with a reason from the XML fault. Otherwise an original
         ``exceptions.InternalServerError`` is re-raised.
 
-        :param session : a session object to send out HTTP requests.
-        :type session: keystoneauth1.session.Session
-
+        :param session: a session object to send out HTTP requests.
         :raises keystoneauth1.exceptions.AuthorizationFailure: when HTTP
-                 response from the ADFS server is not a valid XML ADFS security
-                 token.
+            response from the ADFS server is not a valid XML ADFS security
+            token.
         :raises keystoneauth1.exceptions.InternalServerError: If response
-                 status code is HTTP 500 and the response XML cannot be
-                 recognized.
-
+            status code is HTTP 500 and the response XML cannot be recognized.
         """
 
         request_security_token = self.xml_to_str(self.prepared_request)
@@ -453,11 +433,8 @@ class Password(base.BaseSAMLPlugin):
         object get redirected there. The aim of this call is to get a cookie in
         the response which is required for entering a protected endpoint.
 
-        :param session : a session object to send out HTTP requests.
-        :type session: keystoneauth1.session.Session
-
+        :param session: a session object to send out HTTP requests.
         :raises: Corresponding HTTP error exception
-
         """
         session.post(
             url=self.service_provider_endpoint,
@@ -478,12 +455,9 @@ class Password(base.BaseSAMLPlugin):
         ``exceptions.AuthorizationFailure` exception is raised and no HTTP call
         is even made.
 
-        :param session : a session object to send out HTTP requests.
-        :type session: keystoneauth1.session.Session
-
+        :param session: a session object to send out HTTP requests.
         :raises keystoneauth1.exceptions.AuthorizationFailure: in case session
-        object has empty cookie jar.
-
+            object has empty cookie jar.
         """
         if self._cookies(session) is False:
             raise exceptions.AuthorizationFailure(
@@ -526,11 +500,7 @@ class Password(base.BaseSAMLPlugin):
           ``ADFSPassword._access_service_provider()`` method.
 
         :param session: a session object to send out HTTP requests.
-        :type session: keystoneauth1.session.Session
-
         :returns: AccessInfo
-        :rtype: :py:class:`keystoneauth1.access.AccessInfo`
-
         """
         self._prepare_adfs_request()
         self._get_adfs_security_token(session)

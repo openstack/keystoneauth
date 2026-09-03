@@ -31,13 +31,9 @@ class Keystone2Keystone(federation._Rescoped):
     from a keystone Service Provider (SP).
 
     :param base_plugin: Auth plugin already authenticated against the keystone
-                        IdP.
-    :type base_plugin: keystoneauth1.identity.v3.base.BaseAuth
-
+        IdP.
     :param service_provider: The Service Provider ID as returned by
-                             ServiceProviderManager.list()
-    :type service_provider: str
-
+        ``ServiceProviderManager.list()``
     """
 
     REQUEST_ECP_URL = '/auth/OS-FEDERATION/saml2/ecp'
@@ -86,21 +82,16 @@ class Keystone2Keystone(federation._Rescoped):
 
         Remote cloud's auth_url is an endpoint for getting federated unscoped
         token, typically that would be
-        ``https://remote.example.com:5000/v3/OS-FEDERATION/identity_providers/
-        <idp>/protocols/<protocol_id>/auth``. However we need to generate a
-        real auth_url, used for token scoping.  This function assumes there are
-        static values today in the remote auth_url stored in the Service
-        Provider attribute and those can be used as a delimiter. If the
-        sp_auth_url doesn't comply with standard federation auth url the
-        function will simply return whole string.
+        ``https://remote.example.com:5000/v3/OS-FEDERATION/identity_providers/<idp>/protocols/<protocol_id>/auth``.
+        However we need to generate a real auth_url, used for token scoping.
+        This function assumes there are static values today in the remote
+        auth_url stored in the Service Provider attribute and those can be used
+        as a delimiter. If the sp_auth_url doesn't comply with standard
+        federation auth url the function will simply return whole string.
 
         :param auth_url: auth_url of the remote cloud
-        :type auth_url: str
-
         :returns: auth_url of remote cloud where a token can be validated or
-                  scoped.
-        :rtype: str
-
+            scoped.
         """
         PATTERN = '/OS-FEDERATION/'
         idx = auth_url.index(PATTERN) if PATTERN in auth_url else len(auth_url)
@@ -162,18 +153,12 @@ class Keystone2Keystone(federation._Rescoped):
         keystone that will serve as Service Provider.
 
         :param session: a session object to send out HTTP requests.
-
         :param sp_url: URL where the ECP wrapped SAML assertion will be
-                       presented to the keystone SP. Usually, something like:
-                       https://sp.com/Shibboleth.sso/SAML2/ECP
-        :type sp_url: str
-
-        :param sp_auth_url: Federated authentication URL of the keystone SP.
-                            It is specified by IdP, for example:
-                            https://sp.com/v3/OS-FEDERATION/identity_providers/
-                            idp_id/protocols/protocol_id/auth
-        :type sp_auth_url: str
-
+            presented to the keystone SP. Usually, something like:
+            https://sp.com/Shibboleth.sso/SAML2/ECP
+        :param sp_auth_url: Federated authentication URL of the keystone SP. It
+            is specified by IdP, for example:
+            https://sp.com/v3/OS-FEDERATION/identity_providers/idp_id/protocols/protocol_id/auth
         """
         response = session.post(
             sp_url,

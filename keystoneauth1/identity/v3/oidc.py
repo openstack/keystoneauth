@@ -78,46 +78,26 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
         """The OpenID Connect plugin expects the following.
 
         :param auth_url: URL of the Identity Service
-        :type auth_url: string
-
-        :param identity_provider: Name of the Identity Provider the client
-                                  will authenticate against
-        :type identity_provider: string
-
+        :param identity_provider: Name of the Identity Provider the client will
+            authenticate against
         :param protocol: Protocol name as configured in keystone
-        :type protocol: string
-
         :param client_id: OAuth 2.0 Client ID
-        :type client_id: string
-
         :param client_secret: OAuth 2.0 Client Secret
-        :type client_secret: string
-
         :param access_token_type: OAuth 2.0 Authorization Server Introspection
-                                  token type, it is used to decide which type
-                                  of token will be used when processing token
-                                  introspection. Valid values are:
-                                  "access_token" or "id_token"
-        :type access_token_type: string
-
+            token type, it is used to decide which type of token will be used
+            when processing token introspection. Valid values are:
+            "access_token" or "id_token"
         :param access_token_endpoint: OpenID Connect Provider Token Endpoint,
-                                      for example:
-                                      https://localhost:8020/oidc/OP/token
-                                      Note that if a discovery document is
-                                      provided this value will override
-                                      the discovered one.
-        :type access_token_endpoint: string
-
+            for example: https://localhost:8020/oidc/OP/token Note that if a
+            discovery document is provided this value will override the
+            discovered one.
         :param discovery_endpoint: OpenID Connect Discovery Document URL,
             for example:
             https://localhost:8020/oidc/.well-known/openid-configuration
-        :type access_token_endpoint: string
-
-        :param scope: OpenID Connect scope that is requested from OP,
-                      for example: "openid profile email", defaults to
-                      "openid profile". Note that OpenID Connect specification
-                      states that "openid" must be always specified.
-        :type scope: string
+        :param scope: OpenID Connect scope that is requested from OP, for
+            example: "openid profile email", defaults to "openid profile". Note
+            that OpenID Connect specification states that "openid" must be
+            always specified.
         """
         super().__init__(
             auth_url=auth_url,
@@ -171,11 +151,8 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
         return the cached result, if any.
 
         :param session: a session object to send out HTTP requests.
-        :type session: keystoneauth1.session.Session
-
-        :returns: a python dictionary containing the discovery document if any,
-                  otherwise it will return an empty dict.
-        :rtype: dict
+        :returns: a dictionary containing the discovery document if any,
+            else an empty dict.
         """
         if (
             self.discovery_endpoint is not None
@@ -213,10 +190,7 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
         document. If nothing is found, an exception will be raised.
 
         :param session: a session object to send out HTTP requests.
-        :type session: keystoneauth1.session.Session
-
         :return: the endpoint to use
-        :rtype: string
         """
         if self.access_token_endpoint is not None:
             return self.access_token_endpoint
@@ -240,8 +214,6 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
         """Exchange a variety of user supplied values for an access token.
 
         :param session: a session object to send out HTTP requests.
-        :type session: keystoneauth1.session.Session
-
         :param payload: a dict containing various OpenID Connect values, for
             example::
 
@@ -251,7 +223,6 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
                     'password': self.password,
                     'scope': self.scope,
                 }
-        :type payload: dict
         """
         if self.client_secret:
             client_auth = (self.client_id, self.client_secret)
@@ -302,10 +273,7 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
         succeed, a Keystone token will be presented to the user.
 
         :param session: a session object to send out HTTP requests.
-        :type session: keystoneauth1.session.Session
-
         :param access_token: The OpenID Connect access token.
-        :type access_token: str
         """
         # use access token against protected URL
         headers = {'Authorization': 'Bearer ' + access_token}
@@ -334,10 +302,7 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
             Keystone in the form of environment variables.
 
         :param session: a session object to send out HTTP requests.
-        :type session: keystoneauth1.session.Session
-
         :returns: a token data representation
-        :rtype: :py:class:`keystoneauth1.access.AccessInfoV3`
         """
         # First of all, check if the grant type is supported
         discovery = self._get_discovery_document(session)
@@ -377,10 +342,7 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
         plugin is implementing.
 
         :param session: a session object to send out HTTP requests.
-        :type session: keystoneauth1.session.Session
-
         :returns: a python dictionary containing the payload to be exchanged
-        :rtype: dict
         """
         raise NotImplementedError()
 
@@ -419,10 +381,7 @@ class OidcPassword(_OidcBase):
         """The OpenID Password plugin expects the following.
 
         :param username: Username used to authenticate
-        :type username: string
-
         :param password: Password used to authenticate
-        :type password: string
         """
         super().__init__(
             auth_url=auth_url,
@@ -469,10 +428,7 @@ class OidcPassword(_OidcBase):
         """Get an authorization grant for the "password" grant type.
 
         :param session: a session object to send out HTTP requests.
-        :type session: keystoneauth1.session.Session
-
         :returns: a python dictionary containing the payload to be exchanged
-        :rtype: dict
         """
         payload = {
             'username': self.username,
@@ -549,10 +505,7 @@ class OidcClientCredentials(_OidcBase):
         """The OpenID Client Credentials expects the following.
 
         :param client_id: Client ID used to authenticate
-        :type username: string
-
         :param client_secret: Client Secret used to authenticate
-        :type password: string
         """
         super().__init__(
             auth_url=auth_url,
@@ -582,10 +535,7 @@ class OidcClientCredentials(_OidcBase):
         """Get an authorization grant for the client credentials grant type.
 
         :param session: a session object to send out HTTP requests.
-        :type session: keystoneauth1.session.Session
-
         :returns: a python dictionary containing the payload to be exchanged
-        :rtype: dict
         """
         payload: dict[str, str | None] = {'scope': self.scope}
         return payload
@@ -627,11 +577,7 @@ class OidcAuthorizationCode(_OidcBase):
         """The OpenID Authorization Code plugin expects the following.
 
         :param redirect_uri: OpenID Connect Client Redirect URL
-        :type redirect_uri: string
-
         :param code: OAuth 2.0 Authorization Code
-        :type code: string
-
         """
         super().__init__(
             auth_url=auth_url,
@@ -663,10 +609,7 @@ class OidcAuthorizationCode(_OidcBase):
         """Get an authorization grant for the "authorization_code" grant type.
 
         :param session: a session object to send out HTTP requests.
-        :type session: keystoneauth1.session.Session
-
         :returns: a python dictionary containing the payload to be exchanged
-        :rtype: dict
         """
         payload = {'redirect_uri': self.redirect_uri, 'code': self.code}
 
@@ -705,17 +648,10 @@ class OidcAccessToken(_OidcBase):
         It expects the following:
 
         :param auth_url: URL of the Identity Service
-        :type auth_url: string
-
-        :param identity_provider: Name of the Identity Provider the client
-                                  will authenticate against
-        :type identity_provider: string
-
+        :param identity_provider: Name of the Identity Provider the client will
+            authenticate against
         :param protocol: Protocol name as configured in keystone
-        :type protocol: string
-
         :param access_token: OpenID Connect Access token
-        :type access_token: string
         """
         super().__init__(
             auth_url=auth_url,
@@ -772,10 +708,7 @@ class OidcAccessToken(_OidcBase):
         environment variables.
 
         :param session: a session object to send out HTTP requests.
-        :type session: keystoneauth1.session.Session
-
         :returns: a token data representation
-        :rtype: :py:class:`keystoneauth1.access.AccessInfoV3`
         """
         response = self._get_keystone_token(session, self.access_token)
         access_info = access.create(resp=response)
@@ -821,15 +754,10 @@ class OidcDeviceAuthorization(_OidcBase):
         """The OAuth 2.0 Device Authorization plugin expects the following.
 
         :param device_authorization_endpoint: OAuth 2.0 Device Authorization
-                                  Endpoint, for example:
-                                  https://localhost:8020/oidc/authorize/device
-                                  Note that if a discovery document is
-                                  provided this value will override
-                                  the discovered one.
-        :type device_authorization_endpoint: string
-
+            Endpoint, for example: https://localhost:8020/oidc/authorize/device
+            Note that if a discovery document is provided this value will
+            override the discovered one.
         :param code_challenge_method: PKCE Challenge Method (RFC 7636).
-        :type code_challenge_method: string
         """
         self.device_authorization_endpoint = device_authorization_endpoint
         self.code_challenge_method = code_challenge_method
@@ -869,10 +797,7 @@ class OidcDeviceAuthorization(_OidcBase):
         discovery document. If nothing is found, an exception will be raised.
 
         :param session: a session object to send out HTTP requests.
-        :type session: keystoneauth1.session.Session
-
         :return: the endpoint to use
-        :rtype: string or None if no endpoint is found
         """
         if self.device_authorization_endpoint is not None:
             return self.device_authorization_endpoint
@@ -912,10 +837,7 @@ class OidcDeviceAuthorization(_OidcBase):
         """Get an authorization grant for the "device_code" grant type.
 
         :param session: a session object to send out HTTP requests.
-        :type session: keystoneauth1.session.Session
-
         :returns: a python dictionary containing the payload to be exchanged
-        :rtype: dict
         """
         payload: dict[str, str | None]
         device_authz_endpoint = self._get_device_authorization_endpoint(
@@ -988,8 +910,6 @@ class OidcDeviceAuthorization(_OidcBase):
         """Poll token endpoint for an access token.
 
         :param session: a session object to send out HTTP requests.
-        :type session: keystoneauth1.session.Session
-
         :param payload: a dict containing various OpenID Connect values,
             for example::
 
@@ -997,7 +917,6 @@ class OidcDeviceAuthorization(_OidcBase):
                     'grant_type': 'urn:ietf:params:oauth:grant-type:device_code',
                     'device_code': self.device_code,
                 }
-        :type payload: dict
         """  # noqa: E501
         # verification_uri_complete is optional and not implemented by EntraID
         if self.verification_uri_complete:

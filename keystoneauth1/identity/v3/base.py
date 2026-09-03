@@ -37,19 +37,19 @@ __all__ = ('Auth', 'AuthMethod', 'AuthConstructor', 'BaseAuth')
 class BaseAuth(base.BaseIdentityPlugin, metaclass=abc.ABCMeta):
     """Identity V3 Authentication Plugin.
 
-    :param string auth_url: Identity service endpoint for authentication.
-    :param string trust_id: Trust ID for trust scoping.
-    :param string system_scope: System information to scope to.
-    :param string domain_id: Domain ID for domain scoping.
-    :param string domain_name: Domain name for domain scoping.
-    :param string project_id: Project ID for project scoping.
-    :param string project_name: Project name for project scoping.
-    :param string project_domain_id: Project's domain ID for project.
-    :param string project_domain_name: Project's domain name for project.
-    :param bool reauthenticate: Allow fetching a new token if the current one
-                                is going to expire. (optional) default True
-    :param bool include_catalog: Include the service catalog in the returned
-                                 token. (optional) default True.
+    :param auth_url: Identity service endpoint for authentication.
+    :param trust_id: Trust ID for trust scoping.
+    :param system_scope: System information to scope to.
+    :param domain_id: Domain ID for domain scoping.
+    :param domain_name: Domain name for domain scoping.
+    :param project_id: Project ID for project scoping.
+    :param project_name: Project name for project scoping.
+    :param project_domain_id: Project's domain ID for project.
+    :param project_domain_name: Project's domain name for project.
+    :param reauthenticate: Allow fetching a new token if the current one is
+        going to expire. (optional) default True
+    :param include_catalog: Include the service catalog in the returned token.
+        (optional) default True.
     """
 
     auth_url: str
@@ -111,22 +111,22 @@ class _AuthBody(TypedDict):
 class Auth(BaseAuth):
     """Identity V3 Authentication Plugin.
 
-    :param string auth_url: Identity service endpoint for authentication.
-    :param list auth_methods: A collection of methods to authenticate with.
-    :param string trust_id: Trust ID for trust scoping.
-    :param string domain_id: Domain ID for domain scoping.
-    :param string domain_name: Domain name for domain scoping.
-    :param string project_id: Project ID for project scoping.
-    :param string project_name: Project name for project scoping.
-    :param string project_domain_id: Project's domain ID for project.
-    :param string project_domain_name: Project's domain name for project.
-    :param bool reauthenticate: Allow fetching a new token if the current one
-                                is going to expire. (optional) default True
-    :param bool include_catalog: Include the service catalog in the returned
-                                 token. (optional) default True.
-    :param bool unscoped: Force the return of an unscoped token. This will make
-                          the keystone server return an unscoped token even if
-                          a default_project_id is set for this user.
+    :param auth_url: Identity service endpoint for authentication.
+    :param auth_methods: A collection of methods to authenticate with.
+    :param trust_id: Trust ID for trust scoping.
+    :param domain_id: Domain ID for domain scoping.
+    :param domain_name: Domain name for domain scoping.
+    :param project_id: Project ID for project scoping.
+    :param project_name: Project name for project scoping.
+    :param project_domain_id: Project's domain ID for project.
+    :param project_domain_name: Project's domain name for project.
+    :param reauthenticate: Allow fetching a new token if the current one is
+        going to expire. (optional) default True
+    :param include_catalog: Include the service catalog in the returned token.
+        (optional) default True.
+    :param unscoped: Force the return of an unscoped token. This will make the
+        keystone server return an unscoped token even if a default_project_id
+        is set for this user.
     """
 
     def __init__(
@@ -338,13 +338,11 @@ class AuthMethod(metaclass=abc.ABCMeta):
         """Return the authentication section of an auth plugin.
 
         :param session: The communication session.
-        :type session: keystoneauth1.session.Session
-        :param base.Auth auth: The auth plugin calling the method.
-        :param dict headers: The headers that will be sent with the auth
-                             request if a plugin needs to add to them.
+        :param auth: The auth plugin calling the method.
+        :param headers: The headers that will be sent with the auth request if
+            a plugin needs to add to them.
         :return: The identifier of this plugin and a dict of authentication
-                 data for the auth type.
-        :rtype: tuple(string, dict)
+            data for the auth type.
         """
         raise NotImplementedError()
 

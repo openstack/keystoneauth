@@ -21,11 +21,11 @@ from keystoneauth1 import session as ks_session
 class Password(base.BaseGenericPlugin):
     """A common user/password authentication plugin.
 
-    :param string username: Username for authentication.
-    :param string user_id: User ID for authentication.
-    :param string password: Password for authentication.
-    :param string user_domain_id: User's domain ID for authentication.
-    :param string user_domain_name: User's domain name for authentication.
+    :param username: Username for authentication.
+    :param user_id: User ID for authentication.
+    :param password: Password for authentication.
+    :param user_domain_id: User's domain ID for authentication.
+    :param user_domain_name: User's domain name for authentication.
     """
 
     def __init__(

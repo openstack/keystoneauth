@@ -39,25 +39,24 @@ class Opt:
     which will pass the value as `user_domain_id` to the plugin's
     initialization.
 
-    :param str name: The name of the option.
-    :param callable type: The type of the option. This is a callable which is
+    :param name: The name of the option.
+    :param type: The type of the option. This is a callable which is
         passed the raw option that was loaded (often a string) and is required
         to return the parameter in the type expected by __init__.
-    :param str help: The help text that is shown along with the option.
-    :param bool secret: If the parameter is secret it should not be printed or
+    :param help: The help text that is shown along with the option.
+    :param secret: If the parameter is secret it should not be printed or
         logged in debug output.
-    :param str dest: the name of the argument that will be passed to __init__.
+    :param dest: the name of the argument that will be passed to __init__.
         This allows you to have a different name in loading than is used by the
         __init__ function. Defaults to the value of name.
-    :param keystoneauth1.loading.Opt deprecated: A list of other options that
+    :param deprecated: A list of other options that
         are deprecated in favour of this one. This ensures the old options are
         still registered.
-    :type opt: list(Opt)
     :param default: A default value that can be used if one is not provided.
-    :param str metavar: The <metavar> that should be printed in CLI help text.
-    :param bool required: If the option is required to load the plugin. If a
+    :param metavar: The <metavar> that should be printed in CLI help text.
+    :param required: If the option is required to load the plugin. If a
         required option is not present loading should fail.
-    :param str prompt: If the option can be requested via a prompt (where
+    :param prompt: If the option can be requested via a prompt (where
         appropriate) set the string that should be used to prompt with.
     """
 

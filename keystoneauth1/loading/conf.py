@@ -123,7 +123,6 @@ def load_from_conf_options(
 
     :param conf: A conf object.
     :param group: The group name that options should be read from.
-
     :returns: An authentication Plugin or None if a name is not provided
     :raises keystoneauth1.exceptions.auth_plugins.NoMatchingPlugin:
         if a plugin cannot be created.

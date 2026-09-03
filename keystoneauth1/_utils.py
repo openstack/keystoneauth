@@ -60,11 +60,8 @@ def from_utcnow(
     :param minutes: Minutes to add to timestamp.
     :param hours: Hours to add to timestamp.
     :param weeks: Weeks to add to timestamp.
-    :returns:
-        The time in the future based on ``timedelta_kwargs`` and in TZ-naive
-        format.
-    :rtype:
-        datetime.datetime
+    :returns: The time in the future based on ``timedelta_kwargs`` and in
+        TZ-naive format.
     """
     now = datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
     delta = datetime.timedelta(
@@ -91,11 +88,8 @@ def before_utcnow(
     :param minutes: Minutes to remove from timestamp.
     :param hours: Hours to remove from timestamp.
     :param weeks: Weeks to remove from timestamp.
-    :returns:
-        The time in the past based on ``timedelta_kwargs`` and in TZ-naive
-        format.
-    :rtype:
-        datetime.datetime
+    :returns: The time in the past based on ``timedelta_kwargs`` and in
+        TZ-naive format.
     """
     now = datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
     delta = datetime.timedelta(

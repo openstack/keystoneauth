@@ -23,11 +23,10 @@ class FairSemaphore:
     which could lead to a request starving. Instead, handle them in the
     order we receive them.
 
-    :param int concurrency:
-        How many concurrent threads can have the semaphore at once.
-    :param float rate_delay:
-        How long to wait between the start of each thread receiving the
-        semaphore.
+    :param concurrency: How many concurrent threads can have the semaphore at
+        once.
+    :param rate_delay: How long to wait between the start of each thread
+        receiving the semaphore.
     """
 
     def __init__(self, concurrency: int | None, rate_delay: float):

@@ -21,7 +21,7 @@ from keystoneauth1 import session as ks_session
 class Token(base.BaseGenericPlugin):
     """Generic token auth plugin.
 
-    :param string token: Token for authentication.
+    :param token: Token for authentication.
     """
 
     def __init__(

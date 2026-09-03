@@ -52,10 +52,10 @@ class TestPlugin(plugin.BaseAuthPlugin):
     relied upon by services because a user could always configure the service
     to use a non-keystone auth.
 
-    :param str token: The token to include in authenticated requests.
-    :param str endpoint: The endpoint to respond to service lookups with.
-    :param str user_id: The user_id to report for the authenticated user.
-    :param str project_id: The project_id to report for the authenticated user.
+    :param token: The token to include in authenticated requests.
+    :param endpoint: The endpoint to respond to service lookups with.
+    :param user_id: The user_id to report for the authenticated user.
+    :param project_id: The project_id to report for the authenticated user.
     """
 
     auth_type = 'test_plugin'
@@ -123,10 +123,10 @@ class LoadingFixture(fixtures.Fixture):
     returned for all calls to plugin loading so you can simply bypass the
     authentication steps and return something well known.
 
-    :param str token: The token to include in authenticated requests.
-    :param str endpoint: The endpoint to respond to service lookups with.
-    :param str user_id: The user_id to report for the authenticated user.
-    :param str project_id: The project_id to report for the authenticated user.
+    :param token: The token to include in authenticated requests.
+    :param endpoint: The endpoint to respond to service lookups with.
+    :param user_id: The user_id to report for the authenticated user.
+    :param project_id: The project_id to report for the authenticated user.
     """
 
     MOCK_POINT = 'keystoneauth1.loading.base.get_plugin_loader'
@@ -173,7 +173,7 @@ class LoadingFixture(fixtures.Fixture):
         your tests. Overriding it will not affect the endpoint returned by the
         plugin.
 
-        :param str path: The path to append to the plugin endpoint.
+        :param path: The path to append to the plugin endpoint.
         """
         endpoint = _format_endpoint(self.endpoint, **kwargs)
 

@@ -26,9 +26,9 @@ __all__ = ('OAuth2ClientCredentialMethod', 'OAuth2ClientCredential')
 class OAuth2ClientCredentialMethod(base.AuthMethod):
     """An auth method to fetch a token via an OAuth2.0 client credential.
 
-    :param string oauth2_endpoint: OAuth2.0 endpoint.
-    :param string oauth2_client_id: OAuth2.0 client credential id.
-    :param string oauth2_client_secret: OAuth2.0 client credential secret.
+    :param oauth2_endpoint: OAuth2.0 endpoint.
+    :param oauth2_client_id: OAuth2.0 client credential id.
+    :param oauth2_client_secret: OAuth2.0 client credential secret.
     """
 
     oauth2_endpoint: str
@@ -56,13 +56,11 @@ class OAuth2ClientCredentialMethod(base.AuthMethod):
         """Return the authentication section of an auth plugin.
 
         :param session: The communication session.
-        :type session: keystoneauth1.session.Session
-        :param base.Auth auth: The auth plugin calling the method.
-        :param dict headers: The headers that will be sent with the auth
-                             request if a plugin needs to add to them.
+        :param auth: The auth plugin calling the method.
+        :param headers: The headers that will be sent with the auth request if
+            a plugin needs to add to them.
         :return: The identifier of this plugin and a dict of authentication
                  data for the auth type.
-        :rtype: tuple(string, dict)
         """
         auth_data: dict[str, object] = {
             'id': self.oauth2_client_id,
@@ -96,10 +94,10 @@ class OAuth2ClientCredentialMethod(base.AuthMethod):
 class OAuth2ClientCredential(base.Auth):
     """A plugin for authenticating via an OAuth2.0 client credential.
 
-    :param string auth_url: Identity service endpoint for authentication.
-    :param string oauth2_endpoint: OAuth2.0 endpoint.
-    :param string oauth2_client_id: OAuth2.0 client credential id.
-    :param string oauth2_client_secret: OAuth2.0 client credential secret.
+    :param auth_url: Identity service endpoint for authentication.
+    :param oauth2_endpoint: OAuth2.0 endpoint.
+    :param oauth2_client_id: OAuth2.0 client credential id.
+    :param oauth2_client_secret: OAuth2.0 client credential secret.
     """
 
     _auth_method_class = OAuth2ClientCredentialMethod
@@ -151,12 +149,9 @@ class OAuth2ClientCredential(base.Auth):
         """Fetch authentication headers for message.
 
         :param session: The session object that the auth_plugin belongs to.
-        :type session: keystoneauth1.session.Session
-
         :returns: Headers that are set to authenticate a message or None for
-                  failure. Note that when checking this value that the empty
-                  dict is a valid, non-failure response.
-        :rtype: dict
+            failure. Note that when checking this value that the empty dict is
+            a valid, non-failure response.
         """
         # get headers for X-Auth-Token
         headers = super().get_headers(session)

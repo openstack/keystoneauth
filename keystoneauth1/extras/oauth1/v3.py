@@ -41,10 +41,10 @@ LOG = logging.getLogger(__name__)
 class OAuth1Method(v3.AuthMethod):
     """OAuth based authentication method.
 
-    :param string access_key: Access token key.
-    :param string access_secret: Access token secret.
-    :param string consumer_key: Consumer key.
-    :param string consumer_secret: Consumer secret.
+    :param access_key: Access token key.
+    :param access_secret: Access token secret.
+    :param consumer_key: Consumer key.
+    :param consumer_secret: Consumer secret.
     """
 
     access_key: str

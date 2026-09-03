@@ -47,14 +47,10 @@ def register_argparse_arguments(
     the options required for that specific plugin if available.
 
     :param parser: the parser to attach argparse options to.
-    :type parser: argparse.ArgumentParser
-    :param list argv: the arguments provided to the application.
-    :param str/class default: a default plugin name or a plugin object to use
-                              if one isn't specified by the CLI. default: None.
-
+    :param argv: the arguments provided to the application.
+    :param default: a default plugin name or a plugin object to use if one
+        isn't specified by the CLI. default: None.
     :returns: The plugin class that will be loaded or None if not provided.
-    :rtype: :class:`keystoneauth1.loader.BaseLoader`
-
     :raises keystoneauth1.exceptions.auth_plugins.NoMatchingPlugin:
         if a plugin cannot be created.
     """
@@ -96,11 +92,8 @@ def load_from_argparse_arguments(
     Loads and creates the auth plugin from the information parsed from the
     command line by argparse.
 
-    :param Namespace namespace: The result from CLI parsing.
-
+    :param namespace: The result from CLI parsing.
     :returns: An auth plugin, or None if a name is not provided.
-    :rtype: :class:`keystoneauth1.plugin.BaseAuthPlugin`
-
     :raises keystoneauth1.exceptions.auth_plugins.NoMatchingPlugin:
         if a plugin cannot be created.
     """

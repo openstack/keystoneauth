@@ -87,8 +87,7 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
         raw_endpoint so that it can be returned by methods that expect the
         actual original data.
 
-        :param list endpoints: List of endpoint description dicts
-
+        :param endpoints: List of endpoint description dicts
         :returns: List of endpoint description dicts in v3 format
         """
         new_endpoints = []
@@ -107,8 +106,7 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
         Takes a list of EndpointData objects and returns the original
         dict that was returned from the catalog.
 
-        :param list endpoints: List of `keystoneauth1.discover.EndpointData`
-
+        :param endpoints: List of `keystoneauth1.discover.EndpointData`
         :returns: List of endpoint description dicts in original catalog format
         """
         return [endpoint.raw_endpoint for endpoint in endpoints]
@@ -168,19 +166,17 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
         be skipped.  This allows compatibility with services that existed
         before the name was available in the catalog.
 
-        Valid interface types: `public` or `publicURL`,
-                               `internal` or `internalURL`,
-                               `admin` or 'adminURL`
+        Valid interface types: ``public`` or ``publicURL``, ``internal`` or
+        ``internalURL``, ``admin`` or ``adminURL``
 
-        :param string service_type: Service type of the endpoint.
-        :param interface: Type of endpoint. Can be a single value or a list
-                          of values. If it's a list of values, they will be
-                          looked for in order of preference.
-        :param string region_name: Region of the endpoint.
-        :param string service_name: The assigned name of the service.
-        :param string service_id: The identifier of a service.
-        :param string endpoint_id: The identifier of an endpoint.
-
+        :param service_type: Service type of the endpoint.
+        :param interface: Type of endpoint. Can be a single value or a list of
+            values. If it's a list of values, they will be looked for in order
+            of preference.
+        :param region_name: Region of the endpoint.
+        :param service_name: The assigned name of the service.
+        :param service_id: The identifier of a service.
+        :param endpoint_id: The identifier of an endpoint.
         :returns: a dict, keyed by service_type, of lists of EndpointData
         """
         interfaces = self._get_interface_list(interface)
@@ -277,14 +273,10 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
         Do the "first alias" match after the other filters, as they might limit
         the number of choices for us otherwise.
 
-        :param str requested:
-            The service_type as requested by the user.
-        :param dict endpoints:
-            A dictionary keyed by found service_type. Values are opaque to
-            this method.
-
-        :returns:
-            Dict of service_type/endpoints filtered for the appropriate
+        :param requested: The service_type as requested by the user.
+        :param endpoints: A dictionary keyed by found service_type. Values are
+            opaque to this method.
+        :returns: Dict of service_type/endpoints filtered for the appropriate
             service_type based on alias matching rules.
         """
         if not requested or not discover._SERVICE_TYPES.is_known(requested):
@@ -370,21 +362,18 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
         endpoint attribute. If no attribute is given, return the first
         endpoint of the specified type.
 
-        Valid interface types: `public` or `publicURL`,
-                               `internal` or `internalURL`,
-                               `admin` or 'adminURL`
+        Valid interface types: ``public`` or ``publicURL``, ``internal`` or
+        ``internalURL``, ``admin`` or ``adminURL``
 
-        :param string service_type: Service type of the endpoint.
-        :param interface: Type of endpoint. Can be a single value or a list
-                          of values. If it's a list of values, they will be
-                          looked for in order of preference.
-        :param string region_name: Region of the endpoint.
-        :param string service_name: The assigned name of the service.
-        :param string service_id: The identifier of a service.
-        :param string endpoint_id: The identifier of an endpoint.
-
+        :param service_type: Service type of the endpoint.
+        :param interface: Type of endpoint. Can be a single value or a list of
+            values. If it's a list of values, they will be looked for in order
+            of preference.
+        :param region_name: Region of the endpoint.
+        :param service_name: The assigned name of the service.
+        :param service_id: The identifier of a service.
+        :param endpoint_id: The identifier of an endpoint.
         :returns: a list of matching EndpointData objects
-        :rtype: list(`keystoneauth1.discover.EndpointData`)
         """
         endpoints = self.get_endpoints_data(
             service_type=service_type,
@@ -411,19 +400,17 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
         endpoint attribute. If no attribute is given, return the url of the
         first endpoint of the specified type.
 
-        Valid interface types: `public` or `publicURL`,
-                               `internal` or `internalURL`,
-                               `admin` or 'adminURL`
+        Valid interface types: ``public`` or ``publicURL``, ``internal`` or
+        ``internalURL``, ``admin`` or ``adminURL``
 
-        :param string service_type: Service type of the endpoint.
-        :param interface: Type of endpoint. Can be a single value or a list
-                          of values. If it's a list of values, they will be
-                          looked for in order of preference.
-        :param string region_name: Region of the endpoint.
-        :param string service_name: The assigned name of the service.
-        :param string service_id: The identifier of a service.
-        :param string endpoint_id: The identifier of an endpoint.
-
+        :param service_type: Service type of the endpoint.
+        :param interface: Type of endpoint. Can be a single value or a list of
+            values. If it's a list of values, they will be looked for in order
+            of preference.
+        :param region_name: Region of the endpoint.
+        :param service_name: The assigned name of the service.
+        :param service_id: The identifier of a service.
+        :param endpoint_id: The identifier of an endpoint.
         :returns: tuple of urls
         """
         endpoints = self.get_endpoint_data_list(
@@ -451,18 +438,17 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
         a particular endpoint attribute. If no attribute is given, return
         the first endpoint of the specified type.
 
-        Valid interface types: `public` or `publicURL`,
-                               `internal` or `internalURL`,
-                               `admin` or 'adminURL`
+        Valid interface types: ``public`` or ``publicURL``, ``internal`` or
+        ``internalURL``, ``admin`` or ``adminURL``
 
-        :param string service_type: Service type of the endpoint.
-        :param interface: Type of endpoint. Can be a single value or a list
-                          of values. If it's a list of values, they will be
-                          looked for in order of preference.
-        :param string region_name: Region of the endpoint.
-        :param string service_name: The assigned name of the service.
-        :param string service_id: The identifier of a service.
-        :param string endpoint_id: The identifier of an endpoint.
+        :param service_type: Service type of the endpoint.
+        :param interface: Type of endpoint. Can be a single value or a list of
+            values. If it's a list of values, they will be looked for in order
+            of preference.
+        :param region_name: Region of the endpoint.
+        :param service_name: The assigned name of the service.
+        :param service_id: The identifier of a service.
+        :param endpoint_id: The identifier of an endpoint.
         """
         return self.endpoint_data_for(
             service_type=service_type,
@@ -488,18 +474,17 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
         a particular endpoint attribute. If no attribute is given, return
         the first endpoint of the specified type.
 
-        Valid interface types: `public` or `publicURL`,
-                               `internal` or `internalURL`,
-                               `admin` or 'adminURL`
+        Valid interface types: ``public`` or ``publicURL``, ``internal`` or
+        ``internalURL``, ``admin`` or ``adminURL``
 
-        :param string service_type: Service type of the endpoint.
-        :param interface: Type of endpoint. Can be a single value or a list
-                          of values. If it's a list of values, they will be
-                          looked for in order of preference.
-        :param string region_name: Region of the endpoint.
-        :param string service_name: The assigned name of the service.
-        :param string service_id: The identifier of a service.
-        :param string endpoint_id: The identifier of an endpoint.
+        :param service_type: Service type of the endpoint.
+        :param interface: Type of endpoint. Can be a single value or a list of
+            values. If it's a list of values, they will be looked for in order
+            of preference.
+        :param region_name: Region of the endpoint.
+        :param service_name: The assigned name of the service.
+        :param service_id: The identifier of a service.
+        :param endpoint_id: The identifier of an endpoint.
         """
         if not self._catalog:
             raise exceptions.EmptyCatalog('The service catalog is empty.')
@@ -573,8 +558,7 @@ class ServiceCatalogV2(ServiceCatalog):
         raw_endpoint so that it can be returned by methods that expect the
         actual original data.
 
-        :param list endpoints: List of endpoint description dicts
-
+        :param endpoints: List of endpoint description dicts
         :returns: List of endpoint description dicts in v3 format
         """
         new_endpoints = []
@@ -604,8 +588,7 @@ class ServiceCatalogV2(ServiceCatalog):
         Takes a list of EndpointData objects and returns the original
         dict that was returned from the catalog.
 
-        :param list endpoints: List of `keystoneauth1.discover.EndpointData`
-
+        :param endpoints: List of `keystoneauth1.discover.EndpointData`
         :returns: List of endpoint description dicts in original catalog format
         """
         raw_endpoints = super()._denormalize_endpoints(endpoints)

@@ -43,15 +43,15 @@ class TokenlessAuth(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
     ):
         """A init method for TokenlessAuth.
 
-        :param string auth_url: Identity service endpoint for authentication.
-                                The URL must include a version or any request
-                                will result in a 404 NotFound error.
-        :param string domain_id: Domain ID for domain scoping.
-        :param string domain_name: Domain name for domain scoping.
-        :param string project_id: Project ID for project scoping.
-        :param string project_name: Project name for project scoping.
-        :param string project_domain_id: Project's domain ID for project.
-        :param string project_domain_name: Project's domain name for project.
+        :param auth_url: Identity service endpoint for authentication. The URL
+            must include a version or any request will result in a 404 NotFound
+            error.
+        :param domain_id: Domain ID for domain scoping.
+        :param domain_name: Domain name for domain scoping.
+        :param project_id: Project ID for project scoping.
+        :param project_name: Project name for project scoping.
+        :param project_domain_id: Project's domain ID for project.
+        :param project_domain_name: Project's domain name for project.
         """
         self.auth_url = auth_url
         self.domain_id = domain_id
@@ -71,12 +71,9 @@ class TokenlessAuth(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         session.
 
         :param session: The session object that the auth_plugin belongs to.
-        :type session: keystoneauth1.session.Session
-
         :returns: Headers that are set to authenticate a message or None for
                   failure. Note that when checking this value that the empty
                   dict is a valid, non-failure response.
-        :rtype: dict
         """
         scope_headers = {}
         if self.project_id:
@@ -113,12 +110,10 @@ class TokenlessAuth(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
         """Return a valid endpoint for a service.
 
         :param session: A session object that can be used for communication.
-        :type session: keystoneauth1.session.Session
-        :param string service_type: The type of service to lookup the endpoint
-                                    for. This plugin will return None (failure)
-                                    if service_type is not provided.
+        :param service_type: The type of service to lookup the endpoint for.
+            This plugin will return None (failure) if service_type is not
+            provided.
         :return: A valid endpoint URL or None if not available.
-        :rtype: string or None
         """
         if service_type is plugin.AUTH_INTERFACE or (
             service_type and service_type.lower() == 'identity'

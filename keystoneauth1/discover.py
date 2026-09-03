@@ -48,16 +48,16 @@ def _str_or_latest(val: str | int | float) -> str:
 
     :param val: An int or the special value LATEST.
     :return: A string representation of val.  If val was LATEST, the return is
-             'latest'.
+        'latest'.
     """
     return 'latest' if val == LATEST else str(val)
 
 
-def _int_or_latest(val: str | float) -> int | float:
+def _int_or_latest(val: str | int | float) -> int | float:
     """Convert val to an int or the special value LATEST.
 
     :param val: An int()-able, or the string 'latest', or the special value
-                LATEST.
+        LATEST.
     :return: An int, or the special value LATEST
     """
     return LATEST if val == 'latest' or val == LATEST else int(val)
@@ -94,15 +94,13 @@ def get_version_data(
     Other keys and 'links' entries are permitted, but ignored.
 
     :param session: A Session object that can be used for communication.
-    :type session: keystoneauth1.session.Session
-    :param string url: Endpoint or discovery URL from which to retrieve data.
-    :param bool authenticated: Include a token in the discovery call.
-                               (optional) Defaults to None.
-    :param string version_header: provide the OpenStack-API-Version header
-        for services which don't return version information without it, for
+    :param url: Endpoint or discovery URL from which to retrieve data.
+    :param authenticated: Include a token in the discovery call. (optional)
+        Defaults to None.
+    :param version_header: provide the OpenStack-API-Version header for
+        services which don't return version information without it, for
         backward compatibility.
     :return: A list of dicts containing version information.
-    :rtype: list(dict)
     """
     headers = {'Accept': 'application/json'}
     if version_header:
@@ -368,9 +366,8 @@ def _normalize_version_args(
 def version_to_string(version: _PARSED_VERSION_T) -> str:
     """Turn a version tuple into a string.
 
-    :param tuple version: A version represented as a tuple of ints.  As a
-                          special case, a tuple member may be LATEST, which
-                          translates to 'latest'.
+    :param version: A version represented as a tuple of ints.  As a special
+        case, a tuple member may be ``LATEST``, which translates to 'latest'.
     :return: A version represented as a period-delimited string.
     """
     # Special case
@@ -387,13 +384,13 @@ def version_between(
 ) -> bool:
     """Determine whether a candidate version is within a specified range.
 
-    :param min_version: The minimum version that is acceptable.
-                        None/empty indicates no lower bound.
-    :param max_version: The maximum version that is acceptable.
-                        None/empty indicates no upper bound.
+    :param min_version: The minimum version that is acceptable. None/empty
+        indicates no lower bound.
+    :param max_version: The maximum version that is acceptable. None/empty
+        indicates no upper bound.
     :param candidate: Candidate version to test.  May not be None/empty.
     :return: True if candidate is between min_version and max_version; False
-             otherwise.
+        otherwise.
     :raises ValueError: If candidate is None.
     :raises TypeError: If any input cannot be normalized.
     """
@@ -438,11 +435,9 @@ def version_match(
 
     eg. 3.3 is a match for a required 3.1 but 4.1 is not.
 
-    :param tuple required: the version that must be met.
-    :param tuple candidate: the version to test against required.
-
+    :param required: the version that must be met.
+    :param candidate: the version to test against required.
     :returns: True if candidate is suitable False otherwise.
-    :rtype: bool
     """
     # major versions must be the same (e.g. even though v2 is a lower
     # version than v3 we can't use it if v2 was requested)
@@ -553,11 +548,10 @@ class Status:
         If the status from the version discovery document does not match one
         of the known values, it will be set to 'UNKNOWN'.
 
-        :param str raw_status: Status value from a discovery document.
-
-        :returns: A canonicalized version of the status. Valid values
-                  are CURRENT, SUPPORTED, DEPRECATED, EXPERIMENTAL and UNKNOWN
-        :rtype: str
+        :param raw_status: Status value from a discovery document.
+        :returns: A canonicalized version of the status. Valid values are
+            ``CURRENT``, ``SUPPORTED``, ``DEPRECATED``, ``EXPERIMENTAL`` and
+            ``UNKNOWN``.
         """
         status = raw_status.upper()
         if status == 'STABLE':
@@ -595,13 +589,12 @@ class Discover:
         on the data, so what is returned here will be the data in the same
         format it was received from the endpoint.
 
-        :param bool allow_experimental: Allow experimental version endpoints.
-        :param bool allow_deprecated: Allow deprecated version endpoints.
-        :param bool allow_unknown: Allow endpoints with an unrecognised status.
+        :param allow_experimental: Allow experimental version endpoints.
+        :param allow_deprecated: Allow deprecated version endpoints.
+        :param allow_unknown: Allow endpoints with an unrecognised status.
 
         :returns: The endpoints returned from the server that match the
-                  criteria.
-        :rtype: list
+            criteria.
         """
         versions = []
         for v in self._data:
@@ -641,11 +634,9 @@ class Discover:
 
         Return version data in a structured way.
 
-        :param bool reverse: Reverse the list. reverse=true will mean the
-                             returned list is sorted from newest to oldest
-                             version.
+        :param reverse: Reverse the list. Setting this to ``true`` will mean
+            the returned list is sorted from newest to oldest version.
         :returns: A list of :class:`VersionData` sorted by version number.
-        :rtype: list(VersionData)
         """
         data = self.raw_version_data(
             allow_experimental=allow_experimental,
@@ -739,11 +730,9 @@ class Discover:
 
         Return version data in a structured way.
 
-        :param bool reverse: Reverse the list. reverse=true will mean the
-                             returned list is sorted from newest to oldest
-                             version.
+        :param reverse: Reverse the list. Setting this to ``true`` will mean
+            the returned list is sorted from newest to oldest version.
         :returns: A list of :class:`VersionData` sorted by version number.
-        :rtype: list(VersionData)
         """
         version_data = self.version_data(
             reverse=reverse,
@@ -767,18 +756,17 @@ class Discover:
     ) -> Optional['VersionData']:
         """Return endpoint data for a version.
 
-        NOTE: This method raises a TypeError if version is None. It is
-              kept for backwards compatability. New code should use
-              versioned_data_for instead.
+        .. note::
 
-        :param tuple version: The version is always a minimum version in the
+            This method raises a TypeError if version is None. It is kept for
+            backwards compatability. New code should use versioned_data_for
+            instead.
+
+        :param version: The version is always a minimum version in the
             same major release as there should be no compatibility issues with
             using a version newer than the one asked for.
-
         :returns: the endpoint data for a URL that matches the required version
-                  (the format is described in version_data) or None if no
-                  match.
-        :rtype: dict
+            (the format is described in version_data) or None if no match.
         """
         normalized_version = normalize_version_number(version)
 
@@ -807,16 +795,17 @@ class Discover:
     ) -> str | None:
         """Get the endpoint url for a version.
 
-        NOTE: This method raises a TypeError if version is None. It is
-              kept for backwards compatability. New code should use
-              versioned_url_for instead.
+        .. note::
 
-        :param tuple version: The version is always a minimum version in the
+            This method raises a TypeError if version is None. It is kept for
+            backwards compatability. New code should use versioned_url_for
+            instead.
+
+        :param version: The version is always a minimum version in the
             same major release as there should be no compatibility issues with
             using a version newer than the one asked for.
 
         :returns: The url for the specified version or None if no match.
-        :rtype: str
         """
         data = self.data_for(
             version,
@@ -846,9 +835,10 @@ class Discover:
     ) -> Optional['VersionData']:
         """Return endpoint data for the service at a url.
 
-        min_version and max_version can be given either as strings or tuples.
+        ``min_version`` and ``max_version`` can be given either as strings or
+        tuples.
 
-        :param string url: If url is given, the data will be returned for the
+        :param url: If url is given, the data will be returned for the
             endpoint data that has a self link matching the url.
         :param min_version: The minimum endpoint version that is acceptable. If
             min_version is given with no max_version it is as if max version is
@@ -858,11 +848,8 @@ class Discover:
             min_version is given with no max_version it is as if max version is
             'latest'. If min_version is 'latest', max_version may only be
             'latest' or None.
-
         :returns: the endpoint data for a URL that matches the required version
-                  (the format is described in version_data) or None if no
-                  match.
-        :rtype: dict
+            (the format is described in version_data) or None if no match.
         """
         normalized_min_version, normalized_max_version = (
             _normalize_version_args(None, min_version, max_version)
@@ -942,7 +929,8 @@ class Discover:
     ) -> str | None:
         """Get the endpoint url for a version.
 
-        min_version and max_version can be given either as strings or tuples.
+        ``min_version`` and ``max_version`` can be given either as strings or
+        tuples.
 
         :param min_version: The minimum version that is acceptable. If
             min_version is given with no max_version it is as if max version
@@ -950,9 +938,7 @@ class Discover:
         :param max_version: The maximum version that is acceptable. If
             min_version is given with no max_version it is as if max version is
             'latest'.
-
         :returns: The url for the specified version or None if no match.
-        :rtype: str
         """
         data = self.versioned_data_for(
             min_version=min_version,
@@ -1164,28 +1150,23 @@ class EndpointData:
     ) -> 'EndpointData':
         """Run version discovery on the current endpoint.
 
-        A simplified version of get_versioned_data, get_current_versioned_data
-        runs discovery but only on the endpoint that has been found already.
+        A simplified version of :meth:`get_versioned_data`,
+        :meth:`get_current_versioned_data` runs discovery but only on the
+        endpoint that has been found already.
 
         It can be useful in some workflows where the user wants version
         information about the endpoint they have.
 
         :param session: A session object that can be used for communication.
-        :type session: keystoneauth1.session.Session
-        :param dict allow: Extra filters to pass when discovering API
-                           versions. (optional)
-        :param dict cache: A dict to be used for caching results in
-                           addition to caching them on the Session.
-                           (optional)
-        :param string project_id: ID of the currently scoped project. Used for
-                                  removing project_id components of URLs from
-                                  the catalog. (optional)
-
+        :param allow: Extra filters to pass when discovering API versions.
+            (optional)
+        :param cache: A dict to be used for caching results in addition to
+            caching them on the Session. (optional)
+        :param project_id: ID of the currently scoped project. Used for
+            removing project_id components of URLs from the catalog. (optional)
         :returns: A new EndpointData with the requested versioned data.
-        :rtype: :py:class:`keystoneauth1.discover.EndpointData`
         :raises keystoneauth1.exceptions.discovery.DiscoveryFailure: If the
-                                                    appropriate versioned data
-                                                    could not be discovered.
+            appropriate versioned data could not be discovered.
         """
         min_version, max_version = _normalize_version_args(
             self.api_version, None, None
@@ -1224,38 +1205,30 @@ class EndpointData:
         Performs Version Discovery and returns a new EndpointData object with
         information found.
 
-        min_version and max_version can be given either as strings or tuples.
+        ``min_version`` and ``max_version`` can be given either as strings or
+        tuples.
 
         :param session: A session object that can be used for communication.
-        :type session: keystoneauth1.session.Session
-        :param dict allow: Extra filters to pass when discovering API
-                           versions. (optional)
-        :param dict cache: A dict to be used for caching results in
-                           addition to caching them on the Session.
-                           (optional)
-        :param bool allow_version_hack: Allow keystoneauth to hack up catalog
-                                        URLS to support older schemes.
-                                        (optional, default True)
-        :param string project_id: ID of the currently scoped project. Used for
-                                  removing project_id components of URLs from
-                                  the catalog. (optional)
-        :param bool discover_versions: Whether to get version metadata from
-                                       the version discovery document even
-                                       if it's not neccessary to fulfill the
-                                       major version request. (optional,
-                                       defaults to True)
+        :param allow: Extra filters to pass when discovering API versions.
+            (optional)
+        :param cache: A dict to be used for caching results in addition to
+            caching them on the Session. (optional)
+        :param allow_version_hack: Allow keystoneauth to hack up catalog URLS
+            to support older schemes. (optional, default True)
+        :param project_id: ID of the currently scoped project. Used for
+            removing project_id components of URLs from the catalog. (optional)
+        :param discover_versions: Whether to get version metadata from the
+            version discovery document even if it's not neccessary to fulfill
+            the major version request. (optional, defaults to True)
         :param min_version: The minimum version that is acceptable. If
-                            min_version is given with no max_version it is as
-                            if max version is 'latest'.
+            min_version is given with no max_version it is as if max version is
+            'latest'.
         :param max_version: The maximum version that is acceptable. If
-                            min_version is given with no max_version it is as
-                            if max version is 'latest'.
-
+            min_version is given with no max_version it is as if max version is
+            'latest'.
         :returns: A new EndpointData with the requested versioned data.
-        :rtype: :py:class:`keystoneauth1.discover.EndpointData`
         :raises keystoneauth1.exceptions.discovery.DiscoveryFailure: If the
-                                                    appropriate versioned data
-                                                    could not be discovered.
+            appropriate versioned data could not be discovered.
         """
         normalized_min_version, normalized_max_version = (
             _normalize_version_args(None, min_version, max_version)
@@ -1284,11 +1257,9 @@ class EndpointData:
     ) -> list['VersionData']:
         """Return version data for all versions discovery can find.
 
-        :param string project_id: ID of the currently scoped project. Used for
-                                  removing project_id components of URLs from
-                                  the catalog. (optional)
+        :param project_id: ID of the currently scoped project. Used for
+            removing project_id components of URLs from the catalog. (optional)
         :returns: A list of :class:`VersionData` sorted by version number.
-        :rtype: list(VersionData)
         """
         versions = []
         for vers_url in self._get_discovery_url_choices(project_id=project_id):
@@ -1311,11 +1282,9 @@ class EndpointData:
     ) -> list['VersionData']:
         """Return version data dict for when discovery fails.
 
-        :param string project_id: ID of the currently scoped project. Used for
-                                  removing project_id components of URLs from
-                                  the catalog. (optional)
+        :param project_id: ID of the currently scoped project. Used for
+            removing project_id components of URLs from the catalog. (optional)
         :returns: A list of :class:`VersionData` sorted by version number.
-        :rtype: list(VersionData)
         """
         assert self.url is not None  # nosec B101
 
@@ -1692,22 +1661,17 @@ def get_discovery(
     the discovery caching is used.
 
     :param session: A session object to discover with.
-    :type session: keystoneauth1.session.Session
-    :param str url: The url to lookup.
-    :param dict cache:
-        A dict to be used for caching results, in addition to caching them
-        on the Session. (optional) Defaults to None.
-    :param bool authenticated:
-        Include a token in the discovery call. (optional) Defaults to None,
-        which will use a token if an auth plugin is installed.
-
-    :raises keystoneauth1.exceptions.discovery.DiscoveryFailure:
-        if for some reason the lookup fails.
-    :raises keystoneauth1.exceptions.http.HttpError:
-        An error from an invalid HTTP response.
-
+    :param url: The url to lookup.
+    :param cache: A dict to be used for caching results, in addition to caching
+        them on the Session. (optional) Defaults to None.
+    :param authenticated: Include a token in the discovery call. (optional)
+        Defaults to None, which will use a token if an auth plugin is
+        installed.
+    :raises keystoneauth1.exceptions.discovery.DiscoveryFailure: if for some
+        reason the lookup fails.
+    :raises keystoneauth1.exceptions.http.HttpError: An error from an invalid
+        HTTP response.
     :returns: A discovery object with the results of looking up that URL.
-    :rtype: :py:class:`keystoneauth1.discover.Discovery`
     """
     # There are between one and three different caches. The user may have
     # passed one in. There is definitely one on the session, and there is
@@ -1773,9 +1737,9 @@ class _VersionHacks:
     ) -> None:
         """Add a new hack for a service type.
 
-        :param str service_type: The service_type in the catalog.
-        :param re.RegexObject old: The pattern to use.
-        :param str new: What to replace the pattern with.
+        :param service_type: The service_type in the catalog.
+        :param old: The pattern to use.
+        :param new: What to replace the pattern with.
         """
         hacks = self._discovery_data.setdefault(service_type, [])
         hacks.append((old, new))
@@ -1783,11 +1747,10 @@ class _VersionHacks:
     def get_discover_hack(self, service_type: str, url: str) -> str:
         """Apply the catalog hacks and figure out an unversioned endpoint.
 
-        :param str service_type: the service_type to look up.
-        :param str url: The original url that came from a service_catalog.
-
-        :returns: Either the unversioned url or the one from the catalog
-                  to try.
+        :param service_type: the service_type to look up.
+        :param url: The original url that came from a service_catalog.
+        :returns: Either the unversioned url or the one from the catalog to
+            try.
         """
         for old, new in self._discovery_data.get(service_type, []):
             new_string, number_of_subs_made = old.subn(new, url)
@@ -1825,10 +1788,9 @@ def add_catalog_discover_hack(
     so if the catalog retrieves an *identity* URL that ends with /v2.0 or
     /v2.0/ then it should replace it simply with / to fix the user's catalog.
 
-    :param str service_type: The service type as defined in the catalog that
-                             the rule will apply to.
-    :param re.RegexObject old: The regular expression to search for and replace
-                               if found.
-    :param str new: The new string to replace the pattern with.
+    :param service_type: The service type as defined in the catalog that the
+        rule will apply to.
+    :param old: The regular expression to search for and replace if found.
+    :param new: The new string to replace the pattern with.
     """
     _VERSION_HACKS.add_discover_hack(service_type, old, new)

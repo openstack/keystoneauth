@@ -22,7 +22,7 @@ __all__ = ('ReceiptMethod',)
 class ReceiptMethod(base.AuthMethod):
     """Construct an Auth plugin to continue authentication with a receipt.
 
-    :param string receipt: Receipt for authentication.
+    :param receipt: Receipt for authentication.
     """
 
     receipt: str

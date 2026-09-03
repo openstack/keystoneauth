@@ -76,10 +76,7 @@ class BaseAuthPlugin:
         the `get_headers` method instead.
 
         :param session: A session object so the plugin can make HTTP calls.
-        :type session: keystoneauth1.session.Session
-
         :return: A token to use.
-        :rtype: string
         """
         return None
 
@@ -89,10 +86,7 @@ class BaseAuthPlugin:
         """Return the authentication reference of an auth plugin.
 
         :param session: A session object to be used for communication
-        :type session: keystoneauth1.session.session
-
         :return: An access info object if supported.
-        :rtype: `keystoneauth1.access.AccessInfo` or None
         """
         return None
 
@@ -119,12 +113,9 @@ class BaseAuthPlugin:
         achieved by returning an empty dictionary.
 
         :param session: The session object that the auth_plugin belongs to.
-        :type session: keystoneauth1.session.Session
-
         :returns: Headers that are set to authenticate a message or None for
-                  failure. Note that when checking this value that the empty
-                  dict is a valid, non-failure response.
-        :rtype: dict
+            failure. Note that when checking this value that the empty dict is
+            a valid, non-failure response.
         """
         token = self.get_token(session)
 
@@ -144,20 +135,14 @@ class BaseAuthPlugin:
         """Return a valid endpoint data for a service.
 
         :param session: A session object that can be used for communication.
-        :type session: keystoneauth1.session.Session
-        :param str endpoint_override: URL to use for version discovery.
-        :param bool discover_versions: Whether to get version metadata from
-                                       the version discovery document even
-                                       if it major api version info can be
-                                       inferred from the url.
-                                       (optional, defaults to True)
-        :param kwargs: Ignored.
-
+        :param endpoint_override: URL to use for version discovery.
+        :param discover_versions: Whether to get version metadata from the
+            version discovery document even if it major api version info can be
+            inferred from the url. (optional, defaults to True)
+        :param kwargs: Ignored
         :raises keystoneauth1.exceptions.http.HttpError: An error from an
-                                                         invalid HTTP response.
-
+            invalid HTTP response.
         :return: Valid EndpointData or None if not available.
-        :rtype: `keystoneauth1.discover.EndpointData` or None
         """
         if not endpoint_override:
             return None
@@ -182,15 +167,11 @@ class BaseAuthPlugin:
         """Get the major API version from the endpoint.
 
         :param session: A session object that can be used for communication.
-        :type session: keystoneauth1.session.Session
-        :param str endpoint_override: URL to use for version discovery.
+        :param endpoint_override: URL to use for version discovery.
         :param kwargs: Ignored.
-
         :raises keystoneauth1.exceptions.http.HttpError: An error from an
-                                                         invalid HTTP response.
-
+            invalid HTTP response.
         :return: Valid EndpointData or None if not available.
-        :rtype: `keystoneauth1.discover.EndpointData` or None
         """
         endpoint_data = self.get_endpoint_data(
             session,
@@ -225,19 +206,14 @@ class BaseAuthPlugin:
         """Get version data for all services in the catalog.
 
         :param session: A session object that can be used for communication.
-        :type session: keystoneauth1.session.Session
-        :param interface:
-            Type of endpoint to get version data for. Can be a single value
-            or a list of values. A value of None indicates that all interfaces
-            should be queried. (optional, defaults to public)
-        :param string region_name:
-            Region of endpoints to get version data for. A valueof None
-            indicates that all regions should be queried. (optional, defaults
-            to None)
-        :param string service_type:
-            Limit the version data to a single service. (optional, defaults
-            to None)
-
+        :param interface: Type of endpoint to get version data for. Can be a
+            single value or a list of values. A value of None indicates that
+            all interfaces should be queried. (optional, defaults to public)
+        :param region_name: Region of endpoints to get version data for. A
+            value of None indicates that all regions should be queried.
+            (optional, defaults to None)
+        :param service_type: Limit the version data to a single service.
+            (optional, defaults to None)
         :returns: A dictionary keyed by region_name with values containing
             dictionaries keyed by interface with values being a list of
             :class:`~keystoneauth1.discover.VersionData`.
@@ -260,12 +236,10 @@ class BaseAuthPlugin:
         - ``region_name``: the region the endpoint exists in.
 
         :param session: The session object that the auth_plugin belongs to.
-        :type session: keystoneauth1.session.Session
         :param kwargs: Ignored.
 
         :returns: The base URL that will be used to talk to the required
-                  service or None if not available.
-        :rtype: string
+            service or None if not available.
         """
         endpoint_data = self.get_endpoint_data(
             session, discover_versions=False, **kwargs
@@ -280,11 +254,8 @@ class BaseAuthPlugin:
         """Return any additional connection parameters required for the plugin.
 
         :param session: The session object that the auth_plugin belongs to.
-        :type session: keystoneauth1.session.Session
-
         :returns: Parameters that are passed to the requests library. Only the
-                  ``cert`` and ``verify`` parameters may be returned.
-        :rtype: dict
+            ``cert`` and ``verify`` parameters may be returned.
         """
         return {}
 
@@ -298,9 +269,8 @@ class BaseAuthPlugin:
         otherwise now invalid.
 
         :returns: True if there was something that the plugin did to
-                  invalidate. This means that it makes sense to try again. If
-                  nothing happens returns False to indicate give up.
-        :rtype: bool
+            invalidate. This means that it makes sense to try again. If nothing
+            happens returns False to indicate give up.
         """
         return False
 
@@ -312,10 +282,7 @@ class BaseAuthPlugin:
         currently authenticated user id.
 
         :param session: A session object so the plugin can make HTTP calls.
-        :type session: keystoneauth1.session.Session
-
         :returns: A user identifier or None if one is not available.
-        :rtype: str
         """
         return None
 
@@ -327,10 +294,7 @@ class BaseAuthPlugin:
         the currently authenticated project id.
 
         :param session: A session object so the plugin can make HTTP calls.
-        :type session: keystoneauth1.session.Session
-
         :returns: A project identifier or None if one is not available.
-        :rtype: str
         """
         return None
 
@@ -342,12 +306,9 @@ class BaseAuthPlugin:
         This url is used for obtaining unscoped federated token from remote
         cloud.
 
+        :param session: A session object that can be used for communication.
         :param sp_id: ID of the Service Provider to be queried.
-        :type sp_id: string
-
         :returns: A Service Provider auth_url or None if one is not available.
-        :rtype: str
-
         """
         return None
 
@@ -358,12 +319,9 @@ class BaseAuthPlugin:
 
         This url is used for passing SAML2 assertion to the remote cloud.
 
+        :param session: A session object that can be used for communication.
         :param sp_id: ID of the Service Provider to be queried.
-        :type sp_id: str
-
         :returns: A Service Provider sp_url or None if one is not available.
-        :rtype: str
-
         """
         return None
 
@@ -382,7 +340,6 @@ class BaseAuthPlugin:
         implemented.
 
         :returns: A unique string for the set of options
-        :rtype: str or None if this is unsupported or unavailable.
         """
         return None
 
@@ -404,8 +361,7 @@ class BaseAuthPlugin:
         implemented.
 
         :returns: A unique string for the unscoped credential, or None where
-                  there is no such credential to identify.
-        :rtype: str or None if this is unsupported or unavailable.
+            there is no such credential to identify.
         """
         return None
 
@@ -445,9 +401,8 @@ class BaseAuthPlugin:
             feature.
 
         :returns: raw python data (which can be JSON serialized) that can be
-                  moved into another plugin (of the same type) to have the
-                  same authenticated state.
-        :rtype: object or None if unauthenticated.
+            moved into another plugin (of the same type) to have the same
+            authenticated state.
         """
         raise NotImplementedError()
 
@@ -481,6 +436,10 @@ class FixedEndpointPlugin(BaseAuthPlugin):
         Using this plugin the same endpoint is returned regardless of the
         parameters passed to the plugin. endpoint_override overrides the
         endpoint specified when constructing the plugin.
+
+        :param session: A session object that can be used for communication.
+        :param endpoint_override: URL to use for version discovery.
+        :param kwargs: Ignored.
         """
         return endpoint_override or self.endpoint
 
@@ -492,23 +451,17 @@ class FixedEndpointPlugin(BaseAuthPlugin):
         discover_versions: bool = True,
         **kwargs: Any,
     ) -> discover.EndpointData | None:
-        """Return a valid endpoint data for a the service.
+        """Return a valid endpoint data for the service.
 
         :param session: A session object that can be used for communication.
-        :type session: keystoneauth1.session.Session
-        :param str endpoint_override: URL to use for version discovery.
-        :param bool discover_versions: Whether to get version metadata from
-                                       the version discovery document even
-                                       if it major api version info can be
-                                       inferred from the url.
-                                       (optional, defaults to True)
+        :param endpoint_override: URL to use for version discovery.
+        :param discover_versions: Whether to get version metadata from the
+            version discovery document even if it major api version info can be
+            inferred from the url. (optional, defaults to True)
         :param kwargs: Ignored.
-
         :raises keystoneauth1.exceptions.http.HttpError: An error from an
-                                                         invalid HTTP response.
-
+            invalid HTTP response.
         :return: Valid EndpointData or None if not available.
-        :rtype: `keystoneauth1.discover.EndpointData` or None
         """
         return super().get_endpoint_data(
             session,

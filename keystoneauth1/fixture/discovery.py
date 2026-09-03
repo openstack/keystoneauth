@@ -36,9 +36,9 @@ class DiscoveryBase(dict[str, Any]):
 
     All version discovery elements should have access to these values.
 
-    :param string id: The version id for this version entry.
-    :param string status: The status of this entry.
-    :param DateTime updated: When the API was last updated.
+    :param id: The version id for this version entry.
+    :param status: The status of this entry.
+    :param updated: When the API was last updated.
     """
 
     def __init__(
@@ -120,8 +120,8 @@ class VersionDiscovery(DiscoveryBase):
     endpoint version structure. Clients should use this instead of creating
     their own structures.
 
-    :param string href: The url that this entry should point to.
-    :param string id: The version id that should be reported.
+    :param href: The url that this entry should point to.
+    :param id: The version id that should be reported.
     """
 
     def __init__(
@@ -144,10 +144,10 @@ class MicroversionDiscovery(DiscoveryBase):
     endpoint version structure. Clients should use this instead of creating
     their own structures.
 
-    :param string href: The url that this entry should point to.
-    :param string id: The version id that should be reported.
-    :param string min_version: The minimum supported microversion. (optional)
-    :param string max_version: The maximum supported microversion. (optional)
+    :param href: The url that this entry should point to.
+    :param id: The version id that should be reported.
+    :param min_version: The minimum supported microversion. (optional)
+    :param max_version: The maximum supported microversion. (optional)
     """
 
     def __init__(
@@ -194,9 +194,9 @@ class NovaMicroversionDiscovery(DiscoveryBase):
     their own structures.
 
     :param href: The url that this entry should point to.
-    :param string id: The version id that should be reported.
-    :param string min_version: The minimum microversion supported. (optional)
-    :param string version: The maximum microversion supported. (optional)
+    :param id: The version id that should be reported.
+    :param min_version: The minimum microversion supported. (optional)
+    :param version: The maximum microversion supported. (optional)
     """
 
     def __init__(
@@ -244,11 +244,11 @@ class V2Discovery(DiscoveryBase):
     endpoint version structure. Clients should use this instead of creating
     their own structures.
 
-    :param string href: The url that this entry should point to.
-    :param string id: The version id that should be reported. (optional)
-                      Defaults to 'v2.0'.
-    :param bool html: Add HTML describedby links to the structure.
-    :param bool pdf: Add PDF describedby links to the structure.
+    :param href: The url that this entry should point to.
+    :param id: The version id that should be reported. (optional) Defaults to
+        'v2.0'.
+    :param html: Add HTML describedby links to the structure.
+    :param pdf: Add PDF describedby links to the structure.
 
     """
 
@@ -306,10 +306,10 @@ class V3Discovery(DiscoveryBase):
     their own structures.
 
     :param href: The url that this entry should point to.
-    :param string id: The version id that should be reported. (optional)
-                      Defaults to 'v3.0'.
-    :param bool json: Add JSON media-type elements to the structure.
-    :param bool xml: Add XML media-type elements to the structure.
+    :param id: The version id that should be reported. (optional) Defaults to
+        'v3.0'.
+    :param json: Add JSON media-type elements to the structure.
+    :param xml: Add XML media-type elements to the structure.
     """
 
     def __init__(
@@ -360,17 +360,17 @@ class DiscoveryList(dict[str, Any]):
     Creates a correctly structured list of identity service endpoints for
     use in testing with discovery.
 
-    :param string href: The url that this should be based at.
-    :param bool v2: Add a v2 element.
-    :param bool v3: Add a v3 element.
-    :param string v2_status: The status to use for the v2 element.
-    :param DateTime v2_updated: The update time to use for the v2 element.
-    :param bool v2_html: True to add a html link to the v2 element.
-    :param bool v2_pdf: True to add a pdf link to the v2 element.
-    :param string v3_status: The status to use for the v3 element.
-    :param DateTime v3_updated: The update time to use for the v3 element.
-    :param bool v3_json: True to add a html link to the v2 element.
-    :param bool v3_xml: True to add a pdf link to the v2 element.
+    :param href: The url that this should be based at.
+    :param v2: Add a v2 element.
+    :param v3: Add a v3 element.
+    :param v2_status: The status to use for the v2 element.
+    :param v2_updated: The update time to use for the v2 element.
+    :param v2_html: True to add a html link to the v2 element.
+    :param v2_pdf: True to add a pdf link to the v2 element.
+    :param v3_status: The status to use for the v3 element.
+    :param v3_updated: The update time to use for the v3 element.
+    :param v3_json: True to add a html link to the v2 element.
+    :param v3_xml: True to add a pdf link to the v2 element.
     """
 
     TEST_URL = 'http://keystone.host:5000/'
@@ -425,7 +425,7 @@ class DiscoveryList(dict[str, Any]):
     def add_version(self, version: DiscoveryBase) -> None:
         """Add a new version structure to the list.
 
-        :param dict version: A new version structure to add to the list.
+        :param version: A new version structure to add to the list.
         """
         self.versions.append(version)
 

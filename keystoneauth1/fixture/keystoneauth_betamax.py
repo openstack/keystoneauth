@@ -48,34 +48,31 @@ class BetamaxFixture(fixtures.Fixture):
     ) -> None:
         """Configure Betamax for the test suite.
 
-        :param str cassette_name:
-            This is simply the name of the cassette without any file extension
-            or containing directory. For example, to generate
-            ``keystoneauth1/tests/unit/data/example.yaml``, one would pass
-            only ``example``.
-        :param str cassette_library_dir:
-            This is the directory that will contain all cassette files. In
+        :param cassette_name: This is simply the name of the cassette without
+            any file extension or containing directory. For example, to
+            generate ``keystoneauth1/tests/unit/data/example.yaml``, one would
+            pass only ``example``.
+        :param cassette_library_dir: This is the directory that will contain
+            all cassette files. In
             ``keystoneauth1/tests/unit/data/example.yaml`` you would pass
             ``keystoneauth1/tests/unit/data/``.
-        :param serializer:
-            A class that implements the Serializer API in Betamax. See also:
+        :param serializer: A class that implements the Serializer API in
+            Betamax. See also:
             https://betamax.readthedocs.io/en/latest/serializers.html
-        :param record:
-            The Betamax record mode to use. If ``False`` (the default), then
-            Betamax will not record anything. For more information about
-            record modes, see:
+        :param record: The Betamax record mode to use. If ``False`` (the
+            default), then Betamax will not record anything. For more
+            information about record modes, see:
             https://betamax.readthedocs.io/en/latest/record_modes.html
-        :param callable pre_record_hook:
-            Function or callable to use to perform some handling of the
-            request or response data prior to saving it to disk.
-        :param str serializer_name:
-            The name of a serializer already registered with Betamax to use
-            to handle cassettes. For example, if you want to use the default
-            Betamax serializer, you would pass ``'json'`` to this parameter.
-        :param list request_matchers:
-            The list of request matcher names to use with Betamax. Betamax's
-            default list is used if none are specified. See also:
-            https://betamax.readthedocs.io/en/latest/matchers.html
+        :param pre_record_hook: Function or callable to use to perform some
+            handling of the request or response data prior to saving it to
+            disk.
+        :param serializer_name: The name of a serializer already registered
+            with Betamax to use to handle cassettes. For example, if you want
+            to use the default Betamax serializer, you would pass ``'json'`` to
+            this parameter.
+        :param request_matchers: The list of request matcher names to use with
+            Betamax. Betamax's default list is used if none are specified. See
+            also: https://betamax.readthedocs.io/en/latest/matchers.html
         """
         self.cassette_library_dir = cassette_library_dir
         self.record = record
@@ -99,10 +96,7 @@ class BetamaxFixture(fixtures.Fixture):
         If a class was specified, use the name attribute to generate this,
         otherwise, use the serializer_name parameter from ``__init__``.
 
-        :returns:
-            Name of the serializer
-        :rtype:
-            str
+        :returns: Name of the serializer
         """
         if self.serializer:
             # betamax is not typed yet

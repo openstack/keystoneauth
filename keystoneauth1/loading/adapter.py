@@ -94,8 +94,8 @@ class Adapter(base._BaseLoader[adapter.Adapter]):
             of the new option to a list of oslo.DeprecatedOpts that correspond
             to the new option. (optional)
 
-            For example, to support the ``api_endpoint`` option pointing to
-            the new ``endpoint_override`` option name::
+            For example, to support the ``api_endpoint`` option pointing to the
+            new ``endpoint_override`` option name::
 
                 old_opt = oslo_cfg.DeprecatedOpt('api_endpoint', 'old_group')
                 deprecated_opts = {'endpoint_override': [old_opt]}
