@@ -787,16 +787,17 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
 
         return json.dumps(data)
 
-    def set_auth_state(self, data: str) -> None:
+    def set_auth_state(self, data: str | None) -> None:
         """Install existing authentication state for a plugin.
 
         Take the output of get_auth_state and install that authentication state
         into the current authentication plugin.
         """
-        if data:
-            auth_data = json.loads(data)
-            self.auth_ref = access.create(
-                body=auth_data['body'], auth_token=auth_data['auth_token']
-            )
-        else:
+        if not data:
             self.auth_ref = None
+            return
+
+        auth_data = json.loads(data)
+        self.auth_ref = access.create(
+            body=auth_data['body'], auth_token=auth_data['auth_token']
+        )

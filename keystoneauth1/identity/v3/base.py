@@ -193,9 +193,8 @@ class Auth(BaseAuth):
 
         if sum(mutual_exclusion) > 1:
             raise exceptions.AuthorizationFailure(
-                message='Authentication cannot be scoped to multiple'
-                ' targets. Pick one of: project, domain, '
-                'trust, system or unscoped'
+                'Authentication cannot be scoped to multiple targets. '
+                'Pick one of: project, domain, trust, system or unscoped'
             )
 
         if self.domain_id:
