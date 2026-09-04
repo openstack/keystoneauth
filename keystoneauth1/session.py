@@ -451,16 +451,47 @@ class Session:
 
         self._json = _JSONEncoder()
 
-    def __del__(self) -> None:
-        """Clean up resources on delete."""
-        if self._session:
-            # If we created a requests.Session, try to close it out correctly
+    def close(self) -> None:
+        """Release resources held by this session.
+
+        Closes the underlying ``requests.Session`` if this session created
+        it, discarding any pooled connections. The session remains usable
+        after being closed; new connections are established as needed and
+        no re-authentication is required (token state lives in the auth
+        plugin, not the requests session).
+
+        If the session was created with an externally supplied
+        ``requests.Session`` (the ``session`` constructor argument), it is
+        left untouched: ownership of that object belongs to the caller.
+
+        Tearing down idle pooled connections is a local operation and does
+        not normally raise. The errors it plausibly can raise are handled
+        here rather than left for every caller: ``OSError`` from the
+        socket layer (which also covers the deprecated ``socket.error``
+        alias and the ``ssl.SSLError`` subclass) and
+        ``requests.exceptions.RequestException`` from ``requests`` are
+        caught and discarded, since a failure to close an already-idle
+        connection is not actionable. The requests session is dropped
+        regardless, so ``close()`` stays idempotent.
+
+        :raises Exception: any error other than ``OSError`` and
+            ``requests.exceptions.RequestException`` (both caught
+            internally) propagates unchanged.
+        """
+        if self._session is not None:
             try:
                 self._session.close()
-            except Exception:  # noqa: S110
+            except (OSError, requests.exceptions.RequestException):
                 pass
             finally:
                 self._session = None
+
+    def __del__(self) -> None:
+        """Clean up resources on delete."""
+        try:
+            self.close()
+        except Exception:  # noqa: S110
+            pass
 
     # TODO(stephenfin): The types from typeshed are very generic. This would be
     # more accurate:

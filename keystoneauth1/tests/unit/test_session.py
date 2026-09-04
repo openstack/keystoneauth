@@ -906,6 +906,58 @@ class SessionTests(utils.TestCase):
         except exceptions.HttpError as ex:
             self.assertEqual(ex.message, msg)
 
+    def test_close_releases_owned_session(self):
+        session = client_session.Session()
+        self.assertIsNotNone(session._session)
+        with mock.patch.object(
+            session._session, 'close', wraps=session._session.close
+        ) as close_mock:
+            session.close()
+        close_mock.assert_called_once()
+        self.assertIsNone(session._session)
+
+    def test_close_leaves_external_session(self):
+        external = requests.Session()
+        session = client_session.Session(session=external)
+        self.assertIsNone(session._session)
+        with mock.patch.object(external, 'close') as close_mock:
+            session.close()
+        close_mock.assert_not_called()
+
+    def test_close_is_idempotent(self):
+        session = client_session.Session()
+        with mock.patch.object(
+            session._session, 'close', wraps=session._session.close
+        ) as close_mock:
+            session.close()
+            session.close()
+        close_mock.assert_called_once()
+        self.assertIsNone(session._session)
+
+    def test_close_keeps_session_usable(self):
+        session = client_session.Session()
+        session.close()
+        self.assertIsNotNone(session.session)
+
+    def test_close_swallows_teardown_errors(self):
+        session = client_session.Session()
+        session._session = mock.Mock()
+        session._session.close.side_effect = OSError('socket gone')
+        session.close()
+        self.assertIsNone(session._session)
+
+    def test_close_propagates_unexpected_errors(self):
+        session = client_session.Session()
+        session._session = mock.Mock()
+        session._session.close.side_effect = AttributeError('bug')
+        self.assertRaises(AttributeError, session.close)
+
+    def test_del_swallows_errors(self):
+        session = client_session.Session()
+        session._session = mock.Mock()
+        session._session.close.side_effect = RuntimeError('boom')
+        self.assertIsNone(session.__del__())
+
 
 class RedirectTests(utils.TestCase):
     REDIRECT_CHAIN = [

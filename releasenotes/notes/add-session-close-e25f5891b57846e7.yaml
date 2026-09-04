@@ -1,0 +1,15 @@
+---
+features:
+  - |
+    Add a ``Session.close()`` method to
+    ``keystoneauth1.session.Session`` for deterministic release of the
+    underlying ``requests.Session`` and its pooled keep-alive
+    connections. The session is only closed if keystoneauth1 created it
+    itself; a ``requests.Session`` supplied via the ``session``
+    constructor argument is left untouched, as its ownership belongs to
+    the caller. ``close()`` is idempotent and non-fatal: the session
+    remains usable after being closed, establishing new connections as
+    needed, and no re-authentication is required. Errors from the socket
+    layer (``OSError``) or from ``requests`` raised while tearing down
+    idle pooled connections are caught and discarded rather than
+    propagated to the caller.
