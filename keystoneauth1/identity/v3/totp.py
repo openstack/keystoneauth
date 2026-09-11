@@ -73,9 +73,8 @@ class TOTPMethod(base.AuthMethod):
         return 'totp', {'user': user}
 
     def get_cache_id_elements(self) -> dict[str, str | None]:
-        # NOTE(gyee): passcode is not static so we cannot use it as part of
-        # the key in caching.
         return {
+            'totp_passcode': self.passcode,
             'totp_user_id': self.user_id,
             'totp_username': self.username,
             'totp_user_domain_id': self.user_domain_id,
