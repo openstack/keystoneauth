@@ -316,6 +316,21 @@ class OIDCPasswordTests(BaseOIDCTests, utils.TestCase):
             self.AUTH_URL, self.IDENTITY_PROVIDER, self.PROTOCOL, **params
         )
 
+    def test_sanitize_masks_otp_fields(self):
+        sanitized = self.plugin._sanitize(
+            {
+                'totp': '123456',
+                'idp_otp': '654321',
+                'mfa_code': '999999',
+                'scope': 'openid',
+            }
+        )
+
+        self.assertEqual('***', sanitized['totp'])
+        self.assertEqual('***', sanitized['idp_otp'])
+        self.assertEqual('***', sanitized['mfa_code'])
+        self.assertEqual('openid', sanitized['scope'])
+
     def test_unscoped_cache_id_varies_by_identity_and_credentials(self):
         base_id = self.plugin.get_unscoped_cache_id()
         self.assertIsNotNone(base_id)

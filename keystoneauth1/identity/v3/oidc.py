@@ -37,7 +37,7 @@ __all__ = (
     'OidcAccessToken',
 )
 
-SENSITIVE_KEYS = ("password", "code", "token", "secret")
+SENSITIVE_KEYS = ("password", "code", "token", "secret", "otp", "totp", "mfa")
 
 
 _OidcBaseT = TypeVar('_OidcBaseT', bound='_OidcBase')
