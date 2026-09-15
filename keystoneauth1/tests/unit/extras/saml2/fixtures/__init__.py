@@ -27,7 +27,8 @@ def soap_response(**kwargs):
         'consumer', 'https://openstack4.local/Shibboleth.sso/SAML2/ECP'
     )
     kwargs.setdefault('issuer', 'https://openstack4.local/shibboleth')
-    return template('soap_response.xml', **kwargs).encode('utf-8')
+    template_name = kwargs.pop('template', 'soap_response.xml')
+    return template(template_name, **kwargs).encode('utf-8')
 
 
 def saml_assertion(**kwargs):

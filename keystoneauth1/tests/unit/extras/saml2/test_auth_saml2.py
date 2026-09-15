@@ -233,6 +233,39 @@ class SamlAuth2PluginTests(utils.TestCase):
             [self.TEST_SP_URL, self.TEST_IDP_URL, consumer, self.TEST_SP_URL],
         )
 
+    def test_standard_workflow_without_relay_state(self):
+        text = uuid.uuid4().hex
+        soap_response = utils.make_oneline(
+            saml2_fixtures.soap_response(
+                template='soap_response_no_relay_state.xml'
+            )
+        )
+
+        self.requests_mock.get(
+            self.TEST_SP_URL,
+            response_list=[
+                {
+                    'headers': CONTENT_TYPE_PAOS_HEADER,
+                    'content': soap_response,
+                },
+                {'text': text},
+            ],
+        )
+
+        self.requests_mock.post(
+            self.TEST_IDP_URL, content=saml2_fixtures.SAML2_ASSERTION
+        )
+
+        self.requests_mock.post(
+            self.TEST_CONSUMER_URL,
+            status_code=302,
+            headers={'Location': self.TEST_SP_URL},
+        )
+
+        resp = requests.get(self.TEST_SP_URL, auth=self.get_plugin())
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual(text, resp.text)
+
     def test_initial_sp_call_invalid_response(self):
         """Send initial SP HTTP request and receive wrong server response."""
         self.requests_mock.get(

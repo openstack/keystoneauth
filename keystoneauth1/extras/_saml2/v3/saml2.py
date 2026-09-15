@@ -47,6 +47,30 @@ _XPATH_SP_RELAY_STATE = '//ecp:RelayState'
 _XPATH_SP_CONSUMER_URL = _XBASE + 'paos:Request/@responseConsumerURL'
 _XPATH_IDP_CONSUMER_URL = _XBASE + 'ecp:Response/@AssertionConsumerServiceURL'
 
+_SOAP_ENV = 'http://schemas.xmlsoap.org/soap/envelope/'
+
+
+def _insert_relay_state(
+    authn_response: etree._Element, relay_state: etree._Element
+) -> None:
+    """Copy the SP RelayState into the IdP SOAP response header.
+
+    ECP allows the RelayState header to be omitted. When it is present we
+    replace any existing ecp:Response element, matching the behaviour of the
+    previous positional assignment without corrupting other header children.
+    """
+    header = authn_response.find(f'{{{_SOAP_ENV}}}Header')
+    if header is None:
+        msg = 'SAML2: Identity Provider response is missing a SOAP Header'
+        raise InvalidResponse(msg)
+
+    ecp_response = header.xpath('ecp:Response', namespaces=_XML_NAMESPACES)
+    if ecp_response:
+        header.replace(ecp_response[0], relay_state)
+    else:
+        header.insert(0, relay_state)
+
+
 _SOAP_FAULT = """
     <S:Envelope xmlns:S="http://schemas.xmlsoap.org/soap/envelope/">
        <S:Body>
@@ -189,9 +213,10 @@ class _SamlAuth(requests.auth.AuthBase):
             return sp_response.connection.send(req.prepare(), **kwargs)
 
         authn_request = _response_xml(sp_response, 'Service Provider')
-        relay_state = authn_request.xpath(
+        relay_states = authn_request.xpath(
             _XPATH_SP_RELAY_STATE, namespaces=_XML_NAMESPACES
-        )[0]
+        )
+        relay_state = relay_states[0] if relay_states else None
         sp_consumer_url = _str_from_xml(authn_request, _XPATH_SP_CONSUMER_URL)
 
         authn_request.remove(authn_request[0])
@@ -238,8 +263,8 @@ class _SamlAuth(requests.auth.AuthBase):
 
             raise ConsumerMismatch(msg)
 
-        # FIXME(stephenfin): We need a better type here
-        authn_response[0][0] = relay_state
+        if relay_state is not None:
+            _insert_relay_state(authn_response, relay_state)
 
         # idp_consumer_url is the URL on the SP that handles the ECP body
         # returned and creates an authenticated session.
