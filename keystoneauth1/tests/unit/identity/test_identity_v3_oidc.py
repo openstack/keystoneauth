@@ -578,6 +578,16 @@ class OIDCDeviceAuthorizationTest(BaseOIDCTests, utils.TestCase):
             result["device_code"],
         )
 
+    def test_device_authorization_defaults_missing_interval(self):
+        device_resp = dict(oidc_fixtures.DEVICE_CODE_RESP)
+        del device_resp['interval']
+
+        self.requests_mock.post(self.DEVICE_AUTH_ENDPOINT, json=device_resp)
+
+        self.plugin.get_payload(self.session)
+
+        self.assertEqual(5, self.plugin.interval)
+
     def test_get_device_authorization_request_without_client_secret(self):
         """Test device authorization request, without client_secret.
 
