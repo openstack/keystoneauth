@@ -60,3 +60,12 @@ class OAuth1LoadingTests(test_utils.TestCase):
                 'consumer-secret',
             },
         )
+
+    def test_secret_options(self):
+        options = {
+            o.name: o
+            for o in loading.get_plugin_loader('v3oauth1').get_options()
+        }
+
+        self.assertTrue(options['consumer-secret'].secret)
+        self.assertTrue(options['access-secret'].secret)

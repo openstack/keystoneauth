@@ -38,13 +38,17 @@ class V3OAuth1(loading.BaseIdentityLoader[v3.OAuth1]):
                 loading.Opt(
                     'consumer-secret',
                     required=True,
+                    secret=True,
                     help='OAuth Consumer Secret',
                 ),
                 loading.Opt(
                     'access-key', required=True, help='OAuth Access Key'
                 ),
                 loading.Opt(
-                    'access-secret', required=True, help='OAuth Access Secret'
+                    'access-secret',
+                    required=True,
+                    secret=True,
+                    help='OAuth Access Secret',
                 ),
             ]
         )
