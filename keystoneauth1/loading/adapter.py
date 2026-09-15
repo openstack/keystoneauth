@@ -128,8 +128,10 @@ class Adapter(base._BaseLoader[adapter.Adapter]):
             cfg.ListOpt(
                 'valid-interfaces',
                 deprecated_opts=deprecated_opts.get('valid-interfaces'),
-                help='List of interfaces, in order of preference, '
-                'for endpoint URL.',
+                help=(
+                    'List of interfaces, in order of preference, for endpoint '
+                    'URL.'
+                ),
             ),
             cfg.StrOpt(
                 'region-name',
@@ -139,76 +141,85 @@ class Adapter(base._BaseLoader[adapter.Adapter]):
             cfg.StrOpt(
                 'endpoint-override',
                 deprecated_opts=deprecated_opts.get('endpoint-override'),
-                help='Always use this endpoint URL for requests '
-                'for this client. NOTE: The unversioned '
-                'endpoint should be specified here; to '
-                'request a particular API version, use the '
-                '`version`, `min-version`, and/or '
-                '`max-version` options.',
+                help=(
+                    'Always use this endpoint URL for requests for this '
+                    'client. NOTE: The unversioned endpoint should be '
+                    'specified here; to request a particular API version, use '
+                    'the `version`, `min-version`, and/or `max-version` '
+                    'options.'
+                ),
             ),
             cfg.StrOpt(
                 'version',
                 deprecated_opts=deprecated_opts.get('version'),
-                help='Minimum Major API version within a given '
-                'Major API version for endpoint URL '
-                'discovery. Mutually exclusive with '
-                'min_version and max_version',
+                help=(
+                    'Minimum Major API version within a given Major API '
+                    'version for endpoint URL discovery. Mutually exclusive '
+                    'with min_version and max_version'
+                ),
             ),
             cfg.StrOpt(
                 'min-version',
                 deprecated_opts=deprecated_opts.get('min-version'),
-                help='The minimum major version of a given API, '
-                'intended to be used as the lower bound of a '
-                'range with max_version. Mutually exclusive '
-                'with version. If min_version is given with '
-                'no max_version it is as if max version is '
-                '"latest".',
+                help=(
+                    'The minimum major version of a given API, intended to be '
+                    'used as the lower bound of a range with max_version. '
+                    'Mutually exclusive with version. If min_version is '
+                    'given with no max_version it is as if max version is '
+                    '"latest".'
+                ),
             ),
             cfg.StrOpt(
                 'max-version',
                 deprecated_opts=deprecated_opts.get('max-version'),
-                help='The maximum major version of a given API, '
-                'intended to be used as the upper bound of a '
-                'range with min_version. Mutually exclusive '
-                'with version.',
+                help=(
+                    'The maximum major version of a given API, intended to be '
+                    'used as the upper bound of a range with min_version. '
+                    'Mutually exclusive with version.'
+                ),
             ),
             cfg.IntOpt(
                 'connect-retries',
                 deprecated_opts=deprecated_opts.get('connect-retries'),
-                help='The maximum number of retries that should be '
-                'attempted for connection errors.',
+                help=(
+                    'The maximum number of retries that should be attempted '
+                    'for connection errors.'
+                ),
             ),
             cfg.FloatOpt(
                 'connect-retry-delay',
                 deprecated_opts=deprecated_opts.get('connect-retry-delay'),
-                help='Delay (in seconds) between two retries '
-                'for connection errors. If not set, '
-                'exponential retry starting with 0.5 '
-                'seconds up to a maximum of 60 seconds '
-                'is used.',
+                help=(
+                    'Delay (in seconds) between two retries for connection '
+                    'errors. If not set, exponential retry starting with 0.5 '
+                    'seconds up to a maximum of 60 seconds is used.'
+                ),
             ),
             cfg.IntOpt(
                 'status-code-retries',
                 deprecated_opts=deprecated_opts.get('status-code-retries'),
-                help='The maximum number of retries that should be '
-                'attempted for retriable HTTP status codes.',
+                help=(
+                    'The maximum number of retries that should be attempted '
+                    'for retriable HTTP status codes.'
+                ),
             ),
             cfg.FloatOpt(
                 'status-code-retry-delay',
                 deprecated_opts=deprecated_opts.get('status-code-retry-delay'),
-                help='Delay (in seconds) between two retries '
-                'for retriable status codes. If not set, '
-                'exponential retry starting with 0.5 '
-                'seconds up to a maximum of 60 seconds '
-                'is used.',
+                help=(
+                    'Delay (in seconds) between two retries for retriable '
+                    'status codes. If not set, exponential retry starting '
+                    'with 0.5 seconds up to a maximum of 60 seconds is used.'
+                ),
             ),
             cfg.ListOpt(
                 'retriable-status-codes',
                 deprecated_opts=deprecated_opts.get('retriable-status-codes'),
                 item_type=types.Integer(),
-                help='List of retriable HTTP status codes that '
-                'should be retried. If not set default to '
-                '[503]',
+                help=(
+                    'List of retriable HTTP status codes that should be '
+                    'retried. If not set default to `[503]`'
+                ),
             ),
         ]
 
