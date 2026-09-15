@@ -11,9 +11,24 @@
 #    under the License.
 
 import datetime
+import json
 import logging
+from typing import Any
 
 import iso8601
+
+# Substrings matched case-insensitively against dict keys when masking
+# structured data for debug logs. Same idea as identity/v3/oidc.py.
+_SENSITIVE_KEY_MARKERS = (
+    'password',
+    'passphrase',
+    'secret',
+    'credential',
+    'token',
+    'code',
+)
+
+REDACTED_VALUE = '***'
 
 
 def get_logger(name: str) -> logging.Logger:
@@ -22,6 +37,39 @@ def get_logger(name: str) -> logging.Logger:
 
 
 logger = get_logger(__name__)
+
+
+def _is_sensitive_key(key: object) -> bool:
+    if not isinstance(key, str):
+        return False
+    key_lower = key.lower()
+    return any(marker in key_lower for marker in _SENSITIVE_KEY_MARKERS)
+
+
+def mask_sensitive_data(data: Any) -> Any:
+    """Return a copy of structured data with sensitive values redacted."""
+    if isinstance(data, dict):
+        masked = {}
+        for key, value in data.items():
+            if _is_sensitive_key(key):
+                masked[key] = REDACTED_VALUE
+            else:
+                masked[key] = mask_sensitive_data(value)
+        return masked
+    if isinstance(data, list):
+        return [mask_sensitive_data(item) for item in data]
+    return data
+
+
+def mask_sensitive_string(data: str) -> str:
+    """Redact sensitive JSON values in a string for debug logging."""
+    try:
+        parsed = json.loads(data)
+    except (json.JSONDecodeError, TypeError):
+        return data
+    if not isinstance(parsed, (dict, list)):
+        return data
+    return json.dumps(mask_sensitive_data(parsed))
 
 
 def normalize_time(timestamp: datetime.datetime) -> datetime.datetime:

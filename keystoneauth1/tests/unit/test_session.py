@@ -382,6 +382,49 @@ class SessionTests(utils.TestCase):
             self.assertEqual(v, resp.headers[k])
             self.assertNotIn(v, self.logger.output)
 
+    def test_session_debug_output_masks_sensitive_data(self):
+        session = client_session.Session(verify=False)
+        password = 'a12345'
+        post_data = json.dumps(
+            {
+                'driver': 'pxe_ipmitool',
+                'driver_info': {'ipmi_password': password},
+            }
+        )
+        self.stub_url('POST', text='{}')
+        session.post(self.TEST_URL, data=post_data)
+        self.assertIn('ipmi_password', self.logger.output)
+        self.assertIn('***', self.logger.output)
+        self.assertNotIn(password, self.logger.output)
+
+    def test_session_debug_output_masks_sensitive_bytes_data(self):
+        session = client_session.Session(verify=False)
+        password = 'a12345'
+        post_data = json.dumps(
+            {
+                'driver': 'pxe_ipmitool',
+                'driver_info': {'ipmi_password': password},
+            }
+        ).encode('ascii')
+        self.stub_url('POST', text='{}')
+        session.post(self.TEST_URL, data=post_data)
+        self.assertIn('ipmi_password', self.logger.output)
+        self.assertIn('***', self.logger.output)
+        self.assertNotIn(password, self.logger.output)
+
+    def test_session_debug_output_masks_sensitive_json(self):
+        session = client_session.Session(verify=False)
+        password = 'a12345'
+        post_json = {
+            'driver': 'pxe_ipmitool',
+            'driver_info': {'ipmi_password': password},
+        }
+        self.stub_url('POST', text='{}')
+        session.post(self.TEST_URL, json=post_json)
+        self.assertIn('ipmi_password', self.logger.output)
+        self.assertIn('***', self.logger.output)
+        self.assertNotIn(password, self.logger.output)
+
     def test_session_debug_output_logs_openstack_request_id(self):
         """Test x-openstack-request-id is logged in debug logs."""
 

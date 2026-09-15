@@ -609,13 +609,14 @@ class Session:
                     '-H "{}: {}"'.format(*self._process_header(header))
                 )
         if json:
-            data = self._json.encode(json)
+            data = self._json.encode(utils.mask_sensitive_data(json))
         if data:
             if isinstance(data, bytes):
                 try:
                     data = data.decode("ascii")
                 except UnicodeDecodeError:
                     data = "<binary_data>"
+            data = utils.mask_sensitive_string(data)
             string_parts.append(f"-d '{data}'")
 
         _logger.debug(' '.join(string_parts))
