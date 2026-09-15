@@ -1,0 +1,15 @@
+---
+fixes:
+  - |
+    [`bug 2167316 <https://bugs.launchpad.net/keystoneauth/+bug/2167316>`_]
+    The SAML2 ECP auth hook now checks outbound URLs against the federation
+    endpoint host. Consumer mismatch SOAP faults are sent only when
+    ``responseConsumerURL`` shares the original request netloc, and ACS
+    302/303 redirects are followed only when ``Location`` points to the
+    same host.
+security:
+  - |
+    SAML2 ECP could follow ACS ``Location`` redirects and POST consumer
+    mismatch faults to URLs from SAML/XML without verifying the target host.
+    A compromised federation endpoint could send federation session cookies
+    to another host or trigger requests to arbitrary URLs.
