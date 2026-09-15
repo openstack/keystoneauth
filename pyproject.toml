@@ -80,6 +80,9 @@ v3websso = "keystoneauth1.loading._plugins.identity.v3:WebSSO"
 [tool.setuptools.packages.find]
 include = ["keystoneauth1"]
 
+[tool.codespell]
+ignore-words-list = "aNULL"
+
 [tool.mypy]
 python_version = "3.11"
 show_column_numbers = true

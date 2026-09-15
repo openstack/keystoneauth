@@ -42,7 +42,7 @@ Features
 - Safe logging of HTTP interactions
 
   Clients need to be able to enable logging of the HTTP interactions, but some
-  things, such as the token or secrets, need to be ommitted.
+  things, such as the token or secrets, need to be omitted.
 
 Sessions for Users
 ==================
@@ -590,7 +590,7 @@ a ``logger`` parameter. A user can provide their own `logger`_ which will
 override the session loggers mentioned above. If a single logger is provided
 in this manner, request, response and body content will all be logged to that
 logger at the ``DEBUG`` level, and the strings ``REQ:``, ``RESP:`` and
-``RESP BODY:`` will be pre-pended as appropriate.
+``RESP BODY:`` will be prepended as appropriate.
 
 .. _API-WG Specs: https://specs.openstack.org/openstack/api-wg/
 .. _Consuming the Catalog: https://specs.openstack.org/openstack/api-wg/guidelines/consuming-catalog.html

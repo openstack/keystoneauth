@@ -88,7 +88,7 @@ class Password(base.BaseGenericPlugin):
 
             if self._password is None:
                 # FIXME(stephenfin): It would be better is password was a
-                # non-optional paramter to this plugin but that requires
+                # non-optional parameter to this plugin but that requires
                 # changing the __init__ signature
                 raise Exception('password is a required attribute')
 
@@ -106,7 +106,7 @@ class Password(base.BaseGenericPlugin):
         elif discover.version_match((3,), version):
             if self._password is None:
                 # FIXME(stephenfin): It would be better is password was a
-                # non-optional paramter to this plugin but that requires
+                # non-optional parameter to this plugin but that requires
                 # changing the __init__ signature
                 raise Exception('password is a required attribute')
 

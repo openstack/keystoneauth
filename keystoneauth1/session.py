@@ -1022,7 +1022,7 @@ class Session:
         # Query parameters that are included in the url string will
         # be logged properly, but those sent in the `params` parameter
         # (which the requests library handles) need to be explicitly
-        # picked out so they can be included in the URL that gets loggged.
+        # picked out so they can be included in the URL that gets logged.
         query_params = kwargs.get('params', {})
 
         if log:
@@ -1462,7 +1462,7 @@ class Session:
             the session. (optional)
         :param endpoint_override: URL to use instead of looking in the catalog.
         :param discover_versions: Whether to get version metadata from the
-            version discovery document even if it's not neccessary to fulfill
+            version discovery document even if it's not necessary to fulfill
             the major version request. (optional, defaults to True)
         :raises keystoneauth1.exceptions.auth_plugins.MissingAuthPlugin:
             if a plugin is not available.

@@ -183,7 +183,7 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
             Catalog lookup will be skipped, but version discovery will be run.
             Sets allow_version_hack to False (optional)
         :param discover_versions: Whether to get version metadata from the
-            version discovery document even if it's not neccessary to fulfill
+            version discovery document even if it's not necessary to fulfill
             the major version request. (optional, defaults to True)
         :param service_type: The type of service to lookup the endpoint for.
             This plugin will return None (failure) if service_type is not
@@ -439,7 +439,7 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
             similar has been given and grabbing additional information about
             the endpoint is not useful.
         :param discover_versions: Whether to get version metadata from the
-            version discovery document even if it's not neccessary to fulfill
+            version discovery document even if it's not necessary to fulfill
             the major version request. Defaults to False because get_endpoint
             doesn't need metadata. (optional, defaults to False)
         :param min_version: The minimum version that is acceptable. Mutually

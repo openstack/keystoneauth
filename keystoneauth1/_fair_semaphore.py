@@ -40,7 +40,7 @@ class FairSemaphore:
         self._rate_last_ts = time.time()
 
     def __enter__(self) -> None:
-        """Aquire a semaphore."""
+        """Acquire a semaphore."""
         # If concurrency is None, everyone is free to immediately execute.
         if not self._concurrency:
             # NOTE: Rate limiting still applies.This will ultimately impact

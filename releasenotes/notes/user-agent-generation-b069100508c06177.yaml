@@ -1,7 +1,7 @@
 ---
 prelude: >
     Allow adding client and application name and version to the session and
-    adapter that will generate a userful user agent string.
+    adapter that will generate a useful user agent string.
 features:
   - You can specify a ``app_name`` and ``app_version`` when creating a
     session. This information will be encoded into the user agent.

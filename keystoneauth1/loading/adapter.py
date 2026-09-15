@@ -208,7 +208,7 @@ class Adapter(base._BaseLoader[adapter.Adapter]):
                 item_type=types.Integer(),
                 help='List of retriable HTTP status codes that '
                 'should be retried. If not set default to '
-                ' [503]',
+                '[503]',
             ),
         ]
 
@@ -218,10 +218,10 @@ class Adapter(base._BaseLoader[adapter.Adapter]):
                     'interface',
                     help='The default interface for endpoint URL discovery.',
                     deprecated_for_removal=True,
-                    deprecated_reason='Using valid-interfaces is'
-                    ' preferrable because it is'
-                    ' capable of accepting a list of'
-                    ' possible interfaces.',
+                    deprecated_reason=(
+                        'Using valid-interfaces is preferable because it is '
+                        'capable of accepting a list of possible interfaces.'
+                    ),
                 )
             ]
         return opts

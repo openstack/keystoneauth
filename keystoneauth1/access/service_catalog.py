@@ -258,7 +258,7 @@ class ServiceCatalog(metaclass=abc.ABCMeta):
         requested: str | None,
         endpoints: dict[str, list[discover.EndpointData]],
     ) -> dict[str, list[discover.EndpointData]]:
-        """Get the approrpriate endpoints from the list of given endpoints.
+        """Get the appropriate endpoints from the list of given endpoints.
 
         Per the service type alias rules:
 

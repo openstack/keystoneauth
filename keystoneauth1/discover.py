@@ -759,7 +759,7 @@ class Discover:
         .. note::
 
             This method raises a TypeError if version is None. It is kept for
-            backwards compatability. New code should use versioned_data_for
+            backwards compatibility. New code should use versioned_data_for
             instead.
 
         :param version: The version is always a minimum version in the
@@ -798,7 +798,7 @@ class Discover:
         .. note::
 
             This method raises a TypeError if version is None. It is kept for
-            backwards compatability. New code should use versioned_url_for
+            backwards compatibility. New code should use versioned_url_for
             instead.
 
         :param version: The version is always a minimum version in the
@@ -1218,7 +1218,7 @@ class EndpointData:
         :param project_id: ID of the currently scoped project. Used for
             removing project_id components of URLs from the catalog. (optional)
         :param discover_versions: Whether to get version metadata from the
-            version discovery document even if it's not neccessary to fulfill
+            version discovery document even if it's not necessary to fulfill
             the major version request. (optional, defaults to True)
         :param min_version: The minimum version that is acceptable. If
             min_version is given with no max_version it is as if max version is

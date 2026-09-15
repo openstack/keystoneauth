@@ -502,7 +502,7 @@ def from_response(
     elif content_type.startswith("text/"):
         details = response.text
 
-    # we check explicity for 401 in case of auth receipts
+    # we check explicitly for 401 in case of auth receipts
     if (
         response.status_code == 401
         and "Openstack-Auth-Receipt" in response.headers

@@ -34,7 +34,7 @@
 <path fill="none" stroke="black" d="M338.009,-49.0804C344.065,-49.4598 350.172,-49.7828 356,-50 405.743,-51.8535 418.259,-51.9103 468,-50 470.523,-49.9031 473.101,-49.7851 475.704,-49.6504"/>
 <polygon fill="black" stroke="black" points="476.03,-53.1374 485.807,-49.0576 475.62,-46.1494 476.03,-53.1374"/>
 <text text-anchor="middle" x="412" y="-68.4" font-family="Times,serif" font-size="14.00">Forward Requests</text>
-<text text-anchor="middle" x="412" y="-53.4" font-family="Times,serif" font-size="14.00">with Identiy Status</text>
+<text text-anchor="middle" x="412" y="-53.4" font-family="Times,serif" font-size="14.00">with Identity Status</text>
 </g>
 <!-- Service&#45;&gt;AuthComp -->
 <g id="edge7" class="edge"><title>Service&#45;&gt;AuthComp</title>

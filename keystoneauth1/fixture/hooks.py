@@ -50,7 +50,7 @@ def pre_record_hook(
     This hook will be triggered before saving the interaction, and
     will perform two tasks:
     - mask user, project and password in the saved data
-    - set token expiration time to an inifinite time.
+    - set token expiration time to an infinite time.
     """
     request_body = interaction.data['request']['body']
     if request_body.get('string'):

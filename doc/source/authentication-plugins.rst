@@ -95,7 +95,7 @@ has been created::
     >>> auth.add_method(totp)
 
 Or use the :py:class:`~keystoneauth1.identity.v3.MultiFactor` helper
-plugin to do it all simply in one go, an example of whichs exists in the
+plugin to do it all simply in one go, an example of which exists in the
 section below.
 
 For the common cases where you will only want to use one
@@ -250,8 +250,8 @@ service being used, since there is no service catalog to look up endpoints::
     auth = noauth.NoAuth(endpoint='http://hostname:6385/')
     sess = session.Session(auth=auth)
 
-:py:class:`~keystoneauth1.http_basic.HTTPBasicAuth` also requres a `username` and
-`password`::
+:py:class:`~keystoneauth1.http_basic.HTTPBasicAuth` also requires a `username`
+and `password`::
 
     from keystoneauth1 import session
     from keystoneauth1 import http_basic
@@ -585,7 +585,7 @@ To implement an entirely new plugin you should implement the base class
 
 :py:meth:`~keystoneauth1.plugin.BaseAuthPlugin.get_token` is called to retrieve
 the string token from a plugin. It is intended that a plugin will cache a
-received token and so if the token is still valid then it should be re-used
+received token and so if the token is still valid then it should be reused
 rather than fetching a new one. A session object is provided with which the
 plugin can contact it's server. (Note: use `authenticated=False` when making
 those requests or it will end up being called recursively). The return value

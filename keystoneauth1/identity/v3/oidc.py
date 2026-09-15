@@ -267,8 +267,8 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
         By Sending the access token in an `Authorization: Bearer` header, to
         an OpenID Connect protected endpoint (Federated Token URL). The
         OpenID Connect server will use the access token to look up information
-        about the authenticated user (this technique is called instrospection).
-        The output of the instrospection will be an OpenID Connect Claim, that
+        about the authenticated user (this technique is called introspection).
+        The output of the introspection will be an OpenID Connect Claim, that
         will be used against the mapping engine. Should the mapping engine
         succeed, a Keystone token will be presented to the user.
 
@@ -334,7 +334,7 @@ class _OidcBase(federation.FederationBaseAuth, metaclass=abc.ABCMeta):
     def get_payload(
         self, session: ks_session.Session
     ) -> dict[str, str | None]:
-        """Get the plugin specific payload for obtainin an access token.
+        """Get the plugin specific payload for obtaining an access token.
 
         OpenID Connect supports different grant types. This method should
         prepare the payload that needs to be exchanged with the server in

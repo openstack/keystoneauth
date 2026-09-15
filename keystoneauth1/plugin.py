@@ -61,7 +61,7 @@ class BaseAuthPlugin:
         """Obtain a token.
 
         How the token is obtained is up to the plugin. If it is still valid
-        it may be re-used, retrieved from cache or invoke an authentication
+        it may be reused, retrieved from cache or invoke an authentication
         request against a server.
 
         Returning None will indicate that no token was able to be retrieved.
@@ -100,7 +100,7 @@ class BaseAuthPlugin:
         the OpenStack standard 'X-Auth-Token' header.
 
         How the authentication headers are obtained is up to the plugin. If the
-        headers are still valid they may be re-used, retrieved from cache or
+        headers are still valid they may be reused, retrieved from cache or
         the plugin may invoke an authentication request against a server.
 
         The default implementation of get_headers calls the `get_token` method

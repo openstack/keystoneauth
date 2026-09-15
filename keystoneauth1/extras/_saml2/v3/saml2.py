@@ -336,7 +336,7 @@ class Password(_FederatedSaml):
     committees/download.php/49979/saml-ecp-v2.0-wd09.pdf>`_.
 
     Currently only HTTPBasicAuth mechanism is available for the IdP
-    authenication.
+    authentication.
 
     :param auth_url: URL of the Identity Service
     :param identity_provider: name of the Identity Provider the client will

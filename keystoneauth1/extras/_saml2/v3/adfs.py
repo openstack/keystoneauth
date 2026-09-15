@@ -471,11 +471,11 @@ class Password(base.BaseSAMLPlugin):
     def get_unscoped_auth_ref(
         self, session: ks_session.Session
     ) -> access.AccessInfoV3:
-        """Retrieve unscoped token after authentcation with ADFS server.
+        """Retrieve unscoped token after authentication with ADFS server.
 
         This is a multistep process:
 
-        * Prepare ADFS Request Securty Token -
+        * Prepare ADFS Request Security Token -
           build an etree.XML object filling certain attributes with proper user
           credentials, created/expires dates (ticket is be valid for 120
           seconds as currently we don't handle reusing ADFS issued security
