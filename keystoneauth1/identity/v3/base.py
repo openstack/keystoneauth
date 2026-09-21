@@ -230,6 +230,10 @@ class Auth(BaseAuth):
             # support scoping to the entire system.
             if self.system_scope == 'all':
                 body['auth']['scope'] = {'system': {'all': True}}
+            else:
+                raise exceptions.AuthorizationFailure(
+                    'Invalid system scope, only "all" is supported'
+                )
 
         token_url = self.token_url
 

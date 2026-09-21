@@ -847,6 +847,35 @@ class V3IdentityPlugin(utils.TestCase):
 
         self.assertRaises(exceptions.AuthorizationFailure, a.get_auth_ref, s)
 
+    def test_system_scope_request(self):
+        token = fixture.V3Token()
+        token.set_system_scope()
+        self.stub_auth(json=token)
+        password = uuid.uuid4().hex
+
+        a = v3.Password(
+            self.TEST_URL,
+            user_id=token.user_id,
+            password=password,
+            system_scope='all',
+        )
+        s = session.Session()
+        a.get_access(s)
+
+        body = self.requests_mock.last_request.json()
+        self.assertEqual({'system': {'all': True}}, body['auth']['scope'])
+
+    def test_invalid_system_scope(self):
+        a = v3.Password(
+            self.TEST_URL,
+            user_id=uuid.uuid4().hex,
+            password=uuid.uuid4().hex,
+            system_scope='bogus',
+        )
+        s = session.Session()
+
+        self.assertRaises(exceptions.AuthorizationFailure, a.get_auth_ref, s)
+
     def test_password_cache_id(self):
         self.stub_auth(json=self.TEST_RESPONSE_DICT)
         project_name = uuid.uuid4().hex
