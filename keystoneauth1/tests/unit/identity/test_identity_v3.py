@@ -939,6 +939,12 @@ class V3IdentityPlugin(utils.TestCase):
             exceptions.MissingAuthMethods, s.get_auth_headers, None
         )
 
+    def test_totp_cache_id_includes_passcode(self):
+        """Different passcodes for the same user must not share a cache id."""
+        a = v3.TOTP(self.TEST_URL, username=self.TEST_USER, passcode="111111")
+        b = v3.TOTP(self.TEST_URL, username=self.TEST_USER, passcode="222222")
+        self.assertNotEqual(a.get_cache_id(), b.get_cache_id())
+
     def test_authenticate_with_receipt_and_totp(self):
         self.stub_auth(json=self.TEST_RESPONSE_DICT)
         passcode = "123456"

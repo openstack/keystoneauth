@@ -1,0 +1,12 @@
+---
+fixes:
+  - |
+    [`bug 2167094 <https://bugs.launchpad.net/keystoneauth/+bug/2167094>`_]
+    The TOTP auth plugin now includes the passcode in ``get_cache_id()``
+    elements so different passcodes for the same user no longer share a
+    cache key.
+security:
+  - |
+    TOTP ``get_cache_id()`` omitted the passcode, so two plugins for the
+    same user with different passcodes could collide in an auth cache and
+    return another caller's cached token or auth state.
