@@ -892,7 +892,7 @@ class OidcDeviceAuthorization(_OidcBase):
         self.expires_in = int(op_response.json()["expires_in"])
         self.timeout = time.time() + self.expires_in
         self.device_code = op_response.json()["device_code"]
-        self.interval = int(op_response.json()["interval"])
+        self.interval = int(op_response.json().get('interval', 5))
         self.user_code = op_response.json()["user_code"]
         self.verification_uri = op_response.json()["verification_uri"]
         self.verification_uri_complete = op_response.json().get(
