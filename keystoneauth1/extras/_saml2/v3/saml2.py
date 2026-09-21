@@ -259,7 +259,9 @@ class _SamlAuth(requests.auth.AuthBase):
             requests.codes.found,
             requests.codes.other,
         ):
-            location = final_resp.headers['location']
+            location = urllib.parse.urljoin(
+                final_resp.url, final_resp.headers['location']
+            )
             if not _same_netloc(location, sp_response.request.url):
                 msg = (
                     'SAML2: URL %(url)s is not on the same host as '
