@@ -93,24 +93,24 @@ class BaseAuthPlugin:
     def get_headers(
         self, session: 'ks_session.Session'
     ) -> dict[str, str] | None:
-        """Fetch authentication headers for message.
+        """Fetch authentication headers for request.
 
-        This is a more generalized replacement of the older get_token to allow
-        plugins to specify different or additional authentication headers to
-        the OpenStack standard 'X-Auth-Token' header.
+        This is a more generalized replacement of the older :meth:`.get_token`
+        to allow plugins to specify different or additional authentication
+        headers to the OpenStack standard ``X-Auth-Token`` header.
 
         How the authentication headers are obtained is up to the plugin. If the
         headers are still valid they may be reused, retrieved from cache or
         the plugin may invoke an authentication request against a server.
 
-        The default implementation of get_headers calls the `get_token` method
-        to enable older style plugins to continue functioning unchanged.
+        The default implementation calls the :meth:`.get_token` method to
+        enable older style plugins to continue functioning unchanged.
         Subclasses should feel free to completely override this function to
         provide the headers that they want.
 
-        Returning None will indicate that no token was able to be retrieved and
-        that authorization was a failure. Adding no authentication data can be
-        achieved by returning an empty dictionary.
+        Returning ``None`` will indicate that no token was able to be retrieved
+        and that authorization was a failure. Adding no authentication data can
+        be achieved by returning an empty dictionary.
 
         :param session: The session object that the auth_plugin belongs to.
         :returns: Headers that are set to authenticate a message or None for
