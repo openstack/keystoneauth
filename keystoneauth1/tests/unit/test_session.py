@@ -914,7 +914,7 @@ class SessionTests(utils.TestCase):
         ) as close_mock:
             session.close()
         close_mock.assert_called_once()
-        self.assertIsNone(session._session)
+        self.assertIs(session.session, session._session)
 
     def test_close_leaves_external_session(self):
         external = requests.Session()
@@ -922,6 +922,8 @@ class SessionTests(utils.TestCase):
         self.assertIsNone(session._session)
         with mock.patch.object(external, 'close') as close_mock:
             session.close()
+            session.close()
+            session.__del__()
         close_mock.assert_not_called()
 
     def test_close_is_idempotent(self):
@@ -931,20 +933,55 @@ class SessionTests(utils.TestCase):
         ) as close_mock:
             session.close()
             session.close()
-        close_mock.assert_called_once()
-        self.assertIsNone(session._session)
+        self.assertEqual(2, close_mock.call_count)
+        self.assertIs(session.session, session._session)
 
     def test_close_keeps_session_usable(self):
         session = client_session.Session()
+        self.stub_url('GET', text='response')
         session.close()
-        self.assertIsNotNone(session.session)
+        resp = session.get(self.TEST_URL)
+        self.assertEqual('response', resp.text)
+
+    def test_close_releases_session_after_reuse(self):
+        session = client_session.Session()
+        self.stub_url('GET', text='response')
+        with mock.patch.object(
+            session.session, 'close', wraps=session.session.close
+        ) as close_mock:
+            session.get(self.TEST_URL)
+            session.close()
+            close_mock.assert_called_once()
+
+            session.get(self.TEST_URL)
+            session.close()
+            self.assertEqual(2, close_mock.call_count)
+
+    def test_del_releases_session_after_close_and_reuse(self):
+        session = client_session.Session()
+        self.stub_url('GET', text='response')
+        with mock.patch.object(
+            session.session, 'close', wraps=session.session.close
+        ) as close_mock:
+            session.close()
+            session.get(self.TEST_URL)
+            session.__del__()
+            self.assertEqual(2, close_mock.call_count)
 
     def test_close_swallows_teardown_errors(self):
         session = client_session.Session()
-        session._session = mock.Mock()
-        session._session.close.side_effect = OSError('socket gone')
-        session.close()
-        self.assertIsNone(session._session)
+        with mock.patch.object(
+            session.session,
+            'close',
+            side_effect=(
+                OSError('socket gone'),
+                requests.exceptions.RequestException('request failed'),
+            ),
+        ) as close_mock:
+            session.close()
+            session.close()
+        self.assertEqual(2, close_mock.call_count)
+        self.assertIs(session.session, session._session)
 
     def test_close_propagates_unexpected_errors(self):
         session = client_session.Session()

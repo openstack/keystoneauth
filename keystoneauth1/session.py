@@ -455,8 +455,10 @@ class Session:
         alias and the ``ssl.SSLError`` subclass) and
         ``requests.exceptions.RequestException`` from ``requests`` are
         caught and discarded, since a failure to close an already-idle
-        connection is not actionable. The requests session is dropped
-        regardless, so ``close()`` stays idempotent.
+        connection is not actionable. The owned requests session is retained
+        so subsequent calls also release connections opened after reuse.
+        Closing an already-empty pool is harmless, so ``close()`` stays
+        idempotent.
 
         :raises Exception: any error other than ``OSError`` and
             ``requests.exceptions.RequestException`` (both caught
@@ -467,8 +469,6 @@ class Session:
                 self._session.close()
             except (OSError, requests.exceptions.RequestException):
                 pass
-            finally:
-                self._session = None
 
     def __del__(self) -> None:
         """Clean up resources on delete."""

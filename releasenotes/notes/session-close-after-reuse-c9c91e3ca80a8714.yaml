@@ -1,0 +1,8 @@
+---
+fixes:
+  - |
+    Fix ``Session.close()`` to retain ownership of an internally created
+    ``requests.Session`` after closing its connection pool. If the session
+    is reused, subsequent calls to ``close()`` and cleanup on deletion now
+    release newly opened pooled connections. Externally supplied requests
+    sessions remain untouched.
