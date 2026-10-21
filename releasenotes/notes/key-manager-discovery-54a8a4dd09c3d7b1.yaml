@@ -1,0 +1,17 @@
+---
+fixes:
+  - |
+    Key-manager endpoint discovery now automatically sends
+    ``OpenStack-API-Version: key-manager 1.1`` to obtain Barbican's microversion
+    range. Previously, its legacy discovery document omitted that range,
+    preventing consumers such as openstacksdk from negotiating microversions.
+    This does not change the microversion used for resource requests.
+    Discovery caches distinguish documents requested with different version
+    headers. Direct discovery callers can supply the new ``service_type``
+    argument to enable service-specific discovery behavior.
+deprecations:
+  - |
+    The ``version_header`` argument to ``keystoneauth1.discover.get_version_data``
+    is deprecated. Supply ``service_type`` instead so keystoneauth can apply
+    service-specific discovery behavior automatically. Explicit header values
+    remain supported for compatibility during the deprecation period.

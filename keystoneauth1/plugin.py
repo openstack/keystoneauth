@@ -130,6 +130,7 @@ class BaseAuthPlugin:
         *,
         endpoint_override: str | None = None,
         discover_versions: bool = True,
+        service_type: str | None = None,
         **kwargs: Any,
     ) -> discover.EndpointData | None:
         """Return a valid endpoint data for a service.
@@ -139,6 +140,8 @@ class BaseAuthPlugin:
         :param discover_versions: Whether to get version metadata from the
             version discovery document even if it major api version info can be
             inferred from the url. (optional, defaults to True)
+        :param service_type: Service type used for version discovery.
+            (optional)
         :param kwargs: Ignored
         :raises keystoneauth1.exceptions.http.HttpError: An error from an
             invalid HTTP response.
@@ -146,7 +149,9 @@ class BaseAuthPlugin:
         """
         if not endpoint_override:
             return None
-        endpoint_data = discover.EndpointData(catalog_url=endpoint_override)
+        endpoint_data = discover.EndpointData(
+            catalog_url=endpoint_override, service_type=service_type
+        )
 
         if endpoint_data.api_version and not discover_versions:
             return endpoint_data
