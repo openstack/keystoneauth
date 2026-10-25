@@ -18,6 +18,7 @@ from typing import Any
 import warnings
 
 import requests
+import requests.structures
 
 from keystoneauth1 import _fair_semaphore
 from keystoneauth1 import discover

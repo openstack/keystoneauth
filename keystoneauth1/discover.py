@@ -26,7 +26,7 @@ import json
 from collections.abc import Generator, Iterable
 import re
 from typing import Any, cast, Optional, TypeAlias, TYPE_CHECKING
-import urllib
+import urllib.parse
 import warnings
 
 import os_service_types

@@ -26,11 +26,13 @@ import sys
 import time
 import types
 from typing import Any, cast, Literal
-import urllib
+import urllib.parse
 import uuid
 
 import requests
+import requests.adapters
 import requests.auth
+import requests.structures
 
 import keystoneauth1
 from keystoneauth1 import _utils as utils

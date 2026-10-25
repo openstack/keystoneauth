@@ -23,12 +23,9 @@
 from collections.abc import Mapping
 import logging
 
-try:
-    # explicitly re-export symbol
-    # https://mypy.readthedocs.io/en/stable/command_line.html#cmdoption-mypy-no-implicit-reexport
-    from oauthlib import oauth1 as oauth1
-except ImportError:
-    oauth1 = None
+# explicitly re-export symbol
+# https://mypy.readthedocs.io/en/stable/command_line.html#cmdoption-mypy-no-implicit-reexport
+from oauthlib import oauth1 as oauth1
 
 from keystoneauth1.identity import v3
 from keystoneauth1 import session as ks_session

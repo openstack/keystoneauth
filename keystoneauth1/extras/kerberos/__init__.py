@@ -24,12 +24,7 @@
 from collections.abc import Mapping
 from typing import cast
 
-try:
-    # explicitly re-export symbol
-    # https://mypy.readthedocs.io/en/stable/command_line.html#cmdoption-mypy-no-implicit-reexport
-    import requests_kerberos as requests_kerberos
-except ImportError:
-    requests_kerberos = None
+import requests_kerberos as requests_kerberos
 
 from keystoneauth1 import access
 from keystoneauth1.identity import v3

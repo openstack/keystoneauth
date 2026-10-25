@@ -11,15 +11,10 @@
 # under the License.
 
 import datetime
-import urllib
+import urllib.parse
 import uuid
 
-try:
-    # explicitly re-export symbol
-    # https://mypy.readthedocs.io/en/stable/command_line.html#cmdoption-mypy-no-implicit-reexport
-    from lxml import etree as etree
-except ImportError:
-    etree = None  # type: ignore[assignment]
+from lxml import etree as etree
 
 from keystoneauth1 import access
 from keystoneauth1 import exceptions

@@ -15,15 +15,13 @@ from collections.abc import Mapping
 from typing import Any
 import urllib.parse
 
-try:
-    # explicitly re-export symbol
-    # https://mypy.readthedocs.io/en/stable/command_line.html#cmdoption-mypy-no-implicit-reexport
-    from lxml import etree as etree
-except ImportError:
-    etree = None  # type: ignore[assignment]
-
+# explicitly re-export symbol
+# https://mypy.readthedocs.io/en/stable/command_line.html#cmdoption-mypy-no-implicit-reexport
+from lxml import etree as etree
 import requests
 import requests.auth
+import requests.cookies
+import requests.models
 
 from keystoneauth1 import access
 from keystoneauth1 import exceptions
