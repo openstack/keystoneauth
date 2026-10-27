@@ -72,7 +72,7 @@ def _is_json_body(interaction: _SerializedHTTPMessage) -> bool:
     return 'application/json' in content_type
 
 
-class YamlJsonSerializer(serializers.BaseSerializer):  # type: ignore
+class YamlJsonSerializer(serializers.BaseSerializer):  # type: ignore[misc]
     name = "yamljson"
 
     @staticmethod

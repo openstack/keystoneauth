@@ -14,7 +14,7 @@
 
 from collections.abc import Callable
 from functools import partial
-from typing import TypeAlias
+from typing import cast, TypeAlias
 from unittest import mock
 
 import betamax
@@ -100,7 +100,7 @@ class BetamaxFixture(fixtures.Fixture):
         """
         if self.serializer:
             # betamax is not typed yet
-            return self.serializer.name  # type: ignore
+            return cast(str, self.serializer.name)
         return self._serializer_name
 
     def setUp(self) -> None:
