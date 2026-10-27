@@ -34,19 +34,22 @@ classifiers = [
 "Release Notes" = "https://docs.openstack.org/releasenotes/keystoneauth/"
 
 [project.optional-dependencies]
-kerberos = [
-  "requests-kerberos>=0.8.0", # ISC
+betamax = [
+    "betamax>=0.7.0", # Apache-2.0
+    "fixtures>=3.0.0", # Apache-2.0/BSD
+    "PyYAML>=3.13", # MIT
 ]
-saml2 = [
-  "lxml>=4.2.0", # BSD
+kerberos = [
+    "requests-kerberos>=0.8.0", # ISC
 ]
 oauth1 = [
-  "oauthlib>=0.6.2", # BSD
+    "oauthlib>=0.6.2", # BSD
 ]
-betamax = [
-  "betamax>=0.7.0", # Apache-2.0
-  "fixtures>=3.0.0", # Apache-2.0/BSD
-  "PyYAML>=3.13", # MIT
+profiling = [
+    "osprofiler>=4.0.0", # Apache-2.0
+]
+saml2 = [
+    "lxml>=4.2.0", # BSD
 ]
 
 [project.entry-points."keystoneauth1.plugin"]

@@ -1,14 +1,4 @@
-# For generationg sphinx documentation
 openstackdocstheme>=2.2.1 # Apache-2.0
 reno>=3.1.0 # Apache-2.0
 sphinx>=2.0.0 # BSD
 sphinxcontrib-apidoc>=0.2.0  # BSD
-
-# For autodoc builds
-fixtures>=3.0.0 # Apache-2.0/BSD
-betamax>=0.7.0 # Apache-2.0
-oslo.config>=5.2.0 # Apache-2.0
-oslo.utils>=3.33.0 # Apache-2.0
-requests-mock>=1.2.0 # Apache-2.0
-lxml>=4.2.0 # BSD
-oauthlib>=0.6.2 # BSD
