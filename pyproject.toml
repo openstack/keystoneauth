@@ -10,7 +10,21 @@ authors = [
 ]
 readme = {file = "README.rst", content-type = "text/x-rst"}
 license = "Apache-2.0"
-dynamic = ["version", "dependencies"]
+dynamic = ["version"]
+dependencies = [
+    # NOTE(morgan): At no time may any oslo library be added to the
+    # keystoneauth requirements. The requirements for keystoneauth are very
+    # tightly controlled to ensure we are not pulling in a ton of transient
+    # dependencies. This is important from the standpoint of ensuring
+    # keystoneauth can be used outside of openstack-specific projects (allowing
+    # interaction with openstack APIs) where oslo and associated transient
+    # dependencies are not desired.
+    "iso8601>=2.0.0", # MIT
+    "requests>=2.14.2", # Apache-2.0
+    "stevedore>=5.9.1", # Apache-2.0
+    "os-service-types>=1.2.0", # Apache-2.0
+    "typing-extensions>=4.12", # PSF
+]
 requires-python = ">=3.11"
 classifiers = [
     "Environment :: OpenStack",
@@ -25,6 +39,40 @@ classifiers = [
     "Programming Language :: Python :: 3.14",
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: 3 :: Only",
+]
+
+[dependency-groups]
+dev = [
+    {include-group = "docs"},
+    {include-group = "test"},
+    {include-group = "types"},
+]
+docs = [
+    "openstackdocstheme>=2.2.1", # Apache-2.0
+    "reno>=3.1.0", # Apache-2.0
+    "sphinx>=8.2.0", # BSD
+    # include test deps for autodoc
+    {include-group = "test"},
+]
+test = [
+    "coverage>=4.0", # Apache-2.0
+    "fixtures>=3.0.0", # Apache-2.0/BSD
+    "oslo.config>=5.2.0", # Apache-2.0
+    "oslo.utils>=3.33.0", # Apache-2.0
+    "oslotest>=3.2.0", # Apache-2.0
+    "requests-mock>=1.2.0", # Apache-2.0
+    "stestr>=1.0.0", # Apache-2.0
+    "testresources>=2.0.0", # Apache-2.0/BSD
+    "testtools>=2.2.0", # MIT
+]
+types = [
+    "mypy",
+    "types-lxml",
+    "types-PyYAML",
+    "types-requests>=2.32.4.20260107",
+    "types-simplejson",
+    # NOTE(stephenfin): We would like an `{include-extras "foo"}` option
+    # here to avoid duplicating extras. Instead, we just rely on tox.ini
 ]
 
 [project.urls]
@@ -81,7 +129,7 @@ v3oauth2mtlsclientcredential = "keystoneauth1.loading._plugins.identity.v3:OAuth
 v3websso = "keystoneauth1.loading._plugins.identity.v3:WebSSO"
 
 [tool.setuptools.packages.find]
-include = ["keystoneauth1"]
+include = ["keystoneauth1*"]
 
 [tool.codespell]
 ignore-words-list = "aNULL"
