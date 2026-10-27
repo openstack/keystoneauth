@@ -12,7 +12,7 @@
 
 import abc
 from collections.abc import Mapping
-from typing import Any, TypeVar
+from typing import Any
 import urllib.parse
 
 try:
@@ -121,11 +121,6 @@ def _same_netloc(url: str, reference_url: str | None) -> bool:
     )
 
 
-_PreparedRequestT = TypeVar(
-    '_PreparedRequestT', bound=requests.PreparedRequest
-)
-
-
 class _SamlAuth(requests.auth.AuthBase):
     """A generic SAML ECP plugin for requests.
 
@@ -166,17 +161,19 @@ class _SamlAuth(requests.auth.AuthBase):
         self.identity_provider_url = identity_provider_url
         self.requests_auth = requests_auth
 
-    def __call__(self, request: _PreparedRequestT) -> _PreparedRequestT:
+    def __call__(
+        self, r: requests.models.PreparedRequest
+    ) -> requests.models.PreparedRequest:
         try:
-            accept = request.headers['Accept']
+            accept = r.headers['Accept']
         except KeyError:
-            request.headers['Accept'] = _PAOS_HEADER
+            r.headers['Accept'] = _PAOS_HEADER
         else:
-            request.headers['Accept'] = ','.join([accept, _PAOS_HEADER])
+            r.headers['Accept'] = ','.join([accept, _PAOS_HEADER])
 
-        request.headers['PAOS'] = _PAOS_VER
-        request.register_hook('response', self._handle_response)  # type: ignore[no-untyped-call]
-        return request
+        r.headers['PAOS'] = _PAOS_VER
+        r.register_hook('response', self._handle_response)  # type: ignore[no-untyped-call]
+        return r
 
     def _handle_response(
         self, response: requests.Response, **kwargs: Any
