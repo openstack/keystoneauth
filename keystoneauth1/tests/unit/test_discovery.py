@@ -13,6 +13,7 @@
 import json
 import re
 from unittest import mock
+import warnings
 
 from testtools import matchers
 
@@ -885,6 +886,106 @@ class VersionDataTests(utils.TestCase):
             plugin.get_endpoint(self.session, endpoint_override=V3_URL), V3_URL
         )
 
+    def test_endpoint_data_key_manager_adapter(self):
+        url = BASE_URL + 'v1/'
+        document = fixture.DiscoveryList(v2=False, v3=False)
+        document.add_microversion(
+            href=url, id='v1', min_version='1.0', max_version='1.3'
+        )
+        self.requests_mock.get(
+            url,
+            json=document,
+            request_headers={'OpenStack-API-Version': 'key-manager 1.1'},
+        )
+        client = adapter.Adapter(
+            session.Session(noauth.NoAuth()),
+            endpoint_override=url,
+            service_type='key-manager',
+        )
+        for _ in range(2):
+            data = client.get_endpoint_data()
+            self.assertEqual((1, 0), data.min_microversion)
+            self.assertEqual((1, 3), data.max_microversion)
+        self.assertEqual(1, self.requests_mock.call_count)
+        self.assertIsNone(client.default_microversion)
+
+        self.requests_mock.get(url + 'secrets', json={})
+        client.get('/secrets')
+        self.assertNotIn(
+            'OpenStack-API-Version', self.requests_mock.last_request.headers
+        )
+
+    def test_endpoint_data_legacy_key_manager(self):
+        url = BASE_URL + 'v1/'
+        document = {
+            'version': {
+                'id': 'v1',
+                'status': 'STABLE',
+                'links': [{'rel': 'self', 'href': url}],
+            }
+        }
+        for status in (200, 406):
+            with self.subTest(status=status):
+                self.requests_mock.get(url, json=document)
+                self.requests_mock.get(
+                    url,
+                    status_code=status,
+                    json=document,
+                    request_headers={
+                        'OpenStack-API-Version': 'key-manager 1.1'
+                    },
+                )
+                client = adapter.Adapter(
+                    session.Session(noauth.NoAuth()),
+                    endpoint_override=url,
+                    service_type='key-manager',
+                )
+                count = self.requests_mock.call_count
+                data = client.get_endpoint_data()
+                self.assertIsNone(data.min_microversion)
+                self.assertIsNone(data.max_microversion)
+                self.assertEqual(
+                    count + (2 if status == 406 else 1),
+                    self.requests_mock.call_count,
+                )
+                count = self.requests_mock.call_count
+                client.get_endpoint_data()
+                self.assertEqual(count, self.requests_mock.call_count)
+
+    def test_key_manager_version_header_override(self):
+        self.requests_mock.get(BASE_URL, json=V3_VERSION_LIST)
+        for header in ('key-manager 1.2', ''):
+            with self.subTest(header=header):
+                with warnings.catch_warnings(record=True) as captured:
+                    warnings.simplefilter('always')
+                    discover.get_version_data(
+                        self.session,
+                        BASE_URL,
+                        service_type='key-manager',
+                        version_header=header,
+                    )
+                self.assertEqual(1, len(captured))
+                self.assertIs(DeprecationWarning, captured[0].category)
+                self.assertIn('service_type', str(captured[0].message))
+                self.assertEqual(
+                    header or None,
+                    self.requests_mock.last_request.headers.get(
+                        'OpenStack-API-Version'
+                    ),
+                )
+
+        self.requests_mock.get(BASE_URL, status_code=406)
+        count = self.requests_mock.call_count
+        self.assertRaises(
+            exceptions.NotAcceptable,
+            discover.get_version_data,
+            self.session,
+            BASE_URL,
+            service_type='key-manager',
+            version_header='key-manager 1.1',
+        )
+        self.assertEqual(count + 1, self.requests_mock.call_count)
+
     def test_endpoint_data_noauth_adapter(self):
         self.requests_mock.get(BASE_URL, status_code=200, json=V3_VERSION_LIST)
         self.requests_mock.get(V3_URL, status_code=200, json=V3_VERSION_ENTRY)
@@ -1424,16 +1525,100 @@ class EndpointDataTests(utils.TestCase):
         self.assertEqual(3, mock_get_disc.call_count)
         mock_get_disc.assert_has_calls(
             [
-                mock.call('sess', url, cache='cache', authenticated=False)
+                mock.call(
+                    'sess',
+                    url,
+                    cache='cache',
+                    authenticated=False,
+                    service_type=None,
+                )
                 for url in ('url1', 'url2', 'url3')
             ]
         )
+
+    def test_discovery_service_type_cache_isolation(self):
+        for cache_kind in ('explicit', 'session', 'auth'):
+            for service_types in (
+                (None, 'key-manager', 'compute'),
+                ('key-manager', None, 'compute'),
+            ):
+                with self.subTest(cache=cache_kind, services=service_types):
+                    auth = noauth.NoAuth()
+                    sess = session.Session(auth=auth)
+                    cache = {}
+                    if cache_kind != 'session':
+                        del sess._discovery_cache
+                    if cache_kind != 'auth':
+                        del auth._discovery_cache
+                    kwargs = (
+                        {'cache': cache} if cache_kind == 'explicit' else {}
+                    )
+                    self.requests_mock.get(BASE_URL, json=V3_VERSION_LIST)
+                    documents = {}
+                    for service_type in service_types:
+                        disc = discover.get_discovery(
+                            sess, BASE_URL, service_type=service_type, **kwargs
+                        )
+                        documents[service_type] = disc
+                        self.assertEqual(
+                            'key-manager 1.1'
+                            if service_type == 'key-manager'
+                            else None,
+                            disc._version_header,
+                        )
+                    self.assertIs(documents[None], documents['compute'])
+                    self.assertIsNot(documents[None], documents['key-manager'])
+                    count = self.requests_mock.call_count
+                    for service_type, disc in documents.items():
+                        self.assertIs(
+                            disc,
+                            discover.get_discovery(
+                                sess,
+                                BASE_URL.rstrip('/'),
+                                service_type=service_type,
+                                **kwargs,
+                            ),
+                        )
+                    self.assertEqual(count, self.requests_mock.call_count)
+
+    def test_endpoint_data_changed_service_type(self):
+        url = BASE_URL + 'v1/'
+        legacy_document = {
+            'version': {
+                'id': 'v1',
+                'status': 'STABLE',
+                'links': [{'rel': 'self', 'href': url}],
+            }
+        }
+        document = fixture.DiscoveryList(v2=False, v3=False)
+        document.add_microversion(
+            href=url, id='v1', min_version='1.0', max_version='1.3'
+        )
+        self.requests_mock.get(url, json=legacy_document)
+        self.requests_mock.get(
+            url,
+            json=document,
+            request_headers={'OpenStack-API-Version': 'key-manager 1.1'},
+        )
+        legacy = discover.EndpointData(catalog_url=url).get_versioned_data(
+            self.session
+        )
+        self.assertIsNone(legacy.max_microversion)
+        legacy.service_type = 'key-manager'
+        versioned = legacy.get_versioned_data(self.session)
+        self.assertEqual((1, 3), versioned.max_microversion)
+        self.assertIsNone(legacy.max_microversion)
+        versioned.service_type = None
+        self.assertIsNone(
+            versioned.get_versioned_data(self.session).max_microversion
+        )
+        self.assertEqual(2, self.requests_mock.call_count)
 
     def test_run_discovery_auth(self):
         url = 'https://example.com'
         headers = {
             'Accept': 'application/json',
-            'OpenStack-API-Version': 'version header test',
+            'OpenStack-API-Version': 'key-manager 1.1',
         }
 
         session = mock.Mock()
@@ -1445,9 +1630,7 @@ class EndpointDataTests(utils.TestCase):
         ]
 
         try:
-            discover.get_version_data(
-                session, url, version_header='version header test'
-            )
+            discover.get_version_data(session, url, service_type='key-manager')
         except exceptions.BadRequest:
             pass
         # Only one call with 'url'

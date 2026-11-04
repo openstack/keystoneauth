@@ -2384,6 +2384,43 @@ class CatalogHackTests(utils.TestCase):
         self.assertEqual((2, 35), data.max_microversion)
         self.assertEqual((2, 1), data.api_version)
 
+    def test_get_endpoint_data_key_manager(self):
+        url = self.OTHER_URL + '/v1/'
+        document = fixture.DiscoveryList(v2=False, v3=False)
+        document.add_microversion(
+            href=url, id='v1', min_version='1.0', max_version='1.3'
+        )
+        discovery_request = self.requests_mock.get(
+            url,
+            json=document,
+            request_headers={'OpenStack-API-Version': 'key-manager 1.1'},
+        )
+        token = fixture.V2Token()
+        token.add_service('key-manager').add_endpoint(public=url)
+        self.stub_url('POST', ['tokens'], base_url=self.V2_URL, json=token)
+        for endpoint_override in (None, url):
+            with self.subTest(endpoint_override=endpoint_override):
+                auth = identity.V2Password(
+                    self.V2_URL, username='user', password='password'
+                )
+                client = adapter.Adapter(
+                    session.Session(auth=auth),
+                    service_type='key-manager',
+                    interface='public',
+                    endpoint_override=endpoint_override,
+                    version='1',
+                )
+                data = client.get_endpoint_data()
+                self.assertEqual((1, 0), data.min_microversion)
+                self.assertEqual((1, 3), data.max_microversion)
+                self.assertEqual('key-manager', data.service_type)
+                self.assertEqual(
+                    'key-manager 1.1',
+                    discovery_request.last_request.headers[
+                        'OpenStack-API-Version'
+                    ],
+                )
+
     def test_get_endpoint_data_compute(self):
         common_disc = fixture.DiscoveryList(v2=False, v3=False)
         common_disc.add_nova_microversion(

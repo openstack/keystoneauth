@@ -240,6 +240,7 @@ class BaseIdentityPlugin(plugin.BaseAuthPlugin, metaclass=abc.ABCMeta):
             endpoint_data = discover.EndpointData(
                 service_url=endpoint_override,
                 catalog_url=endpoint_override,
+                service_type=service_type,
                 interface=interface,
                 region_name=region_name,
                 service_name=service_name,

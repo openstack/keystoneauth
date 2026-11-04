@@ -369,6 +369,19 @@ If the user knows a service does not support microversions and is merely
 curious as to which major version was discovered, ``discover_versions`` can be
 set to ``False`` to prevent fetching microversion metadata.
 
+Discovery applies service-specific compatibility behavior when the service
+type is known. For example, key-manager discovery automatically sends
+``OpenStack-API-Version: key-manager 1.1`` so that Barbican returns its
+microversion range rather than its legacy discovery document. This does not
+select a microversion for subsequent resource requests. If the automatic
+probe is rejected with HTTP 406, discovery retries without the header for
+compatibility with older deployments.
+
+Adapters already supply the service type. When performing discovery directly,
+pass e.g. ``service_type='key-manager'`` to ``Discover``, ``get_discovery()``,
+or ``get_version_data()`` to enable this behavior. Discovery documents
+requested with different version headers are cached separately.
+
 Requesting a Microversion
 -------------------------
 
