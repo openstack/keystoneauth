@@ -21,14 +21,9 @@ extensions = [
     'sphinx.ext.intersphinx',
     'openstackdocstheme',
     'ext.list_plugins',
-    'sphinxcontrib.apidoc',
+    'sphinx.ext.apidoc',
 ]
 
-# sphinxcontrib.apidoc options
-apidoc_module_dir = '../../keystoneauth1'
-apidoc_output_dir = 'api'
-apidoc_excluded_paths = ['hacking', 'tests/*', 'tests', 'test']
-apidoc_separate_modules = True
 todo_include_todos = True
 
 # Add any paths that contain templates here, relative to this directory.
@@ -114,7 +109,27 @@ openstackdocs_bug_project = 'keystoneauth'
 openstackdocs_bug_tag = 'doc'
 
 
+# -- Options for sphinx.ext.apidoc --------------------------------------------
+
+apidoc_modules = [
+    {
+        'path': '../../keystoneauth1',
+        'destination': 'api',
+        'exclude_patterns': [
+            '../../keystoneauth1/hacking',
+            '../../keystoneauth1/tests/*',
+            '../../keystoneauth1/tests',
+            '../../keystoneauth1/test',
+        ],
+        'separate_modules': True,
+    }
+]
+
+
 # -- Options for autodoc
+
+# Apply to members and re-exported classes as well as their containing modules.
+autodoc_default_options = {'no-index': True}
 
 
 def maybe_skip_member(app, what, name, obj, skip, options):
