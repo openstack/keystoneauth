@@ -44,9 +44,9 @@ except ImportError:
     netaddr = None
 
 try:
-    import osprofiler.web as osprofiler_web  # type: ignore[import-not-found]
+    import osprofiler.web as osprofiler_web
 except ImportError:
-    osprofiler_web = None
+    osprofiler_web = None  # type: ignore[assignment]
 
 DEFAULT_USER_AGENT = (
     f'keystoneauth1/{keystoneauth1.__version__} '
