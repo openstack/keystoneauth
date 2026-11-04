@@ -89,6 +89,9 @@ show_column_numbers = true
 show_error_context = true
 strict = true
 disable_error_code = ["import-untyped"]
+# temporary fix due to
+# https://review.opendev.org/c/openstack/oslo.config/+/1013888
+warn_unused_ignores = false
 exclude = "(?x)(doc | releasenotes)"
 
 [[tool.mypy.overrides]]
