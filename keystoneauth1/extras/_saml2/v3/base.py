@@ -11,7 +11,7 @@
 # under the License.
 
 from collections.abc import Mapping
-from typing import Any, cast, TypeVar
+from typing import TypeVar
 
 try:
     # explicitly re-export symbol
@@ -123,5 +123,5 @@ class BaseSAMLPlugin(v3.FederationBaseAuth):
             raise exceptions.AuthorizationFailure(msg)
 
     @staticmethod
-    def xml_to_str(content: etree._Element, **kwargs: Any) -> bytes:
-        return cast(bytes, etree.tostring(content, **kwargs))
+    def xml_to_str(content: etree._Element) -> bytes:
+        return etree.tostring(content)
