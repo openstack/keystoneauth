@@ -24,7 +24,7 @@ raw data specified in version discovery responses.
 import copy
 from collections.abc import Generator, Iterable
 import re
-from typing import Any, cast, Optional, TYPE_CHECKING
+from typing import Any, cast, Optional, TypeAlias, TYPE_CHECKING
 import urllib
 
 import os_service_types
@@ -33,6 +33,7 @@ from keystoneauth1 import _utils as utils
 from keystoneauth1 import exceptions
 
 if TYPE_CHECKING:
+    from keystoneauth1 import adapter as ks_adapter
     from keystoneauth1 import session as ks_session
 
 LOG = utils.get_logger(__name__)
@@ -41,6 +42,8 @@ _SERVICE_TYPES = os_service_types.ServiceTypes()
 
 _RAW_VERSION_T = str | int | float | Iterable[str | int | float]
 _PARSED_VERSION_T = tuple[int | float, ...]
+
+_Session: TypeAlias = 'ks_session.Session | ks_adapter.Adapter'
 
 
 def _str_or_latest(val: str | int | float) -> str:
@@ -64,7 +67,7 @@ def _int_or_latest(val: str | int | float) -> int | float:
 
 
 def get_version_data(
-    session: 'ks_session.Session',
+    session: _Session,
     url: str,
     authenticated: bool | None = None,
     version_header: str | None = None,
@@ -567,10 +570,7 @@ class Discover:
     EXPERIMENTAL_STATUSES = ('experimental',)
 
     def __init__(
-        self,
-        session: 'ks_session.Session',
-        url: str,
-        authenticated: bool | None = None,
+        self, session: _Session, url: str, authenticated: bool | None = None
     ):
         self._url = url
         self._data = get_version_data(
@@ -1143,7 +1143,7 @@ class EndpointData:
 
     def get_current_versioned_data(
         self,
-        session: 'ks_session.Session',
+        session: _Session,
         allow: dict[str, Any] | None = None,
         cache: dict[str, Discover] | None = None,
         project_id: str | None = None,
@@ -1183,7 +1183,7 @@ class EndpointData:
 
     def get_versioned_data(
         self,
-        session: 'ks_session.Session',
+        session: _Session,
         allow: dict[str, Any] | None = None,
         cache: dict[str, Any] | None = None,
         allow_version_hack: bool = True,
@@ -1253,7 +1253,7 @@ class EndpointData:
         return new_data
 
     def get_all_version_string_data(
-        self, session: 'ks_session.Session', project_id: str | None = None
+        self, session: _Session, project_id: str | None = None
     ) -> list['VersionData']:
         """Return version data for all versions discovery can find.
 
@@ -1301,7 +1301,7 @@ class EndpointData:
 
     def _set_version_info(
         self,
-        session: 'ks_session.Session',
+        session: _Session,
         allow: dict[str, Any],
         cache: dict[str, Discover] | None,
         allow_version_hack: bool,
@@ -1410,7 +1410,7 @@ class EndpointData:
 
     def _run_discovery(
         self,
-        session: 'ks_session.Session',
+        session: _Session,
         cache: dict[str, Discover] | None,
         min_version: _PARSED_VERSION_T | None,
         max_version: _PARSED_VERSION_T | None,
@@ -1641,7 +1641,7 @@ class EndpointData:
 
 
 def get_discovery(
-    session: 'ks_session.Session',
+    session: _Session,
     url: str,
     cache: dict[str, Discover] | None = None,
     authenticated: bool | None = False,
