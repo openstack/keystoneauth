@@ -14,6 +14,7 @@ Contents
 
    using-sessions
    authentication-plugins
+   service-tokens
    plugin-options
    plugins/index
 
