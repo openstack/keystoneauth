@@ -106,6 +106,7 @@ class Opt:
 
         return cfg.Opt(
             name=self.name,
+            # https://review.opendev.org/c/openstack/oslo.config/+/1012466
             type=self.type,  # type: ignore[arg-type]
             help=self.help,
             secret=self.secret,
