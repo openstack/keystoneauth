@@ -715,6 +715,77 @@ class OIDCDeviceAuthorizationTest(BaseOIDCTests, utils.TestCase):
             payload,
         )
 
+    @mock.patch('time.sleep')
+    def test_poll_token_endpoint_returns_full_response(self, m_sleep):
+        """The whole token response is returned, not just the access token."""
+        self._store_device_authorization_response()
+        token_resp = oidc_fixtures.ACCESS_TOKEN_VIA_PASSWORD_RESP
+        self.requests_mock.post(
+            self.ACCESS_TOKEN_ENDPOINT,
+            [
+                {
+                    'status_code': 400,
+                    'json': {'error': 'authorization_pending'},
+                    'headers': {'Content-Type': 'application/json'},
+                },
+                {'json': token_resp},
+            ],
+        )
+
+        payload = {
+            'grant_type': self.GRANT_TYPE,
+            'device_code': self.plugin.device_code,
+        }
+        result = self.plugin._poll_token_endpoint(self.session, payload)
+
+        self.assertEqual(token_resp, result)
+        self.assertEqual(2, self.requests_mock.call_count)
+        m_sleep.assert_called_once_with(self.plugin.interval)
+
+    def test_get_access_token_uses_poll_token_endpoint(self):
+        self._store_device_authorization_response()
+        self.requests_mock.post(
+            self.ACCESS_TOKEN_ENDPOINT,
+            json=oidc_fixtures.ACCESS_TOKEN_VIA_PASSWORD_RESP,
+        )
+
+        payload = {
+            'grant_type': self.GRANT_TYPE,
+            'device_code': self.plugin.device_code,
+        }
+        with mock.patch.object(
+            self.plugin,
+            '_poll_token_endpoint',
+            wraps=self.plugin._poll_token_endpoint,
+        ) as m_poll:
+            token = self.plugin._get_access_token(self.session, payload)
+
+        m_poll.assert_called_once_with(self.session, payload)
+        self.assertEqual(
+            oidc_fixtures.ACCESS_TOKEN_VIA_PASSWORD_RESP['access_token'], token
+        )
+
+    def test_poll_token_endpoint_other_error_not_retried(self):
+        self._store_device_authorization_response()
+        self.requests_mock.post(
+            self.ACCESS_TOKEN_ENDPOINT,
+            status_code=400,
+            json={'error': 'access_denied'},
+            headers={'Content-Type': 'application/json'},
+        )
+
+        payload = {
+            'grant_type': self.GRANT_TYPE,
+            'device_code': self.plugin.device_code,
+        }
+        self.assertRaises(
+            exceptions.http.BadRequest,
+            self.plugin._poll_token_endpoint,
+            self.session,
+            payload,
+        )
+        self.assertEqual(1, self.requests_mock.call_count)
+
     def test_get_access_token_device_code_already_expired(self):
         """An expired device code times out instead of raising NameError."""
         self._store_device_authorization_response()

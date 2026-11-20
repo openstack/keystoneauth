@@ -17,7 +17,7 @@ import hashlib
 import logging
 import os
 import time
-from typing import cast, ClassVar, TypeVar
+from typing import Any, cast, ClassVar, TypeVar
 from urllib import parse as urlparse
 
 import requests
@@ -931,6 +931,28 @@ class OidcDeviceAuthorization(_OidcBase):
                 self.user_code,
             )
 
+        response = self._poll_token_endpoint(session, payload)
+        access_token = response[self.access_token_type]
+        assert isinstance(access_token, str)  # nosec B101
+        return access_token
+
+    def _poll_token_endpoint(
+        self, session: ks_session.Session, payload: dict[str, str | None]
+    ) -> dict[str, Any]:
+        """Poll the token endpoint until the user has authorized the device.
+
+        Unlike :meth:`_get_access_token`, this returns the complete token
+        response rather than just the access token, so that subclasses can
+        get at other fields such as ``refresh_token`` or ``id_token``.
+
+        :param session: a session object to send out HTTP requests.
+        :param payload: the token request payload; see
+            :meth:`_get_access_token`.
+
+        :returns: the decoded JSON body of the token endpoint response.
+        :raises keystoneauth1.exceptions.oidc.OidcDeviceAuthorizationTimeOut:
+            if the device code expires before the user authorizes it.
+        """
         if self.client_secret:
             client_auth = (self.client_id, self.client_secret)
         else:
@@ -977,10 +999,6 @@ class OidcDeviceAuthorization(_OidcBase):
                     raise
                 time.sleep(self.interval)
                 continue
-            break
-        else:
-            raise exceptions.oidc.OidcDeviceAuthorizationTimeOut()
+            return cast(dict[str, Any], op_response.json())
 
-        access_token = op_response.json()[self.access_token_type]
-        assert isinstance(access_token, str)  # nosec B101
-        return access_token
+        raise exceptions.oidc.OidcDeviceAuthorizationTimeOut()
