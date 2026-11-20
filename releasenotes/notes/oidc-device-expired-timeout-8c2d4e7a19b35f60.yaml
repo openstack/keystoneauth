@@ -1,0 +1,6 @@
+---
+fixes:
+  - |
+    v3oidcdeviceauthz plugin no longer raises an ``UnboundLocalError`` when
+    the device code has already expired before the token endpoint  has been
+    polled. Now it raises ``OidcDeviceAuthorizationTimeOut``.
