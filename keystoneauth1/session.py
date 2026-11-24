@@ -25,7 +25,7 @@ import ssl
 import sys
 import time
 import types
-from typing import Any, cast, Literal
+from typing import Any, Literal, Self, cast
 import urllib.parse
 import uuid
 
@@ -436,6 +436,17 @@ class Session:
             self.user_agent = f"{user_agent} {DEFAULT_USER_AGENT}"
 
         self._json = _JSONEncoder()
+
+    def __enter__(self) -> Self:
+        return self
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: types.TracebackType | None,
+    ) -> None:
+        self.close()
 
     def close(self) -> None:
         """Release resources held by this session.

@@ -1,0 +1,8 @@
+---
+features:
+  - |
+    The ``keystoneauth1.session.Session`` class can now be used as a context
+    manager::
+
+        with ksa_session.Session(...) as sess:
+            sess.get(...)
