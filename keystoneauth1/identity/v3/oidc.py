@@ -979,8 +979,7 @@ class OidcDeviceAuthorization(_OidcBase):
                 continue
             break
         else:
-            if error == "authorization_pending":
-                raise exceptions.oidc.OidcDeviceAuthorizationTimeOut()
+            raise exceptions.oidc.OidcDeviceAuthorizationTimeOut()
 
         access_token = op_response.json()[self.access_token_type]
         assert isinstance(access_token, str)  # nosec B101

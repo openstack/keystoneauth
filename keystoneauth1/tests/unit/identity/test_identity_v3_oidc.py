@@ -715,6 +715,23 @@ class OIDCDeviceAuthorizationTest(BaseOIDCTests, utils.TestCase):
             payload,
         )
 
+    def test_get_access_token_device_code_already_expired(self):
+        """An expired device code times out instead of raising NameError."""
+        self._store_device_authorization_response()
+        self.plugin.timeout = time.time() - 1
+
+        payload = {
+            'grant_type': self.GRANT_TYPE,
+            'device_code': self.plugin.device_code,
+        }
+        self.assertRaises(
+            exceptions.oidc.OidcDeviceAuthorizationTimeOut,
+            self.plugin._get_access_token,
+            self.session,
+            payload,
+        )
+        self.assertFalse(self.requests_mock.called)
+
     def _basic_header(self, username, password):
         user_pass = f'{username}:{password}'.encode()
         encoded_credentials = base64.b64encode(user_pass).decode('utf-8')
