@@ -490,12 +490,8 @@ class Session:
         except Exception:  # noqa: S110
             pass
 
-    # TODO(stephenfin): The types from typeshed are very generic. This would be
-    # more accurate:
-    #
-    #     collections.OrderedDict[str, requests.adapters.BaseAdapter]
     @property
-    def adapters(self) -> MutableMapping[Any, Any]:
+    def adapters(self) -> MutableMapping[str, requests.adapters.BaseAdapter]:
         return self.session.adapters
 
     @adapters.setter
