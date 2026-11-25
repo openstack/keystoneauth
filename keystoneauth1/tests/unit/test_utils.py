@@ -21,3 +21,25 @@ class UtilsTests(testtools.TestCase):
             'keystoneauth.tests.unit.test_utils',
             _utils.get_logger(__name__).name,
         )
+
+    def test_mask_sensitive_data_nested(self):
+        data = {
+            'driver': 'pxe_ipmitool',
+            'driver_info': {'ipmi_password': 'a12345'},
+        }
+        masked = _utils.mask_sensitive_data(data)
+        self.assertEqual(masked['driver'], 'pxe_ipmitool')
+        self.assertEqual(masked['driver_info']['ipmi_password'], '***')
+
+    def test_mask_sensitive_string_json(self):
+        payload = (
+            '{"driver": "pxe_ipmitool", '
+            '"driver_info": {"ipmi_password": "a12345"}}'
+        )
+        masked = _utils.mask_sensitive_string(payload)
+        self.assertIn('"ipmi_password": "***"', masked)
+        self.assertNotIn('a12345', masked)
+
+    def test_mask_sensitive_string_non_json(self):
+        data = 'BODYDATA'
+        self.assertEqual(data, _utils.mask_sensitive_string(data))
